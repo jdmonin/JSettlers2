@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2013-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2013-2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -69,7 +69,7 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
      *
      * @param nn  nickname when announced from server, or "-" from client if already auth'd to server;
      *     server has always ignored this field from client after auth, can send "-" but not blank
-     * @param pw  optional password, or "" if none
+     * @param pw  optional password, or "" if none; {@link SOCMessage#EMPTYSTR} or {@code null} is converted here to ""
      * @param hn  unused; optional server host name to which client is connected, or "-" or {@link SOCMessage#EMPTYSTR}
      * @param ga  name of the game
      */
@@ -154,6 +154,27 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
             b.setMemberName(nickname);
         return Message.FromServer.newBuilder()
             .setGaJoin(b).build();
+    }
+
+    /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list
+     * for {@link SOCMessage#parseMsgStr(String)}.
+     * Converts "password empty" to {@link SOCMessage#EMPTYSTR}.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.5.00
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        final int pwEmptyIdx = messageStrParams.indexOf("|password empty|host=");
+        if (pwEmptyIdx > 0)
+            messageStrParams =
+                messageStrParams.substring(0, pwEmptyIdx + 1)
+                + EMPTYSTR
+                + messageStrParams.substring(pwEmptyIdx + 15);
+
+        return SOCMessage.stripAttribNames(messageStrParams);
     }
 
     /**

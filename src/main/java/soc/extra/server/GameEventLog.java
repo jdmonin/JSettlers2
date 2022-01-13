@@ -51,12 +51,22 @@ import soc.util.Version;
  * An {@link EventEntry} holds each log entry.
  *<P>
  * These logs and their entry format are used by various tests and {@link RecordingSOCServer},
- * but aren't used by the standard SOCServer.
+ * but aren't used by the standard SOCServer. Their contents are the network messages relevant to gameplay
+ * captured by server-side calls to {@code messageToPlayer / messageToGame(.., isEvent=true)}
+ * or {@code recordGameEvent(..)}, along with messages from client players and observers.
  *<P>
  * Use {@link #load(File, boolean, int)} to parse from a {@code .soclog} file,
  * creating a new {@code GameEventLog} with {@link #entries} from the parsed entries,
- * setting the {@link #gameName}, {@link #isServerOnly}, {@link #version}, {@link #optsStr},
+ * setting the {@link #gameName}, {@link #isAtClient}, {@link #version}, {@link #optsStr},
  * and {@link #numLines} fields.
+ *
+ *<H3>Message Sequences</H3>
+ *
+ * A list of basic game actions and their message sequences is in
+ * {@code doc/Message-Sequences-for-Game-Actions.md}.
+ * The server uses the latest version format to record the game event sequences
+ * it sends, even when it actually sent different messages to an older client to be compatible.
+ * When loading a log file, {@link #version} holds that sequence/format version info.
  *
  *<H3>Log file format</H3>
  *
@@ -66,8 +76,9 @@ import soc.util.Version;
  *    <tt>SOC game event log: type=</tt>type<tt>, version=2500, created_at=</tt>timestamp<tt>, now=</tt>timestamp<tt>, game_name=</tt>game name <BR>
  *    <UL>
  *      <LI> {@code type} is {@code F} for a full log (all messages from and to server),
- *           or {@code S} if contains only messages from the server, not from the clients;
- *           based on {@code serverOnly} parameter when calling {@code save(..)}.
+ *           or {@code C} if contains only messages from the server to one or all clients,
+ *           not also from all clients to server;
+ *           based on {@code isAtClient} parameter when calling {@code save(..)}.
  *           Is always first in this list of properties.
  *      <LI> {@code version} is the current {@link Version#versionNumber()}.
  *           Always follows {@code type} in this list of properties.
@@ -132,25 +143,27 @@ public class GameEventLog
     public String gameName;
 
     /**
-     * True if this log was loaded by {@link #load(File, boolean, int)} has {@code log_type=S} in header
-     * or was filtered by {@code load(..)} to include only messages to a certain client player
-     * (see {@link #serverOnlyToClientPN}). Otherwise false.
+     * True if this log was loaded by {@link #load(File, boolean, int)} has {@code type=C} in header
+     * or was filtered by {@code load(..)} to include only messages from the server to one or all client players,
+     * as if log was recorded at the client (see {@link #atClientPN}). Otherwise false.
      *<P>
-     * {@code log_type=S} is written by a call to
-     * {@link #save(File, String, boolean, boolean) save(.., serverOnly=true)}.
+     * {@code type=C} is written by a call to
+     * {@link #save(File, String, boolean, boolean) save(.., isAtClient=true)}.
      */
-    public boolean isServerOnly;
+    public boolean isAtClient;
 
     /**
      * If not -1, this log was loaded by {@link #load(File, boolean, int)} and filtered
-     * to include only messages to a certain client player number.
-     * If set, {@code load(..)} also sets {@link #isServerOnly}.
+     * to include only messages from server to this one client player number, as if log was recorded at that client.
+     * If set, {@code load(..)} also sets {@link #isAtClient}.
      */
-    public int serverOnlyToClientPN = -1;
+    public int atClientPN = -1;
 
     /**
-     * The game data version seen in a log that's been loaded by {@link #load(File, boolean, int)},
+     * The game data version seen in an event log header that's been loaded by {@link #load(File, boolean, int)},
      * in same format as {@link Version#versionNumber()}. Otherwise 0.
+     * When a log file is written by {@link #save(File, String, boolean, boolean)},
+     * it uses {@link Version#versionNumber()} when writing the header.
      * @see #MIN_VERSION
      */
     public int version;
@@ -172,7 +185,7 @@ public class GameEventLog
 
     /**
      * Number of lines read by {@link #load(File, boolean, int)}, including blank and comment lines. Otherwise 0.
-     * Includes lines filtered out when {@link #serverOnlyToClientPN} != -1 or {@link #isServerOnly}.
+     * Includes lines filtered out when {@link #atClientPN} != -1 or {@link #isAtClient}.
      */
     public int numLines;
 
@@ -201,50 +214,50 @@ public class GameEventLog
      * {@link #numLines} will be same as {@code source}, not reduced by filtering.
      *
      * @param source  Log to copy from
-     * @param filterServerOnlyToClientPN  -1 to copy all entries,
+     * @param filterAtClientPN  -1 to copy all entries,
      *     or any other value to ignore/filter out log entries which have {@link EventEntry#isFromClient} set true
-     *     or aren't sent from server to that client player number.
+     *     or aren't sent from server to that client player number, as if log was recorded at that client.
      *     Can also be {@link SOCServer#PN_OBSERVER} or {@link SOCServer#PN_REPLY_TO_UNDETERMINED}.
-     *     If {@code source.}{@link #isServerOnly}, the log is already server-only but probably contains messages
+     *     If {@code source.}{@link #isAtClient}, the log is already server-only but probably contains messages
      *     to other client players too.
-     * @throws IllegalArgumentException If filtering but {@code source.}{@link #serverOnlyToClientPN} != -1
+     * @throws IllegalArgumentException If filtering but {@code source.}{@link #atClientPN} != -1
      */
-    public GameEventLog(final GameEventLog source, final int filterServerOnlyToClientPN)
+    public GameEventLog(final GameEventLog source, final int filterAtClientPN)
         throws IllegalArgumentException
     {
-        if ((filterServerOnlyToClientPN != -1) && (source.serverOnlyToClientPN != -1))
-            throw new IllegalArgumentException("already serverOnlyToClientPN: " + source.serverOnlyToClientPN);
+        if ((filterAtClientPN != -1) && (source.atClientPN != -1))
+            throw new IllegalArgumentException("already atClientPN: " + source.atClientPN);
 
         game = source.game;
         gameName = source.gameName;
-        if (filterServerOnlyToClientPN != -1)
+        if (filterAtClientPN != -1)
         {
-            isServerOnly = true;
-            serverOnlyToClientPN = filterServerOnlyToClientPN;
+            isAtClient = true;
+            atClientPN = filterAtClientPN;
         } else {
-            isServerOnly = source.isServerOnly;
-            serverOnlyToClientPN = source.serverOnlyToClientPN;
+            isAtClient = source.isAtClient;
+            atClientPN = source.atClientPN;
         }
         version = source.version;
         hasTimestamps = source.hasTimestamps;
         optsStr = source.optsStr;
         numLines = source.numLines;
 
-        if (filterServerOnlyToClientPN == -1)
+        if (filterAtClientPN == -1)
             entries.addAll(source.entries);
         else
             synchronized(source.entries)  // avoid some locking overhead
             {
                 for (EventEntry ee : source.entries)
                 {
-                    if (ee.isFromClient || ((ee.pn != -1) && (ee.pn != filterServerOnlyToClientPN)))
+                    if (ee.isFromClient || ((ee.pn != -1) && (ee.pn != filterAtClientPN)))
                     {
                         continue;
                     } else if (ee.excludedPN != null) {
                         boolean exclude = false;
                         for (int pn : ee.excludedPN)
                         {
-                            if (pn == filterServerOnlyToClientPN)
+                            if (pn == filterAtClientPN)
                             {
                                 exclude = true;
                                 break;
@@ -287,8 +300,8 @@ public class GameEventLog
      *     Recommended suffix is {@link #FILENAME_EXTENSION} for consistency.
      * @param untimed  If true, omit the optional {@link GameEventLog.EventEntry#timeElapsedMS} timestamp field
      *     when writing entries to file
-     * @param serverOnly  If true, don't write entries where {@link GameEventLog.EventEntry#isFromClient} true;
-     *     log will be {@code type=S} instead of {@code type=F}.
+     * @param atClient  If true, don't write entries where {@link GameEventLog.EventEntry#isFromClient} true;
+     *     log will be {@code type=C} instead of {@code type=F}.
      * @throws IllegalStateException  if {@link #game} is {@code null}
      * @throws NoSuchElementException  unless {@link #entries} starts with {@link SOCVersion}
      *     followed by {@link SOCNewGame} or {@link SOCNewGameWithOptions} where
@@ -298,7 +311,7 @@ public class GameEventLog
      * @see #load(File, boolean, int)
      */
     public void save
-        (final File saveDir, final String saveFilename, final boolean untimed, final boolean serverOnly)
+        (final File saveDir, final String saveFilename, final boolean untimed, final boolean atClient)
         throws IllegalStateException, NoSuchElementException, IllegalArgumentException, IOException
     {
         if (game == null)
@@ -356,7 +369,7 @@ public class GameEventLog
             }
 
             writer.append
-                ("SOC game event log: type=" + (serverOnly ? 'S' : 'F')
+                ("SOC game event log: type=" + (atClient ? 'C' : 'F')
                  + ", version=" + Version.versionNumber()
                  + ", created_at=" + (createdAt.getTime() / 1000)
                  + ", now=" + (now.getTime() / 1000)
@@ -365,16 +378,18 @@ public class GameEventLog
             writer.append("# Log written at:  " + nowStr + '\n');
 
             for (GameEventLog.EventEntry entry : entries)
-                if (! (entry.isFromClient && serverOnly))
+                if (! (entry.isFromClient && atClient))
                     writer.append(entry.toString(untimed)).append('\n');
 
-            writer.append("# End of log; final game state is ")
+            writer.append("# End of log. Game state ")
                 .append(Integer.toString(game.getGameState())).append('\n');
-            writer.append("# Final player info:\n");
+            writer.append("# Player info:\n");
             final SOCPlayer winner = game.getPlayerWithWin();  // null if still playing
             for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
                 final SOCPlayer pl = game.getPlayer(pn);
+                if (pl == null)
+                    continue;  // maybe game's been destroyed
                 final int vp = (winner != null) ? pl.getTotalVP() : pl.getPublicVP();
                 if ((vp == 0) && game.isSeatVacant(pn))
                     continue;
@@ -408,17 +423,17 @@ public class GameEventLog
 
     /**
      * Load and parse a log from a file in the format saved by {@link #save(File, String, boolean, boolean)}.
-     * Adds its entries to {@link #entries}. Sets {@link #gameName}, {@link #version}, {@link #isServerOnly},
+     * Adds its entries to {@link #entries}. Sets {@link #gameName}, {@link #version}, {@link #isAtClient},
      * {@link #optsStr}, and {@link #numLines}.
      *
      * @param loadFrom  File to load from; filename usually ends with {@link #FILENAME_EXTENSION}
      * @param ignoreComments  If true, ignore comment lines instead of calling
      *     {@link EventEntry#EventEntry(String) new EventEntry(String)} constructor
-     * @param filterServerOnlyToClientPN  If not -1, ignore/filter out log entries which have
+     * @param filterAtClientPN  If not -1, ignore/filter out log entries which have
      *     {@link EventEntry#isFromClient} set true or aren't sent from server to that client player number.
      *     Can also be {@link SOCServer#PN_OBSERVER} or {@link SOCServer#PN_REPLY_TO_UNDETERMINED}.
      *     Can be used by client-side code or tests.
-     *     If {@code log_type=S}, the log is already server-only but probably contains messages to other client
+     *     If {@code type=C}, the log is already server-only but probably contains messages to other client
      *     players too.
      * @throws IOException  if a problem occurs while loading
      * @throws ParseException  if a log line can't be parsed. Exception text will start with line number: "Line 5: ...".
@@ -434,7 +449,7 @@ public class GameEventLog
      * @see #GameEventLog(GameEventLog, int)
      */
     public static GameEventLog load
-        (final File loadFrom, final boolean ignoreComments, final int filterServerOnlyToClientPN)
+        (final File loadFrom, final boolean ignoreComments, final int filterAtClientPN)
         throws IOException, ParseException, NoSuchElementException
     {
         final GameEventLog ret = new GameEventLog(null, false);
@@ -462,8 +477,8 @@ public class GameEventLog
                     case 'F':
                         // GameEventLog is full by default
                         break;
-                    case 'S':
-                        ret.isServerOnly = true;
+                    case 'C':
+                        ret.isAtClient = true;
                         break;
                     default:
                         throw new ParseException("unknown log type: " + logType, 26);
@@ -565,9 +580,9 @@ public class GameEventLog
                         sawNewGame = true;
                     }
 
-                    if (filterServerOnlyToClientPN != -1)
+                    if (filterAtClientPN != -1)
                     {
-                        if (ee.isFromClient || ((ee.pn != -1) && (ee.pn != filterServerOnlyToClientPN)))
+                        if (ee.isFromClient || ((ee.pn != -1) && (ee.pn != filterAtClientPN)))
                             continue;
 
                         if (ee.excludedPN != null)
@@ -575,7 +590,7 @@ public class GameEventLog
                             boolean exclude = false;
                             for (int pn : ee.excludedPN)
                             {
-                                if (pn == filterServerOnlyToClientPN)
+                                if (pn == filterAtClientPN)
                                 {
                                     exclude = true;
                                     break;
@@ -594,10 +609,10 @@ public class GameEventLog
             }
         }
 
-        if (filterServerOnlyToClientPN != -1)
+        if (filterAtClientPN != -1)
         {
-            ret.isServerOnly = true;
-            ret.serverOnlyToClientPN = filterServerOnlyToClientPN;
+            ret.isAtClient = true;
+            ret.atClientPN = filterAtClientPN;
         }
 
         return ret;

@@ -74,6 +74,15 @@ public class TestLoadgame
     public static void setup()
         throws Exception
     {
+        try
+        {
+            assertTrue(null != Class.forName("com.google.gson.Gson"));
+        } catch(Throwable th) {
+            String msg = "TestLoadgame: can't load com.google.gson.Gson, check CLASSPATH: " + th;
+            System.err.println(msg);
+            fail(msg);
+        }
+
         srv = new SOCServer("dummy", 0, null, null);
 
         // - create the inactive game option used in bad-gameopt-inactive.game.json
@@ -909,7 +918,10 @@ public class TestLoadgame
         }
     }
 
-    /** Test loading an unknown {@link SOCGameOption}: {@code bad-gameopt-unknown.game.json} */
+    /**
+     * Test loading an unknown {@link SOCGameOption}: {@code bad-gameopt-unknown.game.json}
+     * @since 2.5.00
+     */
     @Test
     public void testLoadUnknownGameopt()
         throws IOException
@@ -929,7 +941,10 @@ public class TestLoadgame
         }
     }
 
-    /** Test loading an inactive {@link SOCGameOption}: {@code bad-gameopt-inactive.game.json} */
+    /**
+     * Test loading an inactive {@link SOCGameOption}: {@code bad-gameopt-inactive.game.json}
+     * @since 2.5.00
+     */
     @Ignore("TODO v3: convert to SOCBoardLarge when loading a classic board savegame")
     @Test
     public void testLoadInactiveGameopt()

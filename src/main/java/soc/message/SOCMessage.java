@@ -151,7 +151,7 @@ import soc.proto.Message;
  *
  *<H3>Renaming a message or improving its {@link #toString()} form:</H3>
  * For debugging purposes, it's sometimes useful to make the output of {@link #toString()} more meaningful:
- * Translating enum integers like {@code pieceType} to their strings, etc.
+ * Translating integer field values like {@code pieceType} to their declared constant names, etc.
  *<P>
  * In versions after 2.5.00: If you must make an incompatible change to a message's toString form,
  * and a previous version's {@link #parseMsgStr(String)} wouldn't be able to parse that new form,
@@ -458,10 +458,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int SCENARIOINFO = 1101;    // Scenario info, 20150920, v2.0.00
 
     /**
-     * {@link SOCReportRobbery} - Info from server about a robbery's perpetrator, victim, and what was stolen.
+     * {@link SOCRobberyResult} - Info reported from server about a robbery's perpetrator, victim, and what was stolen.
      * @since 2.5.00
      */
-    public static final int REPORTROBBERY = 1102;  // Report Robbery, 20200915, v2.5.00
+    public static final int ROBBERYRESULT = 1102;  // Report robbery result, 20200915, v2.5.00
 
     /**
      * {@link SOCBotGameDataCheck} - Check if all bots still have an accurate copy of various game data.
@@ -469,6 +469,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static final int BOTGAMEDATACHECK = 1103;  // Bot game data consistency check, 20210930, v2.5.00
 
+    /**
+     * {@link SOCDeclinePlayerRequest} - Decline a player's request or requested action.
+     * @since 2.5.00
+     */
+    public static final int DECLINEPLAYERREQUEST = 1104;  // Decline player's request, 20211208, v2.5.00
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
@@ -1143,11 +1148,14 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case SCENARIOINFO:         // Scenario info, 20150920, v2.0.00
                 return SOCScenarioInfo.parseDataStr(multiData, data);
 
-            case REPORTROBBERY:        // Report Robbery, 20200915, v2.5.00
-                return SOCReportRobbery.parseDataStr(data);
+            case ROBBERYRESULT:        // Report robbery result, 20200915, v2.5.00
+                return SOCRobberyResult.parseDataStr(data);
 
             case BOTGAMEDATACHECK:      // Bot game data consistency check, 20210930, v2.5.00
                 return SOCBotGameDataCheck.parseDataStr(multiData);
+
+            case DECLINEPLAYERREQUEST:  // Decline player's request, 20211208, v2.5.00
+                return SOCDeclinePlayerRequest.parseDataStr(data);
 
             // gametype-specific messages:
 

@@ -477,7 +477,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         if (gameopt3p != null)
         {
             gameopt3p = gameopt3p.toUpperCase(Locale.US);
-            feats.add("com.example.js." + gameopt3p);
+            feats.add("com.example.js.feat." + gameopt3p);
 
             if (null == knownOpts.getKnownOption(gameopt3p, false))
             {
@@ -731,6 +731,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.CHOOSEPLAYER:  // server wants our player to choose to rob cloth or rob resources from victim
             case SOCMessage.CHOOSEPLAYERREQUEST:
             case SOCMessage.CLEAROFFER:
+            case SOCMessage.DECLINEPLAYERREQUEST:
             case SOCMessage.DEVCARDACTION:  // either draw, play, or add to hand, or cannot play our requested dev card
             case SOCMessage.DICERESULT:
             case SOCMessage.DICERESULTRESOURCES:
@@ -744,8 +745,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             case SOCMessage.PLAYERELEMENTS:  // apply multiple PLAYERELEMENT updates; added 2017-12-10 for v2.0.00
             case SOCMessage.PUTPIECE:
             case SOCMessage.REJECTOFFER:
-            case SOCMessage.REPORTROBBERY:  // added 2021-01-05 for v2.5.00
             case SOCMessage.RESOURCECOUNT:
+            case SOCMessage.ROBBERYRESULT:  // added 2021-01-05 for v2.5.00
             case SOCMessage.SIMPLEACTION:   // added 2013-09-04 for v1.1.19
             case SOCMessage.SIMPLEREQUEST:  // bot ignored these until 2015-10-10 for v2.0.00
             case SOCMessage.STARTGAME:  // added 2017-12-18 for v2.0.00 when gameState became a field of this message

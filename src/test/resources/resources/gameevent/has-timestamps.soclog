@@ -216,8 +216,8 @@ SOC game event log: type=F, version=2500, created_at=1636724878, now=1636724953,
 0:44.867:all:SOCPutPiece:game=g|playerNumber=3|pieceType=0|coord=89
 0:44.867:all:SOCGameState:game=g|state=20
 1:04.429:fo:SOCGameTextMsg:game=g|nickname=-|text=entry with timestamp >= 1 minute
-# End of log; final game state is 20
-# Final player info:
+# End of log. Game state 20
+# Player info:
 # - pn 1: total score 2: robot 3
 # - pn 2: total score 2: robot 4
 # - pn 3: total score 2: j

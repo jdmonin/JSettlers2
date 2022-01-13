@@ -53,6 +53,7 @@ import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCChoosePlayerRequest;
 import soc.message.SOCClearOffer;
+import soc.message.SOCDeclinePlayerRequest;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCDiceResult;
 import soc.message.SOCDiceResultResources;
@@ -70,8 +71,8 @@ import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCPlayerElements;
 import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
-import soc.message.SOCReportRobbery;
 import soc.message.SOCResourceCount;
+import soc.message.SOCRobberyResult;
 import soc.message.SOCSetSpecialItem;
 import soc.message.SOCSimpleAction;
 import soc.message.SOCSimpleRequest;
@@ -181,6 +182,7 @@ public class SOCRobotBrain extends Thread
     /**
      * If, during a turn, we make this many illegal build
      * requests that the server denies, stop trying.
+     * Also includes general ({@link SOCDeclinePlayerRequest}s).
      *
      * @see #failedBuildingAttempts
      * @since 1.1.00
@@ -397,6 +399,7 @@ public class SOCRobotBrain extends Thread
      * made this turn.  Avoid infinite turn length, by
      * preventing robot from alternately choosing two
      * wrong things when the server denies a bad build.
+     * Also includes general ({@link SOCDeclinePlayerRequest}s).
      *
      * @see #whatWeFailedToBuild
      * @see #MAX_DENIED_BUILDING_PER_TURN
@@ -1012,6 +1015,7 @@ public class SOCRobotBrain extends Thread
     /**
      * clears the stack describing the current building plan.
      * @see #getBuildingPlan()
+     * @see #resetFieldsAndBuildingPlan()
      * @see #resetFieldsAtEndTurn()
      * @since 2.5.00
      */
@@ -1409,61 +1413,11 @@ public class SOCRobotBrain extends Thread
 
                         //
                         // remove any expected states
-                        //
-                        expectROLL_OR_CARD = false;
-                        expectPLAY1 = false;
-                        expectPLACING_ROAD = false;
-                        expectPLACING_SETTLEMENT = false;
-                        expectPLACING_CITY = false;
-                        expectPLACING_SHIP = false;
-                        expectPLACING_ROBBER = false;
-                        expectPLACING_FREE_ROAD1 = false;
-                        expectPLACING_FREE_ROAD2 = false;
-                        expectPLACING_INV_ITEM = false;
-                        expectDICERESULT = false;
-                        expectDISCARD = false;
-                        expectMOVEROBBER = false;
-                        expectWAITING_FOR_DISCOVERY = false;
-                        expectWAITING_FOR_MONOPOLY = false;
-
-                        //
-                        // reset the selling flags and offers history
-                        //
-                        setDoneTrading(robotParameters.getTradeFlag() == 0);
-
-                        waitingForTradeMsg = false;
-                        waitingForTradeResponse = false;
-                        declinedOurPlayerTrades = 0;
-                        negotiator.resetIsSelling();
-                        negotiator.resetOffersMade();
-
-                        waitingForPickSpecialItem = null;
-                        waitingForSC_PIRI_FortressRequest = false;
-
-                        //
+                        // reset the selling flags and trade-offers history
                         // check or reset any special-building-phase decisions
+                        // reset any building plans we had
                         //
-                        decidedIfSpecialBuild = false;
-                        if (game.getGameState() == SOCGame.SPECIAL_BUILDING)
-                        {
-                            if (waitingForSpecialBuild && ! buildingPlan.isEmpty())
-                            {
-                                // Keep the building plan.
-                                // Will ask during loop body to build.
-                            } else {
-                                // We have no plan, but will call planBuilding()
-                                // during the loop body.  If buildingPlan still empty,
-                                // bottom of loop will end our Special Building turn,
-                                // just as it would in gamestate PLAY1.  Otherwise,
-                                // will ask to build after planBuilding.
-                            }
-                        } else {
-                            //
-                            // reset any plans we had
-                            //
-                            resetBuildingPlan();
-                        }
-                        negotiator.resetTargetPieces();
+                        resetFieldsAndBuildingPlan();
 
                         //
                         // swap the message-history queues
@@ -1511,6 +1465,8 @@ public class SOCRobotBrain extends Thread
                      * When reading the main flow of this method, skip past here;
                      * search for "it's time to decide to build or take other normal actions".
                      */
+                    boolean isDataUpdateOnly = false;
+                        // true if only updating game data in rbrain thread, not taking any actions based on message
                     switch (mesType)
                     {
                     case SOCMessage.PLAYERELEMENT:
@@ -1543,6 +1499,7 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.DICERESULTRESOURCES:
                         SOCDisplaylessPlayerClient.handleDICERESULTRESOURCES
                             ((SOCDiceResultResources) mes, game, ourPlayerName, false);
+                        isDataUpdateOnly = true;
                         break;
 
                     case SOCMessage.PUTPIECE:
@@ -1565,6 +1522,7 @@ public class SOCRobotBrain extends Thread
 
                     case SOCMessage.DISCARD:
                         SOCDisplaylessPlayerClient.handleDISCARD((SOCDiscard) mes, game);
+                        isDataUpdateOnly = true;
                         break;
 
                     case SOCMessage.MOVEROBBER:
@@ -1574,6 +1532,8 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.MAKEOFFER:
                         if (robotParameters.getTradeFlag() == 1)
                             handleMAKEOFFER((SOCMakeOffer) mes);
+                        else
+                            isDataUpdateOnly = true;
                         break;
 
                     case SOCMessage.CLEAROFFER:
@@ -1587,6 +1547,8 @@ public class SOCRobotBrain extends Thread
                                 for (int i = 0; i < game.maxPlayers; ++i)
                                     game.getPlayer(i).setCurrentOffer(null);
                             }
+                        } else {
+                            isDataUpdateOnly = true;
                         }
                         break;
 
@@ -1609,6 +1571,8 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.REJECTOFFER:
                         if (robotParameters.getTradeFlag() == 1)
                             handleREJECTOFFER((SOCRejectOffer) mes);
+                        else
+                            isDataUpdateOnly = true;
                         break;
 
                     case SOCMessage.DEVCARDACTION:
@@ -1633,8 +1597,6 @@ public class SOCRobotBrain extends Thread
                         // For any player's request, update game data in our thread
                         SOCDisplaylessPlayerClient.handleSIMPLEREQUEST((SOCSimpleRequest) mes, game);
 
-                        // These messages can almost always be ignored by bots,
-                        // unless we've just sent a request to attack a pirate fortress.
                         // Some request types are handled at the bottom of the loop body;
                         // search for SOCMessage.SIMPLEREQUEST
 
@@ -1660,6 +1622,8 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.SIMPLEACTION:
                         // For any player's action, update game data in our thread
                         SOCDisplaylessPlayerClient.handleSIMPLEACTION((SOCSimpleAction) mes, game);
+                        if (((SOCSimpleAction) mes).getPlayerNumber() != ourPlayerNumber)
+                            isDataUpdateOnly = true;
 
                         // Most action types are handled later in the loop body;
                         // search for SOCMessage.SIMPLEACTION
@@ -1678,6 +1642,8 @@ public class SOCRobotBrain extends Thread
                                 waitingForSC_PIRI_FortressRequest = false;
                                 resetFieldsAtEndTurn();
                                 // client.endTurn not needed; making the attack implies sending endTurn
+
+                                isDataUpdateOnly = false;
                             }
                             // else, from another player; we can ignore it
 
@@ -1695,19 +1661,34 @@ public class SOCRobotBrain extends Thread
 
                             waitingForGameState = false;
                             expectPLACING_INV_ITEM = false;  // in case was rejected placement (SC_FTRI gift port, etc)
+                        } else {
+                            isDataUpdateOnly = true;
                         }
                         break;
 
-                    case SOCMessage.REPORTROBBERY:
-                        handleREPORTROBBERY((SOCReportRobbery) mes);
+                    case SOCMessage.ROBBERYRESULT:
+                        handleROBBERYRESULT((SOCRobberyResult) mes);
+                        if (((SOCRobberyResult) mes).victimPN != ourPlayerNumber)
+                            isDataUpdateOnly = true;
                         break;
 
                     case SOCMessage.BOTGAMEDATACHECK:
                         handleBOTGAMEDATACHECK
                             (((SOCBotGameDataCheck) mes).getDataType(), ((SOCBotGameDataCheck) mes).getValues());
+                        isDataUpdateOnly = true;
+                        break;
+
+                    case SOCMessage.DECLINEPLAYERREQUEST:
+                        // increment failedBuildingAttempts, reset bot's planning/status flags
+                        handleDECLINEPLAYERREQUEST((SOCDeclinePlayerRequest) mes);
                         break;
 
                     }  // switch(mesType)
+
+                    if (isDataUpdateOnly)
+                    {
+                        continue;  // <--- no further actions or planning needed for this message ---
+                    }
 
                     debugInfo();
 
@@ -2328,6 +2309,97 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Server has declined our player's request.
+     * Increment {@link #failedBuildingAttempts}.
+     * Call {@link #resetFieldsAndBuildingPlan()} and update game state if incorrect.
+     * @param mes
+     * @since 2.5.00
+     */
+    protected void handleDECLINEPLAYERREQUEST(SOCDeclinePlayerRequest mes)
+    {
+        resetFieldsAndBuildingPlan();
+
+        ++failedBuildingAttempts;
+
+        final int currState = mes.gameState;
+        if ((currState != 0) && (currState != game.getGameState()))
+            handleGAMESTATE(currState);
+    }
+
+    /**
+     * During bot's turn, reset bot fields and clear the building plan,
+     * stop waiting for any expected responses, so the main loop will plan again soon.
+     *<UL>
+     * <LI> Remove any expected states like {@link #expectPLAY1} or {@link #expectWAITING_FOR_DISCOVERY}
+     * <LI> Reset the selling flags and trade-offers history
+     * <LI> Check or reset any Special Building Phase decisions
+     * <LI> Call {@link #resetBuildingPlan()}, unless is during Special Building Phase
+     *</UL>
+     * @see #resetFieldsAtEndTurn()
+     * @since 2.5.00
+     */
+    protected void resetFieldsAndBuildingPlan()
+    {
+        //
+        // remove any expected states
+        //
+        expectROLL_OR_CARD = false;
+        expectPLAY1 = false;
+        expectPLACING_ROAD = false;
+        expectPLACING_SETTLEMENT = false;
+        expectPLACING_CITY = false;
+        expectPLACING_SHIP = false;
+        expectPLACING_ROBBER = false;
+        expectPLACING_FREE_ROAD1 = false;
+        expectPLACING_FREE_ROAD2 = false;
+        expectPLACING_INV_ITEM = false;
+        expectDICERESULT = false;
+        expectDISCARD = false;
+        expectMOVEROBBER = false;
+        expectWAITING_FOR_DISCOVERY = false;
+        expectWAITING_FOR_MONOPOLY = false;
+
+        //
+        // reset the selling flags and trade-offers history
+        //
+        setDoneTrading(robotParameters.getTradeFlag() == 0);
+
+        waitingForTradeMsg = false;
+        waitingForTradeResponse = false;
+        declinedOurPlayerTrades = 0;
+        negotiator.resetIsSelling();
+        negotiator.resetOffersMade();
+
+        waitingForPickSpecialItem = null;
+        waitingForSC_PIRI_FortressRequest = false;
+
+        //
+        // check or reset any special-building-phase decisions
+        //
+        decidedIfSpecialBuild = false;
+        if (game.getGameState() == SOCGame.SPECIAL_BUILDING)
+        {
+            if (waitingForSpecialBuild && ! buildingPlan.isEmpty())
+            {
+                // Keep the building plan.
+                // Will ask during loop body to build.
+            } else {
+                // We have no plan, but will call planBuilding()
+                // during the loop body.  If buildingPlan still empty,
+                // bottom of loop will end our Special Building turn,
+                // just as it would in gamestate PLAY1.  Otherwise,
+                // will ask to build after planBuilding.
+            }
+        } else {
+            //
+            // reset any plans we had
+            //
+            resetBuildingPlan();
+        }
+        negotiator.resetTargetPieces();
+    }
+
+    /**
      * Bot is ending its turn; reset state control fields to act during other players' turns.
      *<UL>
      * <LI> {@link #waitingForGameState} = true
@@ -2343,6 +2415,8 @@ public class SOCRobotBrain extends Thread
      *<P>
      * Called only after {@link #endTurnActions()} returns true.
      * Does not call {@link SOCRobotClient#endTurn(SOCGame)}.
+     *
+     * @see #resetFieldsAndBuildingPlan()
      * @since 2.0.00
      */
     protected void resetFieldsAtEndTurn()
@@ -2587,15 +2661,15 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Update game data and any bot tracking when a player has been robbed.
-     * Calls {@link SOCDisplaylessPlayerClient#handleREPORTROBBERY(SOCReportRobbery, SOCGame)}.
-     * Third-party bots can override if needed; if so, be sure to call {@code super.handleREPORTROBBERY(..)}.
+     * Calls {@link SOCDisplaylessPlayerClient#handleROBBERYRESULT(SOCRobberyResult, SOCGame)}.
+     * Third-party bots can override if needed; if so, be sure to call {@code super.handleROBBERYRESULT(..)}.
      *
-     * @param mes  Robbery report message
+     * @param mes  Robbery result message
      * @since 2.5.00
      */
-    protected void handleREPORTROBBERY(SOCReportRobbery mes)
+    protected void handleROBBERYRESULT(SOCRobberyResult mes)
     {
-        SOCDisplaylessPlayerClient.handleREPORTROBBERY(mes, game);
+        SOCDisplaylessPlayerClient.handleROBBERYRESULT(mes, game);
 
         // Basic robot brain doesn't do anything else with this message,
         // but a third-party bot might want to.
@@ -3445,7 +3519,8 @@ public class SOCRobotBrain extends Thread
             } else {
                 // Should not occur
                 System.err.println
-                    ("L2521 SOCRobotBrain: " + client.getNickname() + ": Unhandled CANCELBUILDREQUEST at state " + gstate);
+                    ("L2521 SOCRobotBrain: " + client.getNickname()
+                     + ": Unhandled CANCELBUILDREQUEST(" + mes.getPieceType() + ") at state " + gstate);
             }
 
         }  // switch (gameState)
@@ -4732,6 +4807,7 @@ public class SOCRobotBrain extends Thread
         {
             // Shouldn't have asked to build this piece at this time.
             // End our confusion by ending our current turn. Can re-plan on next turn.
+
             failedBuildingAttempts = MAX_DENIED_BUILDING_PER_TURN;
             expectPLACING_ROAD = false;
             expectPLACING_SETTLEMENT = false;
@@ -4742,9 +4818,13 @@ public class SOCRobotBrain extends Thread
             {
                 // special building, currently in state PLACING_* ;
                 // get our resources back, get state PLAY1 or SPECIALBUILD
-                waitingForGameState = true;
-                expectPLAY1 = true;
-                client.cancelBuildRequest(game, mes.getPieceType());
+                final int ptype = mes.getPieceType();
+                if (ptype != -1)
+                {
+                    waitingForGameState = true;
+                    expectPLAY1 = true;
+                    client.cancelBuildRequest(game, ptype);
+                }
             }
         }
         else if (gameState <= SOCGame.START3B)
@@ -4784,11 +4864,18 @@ public class SOCRobotBrain extends Thread
             // The run loop will check if failedBuildingAttempts > (2 * MAX_DENIED_BUILDING_PER_TURN).
             // This bot will leave the game there if it can't recover.
         } else {
-            expectPLAY1 = true;
-            waitingForGameState = true;
-            counter = 0;
-            client.cancelBuildRequest(game, mes.getPieceType());
-            // Now wait for the play1 message, then can re-plan another piece.
+            final int ptype = mes.getPieceType();
+            if (ptype != -1)
+            {
+                expectPLAY1 = true;
+                waitingForGameState = true;
+                counter = 0;
+                client.cancelBuildRequest(game, ptype);
+                // Now wait for the play1 message, then can re-plan another piece.
+            } else {
+                whatWeWantToBuild = null;
+                resetBuildingPlan();
+            }
         }
     }
 

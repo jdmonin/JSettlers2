@@ -105,25 +105,6 @@ public abstract class DataUtils
     }
 
     /**
-     * Convert a list of boxed Integers to a primitive int array.
-     * @param li  List to convert, or {@code null}
-     * @return The list as an array, or {@code null} if {@code li} is {@code null}
-     * @since 2.5.00
-     */
-    public static final int[] intListToPrimitiveArray(final List<Integer> li)
-    {
-        if (li == null)
-            return null;
-
-        int[] arr = new int[li.size()];
-        Iterator<Integer> iterator = li.iterator();
-        for (int i = 0; i < arr.length; ++i)
-            arr[i] = iterator.next().intValue();
-
-        return arr;
-    }
-
-    /**
      * Append map's contents to a StringBuilder, formatted by default as {@code "K1: V1; K2: v2"}.
      * Will be sorted here by key unless {@code map} is already a {@link TreeMap}.
      * Separators can be changed. Appends null as {@code "(null)"}, empty map as {@code "(empty)"}.
@@ -166,6 +147,25 @@ public abstract class DataUtils
 
             sb.append(k).append(kvSeparator).append(map.get(k));
         }
+    }
+
+    /**
+     * Convert a list of boxed Integers to a primitive int array.
+     * @param li  List to convert, or {@code null}
+     * @return The list as an array, or {@code null} if {@code li} is {@code null}
+     * @since 2.5.00
+     */
+    public static final int[] intListToPrimitiveArray(final List<Integer> li)
+    {
+        if (li == null)
+            return null;
+
+        int[] arr = new int[li.size()];
+        Iterator<Integer> iterator = li.iterator();
+        for (int i = 0; i < arr.length; ++i)
+            arr[i] = iterator.next().intValue();
+
+        return arr;
     }
 
     /**

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,11 +37,17 @@ import static org.junit.Assert.*;
 public class TestGame
 {
 
+    /**
+     * Compare relative values/positions of various game states.
+     *<P>
+     * Before v2.6.00 this was {@code test_gameState_startsVsRoll}.
+     */
     @Test
     @SuppressWarnings("all")  // "Comparing identical expressions"
-    public void test_gameState_startsVsRoll()
+    public void test_gameStates_relativeValues()
     {
         assertTrue((SOCGame.ROLL_OR_CARD - 1) == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE);
+        assertTrue((SOCGame.OVER - 10) == SOCGame.LOADING);
     }
 
     /**

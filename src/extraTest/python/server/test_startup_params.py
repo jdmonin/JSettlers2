@@ -121,7 +121,10 @@ def env_ok():
         all_ok = False
         print_err("Test environment cannot already have a server running on tcp port 8880")
     except IOError:
-        pass
+        try:
+            s.close()
+        except:
+            pass
     except Exception as e:
         all_ok = False
         print_err("Failed to check tcp port 8880")
@@ -428,7 +431,7 @@ def all_tests():
     arg_test(False, "", ["jsettlers.gameopt.XYZ=t", "jsettlers.gameopt.ZZZ=t"],
         ["Unknown game option: XYZ", "Unknown game option: ZZZ"])
     arg_test(False, "", ["jsettlers.gameopt.VP=NaN", "jsettlers.gameopt.BC=zzz"],
-        ["Unknown or malformed game option: VP=NaN", "Unknown or malformed game option: BC=zzz"])
+        ["Malformed game option: VP=NaN", "Malformed game option: BC=zzz"])
 
     # empty game option name after prefix
     arg_test(False, "-Djsettlers.gameopt.=n", None,
@@ -440,10 +443,11 @@ def all_tests():
     gameopt_tests_cmdline_propsfile(False, "un_known=y", "Unknown game option: UN_KNOWN")
 
     # "unknown or malformed" opt (or bad value)
-    arg_test(False, "-o RD=g", None, "Unknown or malformed game option: RD")
-    arg_test(False, "-o RD=yy", None, "Unknown or malformed game option: RD")
-    gameopt_tests_cmdline_propsfile(False, "n7=z", "Unknown or malformed game option: N7")
-    gameopt_tests_cmdline_propsfile(False, "vp=z15", "Unknown or malformed game option: VP")
+    arg_test(False, "-o RD=g", None, "Malformed game option: RD")
+    arg_test(False, "-o RD=yy", None, "Malformed game option: RD")
+    gameopt_tests_cmdline_propsfile(False, "n7=z", "Malformed game option: N7")
+    gameopt_tests_cmdline_propsfile(False, "vp=z15", "Malformed game option: VP")
+    gameopt_tests_cmdline_propsfile(False, "vp=15", "Malformed game option: VP")  # intbool opt type requires t or f
     gameopt_tests_cmdline_propsfile(False, "OPTNAME_TOO_LONG=t", "Key length > 8: OPTNAME_TOO_LONG")
 
     # missing value for property
@@ -508,7 +512,7 @@ if __name__ == '__main__':
 
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2016-2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

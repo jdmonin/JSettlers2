@@ -83,8 +83,8 @@ Depending on your computer's setup, you may need to point JSettlers at the
 appropriate JDBC drivers, by placing them in your java classpath.
 Your database system's JDBC drivers can be downloaded at these locations:
 
-- MariaDB: https://downloads.mariadb.org/ -> Connector/J
-- MySQL:   https://www.mysql.com/products/connector/
+- MariaDB: https://mariadb.org/download/ -> Connector/J
+- MySQL:   https://www.mysql.com/products/connector/ -> Connector/J
 - PostgreSQL:  https://jdbc.postgresql.org/download.html
 - SQLite:  https://github.com/xerial/sqlite-jdbc/releases -> assets -> sqlite-jdbc-3.xx.y.jar
 

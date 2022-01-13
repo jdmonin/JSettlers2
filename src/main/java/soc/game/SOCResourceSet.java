@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -131,8 +131,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     }
 
     /**
-     * Is this set empty, containing zero resources?
-     * @return true if set is completely empty, including its amount of unknown resources
+     * {@inheritDoc}
      * @see #getTotal()
      * @see #clear()
      * @since 2.5.00
@@ -226,7 +225,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     /**
      * Get the number of known resource types contained in this set:
      * {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE},
-     * excluding {@link Data.ResourceType#UNKNOWN} or {@link SOCResourceConstants#GOLD_LOCAL}.
+     * excluding {@link Data.ResourceType#UNKNOWN_VALUE} or {@link SOCResourceConstants#GOLD_LOCAL}.
      * An empty set returns 0, a set containing only wheat returns 1,
      * that same set after adding wood and sheep returns 3, etc.
      * @return  The number of resource types in this set with nonzero resource counts.
@@ -237,12 +236,9 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     {
         int typ = 0;
 
-        for (int i = SOCResourceConstants.MIN;
-                 i <= Data.ResourceType.WOOD_VALUE; ++i)
-        {
-            if (resources[i] != 0)
+        for (int rtype = Data.ResourceType.CLAY_VALUE; rtype <= Data.ResourceType.WOOD_VALUE; ++rtype)
+            if (resources[rtype] != 0)
                 ++typ;
-        }
 
         return typ;
     }
@@ -250,7 +246,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     /**
      * Get the total amount of resources of known types:
      * {@link Data.ResourceType#CLAY_VALUE} to {@link Data.ResourceType#WOOD_VALUE},
-     * excluding {@link Data.ResourceType#UNKNOWN} or {@link SOCResourceConstants#GOLD_LOCAL}.
+     * excluding {@link Data.ResourceType#UNKNOWN_VALUE} or {@link SOCResourceConstants#GOLD_LOCAL}.
      * @return the total number of known-type resources
      * @see #isEmpty()
      * @since 1.1.14
@@ -259,11 +255,8 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     {
         int sum = 0;
 
-        for (int i = SOCResourceConstants.MIN;
-                 i <= Data.ResourceType.WOOD_VALUE; i++)
-        {
-            sum += resources[i];
-        }
+        for (int rtype = Data.ResourceType.CLAY_VALUE; rtype <= Data.ResourceType.WOOD_VALUE; ++rtype)
+            sum += resources[rtype];
 
         return sum;
     }
@@ -366,12 +359,8 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      */
     public void add(ResourceSet toAdd)
     {
-        resources[Data.ResourceType.CLAY_VALUE]    += toAdd.getAmount(Data.ResourceType.CLAY_VALUE);
-        resources[Data.ResourceType.ORE_VALUE]     += toAdd.getAmount(Data.ResourceType.ORE_VALUE);
-        resources[Data.ResourceType.SHEEP_VALUE]   += toAdd.getAmount(Data.ResourceType.SHEEP_VALUE);
-        resources[Data.ResourceType.WHEAT_VALUE]   += toAdd.getAmount(Data.ResourceType.WHEAT_VALUE);
-        resources[Data.ResourceType.WOOD_VALUE]    += toAdd.getAmount(Data.ResourceType.WOOD_VALUE);
-        resources[Data.ResourceType.UNKNOWN_VALUE] += toAdd.getAmount(Data.ResourceType.UNKNOWN_VALUE);
+        for (int rtype = Data.ResourceType.CLAY_VALUE; rtype <= Data.ResourceType.UNKNOWN_VALUE; ++rtype)
+            resources[rtype] += toAdd.getAmount(rtype);
     }
 
     /**
@@ -419,50 +408,17 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
         if (asUnknown && (amountSubtractUnknown > 0))
             convertToUnknown();
 
-        resources[Data.ResourceType.CLAY_VALUE] -= toSubtract.getAmount(Data.ResourceType.CLAY_VALUE);
-        if (resources[Data.ResourceType.CLAY_VALUE] < 0)
+        for (int rtype = Data.ResourceType.CLAY_VALUE; rtype <= Data.ResourceType.WOOD_VALUE; ++rtype)
         {
-            if (asUnknown)
-                // subtract the excess from unknown
-                resources[Data.ResourceType.UNKNOWN_VALUE] += resources[Data.ResourceType.CLAY_VALUE];
+            resources[rtype] -= toSubtract.getAmount(rtype);
+            if (resources[rtype] < 0)
+            {
+                if (asUnknown)
+                    // subtract the excess from unknown
+                    resources[Data.ResourceType.UNKNOWN_VALUE] += resources[rtype];
 
-            resources[Data.ResourceType.CLAY_VALUE] = 0;
-        }
-
-        resources[Data.ResourceType.ORE_VALUE] -= toSubtract.getAmount(Data.ResourceType.ORE_VALUE);
-        if (resources[Data.ResourceType.ORE_VALUE] < 0)
-        {
-            if (asUnknown)
-                resources[Data.ResourceType.UNKNOWN_VALUE] += resources[Data.ResourceType.ORE_VALUE];
-
-            resources[Data.ResourceType.ORE_VALUE] = 0;
-        }
-
-        resources[Data.ResourceType.SHEEP_VALUE] -= toSubtract.getAmount(Data.ResourceType.SHEEP_VALUE);
-        if (resources[Data.ResourceType.SHEEP_VALUE] < 0)
-        {
-            if (asUnknown)
-                resources[Data.ResourceType.UNKNOWN_VALUE] += resources[Data.ResourceType.SHEEP_VALUE];
-
-            resources[Data.ResourceType.SHEEP_VALUE] = 0;
-        }
-
-        resources[Data.ResourceType.WHEAT_VALUE] -= toSubtract.getAmount(Data.ResourceType.WHEAT_VALUE);
-        if (resources[Data.ResourceType.WHEAT_VALUE] < 0)
-        {
-            if (asUnknown)
-                resources[Data.ResourceType.UNKNOWN_VALUE] += resources[Data.ResourceType.WHEAT_VALUE];
-
-            resources[Data.ResourceType.WHEAT_VALUE] = 0;
-        }
-
-        resources[Data.ResourceType.WOOD_VALUE] -= toSubtract.getAmount(Data.ResourceType.WOOD_VALUE);
-        if (resources[Data.ResourceType.WOOD_VALUE] < 0)
-        {
-            if (asUnknown)
-                resources[Data.ResourceType.UNKNOWN_VALUE] += resources[Data.ResourceType.WOOD_VALUE];
-
-            resources[Data.ResourceType.WOOD_VALUE] = 0;
+                resources[rtype] = 0;
+            }
         }
 
         resources[Data.ResourceType.UNKNOWN_VALUE] -= amountSubtractUnknown;

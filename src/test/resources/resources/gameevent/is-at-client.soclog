@@ -1,4 +1,4 @@
-SOC game event log: type=S, version=2500, created_at=1636807754, now=1636807889, game_name=test
+SOC game event log: type=C, version=2500, created_at=1636807754, now=1636807889, game_name=test
 # Game created at: 2021-11-13 07:49:14 -0500
 # Log written at:  2021-11-13 07:51:29 -0500
 0:00.012:all:SOCVersion:2500|str=2.5.00|verBuild=JM20211113|feats=;ch;|cliLocale=(null)
@@ -143,9 +143,9 @@ SOC game event log: type=S, version=2500, created_at=1636807754, now=1636807889,
 1:09.766:all:SOCGameServerText:game=test|text=robot 3 moved the robber. Must choose a victim.
 1:09.766:all:SOCGameState:game=test|state=51
 1:09.766:p2:SOCChoosePlayerRequest:game=test|choices=[false, true, false, true]
-1:11.767:p2:SOCReportRobbery:game=test|perp=2|victim=1|resType=3|amount=1|isGainLose=true
-1:11.767:p1:SOCReportRobbery:game=test|perp=2|victim=1|resType=3|amount=1|isGainLose=true
-1:11.767:!p[2, 1]:SOCReportRobbery:game=test|perp=2|victim=1|resType=6|amount=1|isGainLose=true
+1:11.767:p2:SOCRobberyResult:game=test|perp=2|victim=1|resType=3|amount=1|isGainLose=true
+1:11.767:p1:SOCRobberyResult:game=test|perp=2|victim=1|resType=3|amount=1|isGainLose=true
+1:11.767:!p[2, 1]:SOCRobberyResult:game=test|perp=2|victim=1|resType=6|amount=1|isGainLose=true
 1:11.767:all:SOCGameState:game=test|state=20
 1:11.855:all:SOCPlayerElements:game=test|playerNum=2|actionType=LOSE|e2=1,e3=1,e4=1
 1:11.855:all:SOCGameElements:game=test|e2=24
@@ -179,9 +179,9 @@ SOC game event log: type=S, version=2500, created_at=1636807754, now=1636807889,
 2:04.361:all:SOCGameState:game=test|state=33
 2:04.361:all:SOCGameServerText:game=test|text=robot 3 will move the robber.
 2:04.365:all:SOCMoveRobber:game=test|playerNumber=2|coord=59
-2:04.365:p2:SOCReportRobbery:game=test|perp=2|victim=1|resType=2|amount=1|isGainLose=true
-2:04.365:p1:SOCReportRobbery:game=test|perp=2|victim=1|resType=2|amount=1|isGainLose=true
-2:04.365:!p[2, 1]:SOCReportRobbery:game=test|perp=2|victim=1|resType=6|amount=1|isGainLose=true
+2:04.365:p2:SOCRobberyResult:game=test|perp=2|victim=1|resType=2|amount=1|isGainLose=true
+2:04.365:p1:SOCRobberyResult:game=test|perp=2|victim=1|resType=2|amount=1|isGainLose=true
+2:04.365:!p[2, 1]:SOCRobberyResult:game=test|perp=2|victim=1|resType=6|amount=1|isGainLose=true
 2:04.365:all:SOCGameState:game=test|state=20
 2:07.924:all:SOCClearOffer:game=test|playerNumber=-1
 2:07.924:all:SOCTurn:game=test|playerNumber=3|gameState=15
@@ -191,8 +191,8 @@ SOC game event log: type=S, version=2500, created_at=1636807754, now=1636807889,
 2:08.815:p1:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e1=1,e2=1,e3=0,e4=0,e5=0
 2:08.815:p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=3,e3=0,e4=0,e5=0
 2:08.815:all:SOCGameState:game=test|state=20
-# End of log; final game state is 20
-# Final player info:
+# End of log. Game state 20
+# Player info:
 # - pn 1: total score 2: droid 1
 # - pn 2: visible score 2, total score 3: robot 3
 # - pn 3: total score 2: p3

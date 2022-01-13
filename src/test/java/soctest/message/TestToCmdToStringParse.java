@@ -86,6 +86,7 @@ public class TestToCmdToStringParse
             boolean parseOnly = false;  // if true, not round-trip
             boolean skipParseToString = false;  // if true, not round-trip
             Set<String> ignoreObjFields = null;
+
             // look for test options/params
             for (int i = 3; i < compareCase.length; ++i)
             {
@@ -188,18 +189,42 @@ public class TestToCmdToStringParse
         assertTrue("mExpected instanceof " + className, msgClass.isInstance(mExpected));
         assertTrue("mActual instanceof " + className, msgClass.isInstance(mActual));
 
+        ArrayList<Field> fields = new ArrayList<>();
         for (Field f : msgClass.getDeclaredFields())
         {
             if (Modifier.isStatic(f.getModifiers()))
                 continue;
-
-            final String fName = f.getName();
-            if ((ignoreObjFields != null) && ignoreObjFields.contains(fName))
+            if ((ignoreObjFields != null) && ignoreObjFields.contains(f.getName()))
                 continue;
+
+            fields.add(f);
+        }
+
+        // If message's superclass extends SOCMessage,
+        // like SOCMessageTemplateJoinGame -> SOCJoinGame,
+        // gather that super's fields too
+        for (Class<?> msgSuper = msgClass.getSuperclass();
+             ! msgSuper.equals(SOCMessage.class);
+             msgSuper = msgSuper.getSuperclass())
+        {
+            for (Field f : msgSuper.getDeclaredFields())
+            {
+                if (Modifier.isStatic(f.getModifiers()))
+                    continue;
+                if ((ignoreObjFields != null) && ignoreObjFields.contains(f.getName()))
+                    continue;
+
+                fields.add(f);
+            }
+        }
+
+        // actually compare the fields
+        for (Field f : fields)
+        {
+            final String fName = f.getName();
 
             try
             {
-
                 f.setAccessible(true);
                 Object valueExpected = f.get(mExpected),
                     valueActual = f.get(mActual);
@@ -523,6 +548,13 @@ public class TestToCmdToStringParse
         // TODO? SOCCreateAccount
         {new SOCDebugFreePlace("ga", 3, true), "1087|ga,3,0,1", "SOCDebugFreePlace:game=ga|playerNumber=3|pieceType=0|coord=0x1"},
         {new SOCDebugFreePlace("ga", 3, SOCPlayingPiece.SETTLEMENT, 0x405), "1087|ga,3,1,1029", "SOCDebugFreePlace:game=ga|playerNumber=3|pieceType=1|coord=0x405"},
+        {new SOCDeclinePlayerRequest("ga1", 0, 0, 0, 0, null), "1104|ga1,0,0", "SOCDeclinePlayerRequest:game=ga1|state=0|reason=0"},
+        {new SOCDeclinePlayerRequest("ga2", 0, 0, 0, 0, "reason,with,commas"), "1104|ga2,0,0,0,0,reason,with,commas", "SOCDeclinePlayerRequest:game=ga2|state=0|reason=0|detail1=0|detail2=0|text=reason,with,commas"},
+        {new SOCDeclinePlayerRequest("ga3", 20, 1, 0, 0, null), "1104|ga3,20,1", "SOCDeclinePlayerRequest:game=ga3|state=20|reason=1"},
+        {new SOCDeclinePlayerRequest("ga4", 100, 1, 0, 0, "reason"), "1104|ga4,100,1,0,0,reason", "SOCDeclinePlayerRequest:game=ga4|state=100|reason=1|detail1=0|detail2=0|text=reason"},
+        {new SOCDeclinePlayerRequest("ga5", 0, -1, 7, 0, null), "1104|ga5,0,-1,7,0", "SOCDeclinePlayerRequest:game=ga5|state=0|reason=-1|detail1=7|detail2=0"},
+        {new SOCDeclinePlayerRequest("ga6", 50, 4, 7, -7, null), "1104|ga6,50,4,7,-7", "SOCDeclinePlayerRequest:game=ga6|state=50|reason=4|detail1=7|detail2=-7"},
+        {new SOCDeclinePlayerRequest("ga7", 50, 4, 7, -7, "reason,with,commas"), "1104|ga7,50,4,7,-7,reason,with,commas", "SOCDeclinePlayerRequest:game=ga7|state=50|reason=4|detail1=7|detail2=-7|text=reason,with,commas"},
         {new SOCDeleteChannel("ch name"), "1007|ch name", "SOCDeleteChannel:channel=ch name"},
         {new SOCDeleteGame("ga"), "1015|ga", "SOCDeleteGame:game=ga"},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_OLD, 6), "1046|ga,3,3,6", "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_OLD|cardType=6"},
@@ -660,7 +692,10 @@ public class TestToCmdToStringParse
         {new SOCJoinChannelAuth("m name", "ch name"), "1020|m name,ch name", "SOCJoinChannelAuth:nickname=m name|channel=ch name"},
             // v1.x was SOCJoinAuth:
         {new SOCJoinChannelAuth("m name", "ch name"), "1020|m name,ch name", "SOCJoinAuth:nickname=m name|channel=ch name", OPT_PARSE_ONLY},
-        {new SOCJoinGame("testp2", "", SOCMessage.EMPTYSTR, "ga"), "1013|testp2,\t,\t,ga", "SOCJoinGame:nickname=testp2|password empty|host=\t|game=ga"},
+        {new SOCJoinGame("testp1", "", SOCMessage.EMPTYSTR, "ga"), "1013|testp1,\t,\t,ga", "SOCJoinGame:nickname=testp1|password empty|host=\t|game=ga"},
+        {new SOCJoinGame("testp2", SOCMessage.EMPTYSTR, SOCMessage.EMPTYSTR, "ga"), "1013|testp2,\t,\t,ga", "SOCJoinGame:nickname=testp2|password empty|host=\t|game=ga"},
+        {new SOCJoinGame("testp3", "", "-", "ga"), "1013|testp3,\t,-,ga", "SOCJoinGame:nickname=testp3|password empty|host=-|game=ga"},
+        {new SOCJoinGame("testp4", "***", SOCMessage.EMPTYSTR, "ga"), "1013|testp4,***,\t,ga", "SOCJoinGame:nickname=testp4|password=***|host=\t|game=ga"},
         {new SOCJoinGameAuth("ga"), "1021|ga", "SOCJoinGameAuth:game=ga"},
         {new SOCJoinGameAuth("ga", 20, 21, new int[]{-2, 1, 3, 0}), "1021|ga,20,21,S,-2,1,3,0", "SOCJoinGameAuth:game=ga|bh=20|bw=21|vs=[-2, 1, 3, 0]"},
         {new SOCLargestArmy("ga", 2), "1067|ga,2", "SOCLargestArmy:game=ga|playerNumber=2"},
@@ -702,7 +737,9 @@ public class TestToCmdToStringParse
                 (SOCLocalizedStrings.TYPE_SCENARIO, 0, Arrays.asList("SC_FOG", "name text", null)),
             "1100|S|0|SC_FOG|name text|\t",
             "SOCLocalizedStrings:type=S|flags=0x0|strs=SC_FOG|name text|(null)",
-            OPT_SKIP_PARSE
+            OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS, new HashSet<String>(Arrays.asList("pa"))
+            // TODO SOCLocalizedStrings +stripAttribNames: (null) or "" -> null, etc
         },
         {
             new SOCLocalizedStrings
@@ -764,7 +801,9 @@ public class TestToCmdToStringParse
         {
             new SOCNewGameWithOptions("ga", SOCGameOption.parseOptionsToSet("BC=t4,RD=f,SBL=t", knownOpts), -1, 0),
             "1079|ga,-1,BC=t4,RD=f,SBL=t",
-            "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f,SBL=t"
+            "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f,SBL=t",
+            OPT_IGNORE_OBJ_FIELDS, new HashSet<String>(Arrays.asList("p2"))
+            // TODO +stripAttribNames
         },
         {
             new SOCNewGameWithOptionsRequest("uname", "", "-", "newgame", "N7=t7,PL=4"),
@@ -870,90 +909,6 @@ public class TestToCmdToStringParse
         {new SOCRejectOffer("ga", 2), "1037|ga,2", "SOCRejectOffer:game=ga|playerNumber=2"},
         {new SOCRejectOffer("ga", 2, -5), "1037|ga,2,-5", "SOCRejectOffer:game=ga|playerNumber=2|reasonCode=-5"},
         {new SOCRemovePiece("ga", 2, SOCPlayingPiece.SHIP, 0xe04), "1094|ga,2,3,3588", "SOCRemovePiece:game=ga|pn=2|pieceType=3|coord=3588"},
-        {
-            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.UNKNOWN, true, 1, 0, 0),
-            "1102|ga,2,3,R,6,1,T",
-            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=6|amount=1|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.WHEAT, true, 1, 0, 0),
-            "1102|ga,2,3,R,4,1,T",
-            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=4|amount=1|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", -1, -1, SOCResourceConstants.WHEAT, true, 1, 0, 0),
-                // pn -1 is only for future scenario/expansion use
-            "1102|ga,-1,-1,R,4,1,T",
-            "SOCReportRobbery:game=ga|perp=-1|victim=-1|resType=4|amount=1|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", -1, -1, SOCResourceConstants.WHEAT, true, 1, 0, 4),
-                // pn -1 is only for future scenario/expansion use
-            "1102|ga,-1,-1,R,4,1,T,0,4",
-            "SOCReportRobbery:game=ga|perp=-1|victim=-1|resType=4|amount=1|isGainLose=true|extraValue=4"
-        },
-        {
-            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.WHEAT, false, 5, 7, 0),
-            "1102|ga,2,3,R,4,5,F,7",
-            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=4|amount=5|isGainLose=false|victimAmount=7"
-        },
-        {
-            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.WHEAT, false, 5, 7, 4),
-            "1102|ga,2,3,R,4,5,F,7,4",
-            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=4|amount=5|isGainLose=false|victimAmount=7|extraValue=4"
-        },
-        {
-            // scenario SC_PIRI: to announce player won vs pirate attack, "rob" 0 unknown resources
-            new SOCReportRobbery("ga", -1, 3, SOCResourceConstants.UNKNOWN, true, 0, 0, 2),
-            "1102|ga,-1,3,R,6,0,T,0,2",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resType=6|amount=0|isGainLose=true|extraValue=2"
-        },
-        {
-            // scenario SC_PIRI: to announce pirate attack result is tied, "rob" 0 resources of type 0
-            new SOCReportRobbery("ga", -1, 3, 0, true, 0, 0, 2),
-            "1102|ga,-1,3,R,0,0,T,0,2",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resType=0|amount=0|isGainLose=true|extraValue=2"
-        },
-        {
-            new SOCReportRobbery("ga", -1, 3, new SOCResourceSet(7, 0, 0, 6, 0, 0), 0),  // clay != 0 to test that part of parsing
-            "1102|ga,-1,3,S,1,7,4,6,T",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resSet=clay=7|ore=0|sheep=0|wheat=6|wood=0|unknown=0|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", -1, 3, new SOCResourceSet(7, 0, 0, 6, 0, 0), 4),  // extraValue field
-            "1102|ga,-1,3,S,1,7,4,6,T,0,4",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resSet=clay=7|ore=0|sheep=0|wheat=6|wood=0|unknown=0|isGainLose=true|extraValue=4"
-        },
-        {
-            new SOCReportRobbery("ga", -1, 3, new SOCResourceSet(0, 8, 0, 6, 7, 0), 0),  // 3 resource types
-            "1102|ga,-1,3,S,2,8,4,6,5,7,T",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resSet=clay=0|ore=8|sheep=0|wheat=6|wood=7|unknown=0|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", -1, 3, new SOCResourceSet(0, 7, 0, 0, 0, 0), 0),  // 1 resource type
-            "1102|ga,-1,3,S,2,7,T",
-            "SOCReportRobbery:game=ga|perp=-1|victim=3|resSet=clay=0|ore=7|sheep=0|wheat=0|wood=0|unknown=0|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, true, 1, 0, 0),
-            "1102|ga,3,2,E,106,1,T",
-            "SOCReportRobbery:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=1|isGainLose=true"
-        },
-        {
-            new SOCReportRobbery("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, true, 1, 0, 4),
-            "1102|ga,3,2,E,106,1,T,0,4",
-            "SOCReportRobbery:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=1|isGainLose=true|extraValue=4"
-        },
-        {
-            new SOCReportRobbery("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, false, 5, 7, 0),
-            "1102|ga,3,2,E,106,5,F,7",
-            "SOCReportRobbery:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=5|isGainLose=false|victimAmount=7"
-        },
-        {
-            new SOCReportRobbery("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, false, 5, 7, 4),
-            "1102|ga,3,2,E,106,5,F,7,4",
-            "SOCReportRobbery:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=5|isGainLose=false|victimAmount=7|extraValue=4"
-        },
         {new SOCResetBoardAuth("ga", 3, 2), "1074|ga,3,2", "SOCResetBoardAuth:game=ga|rejoinPN=3|requestingPN=2"},
             // parse from old field names, which are in some STACSettlers soclog files:
         {new SOCResetBoardAuth("ga", 3, 2), "1074|ga,3,2", "SOCResetBoardAuth:game=ga|param1=3|param2=2", OPT_PARSE_ONLY},
@@ -967,19 +922,121 @@ public class TestToCmdToStringParse
             // parse from old pre-2.5.00 field names, which are in some STACSettlers soclog files:
         {new SOCResourceCount("ga", 3, 11), "1063|ga,3,11", "SOCResourceCount:game=ga|playerNumber=3|count=11", OPT_PARSE_ONLY},
         {new SOCRevealFogHex("ga", 0xd0c, SOCBoard.WOOD_HEX, 12), "10001|ga,3340,5,12", "SOCRevealFogHex:game=ga|hexCoord=d0c|hexType=5|diceNum=12"},
+        {
+            new SOCRobberyResult("ga", 2, 3, SOCResourceConstants.UNKNOWN, true, 1, 0, 0),
+            "1102|ga,2,3,R,6,1,T",
+            "SOCRobberyResult:game=ga|perp=2|victim=3|resType=6|amount=1|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", 2, 3, SOCResourceConstants.WHEAT, true, 1, 0, 0),
+            "1102|ga,2,3,R,4,1,T",
+            "SOCRobberyResult:game=ga|perp=2|victim=3|resType=4|amount=1|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", -1, -1, SOCResourceConstants.WHEAT, true, 1, 0, 0),
+                // pn -1 is only for future scenario/expansion use
+            "1102|ga,-1,-1,R,4,1,T",
+            "SOCRobberyResult:game=ga|perp=-1|victim=-1|resType=4|amount=1|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", -1, -1, SOCResourceConstants.WHEAT, true, 1, 0, 4),
+                // pn -1 is only for future scenario/expansion use
+            "1102|ga,-1,-1,R,4,1,T,0,4",
+            "SOCRobberyResult:game=ga|perp=-1|victim=-1|resType=4|amount=1|isGainLose=true|extraValue=4"
+        },
+        {
+            new SOCRobberyResult("ga", 2, 3, SOCResourceConstants.WHEAT, false, 5, 7, 0),
+            "1102|ga,2,3,R,4,5,F,7",
+            "SOCRobberyResult:game=ga|perp=2|victim=3|resType=4|amount=5|isGainLose=false|victimAmount=7"
+        },
+        {
+            new SOCRobberyResult("ga", 2, 3, SOCResourceConstants.WHEAT, false, 5, 7, 4),
+            "1102|ga,2,3,R,4,5,F,7,4",
+            "SOCRobberyResult:game=ga|perp=2|victim=3|resType=4|amount=5|isGainLose=false|victimAmount=7|extraValue=4"
+        },
+        {
+            // scenario SC_PIRI: to announce player won vs pirate attack, "rob" 0 unknown resources
+            new SOCRobberyResult("ga", -1, 3, SOCResourceConstants.UNKNOWN, true, 0, 0, 2),
+            "1102|ga,-1,3,R,6,0,T,0,2",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resType=6|amount=0|isGainLose=true|extraValue=2"
+        },
+        {
+            // scenario SC_PIRI: to announce pirate attack result is tied, "rob" 0 resources of type 0
+            new SOCRobberyResult("ga", -1, 3, 0, true, 0, 0, 2),
+            "1102|ga,-1,3,R,0,0,T,0,2",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resType=0|amount=0|isGainLose=true|extraValue=2"
+        },
+        {
+            new SOCRobberyResult("ga", -1, 3, new SOCResourceSet(7, 0, 0, 6, 0, 0), 0),  // clay != 0 to test that part of parsing
+            "1102|ga,-1,3,S,1,7,4,6,T",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resSet=clay=7|ore=0|sheep=0|wheat=6|wood=0|unknown=0|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", -1, 3, new SOCResourceSet(7, 0, 0, 6, 0, 0), 4),  // extraValue field
+            "1102|ga,-1,3,S,1,7,4,6,T,0,4",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resSet=clay=7|ore=0|sheep=0|wheat=6|wood=0|unknown=0|isGainLose=true|extraValue=4"
+        },
+        {
+            new SOCRobberyResult("ga", -1, 3, new SOCResourceSet(0, 8, 0, 6, 7, 0), 0),  // 3 resource types
+            "1102|ga,-1,3,S,2,8,4,6,5,7,T",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resSet=clay=0|ore=8|sheep=0|wheat=6|wood=7|unknown=0|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", -1, 3, new SOCResourceSet(0, 7, 0, 0, 0, 0), 0),  // 1 resource type
+            "1102|ga,-1,3,S,2,7,T",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resSet=clay=0|ore=7|sheep=0|wheat=0|wood=0|unknown=0|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, true, 1, 0, 0),
+            "1102|ga,3,2,E,106,1,T",
+            "SOCRobberyResult:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=1|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, true, 1, 0, 4),
+            "1102|ga,3,2,E,106,1,T,0,4",
+            "SOCRobberyResult:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=1|isGainLose=true|extraValue=4"
+        },
+        {
+            new SOCRobberyResult("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, false, 5, 7, 0),
+            "1102|ga,3,2,E,106,5,F,7",
+            "SOCRobberyResult:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=5|isGainLose=false|victimAmount=7"
+        },
+        {
+            new SOCRobberyResult("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, false, 5, 7, 4),
+            "1102|ga,3,2,E,106,5,F,7,4",
+            "SOCRobberyResult:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=5|isGainLose=false|victimAmount=7|extraValue=4"
+        },
         {new SOCRobotDismiss("ga"), "1056|ga", "SOCRobotDismiss:game=ga"},
         {new SOCRollDice("ga"), "1031|ga", "SOCRollDice:game=ga"},
         {new SOCRollDicePrompt("ga", 3), "1072|ga,3", "SOCRollDicePrompt:game=ga|playerNumber=3"},
         // can ignore unused SOCRollDiceRequest
-        {new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), false), "1101|[|KEY1|KEY2", "SOCScenarioInfo:p=[|p=KEY1|p=KEY2", OPT_SKIP_PARSE},
-        {new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), true), "1101|[|KEY1|KEY2|?", "SOCScenarioInfo:p=[|p=KEY1|p=KEY2|p=?", OPT_SKIP_PARSE},
-        {new SOCScenarioInfo("KEY3", true), "1101|KEY3|0|-2", "SOCScenarioInfo:key=KEY3|minVers=0|lastModVers=MARKER_KEY_UNKNOWN", OPT_SKIP_PARSE},
+        {
+            new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), false),
+            "1101|[|KEY1|KEY2",
+            "SOCScenarioInfo:p=[|p=KEY1|p=KEY2", OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("pa"))
+        },
+        {
+            new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), true),
+            "1101|[|KEY1|KEY2|?",
+            "SOCScenarioInfo:p=[|p=KEY1|p=KEY2|p=?", OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("pa"))
+        },
+        {
+            new SOCScenarioInfo("KEY3", true),
+            "1101|KEY3|0|-2",
+            "SOCScenarioInfo:key=KEY3|minVers=0|lastModVers=MARKER_KEY_UNKNOWN", OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("pa"))
+        },
         {
             new SOCScenarioInfo("KEY4", false),
             "1101|[|KEY4",
             "SOCScenarioInfo:p=[|p=KEY4", OPT_SKIP_PARSE,
             OPT_IGNORE_OBJ_FIELDS,
-            new HashSet<String>(Arrays.asList("scKey", "noMoreScens"))
+            new HashSet<String>(Arrays.asList("scKey", "noMoreScens", "pa"))
         },
         {
             new SOCScenarioInfo(SOCScenario.getScenario(SOCScenario.K_SC_NSHO), "new shores", null),  // has no long desc
@@ -987,7 +1044,7 @@ public class TestToCmdToStringParse
             "SOCScenarioInfo:key=SC_NSHO|minVers=2000|lastModVers=2000|opts=_SC_SEAC=t,SBL=t,VP=t13|title=new shores",
             OPT_SKIP_PARSE,
             OPT_IGNORE_OBJ_FIELDS,
-            new HashSet<String>(Arrays.asList("scKey", "noMoreScens"))
+            new HashSet<String>(Arrays.asList("scKey", "noMoreScens", "pa"))
         },
         {
             new SOCScenarioInfo(SOCScenario.getScenario(SOCScenario.K_SC_4ISL), "4 islands", "long desc, 4 islands"),
@@ -995,7 +1052,7 @@ public class TestToCmdToStringParse
             "SOCScenarioInfo:key=SC_4ISL|minVers=2000|lastModVers=2000|opts=_SC_SEAC=t,SBL=t,VP=t12|title=4 islands|desc=long desc, 4 islands",
             OPT_SKIP_PARSE,
             OPT_IGNORE_OBJ_FIELDS,
-            new HashSet<String>(Arrays.asList("scKey", "noMoreScens"))
+            new HashSet<String>(Arrays.asList("scKey", "noMoreScens", "pa"))
         },
         {new SOCServerPing(42), "9999|42", "SOCServerPing:sleepTime=42"},
         {new SOCSetPlayedDevCard("ga", 2, false), "1048|ga,2,false", "SOCSetPlayedDevCard:game=ga|playerNumber=2|playedDevCard=false"},

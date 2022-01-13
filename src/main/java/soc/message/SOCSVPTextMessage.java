@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2014,2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2014,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -165,6 +165,7 @@ public class SOCSVPTextMessage extends SOCMessage
         return desc;
     }
 
+    // javadoc inherited from SOCKeyedMessage
     public SOCMessage localize(final String localizedText)
     {
         return new SOCSVPTextMessage(game, pn, svp, localizedText, true);

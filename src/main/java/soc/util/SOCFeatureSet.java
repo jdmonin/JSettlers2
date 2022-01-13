@@ -40,8 +40,10 @@ import soc.game.SOCGameOptionSet;  // for javadocs only
  * {@link #SOCFeatureSet(boolean, boolean) SOCFeatureSet(true, false)} constructor when connecting to a client older
  * than 2.0.00. See that constructor's javadoc for the list of client features always assumed active before 2.0.00.
  *<P>
- * Feature name constants defined here are kept simple (lowercase alphanumerics, underscore, dash)
- * for encoding into network message fields.
+ * Feature name constants defined here are kept simple (lowercase alphanumerics, underscore, dot, dash)
+ * for encoding into network message fields. Third-party client feature names should use the same unique-prefix
+ * convention as java packages: {@code com.examplename.something} based on the developer's domain name.
+ * See {@link soc.baseclient.SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P} for an example.
  *<P>
  * Check active features with {@link #isActive(String)} and/or {@link #getValue(String, int)}.
  * Add a feature with {@link #add(String)} or {@link #add(String, int)}.

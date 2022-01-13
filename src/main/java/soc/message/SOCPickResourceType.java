@@ -33,6 +33,10 @@ import soc.game.SOCResourceConstants;  // for javadocs only
  * Sent as a request from current player's client, in response to server's
  * {@link SOCGameState}({@link SOCGame#WAITING_FOR_MONOPOLY WAITING_FOR_MONOPOLY}).
  *<P>
+ * If client isn't currently allowed to request that pick, server responds
+ * with {@link SOCDeclinePlayerRequest}, or to an older client with
+ * {@link SOCGameServerText} and {@link SOCGameState}.
+ *<P>
  * For a Monopoly card, the server responds by announcing:
  *<UL>
  * <LI> For each victim player, {@link SOCPlayerElement} for their zeroed resource type

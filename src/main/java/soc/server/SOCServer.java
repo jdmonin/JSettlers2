@@ -684,7 +684,7 @@ public class SOCServer extends Server
     /**
      * For server testing, JVM/system property {@code "jsettlers.debug.server.gameopt3p"}
      * with name of a "third-party" Known Game Option to create; will have {@link SOCGameOption#FLAG_3RD_PARTY}
-     * and require client feature {@code "com.example.js."} + optionName.
+     * and require client feature {@code "com.example.js.feat."} + optionName.
      *<P>
      * For robots' benefit, if this system property is set but the equivalent client property
      * {@link soc.baseclient.SOCDisplaylessPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P} isn't,
@@ -712,6 +712,7 @@ public class SOCServer extends Server
      * Same format as {@link soc.util.Version#versionNumber()}.
      * Before v3.0.00 there was no enforced minimum.
      * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
+     * @see #CLI_VERSION_MAX_REPORT
      * @since 1.1.00
      */
     public static final int CLI_VERSION_MIN = 2000;
@@ -731,6 +732,16 @@ public class SOCServer extends Server
      * @since 1.1.06
      */
     public static final int CLI_VERSION_TIMER_FIRE_MS = 1200;
+
+    /**
+     * If client is newer than this version which is several major versions into the future,
+     * treat it as if reporting this version. Helps control range of values for {@link Connection#getVersion()}.
+     * Currently 5999 (v5.0.00 + highest minor and patchlevel: v5.9.99).
+     * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
+     * @see #CLI_VERSION_MIN
+     * @since 2.5.00
+     */
+    public static final int CLI_VERSION_MAX_REPORT = 5000 + 999;
 
     /**
      * If game will expire in this or fewer minutes, warn the players. Default is 15.
@@ -1333,7 +1344,9 @@ public class SOCServer extends Server
     /**
      * Client version count stats since startup (includes bots).
      * Key = version number, Value = client count.
-     * Incremented from {@link #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)}.
+     * Incremented from {@link #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)};
+     * see that method for version number range.
+     *<P>
      * Must synchronize on the map when modifying its contents.
      *
      * @since 1.1.19
@@ -1908,7 +1921,7 @@ public class SOCServer extends Server
                     (gameopt3p, 2000, Version.versionNumber(), false,
                      SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_DROP_IF_UNUSED,
                      "Server test 3p option " + gameopt3p);
-                opt.setClientFeature("com.example.js." + gameopt3p);
+                opt.setClientFeature("com.example.js.feat." + gameopt3p);
                 knownOpts.put(opt);
 
                 if (null == System.getProperty(SOCDisplaylessPlayerClient.PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P))
@@ -3594,7 +3607,7 @@ public class SOCServer extends Server
 
             final int pn = req.getSitDownMessage().getPlayerNumber();
             final Connection arriving = req.getArriving();
-            final boolean isRobot = req.getSitDownMessage().isRobot();
+            final boolean isRobot = req.isArrivingRobot();
             if (! isRobot)
             {
                 // don't keep the robot face icon
@@ -4144,8 +4157,8 @@ public class SOCServer extends Server
         /**
          * let everyone know about the destroyed channels
          */
-        for (String ga : toDestroy)
-            broadcast(new SOCDeleteChannel(ga));
+        for (String ch : toDestroy)
+            broadcast(new SOCDeleteChannel(ch));
     }
 
     /**
@@ -4839,9 +4852,9 @@ public class SOCServer extends Server
                         if (msgKey != null)
                             try
                             {
-                                localText = SOCStringManager.getFallbackServerManagerForClient().get(msgKey);
+                                localText = SOCStringManager.getFallbackServerManagerForClient().get(msgKey);  // == en_US
                             } catch (MissingResourceException e) {
-                                localText = msgKey;  // fallback so data fields will still be sent
+                                localText = msgKey;  // fallback so data fields will still be recorded
                             }
 
                         msgForRecord = msg.localize(localText);
@@ -6908,7 +6921,7 @@ public class SOCServer extends Server
         {
             // Password too long, or user found in database but password incorrect
 
-            final SOCMessage msg = SOCStatusMessage.buildForVersion
+            final SOCStatusMessage msg = SOCStatusMessage.buildForVersion
                 (SOCStatusMessage.SV_PW_WRONG, c.getVersion(),
                  c.getLocalized("netmsg.status.incorrect_password", msgUser));  // "Incorrect password for "msgUser"."
             if (hadDelay)
@@ -7069,7 +7082,9 @@ public class SOCServer extends Server
      * and {@link SOCClientData.SOCCDCliVersionTask#run()}.
      *
      * @param c     Client's connection
-     * @param cvers Version reported by client, or assumed version if no report
+     * @param cvers Version reported by client, or assumed version if no report.
+     *     Will be limited here to range [1100, {@link #CLI_VERSION_MAX_REPORT}] if outside that range,
+     *     plus {@link #CLI_VERSION_ASSUMED_GUESS}.
      * @param cfeats  Optional features reported by client, or null if none given
      *     (was added to {@link SOCVersion} message in 2.0.00)
      * @param clocale  Locale reported by client, or null if none given
@@ -7081,10 +7096,18 @@ public class SOCServer extends Server
      * @return True if OK, false if rejected
      */
     boolean setClientVersSendGamesOrReject
-        (Connection c, final int cvers, String cfeats, String clocale, final boolean isKnown)
+        (Connection c, int cvers, String cfeats, String clocale, final boolean isKnown)
     {
         final int prevVers = c.getVersion();
         final boolean wasKnown = c.isVersionKnown();
+
+        // basic sanity check/sanitize
+        if ((cvers < 1100) && (cvers != CLI_VERSION_ASSUMED_GUESS))
+            cvers = CLI_VERSION_ASSUMED_GUESS;
+        else if ((cvers > 1299) && (cvers < 2000))
+            cvers = 1299;  // aren't any newer 1.x releases
+        else if (cvers > CLI_VERSION_MAX_REPORT)
+            cvers = CLI_VERSION_MAX_REPORT;  // several major versions into future
 
         final SOCFeatureSet cfeatSet;
         if (cfeats != null)
@@ -9267,7 +9290,7 @@ public class SOCServer extends Server
      * @param ga     the game
      * @param c      the connection for the player
      * @param pn     which seat the player is taking
-     * @param robot  true if this player is a robot
+     * @param robot  true if this player is a robot, usually from {@link SOCClientData#isRobot}
      * @param isReset Game is a board-reset of an existing game
      */
     void sitDown
@@ -10060,7 +10083,7 @@ public class SOCServer extends Server
      *   Keyname should be case-insensitive; note both of those calls include {@code forceNameUpcase == true}.
      *   <BR>
      *   {@code null} is allowed and will throw
-     *   {@code IllegalArgumentException("Unknown or malformed game option: " + optRaw)}.
+     *   {@code IllegalArgumentException("Malformed game option: " + optRaw)}.
      * @param optRaw  To include in exception text or a value into {@code optsAlreadySet},
      *         the option name=value from command line. Should not be null.
      *         For cleaner messages, option name should be uppercased.
@@ -10071,7 +10094,8 @@ public class SOCServer extends Server
      * @throws IllegalArgumentException if bad name, bad value, or already set from command line.
      *         {@link Throwable#getMessage()} will have problem details:
      *         <UL>
-     *         <LI> Unknown or malformed game option name, from
+     *         <LI> Unknown game option
+     *         <LI> Malformed game option name, from
      *           {@link SOCGameOption#parseOptionNameValue(String, boolean, SOCGameOptionSet)}
      *         <LI> Bad option value, from {@link SOCGameOptionSet#setKnownOptionCurrentValue(SOCGameOption)}
      *         <LI> Appears twice on command line, name is already in {@code optsAlreadySet}
@@ -10083,7 +10107,7 @@ public class SOCServer extends Server
         throws IllegalArgumentException
     {
         if (op == null)
-            throw new IllegalArgumentException("Unknown or malformed game option: " + optRaw);
+            throw new IllegalArgumentException("Malformed game option: " + optRaw);
 
         if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
             throw new IllegalArgumentException("Unknown game option: " + op.key);
@@ -10244,36 +10268,37 @@ public class SOCServer extends Server
                 hasSetGameOptions = true;
 
                 boolean printedMsg = false;
-                String argValue;
+                String optNameValue;
                 if (arg.startsWith("-o") && (arg.length() > 2))
                 {
-                    argValue = arg.substring(2);
+                    optNameValue = arg.substring(2);
                 } else {
                     ++aidx;
                     if (aidx < args.length)
-                        argValue = args[aidx];
+                        optNameValue = args[aidx];
                     else
-                        argValue = null;
+                        optNameValue = null;
                 }
-                if (argValue != null)
+                if (optNameValue != null)
                 {
                     try
                     {
                         // canonicalize opt's keyname to all-uppercase
                         {
-                            final int i = argValue.indexOf('=');
+                            final int i = optNameValue.indexOf('=');
                             if (i > 0)
                             {
-                                String oKey = argValue.substring(0, i),
+                                String oKey = optNameValue.substring(0, i),
                                        okUC = oKey.toUpperCase(Locale.US);
                                 if (! oKey.equals(okUC))
-                                    argValue = okUC + argValue.substring(i);
+                                    optNameValue = okUC + optNameValue.substring(i);
                             }
                         }
                         // parse this opt, update known option's current value
                         SOCGameOption opt = parseCmdline_GameOption
-                            (SOCGameOption.parseOptionNameValue(argValue, false, startupKnownOpts),  // null if parse fails
-                             argValue, gameOptsAlreadySet);
+                            (SOCGameOption.parseOptionNameValue
+                                (optNameValue, false, startupKnownOpts),  // null if parse fails
+                             optNameValue, gameOptsAlreadySet);
 
                         // Add or update in argp, in case this gameopt property also appears in the properties file;
                         // otherwise the SOCServer constructor will reset the known opt current value
@@ -10283,12 +10308,12 @@ public class SOCServer extends Server
                         if (argp.containsKey(propKey))
                             argp.put(propKey, opt.getPackedValue().toString());
                     } catch (IllegalArgumentException e) {
-                        argValue = null;
+                        optNameValue = null;
                         System.err.println(e.getMessage());
                         printedMsg = true;
                     }
                 }
-                if (argValue == null)
+                if (optNameValue == null)
                 {
                     if (! printedMsg)
                     {
@@ -10643,26 +10668,26 @@ public class SOCServer extends Server
      * check that the scenario is known and that its game options don't conflict with any others specified
      * in the properties or command line.
      *<P>
-     * The scenario named in {@code opts.get("SC")} or {@code scName} is retrieved with
+     * The scenario named in {@code configOpts.get("SC")} or {@code scName} is retrieved with
      * {@link SOCScenario#getScenario(String)}; an empty scenario name "" is treated as an unknown scenario.
      *<P>
      * The scenario will be the default scenario, but its option values aren't set as default at server startup.
      * When a new game begins using that scenario, at that time scenario options override any other options
      * specified for the game (except whichever {@code "VP"} is greater is kept).  Since the user may specify
-     * a different scenario, 'conflicting' options in {@code opts} are only potentially a problem and will be
+     * a different scenario, 'conflicting' options in {@code configOpts} are only potentially a problem and will be
      * returned as a list for warnings (not errors) to be printed during server init.
      *
-     * @param opts  Option name key and value strings, typically from command line or
-     *    properties file parsing.  See {@code optsIsFromProps} for format of {@code opts} keys and values.
-     * @param optsAreProps  If <B>true</B>, {@code opts} keys and values are from the properties file:
+     * @param configOpts  Option name key and value strings, typically from command line or
+     *    properties file parsing.  See {@code optsIsFromProps} for format of {@code configOpts} keys and values.
+     * @param optsAreProps  If <B>true</B>, {@code configOpts} keys and values are from the properties file:
      *    key = {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} + optname, value = option value.
      *    Option names are not case-sensitive but {@link #PROP_JSETTLERS_GAMEOPT_PREFIX} is.
      *    <br>
      *    If <B>false</B>, keys and values are from command line parsing:
      *    key = uppercase optname, value = optkey + "=" + option value.
-     * @param scName  Scenario name to check against, or {@code null} to use value of {@code opts.get("SC"}); never ""
-     * @returns A list of game option names and value strings from {@code opts} which would be overwritten by
-     *     those from opts' {@code "SC"} scenario, or {@code null} if no potential conflicts.
+     * @param scName  Scenario name to check against, or {@code null} to use value of {@code configOpts.get("SC"}); never ""
+     * @returns A list of game option names and value strings from {@code configOpts} which would be overwritten by
+     *     those from configOpts' {@code "SC"} scenario, or {@code null} if no potential conflicts.
      *    <P>
      *     For ease of use by caller, the extracted default scenario is the first item in the list.
      *     (If there are no conflicts, the list is {@code null}; the scenario will not be returned.)
@@ -10676,7 +10701,7 @@ public class SOCServer extends Server
      *     Each other list item is a {@link Triple} containing:
      *     <UL>
      *      <LI> option name
-     *      <LI> value in {@code opts}
+     *      <LI> value in {@code configOpts}
      *      <LI> value in default scenario
      *    </UL>
      *    <P>
@@ -10687,19 +10712,20 @@ public class SOCServer extends Server
      *      <LI> specified scenario name
      *      <LI> {@code null}
      *     </UL>
+     * @see SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)
      * @since 2.0.00
      */
     public static List<Triple> checkScenarioOpts
-        (Map<?, ?> opts, final boolean optsAreProps, String scName)
+        (Map<?, ?> configOpts, final boolean optsAreProps, String scName)
     {
         List<Triple> scenConflictWarns = null;
 
         if (scName == null)
         {
             final String scKey = (optsAreProps) ? (PROP_JSETTLERS_GAMEOPT_PREFIX + "SC") : "SC";
-            if (opts.containsKey(scKey))
+            if (configOpts.containsKey(scKey))
             {
-                scName = (String) opts.get(scKey);
+                scName = (String) configOpts.get(scKey);
                 if (! optsAreProps)
                     scName = scName.substring(scName.indexOf('=') + 1).trim();
                        // indexOf should be okay, because this is called after parsing cmdline options;
@@ -10729,15 +10755,15 @@ public class SOCServer extends Server
             // jsettlers.gameopt.NT -> jsettlers.gameopt.nt
 
             Map<String, Object> normOpts = new HashMap<String, Object>();
-            for (Object k : opts.keySet())
+            for (Object k : configOpts.keySet())
             {
                 if (! ((k instanceof String) && ((String) k).startsWith(PROP_JSETTLERS_GAMEOPT_PREFIX)))
                     continue;
 
-                normOpts.put(((String) k).toLowerCase(Locale.US), opts.get(k));
+                normOpts.put(((String) k).toLowerCase(Locale.US), configOpts.get(k));
             }
 
-            opts = normOpts;
+            configOpts = normOpts;
         }
 
         final Map<String, SOCGameOption> scOpts = SOCGameOption.parseOptionsToMap(scOptsStr, startupKnownOpts);
@@ -10748,45 +10774,25 @@ public class SOCServer extends Server
             final String optKey = (optsAreProps)
                 ? (PROP_JSETTLERS_GAMEOPT_PREFIX + scOpt.key).toLowerCase(Locale.US)
                 : scOpt.key;
-            if (! opts.containsKey(optKey))
+            if (! configOpts.containsKey(optKey))
                 continue;
 
-            String mapOptVal = (String) opts.get(optKey);
+            String configOptVal = (String) configOpts.get(optKey);
             if (! optsAreProps)
-                mapOptVal = mapOptVal.substring(mapOptVal.indexOf('=') + 1).trim();
+                configOptVal = configOptVal.substring(configOptVal.indexOf('=') + 1).trim();
                    // indexOf should be okay, because this is called after parsing cmdline options;
                    // if somehow it's -1 then we get entire string from substring(0).
-            mapOptVal = mapOptVal.toLowerCase(Locale.US);  // for intbool t/f chars
+            configOptVal = configOptVal.toLowerCase(Locale.US);  // for intbool t/f chars
 
             sb.setLength(0);  // reset from previous iteration
             scOpt.packValue(sb);
 
-            if (! scOpt.key.equals("VP"))
-            {
-                final String scOptVal = sb.toString().toLowerCase(Locale.US);
-                if (! mapOptVal.equals(scOptVal))
-                    scenConflictWarns.add(new Triple(scOpt.key, mapOptVal, scOptVal));
-            } else {
-                // VP: special case: warn only if scen has false or a lower int value
+            if (scOpt.key.equals("VP"))
+                continue;  // VP: special case, no need to warn: scenario will never reduce VP from configOpts VP amount
 
-                if (mapOptVal.charAt(0) == 'f')
-                    continue;  // opts map doesn't specify VP
-
-                if (scOpt.getBoolValue())
-                {
-                    int mapVP;
-                    try {
-                        mapVP = Integer.parseInt(mapOptVal.substring(1));
-                    } catch (NumberFormatException e ) {
-                        mapVP = 0;  // unlikely, would already have been caught by cmdline parsing
-                    }
-
-                    if (mapVP <= scOpt.getIntValue())
-                        continue;  // opts map's VP not greater than scen's VP
-                }
-
-                scenConflictWarns.add(new Triple(scOpt.key, mapOptVal, sb.toString()));
-            }
+            final String scOptVal = sb.toString().toLowerCase(Locale.US);
+            if (! configOptVal.equals(scOptVal))
+                scenConflictWarns.add(new Triple(scOpt.key, configOptVal, scOptVal));
         }
 
         if (scenConflictWarns.isEmpty())
@@ -10799,16 +10805,17 @@ public class SOCServer extends Server
     }
 
     /**
-     * During startup, call {@link #checkScenarioOpts(Map, boolean, String)} and print any warnings it returns
-     * to {@link System#err}.  An unknown scenario name is printed as an error not a warning.
-     * An empty scenario name "" from {@code opts.get("SC")} or {@code scName} is treated as an unknown scenario.
-     * @param opts  Options to check, see {@link #checkScenarioOpts(Map, boolean, String)}
-     * @param optsAreProps  Are {@code opts} from properties or command line?
+     * During startup, call {@link #checkScenarioOpts(Map, boolean, String)} for game options set on command line
+     * or in server config properties, and print any warnings it returns to {@link System#err}.
+     * An unknown scenario name is printed as an error not a warning.
+     * An empty scenario name "" from {@code configOpts.get("SC")} or {@code scName} is treated as an unknown scenario.
+     * @param configOpts  Options to check; see {@link #checkScenarioOpts(Map, boolean, String)}
+     * @param optsAreProps  Are {@code configOpts} from properties or command line?
      *     See {@link #checkScenarioOpts(Map, boolean, String)}.
-     * @param srcDesc  Description of {@code opts} for warning message text:
+     * @param srcDesc  Description of {@code configOpts} for warning message text:
      *     "Command line" or properties filename "jsserver.properties"
-     * @param scName  Scenario name to check against, or {@code null} to use value of {@code opts.get("SC"}); never ""
-     * @param scNameSrcDesc  If {@code scName} isn't from {@code opts}, lowercase description of its source
+     * @param scName  Scenario name to check against, or {@code null} to use value of {@code configOpts.get("SC"}); never ""
+     * @param scNameSrcDesc  If {@code scName} isn't from {@code configOpts}, lowercase description of its source
      *     for warnings (like {@code srcDesc}), otherwise {@code null}.
      *     If {@code scNameSrcDesc != null}, will not print a warning if {@code scName} is unknown, to avoid
      *     repeating the warning already printed when that SC was checked while parsing its source.
@@ -10816,9 +10823,10 @@ public class SOCServer extends Server
      * @since 2.0.00
      */
     private static boolean init_checkScenarioOpts
-        (final Map<?, ?> opts, final boolean optsAreProps, final String srcDesc, String scName, String scNameSrcDesc)
+        (final Map<?, ?> configOpts, final boolean optsAreProps,
+         final String srcDesc, String scName, final String scNameSrcDesc)
     {
-        List<Triple> warns = checkScenarioOpts(opts, optsAreProps, scName);
+        List<Triple> warns = checkScenarioOpts(configOpts, optsAreProps, scName);
         if (warns == null)
             return true;
 

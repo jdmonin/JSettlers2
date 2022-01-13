@@ -131,6 +131,10 @@ Or:
 
 ## Buy and build piece
 
+Client requests build by sending SOCPutPiece or SOCBuildRequest.
+If the request isn't possible, server replies with SOCDeclinePlayerRequest
+instead of the sequences shown here.
+
 ### Initial Placement
 
 The placement message sequence is different during initial placement. Server assumes client knows the rules,
@@ -352,7 +356,18 @@ Or if client sends build request:
 - all:SOCSimpleAction:game=test|pn=3|actType=1|v1=22|v2=0  // DEVCARD_BOUGHT; v1 = remaining amount of unbought cards
 - all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING)
 
+Or if player can't buy now: Server responds to client's SOCBuyDevCardRequest with SOCDeclinePlayerRequest
+and if client is robot, also SOCCancelBuildRequest(SOCPossiblePiece.CARD).
+
 ## Use/Play each dev card type
+
+If player can't play the requested card at this time, server responds to client's SOCPlayDevCardRequest:
+
+- To bots:
+    - un:SOCDevCardAction:game=test|playerNum=-1|actionType=CANNOT_PLAY|cardType=9
+- To human clients, sometimes with a specific reason:
+    - un:SOCDeclinePlayerRequest:game=test|reason=2|detail1=0|detail2=0|text=You can't play a Road Building card now.  
+      // reason code varies, text is optional
 
 ### Road Building
 
@@ -516,7 +531,7 @@ In gameState 33 (PLACING_ROBBER):
     - all:SOCGameElements:game=test|e4=3  // CURRENT_PLAYER
     - all:SOCGameState:game=test|state=1000
 - Else:
-    - Next message is SOCReportRobbery from server, which will be start of next sequence
+    - Next message is SOCRobberyResult from server, which will be start of next sequence
 
 ### Move pirate
 
@@ -548,16 +563,16 @@ In gameState 55 (WAITING_FOR_ROB_CLOTH_OR_RESOURCE):
 Occurs after moving robber or pirate, then possibly choosing a victim,
 and (Cloth Trade scenario) choosing whether to rob cloth or resources.
 
-- p3:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
-- p2:SOCReportRobbery:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
-- !p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+- p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+- p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+- !p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
 - all:SOCGameState:game=test|state=20  // or 15 + all:SOCRollDicePrompt if hasn't rolled yet
     - Or if player won game by gaining Largest Army with this soldier:  
       all:SOCGameElements:game=test|e4=3 , all:SOCGameState 1000 (OVER)
 
 ### Rob a player of cloth
 
-- all:SOCReportRobbery:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=3  // rob 1 cloth; gives new total amounts for perpetrator and victim
+- all:SOCRobberyResult:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=3  // rob 1 cloth; gives new total amounts for perpetrator and victim
 - all:SOCGameState:game=test|state=20  // or 15
     - Or if player won game by gaining VP from the robbed cloth:  
       all:SOCGameElements:game=test|e4=3 , all:SOCGameState 1000 (OVER)

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -77,7 +77,7 @@ import javax.swing.SwingConstants;
     static final String CITY = "city";
     static final String CARD = "card";
     static final String SHIP = "ship";  // Ship for large sea board; @since 2.0.00
-    private static final String SBP = "sbp";  // Special Building Phase button; @since 1.1.08
+    static final String SBP = "sbp";    // Special Building Phase button; @since 1.1.08
     JLabel title;
     JButton roadBut;
     JButton settlementBut;
@@ -310,7 +310,7 @@ import javax.swing.SwingConstants;
 
         final int sqHeight = ColorSquare.HEIGHT * pi.displayScale;
 
-        cardT = new JLabel(strings.get("build.dev.card"));  // "Dev Card: "
+        cardT = new JLabel(strings.get("buy.dev.card"));  // "Dev Card: "
         cardT.setToolTipText(/*I*/"? VP  (largest army = 2 VP) "/*18N*/);
         add(cardT);
         cardC = new ArrowheadPanel(costsW, costsH, costsTooltip, arrowColorsFrom);
@@ -326,9 +326,9 @@ import javax.swing.SwingConstants;
         cardCountLab = new JLabel(strings.get("build.available"), SwingConstants.LEFT);  // "available"
         add(cardCountLab);
         cardCount = new ColorSquare(ColorSquare.GREY, 0, sqHeight, sqHeight);
-        cardCount.setToolTipText(strings.get("build.dev.cards.available"));  // "Development cards available to buy"
-        cardCount.setToolTipLowWarningLevel(strings.get("build.dev.cards.low"), 3);  // "Almost out of development cards to buy"
-        cardCount.setToolTipZeroText(strings.get("build.dev.cards.none"));  // "No more development cards available to buy"
+        cardCount.setToolTipText(strings.get("buy.dev.cards.available"));  // "Development cards available to buy"
+        cardCount.setToolTipLowWarningLevel(strings.get("buy.dev.cards.low"), 3);  // "Almost out of development cards to buy"
+        cardCount.setToolTipZeroText(strings.get("buy.dev.cards.none.common"));  // "No more development cards available to buy"
         add(cardCount);
 
         final SOCGame ga = pi.getGame();
@@ -856,10 +856,11 @@ import javax.swing.SwingConstants;
 
     /** Handle a click (Buy or Cancel) on a building-panel button.
      * Assumes client is currently allowed to build, and sends request to server.
-     * {@link SOCBoardPanel.BoardPopupMenu} also calls this method.
+     * {@link SOCBoardPanel.BoardPopupMenu} and the SBP hotkey also call this method.
      *
      * @param game   The game, for status
-     * @param target Button clicked, as returned by ActionEvent.getActionCommand
+     * @param target Button clicked, as returned by ActionEvent.getActionCommand:
+     *     {@link #ROAD}, {@link #CARD}, {@link #SBP}, etc
      * @param doNotClearPopup Do not call {@link SOCBoardPanel#popupClearBuildRequest()}
      * @since 1.1.00
      */
@@ -882,8 +883,6 @@ import javax.swing.SwingConstants;
         final GameMessageSender messageSender = client.getGameMessageSender();
 
         int sendBuildRequest = -9;  // will send buildRequest if this changes
-
-        // TODO i18n: don't rely on label text
 
         if (target == ROAD)
         {
@@ -960,7 +959,7 @@ import javax.swing.SwingConstants;
         {
             if (canAskSBP)
                 sendBuildRequest = -1;
-            else if (sbNeedsMorePlayers)
+            else if (sbNeedsMorePlayers && sbBut.isEnabled())
                 NotifyDialog.createAndShow
                     (pi.getMainDisplay(), pi,
                      strings.get("action.build.cannot.special.PLP.common"), null, true);
@@ -999,7 +998,8 @@ import javax.swing.SwingConstants;
     }
 
     /**
-     * Update the status of the buttons. Each piece type's button is labeled "Buy" or disabled ("---")
+     * Update the status of the buttons after game state or client player resources change.
+     * Each piece type's button is labeled "Buy" or disabled ("---")
      * depending on game state and resources available, unless we're currently placing a bought piece.
      * In that case the bought piece type's button is labeled "Cancel", and the others are disabled with
      * their current labels until placement is complete.

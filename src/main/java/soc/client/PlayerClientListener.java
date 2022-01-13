@@ -37,6 +37,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;  // for javadocs only
 import soc.game.SOCResourceSet;
 import soc.game.SOCSpecialItem;
+import soc.message.SOCDeclinePlayerRequest;
 import soc.message.SOCPickResources;  // for reason codes in javadocs
 import soc.message.SOCPlayerElement.PEType;
 
@@ -289,7 +290,7 @@ public interface PlayerClientListener
     void requestedChooseRobResourceType(SOCPlayer player);
 
     /**
-     * A robbery has just occurred; show details. Is called after game data has been updated.
+     * A robbery has just occurred; show result details. Is called after game data has been updated.
      *
      * @param perpPN  Perpetrator's player number, or -1 if none
      *     (used by {@code SC_PIRI} scenario, future use by other scenarios/expansions)
@@ -305,7 +306,7 @@ public interface PlayerClientListener
      * @param extraValue  Optional information related to the robbery, or 0; for use by scenarios/expansions
      * @since 2.5.00
      */
-    void reportRobbery
+    void reportRobberyResult
         (final int perpPN, final int victimPN, final int resType, final SOCResourceSet resSet, final PEType peType,
          final boolean isGainLose, final int amount, final int victimAmount, final int extraValue);
 
@@ -510,9 +511,12 @@ public interface PlayerClientListener
      *   {@link #gameStarted()};
      *   {@link #gameStateChanged(int)};
      *</pre></code>
+     *
      * @param gameState One of the states from SOCGame, such as {@link soc.game.SOCGame#NEW}
+     * @param isForDecline If true, server has sent us a {@link SOCDeclinePlayerRequest};
+     *     {@code gameState} might not have changed since last call to {@code gameStateChanged(..)}.
      */
-    void gameStateChanged(int gameState);
+    void gameStateChanged(int gameState, boolean isForDecline);
 
     /**
      * Update game data and interface after game is over.
@@ -589,6 +593,20 @@ public interface PlayerClientListener
      * @see #simpleRequest(int, int, int, int)
      */
     void simpleAction(int pn, int acttype, int value1, int value2);
+
+    /**
+     * Let client player know the server has declined their request or requested action.
+     * Because this only updates the display, call before updating game state if was incorrect at client;
+     * that update may cause a prompt or dialog to be shown.
+     * @param reasonCode  Reason the request was declined:
+     *     {@link SOCDeclinePlayerRequest#REASON_NOT_NOW}, {@link SOCDeclinePlayerRequest#REASON_NOT_YOUR_TURN}, etc
+     * @param detailValue1  Optional detail, may be used by some {@code reasonCode}s
+     * @param detailValue2  Optional detail, may be used by some {@code reasonCode}s
+     * @param reasonText  Optional localized reason text, or {@code null} to print text based on {@code reasonCode}
+     * @since 2.5.00
+     */
+    void playerRequestDeclined
+        (final int reasonCode, final int detailValue1, final int detailValue2, final String reasonText);
 
     void buildRequestCanceled(SOCPlayer player);
 

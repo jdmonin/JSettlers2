@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013-2014,2016,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014,2016,2019-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2011 Jim Morris: RequestFocusListener (CC BY-SA 3.0)
  *
  * This program is free software; you can redistribute it and/or
@@ -1727,8 +1727,8 @@ public class PropertiesTranslatorEditor
                 // in key-pair rows, no key col unless row was added
                 final ParsedPropsFilePair.FileKeyEntry fke = (ParsedPropsFilePair.FileKeyEntry) fe;
 
-                if ((c == 2) && (fke.key != null) && fke.key.startsWith(PropsFileParser.KEY_PREFIX_NO_LOCALIZE))
-                    return false;  // can't edit dest if key starts with "_nolocaliz"
+                if ((c == 2) && (fke.key != null) && fke.key.contains(PropsFileParser.KEY_MARKER_NO_LOCALIZE))
+                    return (null != fke.destValue);  // can't edit dest if blank and key name contains "_nolocaliz"
 
                 return (c != 0) || fke.newAdd;
             }
@@ -1775,7 +1775,7 @@ public class PropertiesTranslatorEditor
 
                 else if (c == 2)  // destination-language column
                 {
-                    if (fke.key.startsWith(PropsFileParser.KEY_PREFIX_NO_LOCALIZE))
+                    if (fke.key.contains(PropsFileParser.KEY_MARKER_NO_LOCALIZE))
                         return CellStatus.READONLY_NOT_LOCALIZED;
 
                     if ((fke.destValue == null) && (fke.srcValue != null))

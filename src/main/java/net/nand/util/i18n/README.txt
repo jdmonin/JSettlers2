@@ -73,8 +73,11 @@ Please make sure your patch follows the project coding style (see /doc/Readme.de
 Version history
 ---------------
 
-1.2.0
+1.2.1
 - Current beta version being developed.
+- Recognizes marker _nolocaliz anywhere in key name, not only as prefix
+
+1.2.0
 - Add project website to About dialog
 - For testing translations of the editor UI itself, can specify a different locale with JVM parameter -Dpte.locale=es_MX
 

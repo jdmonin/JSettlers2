@@ -1393,7 +1393,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         throws IllegalArgumentException
     {
         if (m == null)
-            throw new IllegalArgumentException("m");
+            throw new IllegalArgumentException("m null");
 
         for (Enumeration<Connection> e = getConnections(); e.hasMoreElements();)
             e.nextElement().put(m);
@@ -1424,7 +1424,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         throws IllegalArgumentException
     {
         if (m == null)
-            throw new IllegalArgumentException("null");
+            throw new IllegalArgumentException("m null");
 
         if (vmin > vmax)
             return;

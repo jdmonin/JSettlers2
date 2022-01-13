@@ -303,6 +303,10 @@
 # This starts 2 of the example "third-party" bot:
 # jsettlers.bots.start3p=2,soc.robot.sample3p.Sample3PClient
 
+# Debug flag to check if all bots still have an accurate count of all players' resources
+# at end of each turn by sending SOCBotGameDataCheck messages.
+# jsettlers.debug.bots.datacheck.rsrc=N
+
 # Robot turn timeout (seconds) for third-party robots, which may have more
 # complex logic than the built-in bots. The third-party bots will have this
 # many seconds to make a move before the server ends their turn.
@@ -331,7 +335,7 @@
 #
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2016-2020 Jeremy D Monin (jeremy@nand.net)
+# This file Copyright (C) 2016-2020,2022 Jeremy D Monin (jeremy@nand.net)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

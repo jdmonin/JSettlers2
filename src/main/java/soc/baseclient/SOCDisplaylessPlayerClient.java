@@ -126,8 +126,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * For client/robot testing, string property {@code "jsettlers.debug.client.gameopt3p"}
      * with name of a "third-party" Known Game Option to create; will have {@link SOCGameOption#FLAG_3RD_PARTY}.
-     * At server connect, will report having client feature {@code "com.example.js."} + optionName
-     * along with default features or {@link soc.client.SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_FEATURES}.
+     * At server connect, will report having client feature {@code "com.example.js.feat."} + optionName
+     * along with default features or {@link soc.client.SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_FEATURES}
+     * in the {@link SOCVersion} message sent to server. See {@link SOCFeatureSet} for more info.
      *
      * @see soc.server.SOCServer#PROP_JVM_JSETTLERS_DEBUG_SERVER_GAMEOPT3P
      * @since 2.5.00
@@ -246,6 +247,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * the games we're playing
+     *<P>
+     * Games are added by {@link #handleJOINGAMEAUTH(SOCJoinGameAuth, boolean)},
+     * removed by {@link #leaveGame(String)}.
+     * @see #getGame(String)
      */
     protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
@@ -284,6 +289,17 @@ public class SOCDisplaylessPlayerClient implements Runnable
     public String getNickname()
     {
         return nickname;
+    }
+
+    /**
+     * Get a game that we've joined in this client.
+     * @param gaName  game name to look for
+     * @return Game if we've joined it, or {@code null} if not found or not joined
+     * @since 2.5.00
+     */
+    public SOCGame getGame(final String gaName)
+    {
+        return games.get(gaName);
     }
 
     /**
@@ -953,12 +969,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
-             * Report Robbery.
+             * Report robbery result.
              * Added 2020-09-15 for v2.5.00.
              */
-            case SOCMessage.REPORTROBBERY:
-                handleREPORTROBBERY
-                    ((SOCReportRobbery) mes, games.get(((SOCMessageForGame) mes).getGame()));
+            case SOCMessage.ROBBERYRESULT:
+                handleROBBERYRESULT
+                    ((SOCRobberyResult) mes, games.get(((SOCMessageForGame) mes).getGame()));
                 break;
 
             /**
@@ -968,6 +984,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
             case SOCMessage.PICKRESOURCES:
                 handlePICKRESOURCES
                     ((SOCPickResources) mes, games.get(((SOCMessageForGame) mes).getGame()));
+                break;
+
+            /**
+             * Server has declined player's request.
+             * Added 2021-12-11 for v2.5.00.
+             */
+            case SOCMessage.DECLINEPLAYERREQUEST:
+                handleDECLINEPLAYERREQUEST
+                    ((SOCDeclinePlayerRequest) mes, games.get(((SOCMessageForGame) mes).getGame()));
                 break;
             }
         }
@@ -1475,6 +1500,22 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;
 
         ga.setGameState(newState);
+    }
+
+    /**
+     * Server has declined player's request.
+     * Unless {@link SOCDeclinePlayerRequest#gameState} is 0 or same as current {@link SOCGame#getGameState()},
+     * calls {@link #handleGAMESTATE(SOCGame, int)}.
+     * @since 2.5.00
+     */
+    public static void handleDECLINEPLAYERREQUEST(final SOCDeclinePlayerRequest mes, final SOCGame ga)
+    {
+        if (ga == null)
+            return;
+
+        final int currState = mes.gameState;
+        if ((currState != 0) && (currState != ga.getGameState()))
+            handleGAMESTATE(ga, currState);
     }
 
     /**
@@ -2195,11 +2236,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes) {}
 
     /**
-     * Handle the "report robbery" message.
+     * Handle the "robbery result" message.
      * Updates game data by calling {@link #handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}
      * or {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, PEType, int, String)}.
-     * Does nothing if {@link SOCReportRobbery#isGainLose mes.isGainLose} but
-     * {@link SOCReportRobbery#amount mes.amount} == 0 and {@link SOCReportRobbery#resSet} is null.
+     * Does nothing if {@link SOCRobberyResult#isGainLose mes.isGainLose} but
+     * {@link SOCRobberyResult#amount mes.amount} == 0 and {@link SOCRobberyResult#resSet} is null.
      *<P>
      * This method is public static for access by {@code SOCPlayerClient} and robot client classes.
      *
@@ -2207,7 +2248,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}; if {@code null}, message is ignored
      * @since 2.5.00
      */
-    public static void handleREPORTROBBERY(final SOCReportRobbery mes, SOCGame ga)
+    public static void handleROBBERYRESULT(final SOCRobberyResult mes, SOCGame ga)
     {
         if (ga == null)
             return;
@@ -3200,9 +3241,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * user wants to leave a game.
+     * Calls {@link #leaveGame(String)}.
      *
      * @param ga   the game
-     * @see #leaveGame(String)
      */
     public void leaveGame(SOCGame ga)
     {
@@ -3211,6 +3252,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * user wants to leave a game, which they may not have been able to fully join.
+     * Also removes game from client's game list; {@link #getGame(String)} would return {@code null} for it afterwards.
      *
      * @param gaName  the game name
      * @see #leaveGame(SOCGame)
@@ -3223,7 +3265,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user wants to sit down to play
+     * User is sending server a request to sit down to play.
      *
      * @param ga   the game
      * @param pn   the number of the seat where the user wants to sit

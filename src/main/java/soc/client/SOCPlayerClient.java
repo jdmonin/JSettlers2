@@ -107,6 +107,7 @@ public class SOCPlayerClient
      * String property {@code jsettlers.debug.client.features} to support server testing and debugging:
      * When present, client will report these Client Features to server in its {@code Version} message
      * instead of its actual features from <tt>{@link SOCFeatureSet}.CLIENT_*</tt>.
+     * See {@link SOCFeatureSet} for more info.
      *<P>
      * Format: Empty for none, or string of semicolon-surrounded client features: <tt>";6pl;sb;"</tt><BR>
      * Same format as {@link SOCFeatureSet#getEncodedList()}.

@@ -17,32 +17,78 @@ JARs for recent JSettlers versions can be downloaded from
 	- If client requests a new game with unknown game option(s), server replies once with SOCGameOptionInfo messages to mark them as unknown
 
 
-## `2.5.00` (build JM20210xxx)
+## `2.6.00` (build JM2022xxxx)
 - Currently being developed
+- Game options:
+	- Client removes unused options before sending new game request
+	- If client requests a new game with unknown game option(s), server replies once with SOCGameOptionInfo messages to mark them as unknown.
+	  Client will now use that info to update options used in New Game dialog.
+- For developers:
+	- SOCForceEndTurnThread: Name thread to identify in server thread dumps
+
+
+## `2.5.00` (build JM20211230)
 - Gameplay:
 	- Road Building: If player cancels placement or ends turn before placing the first free road or ship,
 	  the dev card is returned to their hand
+	- When a trade is offered to bots and humans, bots wait longer before responding.
+	  Was 3 seconds, is now 8, changeable with server property `jsettlers.bot.human.pause`
+	  (thank you Lee Passey)
 	- Recalc Longest Route when building coastal settlement to connect a player's roads to ships
 	  (thanks kotc for reporting issue #95)
 	- Pirate Islands scenario: Ship placement: Fix client bug where placing a coastal ship
 	  next to a road would prevent any further ship building, based on "no branches in route" rule
 	- Through the Desert scenario: No longer incorrectly gives 2 SVP to a player
 	  building a settlement within the desert (thanks kotc for reporting #86)
-	- When a trade is offered to bots and humans, bots wait longer before responding.
-	  Was 3 seconds, is now 8, changeable with server property `jsettlers.bot.human.pause`
-	  (thank you Lee Passey)
 	- If knight card is played by bot, then returned because bot is unresponsive,
 	  server updates their army size and largest army (thanks kotc for reporting #91)
+- I18N:
+	- Added French translation (thank you Lee Passey)
+- Client:
+	- Game window:
+	    - Added hotkey Ctrl-B/Alt-B/Cmd-B to ask to Special Build in 6-player game
+	    - Hand Panel: Shrink unused space above trading squares
+	    - Board panel: Better performance and quicker resizing, thanks to tiehfood's discussion in github issue #84
+	    - Discards: List resources you discarded, not just total amount, in game action textarea
+	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
+	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
+	- New Game dialog:
+	    - Sort game option descriptions case-insensitively, in case of acronyms
+	    - If server has increased default VP to win, use that as minimum when picking a scenario
+	    - Options with keynames longer than 3 chars aren't grouped under a 2-character "parent" option
+	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
+	- If client starts a TCP server, keep it running; previous versions timed out after being idle an hour
+	  (thanks kotc for reporting issue #81)
+	- If client starts a TCP server, can turn on Debug Mode for that server
+	  by adding `-Djsettlers.allow.debug=Y` before `-jar` on java command line
+	- If server announces it's shutting down with StatusMessage(SV_SERVER_SHUTDOWN), show Connect or Practice panel
+	- If server connection is lost, show Connect or Practice panel with error text and only its 3 main buttons, all enabled
+	- Linux/Unix: Use sub-pixel font antialiasing if available (thanks kotc for issue #92)
+	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
+	- When receiving SOCResourceCount or RESOURCE_COUNT player element, try to avoid converting that player's resources to unknowns
+	- PlayerClientListener.playerElementUpdated(ResourceTotalAndDetails): Do same updates as single-resource calls
+	- When receiving SOCGameOptionGetDefaults: Update default fields in set of known options, not just current values
 - Bots/AI:
 	- Shorten pause after bot requests a bank trade
 	- Limit the number of failed trade offers/bank trades per turn
-- I18N:
-	- Added French translation (thank you Lee Passey)
+- Server:
+	- During game reset, don't send chat recap: Chat text is still in clients' game windows
+	- When game has been loaded but not yet resumed, humans can sit down at any player's seat (human or robot)
+	- If client's New Game request doesn't set game option `VP`, and server config has a default, use that for new game's `VP`
+	- If default VP is set on command line or properties, will also be minimum VP for any scenario
+	- To use default VP in all scenarios (not just as minimum VP), start server with new game option `-o _VP_ALL=t`
+	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
+	- Print console "joined the game", "left the game" messages as 24-hour local "HH:mm:ss"
+	  like client connect/disconnect times, instead of locale-dependent 12-hour times
+	- Startup: If problem with game options in properties file or command line,
+	  improve error messages to tell whether option is unknown or malformed
+	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
 - Network/Message traffic:
 	- For efficiency and third-party bots' understanding, server sends data messages instead of text when clients are this version or newer:
-		- Report robbery with `SOCReportRobbery`
+		- Report robbery results with `SOCRobberyResult`
 		- Announce Discovery card/gold hex free resource picks with `SOCPickResources`
 		- Reject disallowed trade requests with `SOCRejectOffer` reason codes
+		- Reject other disallowed requests or actions with `SOCDeclinePlayerRequest`
 	- Initial Placement:
 		- Don't send SOCRollDicePrompt
 		- Always send SOCTurn (not just to bots) at start of each placement round
@@ -65,6 +111,7 @@ JARs for recent JSettlers versions can be downloaded from
 		  or SOCResourceCounts to v2.x clients. Those clients are already sent SOCDiceResultResources,
 		  and the extra messages could lead to incorrect resource tracking.
 	- Discard:
+		- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
 		- Server sends SOCDiscard instead of SOCPlayerElement to clients v2.5 and newer
 		- After a player discards, if others still must discard, server sends SOCGameState(WAITING_FOR_DISCARDS) for clarity although state hasn't changed
 			- Not sent to clients older than v2.5
@@ -75,14 +122,15 @@ JARs for recent JSettlers versions can be downloaded from
 		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)
 		  so client's game data's is updated by the time it sees that action message, and sends
 		  SOCResourceCount for clients which may have tracked some of the victims' lost resource as unknowns
+	- When Discovery card played:
+		- If client sends wrong number of resources, server responds with SOCSimpleRequest(PROMPT_PICK_RESOURCES, 2)
 	- End Turn:
 		- If client sends SOCEndTurn but player can't end turn yet, server responds with SOCGameState as a prompt
 	- Special Building Phase:
 		- When server sends SOCTurn(SPECIAL_BUILDING), no longer follows with text prompt
 	- Pirate Islands scenario: Attacks by pirate fleet:
-		- Results announced as SOCReportRobbery
+		- Results announced as SOCRobberyResult
 		- Also announces ties
-	- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
 	- When client joins a game:
 		- If any player currently picking free resources, server sends SOCPlayerElement(NUM_PICK_GOLD_HEX_RESOURCES)
 	- SOCGameTextMsg, SOCChannelTextMsg: Clients and server remove extraneous trailing `\n` when sending message
@@ -124,8 +172,10 @@ JARs for recent JSettlers versions can be downloaded from
 	- If `SOCServer.stopServer()` called before it's fully running, shuts down cleanly
 	  instead of NullPointerException in InboundMessageQueue.stopMessageProcessing
 	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
-	- Bots: When forcing end turn, omit previous/current turn messages if stubborn
-	- For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
+	- Bots:
+	    - When forcing end turn, omit previous/current turn messages if stubborn
+	    - Added server property `jsettlers.debug.bots.datacheck.rsrc` to check bot resource accuracy every turn
+	    - For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
 	- Server extensibility:
 	    - Added public `createGameAndBroadcast` method
 	    - Added factory methods like `buildServerMessageHandler`
@@ -145,45 +195,18 @@ JARs for recent JSettlers versions can be downloaded from
 	        - `PLAY_VPO`: Show all players' VP/dev card info
 	        - `PLAY_FO`: Show all player info as fully observable: Resources, VP/dev cards
 	    - "Third-Party Options" concept: Gameopts defined by a 3rd-party client, bot, or server JSettlers fork,
-	      as a way to add features or flags but remain backwards-compatible with standard JSettlers.
+	      as a way to add features or flags but remain compatible with standard JSettlers.
 	        - When connecting, client must ask server if it knows about all such gameopts, regardless of version
 	        - Associated with a given client feature; server looks for feature when a client connects
 	    - Refactored option maps to SOCGameOptionSet
 	    - Robot clients no longer ignore game option info sync messages
 	    - SGH.calcGameClientFeaturesRequired checks each gameopt for features
-- Server:
-	- When game has been loaded but not yet resumed, humans can sit down at any player's seat (human or robot)
-	- During game reset, don't send chat recap: Chat text is still in clients' game windows
-	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
-	- Print console "joined the game", "left the game" messages as 24-hour local "HH:mm:ss"
-	  like client connect/disconnect times, instead of locale-dependent 12-hour times
-	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
-- Client:
-	- New Game dialog:
-	    - Sort game option descriptions case-insensitively, in case of acronyms
-	    - Options with keynames longer than 3 chars aren't grouped under a 2-character "parent" option
-	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
-	- Game window:
-	    - Hand Panel: Shrink unused space above trading squares
-	    - Board panel: Better performance and quicker resizing, thanks to tiehfood's discussion in github issue #84
-	    - Discards: List resources you discarded, not just total amount, in game action textarea
-	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
-	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
-	- If client starts a TCP server, keep it running; previous versions timed out after being idle an hour
-	  (thanks kotc for reporting issue #81)
-	- If client starts a TCP server, can turn on Debug Mode for that server
-	  by adding `-Djsettlers.allow.debug=Y` before `-jar` on java command line
-	- If server announces it's shutting down with StatusMessage(SV_SERVER_SHUTDOWN), show Connect or Practice panel
-	- If server connection is lost, show Connect or Practice panel with error text and only its 3 main buttons, all enabled
-	- Linux/Unix: Use sub-pixel font antialiasing if available (thanks kotc for issue #92)
-	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
-	- When receiving SOCResourceCount or RESOURCE_COUNT player element, try to avoid converting that player's resources to unknowns
-	- PlayerClientListener.playerElementUpdated(ResourceTotalAndDetails): Do same updates as single-resource calls
 - Code internals:
 	- Fixed lint warnings for switch fallthrough, variable shadowing, renamed a few obscure fields
 	- Renames for consistency:
 	    - SOCDevCardConstants.TEMP -> TEMPLE
 	    - SOCPlayerInterface.clientIsCurrentPlayer -> isClientCurrentPlayer
+	- Added 76 unit tests (new total is 203)
 
 
 ## `2.4.00` (build JM20200704)

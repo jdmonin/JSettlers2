@@ -1,6 +1,6 @@
 /*
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017-2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,6 +48,13 @@ import soc.util.SOCRobotParameters;
 public class Sample3PBrain extends SOCRobotBrain
 {
     /**
+     * Number of declined trades in the current negotiation.
+     * An example of custom state tracked by the bot during turns.
+     * @since 2.5.00
+     */
+    protected int numDeclinedTrades = 0;
+
+    /**
      * Standard brain constructor; for javadocs see
      * {@link SOCRobotBrain#SOCRobotBrain(SOCRobotClient, SOCRobotParameters, SOCGame, CappedQueue)}.
      */
@@ -94,7 +101,28 @@ public class Sample3PBrain extends SOCRobotBrain
     }
 
     /**
-     * Consider a trade offer; reject if we aren't offered clay or sheep.
+     * Override to clear our custom trade-related counter.
+     */
+    @Override
+    public void resetFieldsAndBuildingPlan()
+    {
+        super.resetFieldsAndBuildingPlan();
+        numDeclinedTrades = 0;
+    }
+
+    /**
+     * Override to clear our custom trade-related counter.
+     */
+    @Override
+    public void resetFieldsAtEndTurn()
+    {
+        super.resetFieldsAtEndTurn();
+        numDeclinedTrades = 0;
+    }
+
+    /**
+     * Consider a trade offer; reject if we aren't offered clay or sheep
+     * unless {@link #numDeclinedTrades} &gt; 2.
      *<P>
      * {@inheritDoc}
      */
@@ -107,11 +135,13 @@ public class Sample3PBrain extends SOCRobotBrain
         }
 
         final SOCResourceSet res = offer.getGiveSet();
-        if (! (res.contains(Data.ResourceType.CLAY_VALUE) || res.contains(Data.ResourceType.SHEEP_VALUE)))
+        if ((numDeclinedTrades <= 2)
+            && ! (res.contains(Data.ResourceType.CLAY_VALUE) || res.contains(Data.ResourceType.SHEEP_VALUE)))
         {
             return SOCRobotNegotiator.REJECT_OFFER;
         }
 
         return super.considerOffer(offer);
     }
+
 }

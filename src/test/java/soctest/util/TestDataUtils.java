@@ -25,8 +25,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.TreeMap;
+
 import soc.game.SOCResourceSet;
 import soc.util.DataUtils;
+
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -37,40 +39,6 @@ import static org.junit.Assert.*;
 public class TestDataUtils
 {
     // TODO tests for arrayIntoStringBuf, listIntoStringBuilder
-
-    @Test
-    public void testintListToPrimitiveArray()
-    {
-        assertNull(DataUtils.intListToPrimitiveArray(null));
-
-        int[] arr = DataUtils.intListToPrimitiveArray(new LinkedList<Integer>());
-        assertNotNull(arr);
-        assertEquals(0, arr.length);
-
-        ArrayList<Integer> al = new ArrayList<>();
-        al.add(3);
-        arr = DataUtils.intListToPrimitiveArray(al);
-        assertNotNull(arr);
-        assertEquals(1, arr.length);
-        assertEquals(3, arr[0]);
-
-        al.add(42);
-        al.add(-7);
-        arr = DataUtils.intListToPrimitiveArray(al);
-        assertNotNull(arr);
-        assertEquals(3, arr.length);
-        assertArrayEquals(new int[]{3, 42, -7}, arr);
-
-        LinkedList<Integer> li = new LinkedList<>();
-        li.add(77);
-        li.add(0);
-        li.add(-5);
-        li.add(2);
-        arr = DataUtils.intListToPrimitiveArray(li);
-        assertNotNull(arr);
-        assertEquals(4, arr.length);
-        assertArrayEquals(new int[]{77, 0, -5, 2}, arr);
-    }
 
     /**
      * Test {@link DataUtils#mapIntoStringBuilder(Map, StringBuilder, String, String)}.
@@ -162,6 +130,40 @@ public class TestDataUtils
         assertEquals
             ("-1 == clay=4|ore=0|sheep=0|wheat=0|wood=0|unknown=0; 3 == clay=0|ore=3|sheep=0|wheat=2|wood=0|unknown=0", sb.toString());
         // sb.delete(0, sb.length());
+    }
+
+    @Test
+    public void testintListToPrimitiveArray()
+    {
+        assertNull(DataUtils.intListToPrimitiveArray(null));
+
+        int[] arr = DataUtils.intListToPrimitiveArray(new LinkedList<Integer>());
+        assertNotNull(arr);
+        assertEquals(0, arr.length);
+
+        ArrayList<Integer> al = new ArrayList<>();
+        al.add(3);
+        arr = DataUtils.intListToPrimitiveArray(al);
+        assertNotNull(arr);
+        assertEquals(1, arr.length);
+        assertEquals(3, arr[0]);
+
+        al.add(42);
+        al.add(-7);
+        arr = DataUtils.intListToPrimitiveArray(al);
+        assertNotNull(arr);
+        assertEquals(3, arr.length);
+        assertArrayEquals(new int[]{3, 42, -7}, arr);
+
+        LinkedList<Integer> li = new LinkedList<>();
+        li.add(77);
+        li.add(0);
+        li.add(-5);
+        li.add(2);
+        arr = DataUtils.intListToPrimitiveArray(li);
+        assertNotNull(arr);
+        assertEquals(4, arr.length);
+        assertArrayEquals(new int[]{77, 0, -5, 2}, arr);
     }
 
 }

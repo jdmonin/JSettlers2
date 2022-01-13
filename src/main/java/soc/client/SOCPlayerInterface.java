@@ -48,6 +48,7 @@ import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.SOCMessage;
 import soc.message.SOCPlayerElement.PEType;
+import soc.message.SOCDeclinePlayerRequest;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCPickResources;  // for reason code constants
 import soc.message.SOCSimpleAction;  // for action type constants
@@ -128,8 +129,9 @@ import javax.swing.event.DocumentListener;
  * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
  * ready for interaction, the client calls {@link #began(List)}.
  *<P>
- * Has keyboard shortcuts for Accept/Reject/Counter trade offers, since v2.3.00.
- * See {@link TradeHotkeyActionListener} for details if adding others.
+ * Has keyboard shortcuts for Accept/Reject/Counter trade offers since v2.3.00,
+ * and to ask for Special Building since v2.5.00.
+ * See {@link PIHotkeyActionListener} for details if adding others.
  *<P>
  * <B>Chat text history:</B>
  * Remembers chat text sent by client player to the game/server, including local debug commands.
@@ -644,13 +646,6 @@ public class SOCPlayerInterface extends Frame
      * @since 1.1.11
      */
     private Dimension prevSize;
-
-    /**
-     * Have we resized the board, and thus need to repaint the borders
-     * between panels?  Determined in {@link #doLayout()}.
-     * @since 1.1.11
-     */
-    private boolean needRepaintBorders;
 
     /**
      * True if sound effects in this particular game interface are muted.
@@ -1262,18 +1257,22 @@ public class SOCPlayerInterface extends Frame
     private void addHotkeysInputMap()
         throws IllegalStateException
     {
-        final TradeHotkeyActionListener acceptTrade
-            = new TradeHotkeyActionListener(TradeHotkeyActionListener.ACCEPT);
+        final PIHotkeyActionListener acceptTrade
+            = new PIHotkeyActionListener(PIHotkeyActionListener.ACCEPT);
 
         final ActionMap am = buildingPanel.getActionMap();
         am.put("hotkey_accept", acceptTrade);
-        am.put("hotkey_reject", new TradeHotkeyActionListener(TradeHotkeyActionListener.REJECT));
-        am.put("hotkey_counteroffer", new TradeHotkeyActionListener(TradeHotkeyActionListener.COUNTER));
+        am.put("hotkey_reject", new PIHotkeyActionListener(PIHotkeyActionListener.REJECT));
+        am.put("hotkey_counteroffer", new PIHotkeyActionListener(PIHotkeyActionListener.COUNTER));
+        if (game.maxPlayers > 4)
+            am.put("hotkey_askspecialbuild", new PIHotkeyActionListener(PIHotkeyActionListener.ASK_SPECIAL_BUILD));
 
         final InputMap im = buildingPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         addHotkeysInputMap_one(im, KeyEvent.VK_A, "hotkey_accept", null);
         addHotkeysInputMap_one(im, KeyEvent.VK_J, "hotkey_reject", null);
         addHotkeysInputMap_one(im, KeyEvent.VK_C, "hotkey_counteroffer", null);
+        if (game.maxPlayers > 4)
+            addHotkeysInputMap_one(im, KeyEvent.VK_B, "hotkey_askspecialbuild", null);
 
         textInput.getActionMap().put("hotkey_selectAllOrTradeAccept", new AbstractAction()
         {
@@ -1376,26 +1375,25 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * Paint each component, after (if {@link #needRepaintBorders}) clearing stray pixels
+     * Paint each component, after clearing possible stray pixels
      * from the borders between the components.
      * @since 1.1.11
      */
     @Override
     public void paint(Graphics g)
     {
-        if (needRepaintBorders)
-            paintBorders(g);
+        paintBorders(g);
 
         super.paint(g);
     }
 
     /**
-     * Paint the borders after a resize, and set {@link #needRepaintBorders} false.
+     * Paint the borders after a resize to clear stray pixels.
      * {@link #prevSize} must be set before calling.
      * @param g  Graphics as passed to <tt>update()</tt>
      * @since 1.1.11
      */
-    private void paintBorders(Graphics g)
+    private void paintBorders(final Graphics g)
     {
         if (prevSize == null)
             return;
@@ -1410,8 +1408,6 @@ public class SOCPlayerInterface extends Frame
         }
         int bw = 4 * displayScale;
         g.clearRect(boardPanel.getX(), boardPanel.getY() - bw, boardPanel.getWidth(), bw);
-
-        needRepaintBorders = false;
     }
 
     /**
@@ -2937,6 +2933,46 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * Let client player know the server has declined their request or requested action.
+     * @param reasonCode  Reason the request was declined:
+     *     {@link SOCDeclinePlayerRequest#REASON_NOT_NOW}, {@link SOCDeclinePlayerRequest#REASON_NOT_YOUR_TURN}, etc
+     * @param detailValue1  Optional detail, may be used by some {@code reasonCode}s
+     * @param detailValue2  Optional detail, may be used by some {@code reasonCode}s
+     * @param reasonText  Optional localized reason text, or {@code null} to print text based on {@code reasonCode}
+     * @since 2.5.00
+     */
+    private void showDeclinedPlayerRequest
+        (final int reasonCode, final int detailValue1,  final int detailValue2, final String reasonText)
+    {
+        if (reasonText != null)
+        {
+            print("* " + reasonText);
+            return;
+        }
+
+        final String reasonTextKey;
+        switch(reasonCode)
+        {
+        case SOCDeclinePlayerRequest.REASON_NOT_THIS_GAME:
+            reasonTextKey = "reply.common.cannot.in_this_game";  // "You can't do that in this game."
+            break;
+
+        case SOCDeclinePlayerRequest.REASON_NOT_YOUR_TURN:
+            reasonTextKey = "base.reply.not.your.turn";  // "It's not your turn."
+            break;
+
+        case SOCDeclinePlayerRequest.REASON_LOCATION:
+            reasonTextKey = "reply.common.cannot.at_that_location";  // "You can't do that at that location."
+            break;
+
+        default:
+            reasonTextKey = "reply.common.cannot.right_now";  // "You can't do that right now."
+        }
+        printKeyed(reasonTextKey);
+    }
+
+
+    /**
      * The client player's available resources have changed. Update displays if needed.
      *<P>
      * If any trade offers are currently showing, show or hide the offer Accept button
@@ -2952,6 +2988,8 @@ public class SOCPlayerInterface extends Frame
 
             hands[i].updateCurrentOffer(false, true);
         }
+
+        buildingPanel.updateButtonStatus();
     }
 
     /**
@@ -3124,7 +3162,7 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * A robbery has just occurred; show details.
+     * A robbery has just occurred; show result details.
      * Is called after game data has been updated.
      *
      * @param perpPN  Perpetrator's player number, or -1 if none
@@ -3141,7 +3179,7 @@ public class SOCPlayerInterface extends Frame
      * @param extraValue  Optional information related to the robbery, or 0; for use by scenarios/expansions
      * @since 2.5.00
      */
-    public void reportRobbery
+    public void reportRobberyResult
         (final int perpPN, final int victimPN, final int resType, SOCResourceSet resSet, final PEType peType,
          final boolean isGainLose, final int amount, final int victimAmount, final int extraValue)
     {
@@ -3201,16 +3239,22 @@ public class SOCPlayerInterface extends Frame
                     printKeyedSpecial
                         ("robber.stole.resource.from.play_fo",  // "{0} stole {2,rsrcs} from {1}."
                          peName, viName, (amount != 1) ? amount : -1, resType);
-                else
+                else if (amount == 1)
                     printKeyed
                         ("robber.common.stole.resource.from", peName, viName);  // "{0} stole a resource from {1}."
+                else
+                    printKeyed
+                        ("robber.common.stole.resource.from.n",  // "{0} stole {2} resources from {1}."
+                         peName, viName, amount);
             } else {
                 if (perpPN == clientHandPlayerNum)
                     printKeyedSpecial
-                        ("robber.common.you.stole.resource.from", -1, resType, viName);  // "You stole {0,rsrcs} from {2}."
+                        ("robber.common.you.stole.resource.from",  // "You stole {0,rsrcs} from {2}."
+                         (amount != 1) ? amount : -1, resType, viName);
                 else
                     printKeyedSpecial
-                        ("robber.common.stole.resource.from.you", peName, -1, resType);  // "{0} stole {1,rsrcs} from you."
+                        ("robber.common.stole.resource.from.you",  // "{0} stole {1,rsrcs} from you."
+                         peName, (amount != 1) ? amount : -1, resType);
             }
 
             if (perpPN >= 0)
@@ -3277,9 +3321,12 @@ public class SOCPlayerInterface extends Frame
      *   playerInterface.{@link #startGame()};
      *   playerInterface.updateAtGameState();
      *</pre></code>
+     *
+     * @param isForDecline If true, server has sent us a {@link SOCDeclinePlayerRequest};
+     *     game state might not have changed since last call to {@code updateAtGameState(..)}.
      * @since 1.1.00
      */
-    public void updateAtGameState()
+    public void updateAtGameState(boolean isForDecline)
     {
         int gs = game.getGameState();
 
@@ -3871,11 +3918,8 @@ public class SOCPlayerInterface extends Frame
     {
         Insets i = getInsets();
         Dimension dim = getSize();
-        if (prevSize != null)
-        {
-            needRepaintBorders = (dim.width != prevSize.width)
-                || (dim.height != prevSize.height);
-        }
+        boolean needRepaintBorders = (prevSize != null)
+            && ((dim.width != prevSize.width) || (dim.height != prevSize.height));
         prevSize = dim;
         dim.width -= (i.left + i.right);
         dim.height -= (i.top + i.bottom);
@@ -4132,10 +4176,13 @@ public class SOCPlayerInterface extends Frame
             h += cdh;
             textInput.setBounds(x, i.top + pix4 + h, w, tfh);
 
+            needRepaintBorders = true;
+
             // focus here for easier chat typing
             textInput.requestFocusInWindow();
         } else {
             // standard size
+            final int prevTextY = textInput.getBounds().y;
             textDisplay.setBounds(i.left + hw + pix8, i.top + pix4, bw, tdh);
             chatDisplay.setBounds(i.left + hw + pix8, i.top + pix4 + tdh, bw, cdh);
             textInput.setBounds(i.left + hw + pix8, i.top + pix4 + tah, bw, tfh);
@@ -4149,8 +4196,13 @@ public class SOCPlayerInterface extends Frame
                     textDisplay.setCaretPosition(textDisplay.getText().length());
                 }
             });
+
+            if (textDisplaysLargerTemp_needsLayout || (prevTextY != textInput.getBounds().y))
+                needRepaintBorders = true;
         }
         textDisplaysLargerTemp_needsLayout = false;
+        if (needRepaintBorders)
+            repaint();  // clear borders of handpanels near chatDisplay, textDisplay
 
         npix = textDisplay.getPreferredSize().width;
         ncols = (int) (((bw) * 100.0f) / (npix)) - 2; // use float division for closer approximation
@@ -4606,7 +4658,7 @@ public class SOCPlayerInterface extends Frame
                     if (isClientPlayer)
                     {
                         // Because client player's available resources have changed,
-                        // update any trade offers currently showing (show or hide Accept button)
+                        // update Building panel and any trade offers currently showing (show or hide Accept button)
                         pi.updateAtClientPlayerResources();
 
                         // If good or bad news from unexpectedly gained or lost
@@ -4781,9 +4833,9 @@ public class SOCPlayerInterface extends Frame
             pi.startGame();
         }
 
-        public void gameStateChanged(int gameState)
+        public void gameStateChanged(int gameState, boolean isForDecline)
         {
-            pi.updateAtGameState();
+            pi.updateAtGameState(isForDecline);
         }
 
         public void gameEnded(Map<SOCPlayer, Integer> scores)
@@ -4925,6 +4977,12 @@ public class SOCPlayerInterface extends Frame
                     ("PI.simpleAction: Ignored unknown type " + acttype + " in game " + pi.game.getName());
 
             }
+        }
+
+        public void playerRequestDeclined
+            (final int reasonCode, final int detailValue1, final int detailValue2, final String reasonText)
+        {
+            pi.showDeclinedPlayerRequest(reasonCode,  detailValue1, detailValue2, reasonText);
         }
 
         public void buildRequestCanceled(SOCPlayer player)
@@ -5103,11 +5161,12 @@ public class SOCPlayerInterface extends Frame
             pi.showChooseRobClothOrResourceDialog(player.getPlayerNumber());
         }
 
-        public void reportRobbery
+        public void reportRobberyResult
             (final int perpPN, final int victimPN, final int resType, final SOCResourceSet resSet, final PEType peType,
              final boolean isGainLose, final int amount, final int victimAmount, final int extraValue)
         {
-            pi.reportRobbery(perpPN, victimPN, resType, resSet, peType, isGainLose, amount, victimAmount, extraValue);
+            pi.reportRobberyResult
+                (perpPN, victimPN, resType, resSet, peType, isGainLose, amount, victimAmount, extraValue);
         }
 
         public void playerBankTrade(final SOCPlayer player, final SOCResourceSet give, final SOCResourceSet get)
@@ -5156,8 +5215,10 @@ public class SOCPlayerInterface extends Frame
                 toOffering = offer.getGetSet();
             } else {
                 // update resource-count displays, since there weren't PlayerElement messages for this trade
-                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateResourcesVP();
-                pi.getPlayerHandPanel(acceptor.getPlayerNumber()).updateResourcesVP();
+                playerElementUpdated
+                    (offerer, PlayerClientListener.UpdateType.ResourceTotalAndDetails, false, false);
+                playerElementUpdated
+                    (acceptor, PlayerClientListener.UpdateType.ResourceTotalAndDetails, false, false);
             }
 
             if (toOffering != null)
@@ -5657,28 +5718,64 @@ public class SOCPlayerInterface extends Frame
     }  // SOCPITextfieldListener
 
     /**
-     * Hotkey listener for client player to respond to a hand panel's trade offers.
-     * If more than one hand panel has {@link TradePanel#isOfferToPlayer()}, does nothing
+     * Hotkey listener for client player to request actions or respond to a hand panel's trade offers.
+     * If {@link #isForTrade}: When more than one hand panel has {@link TradePanel#isOfferToPlayer()}, does nothing
      * to avoid responding to the wrong offer.
+     * Not used for {@link SOCHandPanel}'s Roll and Done hotkeys.
      * Initialized in {@link SOCPlayerInterface#addHotkeysInputMap()}.
+     *<P>
+     * Before v2.5.00 this class was {@code TradeHotkeyActionListener}.
      * @since 2.3.00
      */
-    private class TradeHotkeyActionListener extends AbstractAction
+    private class PIHotkeyActionListener extends AbstractAction
     {
         public static final int ACCEPT = 1, REJECT = 2, COUNTER = 3;
 
-        private final int forButton;
+        /**
+         * Ask to Special Build.
+         * @since 2.5.00
+         */
+        public static final int ASK_SPECIAL_BUILD = 4;
 
         /**
-         * @param tradeButton The trade button to activate: {@link #ACCEPT}, {@link #REJECT}, or {@link #COUNTER}
+         * {@link #ACCEPT}, {@link #ASK_SPECIAL_BUILD}, etc.
+         * @see #isForTrade
          */
-        public TradeHotkeyActionListener(final int tradeButton)
+        public final int forButton;
+
+        /**
+         * True if should do nothing if more than one hand panel has {@link TradePanel#isOfferToPlayer()}.
+         * Set in constructor. Is used with trade buttons {@link #ACCEPT}, {@link #REJECT}, {@link #COUNTER}
+         * but not {@link #ASK_SPECIAL_BUILD}.
+         * @see #forButton
+         * @since 2.5.00
+         */
+        public final boolean isForTrade;
+
+        /**
+         * @param forButton The button to activate: {@link #ACCEPT}, {@link #REJECT}, {@link #COUNTER},
+         *     or {@link #ASK_SPECIAL_BUILD}
+         */
+        public PIHotkeyActionListener(final int forButton)
         {
-            forButton = tradeButton;
+            this.forButton = forButton;
+            this.isForTrade = (forButton != ASK_SPECIAL_BUILD);
         }
 
         public void actionPerformed(ActionEvent e)
         {
+            if (! isForTrade)
+            {
+                switch (forButton)
+                {
+                case ASK_SPECIAL_BUILD:
+                    buildingPanel.clickBuildingButton(game, SOCBuildingPanel.SBP, false);
+                    break;
+                }
+
+                return;
+            }
+
             SOCHandPanel hpo = null;
             for (int pn = 0; pn < game.maxPlayers; ++pn)
             {

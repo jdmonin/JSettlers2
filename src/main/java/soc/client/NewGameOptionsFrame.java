@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2015,2017-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2015,2017-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -79,6 +79,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.SOCMessage;
+import soc.util.DataUtils;
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;
 import soc.util.Version;
@@ -1535,8 +1536,29 @@ import soc.util.Version;
                 // All fields OK, ready to create a new game.
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this window
                 persistLocalPrefs();
+                final SOCGameOptionSet optsForAskStartgame;
+                if (opts != null)
+                {
+                    // One last check of options for problems,
+                    // and don't send default-valued gameopts which have FLAG_DROP_IF_UNUSED flag
+                    optsForAskStartgame = new SOCGameOptionSet(opts, true);
+                    final Map<String, String> optProblems
+                        = optsForAskStartgame.adjustOptionsToKnown(knownOpts, false, null);
+                    if (optProblems != null)
+                    {
+                        StringBuilder errSB = new StringBuilder("Option problems: ");
+                            // I18N OK: Is fallback only, previous checks should have caught problems
+                        DataUtils.mapIntoStringBuilder(optProblems, errSB, null, "; ");
+                        msgText.setText(errSB.toString());
+                        gameName.requestFocusInWindow();  // draw attention to top of window
+                        setCursor(Cursor.getDefaultCursor());
+                        return;
+                    }
+                } else {
+                    optsForAskStartgame = null;
+                }
                 mainDisplay.askStartGameWithOptions
-                    (gmName, forPractice, opts, localPrefs);  // sets WAIT_CURSOR in main client frame
+                    (gmName, forPractice, optsForAskStartgame, localPrefs);  // sets WAIT_CURSOR in main client frame
             } else {
                 return;  // readOptsValues will put the err msg in dia's status line
             }

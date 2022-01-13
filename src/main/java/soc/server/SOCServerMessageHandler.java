@@ -2459,6 +2459,9 @@ public class SOCServerMessageHandler
             return;  // <--- Early return: No active game found ---
         }
 
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        final boolean isArrivingRobot = (scd != null) && ((SOCClientData) scd).isRobot;
+
         /**
          * make sure this player isn't already sitting
          */
@@ -2530,7 +2533,7 @@ public class SOCServerMessageHandler
                 final boolean isLoadingState =
                     (gameState == SOCGame.LOADING) || (gameState == SOCGame.LOADING_RESUMING);
                 boolean isloadingBot =
-                    isLoadingState && ((SOCClientData) c.getAppData()).isRobot;
+                    isLoadingState && isArrivingRobot;
                 final boolean canTakeOverPlayer =
                     seatedPlayer.isRobot()
                     || (isLoadingState && (isloadingBot || ! gameList.isMember(seatedName, gaName)));
@@ -2601,24 +2604,21 @@ public class SOCServerMessageHandler
         //D.ebugPrintln("canSit 2 = "+canSit);
         if (canSit)
         {
-            srv.sitDown(ga, c, pn, mes.isRobot(), false);
+            srv.sitDown(ga, c, pn, isArrivingRobot, false);
 
             // loadgame: If seat was temporarily unlocked while fetching bot to sit here, re-lock it.
             // Don't do so in state LOADING_RESUMING, because that change might have been done by a human player.
 
-            if ((gameState == SOCGame.LOADING) && (ga.savedGameModel != null)
-                && (((SavedGameModel) ga.savedGameModel).playerSeatLocks != null))
+            if ((gameState == SOCGame.LOADING) && isArrivingRobot
+                 && (ga.savedGameModel != null)
+                 && (((SavedGameModel) ga.savedGameModel).playerSeatLocks != null))
             {
-                final SOCClientData scd = (SOCClientData) c.getAppData();
-                if ((scd != null) && scd.isRobot)
+                SOCGame.SeatLockState gaLock = ga.getSeatLock(pn),
+                    modelLock = ((SavedGameModel) ga.savedGameModel).playerSeatLocks[pn];
+                if ((gaLock != modelLock) && (modelLock != null))
                 {
-                    SOCGame.SeatLockState gaLock = ga.getSeatLock(pn),
-                        modelLock = ((SavedGameModel) ga.savedGameModel).playerSeatLocks[pn];
-                    if ((gaLock != modelLock) && (modelLock != null))
-                    {
-                        ga.setSeatLock(pn, modelLock);
-                        srv.messageToGame(gaName, true, new SOCSetSeatLock(gaName, pn, modelLock));
-                    }
+                    ga.setSeatLock(pn, modelLock);
+                    srv.messageToGame(gaName, true, new SOCSetSeatLock(gaName, pn, modelLock));
                 }
             }
         }
@@ -2628,7 +2628,7 @@ public class SOCServerMessageHandler
              * if the robot can't sit, tell it to go away.
              * otherwise if game is full, tell the player.
              */
-            if (mes.isRobot())
+            if (isArrivingRobot)
             {
                 srv.messageToPlayer(c, gaName, SOCServer.PN_OBSERVER, new SOCRobotDismiss(gaName));
             } else if (gameAlreadyStarted) {

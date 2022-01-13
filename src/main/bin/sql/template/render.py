@@ -7,7 +7,7 @@
 #   Returns: 0 on success, 1 if error reading/writing or failed comparison, 2 if problems with command line
 #   Token format: {{now}}, {{TIMESTAMP}}, etc
 #   Assumes utf-8 encoding for infile, outfile, comparefile
-#   Requires python 2.6 or later
+#   Requires python 3, or 2.6 or later
 #
 # Typical usage, if you see the message "Must regenerate SQL script(s) from templates using render.py":
 #   cd src/main/bin/sql/template
@@ -16,7 +16,7 @@
 #
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

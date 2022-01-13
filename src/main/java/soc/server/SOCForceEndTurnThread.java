@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015,2019-2022 Jeremy D Monin <jeremy@nand.net>
  * This class was created in 2010 within SOCServer; reading SOCServer.java's
  * commit history led to this notice when the class was split out in 2013 to its own file:
  * Portions of this file Copyright (C) 2010-2013 Jeremy D Monin.
@@ -62,6 +62,7 @@ import soc.server.genericServer.Connection;
      */
     public SOCForceEndTurnThread(final SOCServer srv, final GameHandler hand, final SOCGame g, final SOCPlayer p)
     {
+        super("forceEndTurn-" + g.getName());
         setDaemon(true);
         this.srv = srv;
         this.hand = hand;

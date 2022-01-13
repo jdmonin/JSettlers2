@@ -19,11 +19,16 @@
  **/
 package soctest.server;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Vector;
 
@@ -33,6 +38,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import soc.baseclient.SOCDisplaylessPlayerClient;  // for javadocs only
+import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.EventEntry;
 import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCBoard;
@@ -52,9 +59,11 @@ import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCChoosePlayer;
+import soc.message.SOCNewGameWithOptions;
 import soc.server.SOCGameHandler;
 import soc.server.SOCServer;
 import soc.server.savegame.SavedGameModel;
+import soc.util.Version;
 import soctest.server.TestRecorder.StartedTestGameObjects;
 import soctest.server.savegame.TestLoadgame;
 
@@ -112,6 +121,68 @@ public class TestActionsMessages
 
         TestRecorder.testBasics_Loadgame(srv);
     }
+
+    /**
+     * Test saving and loading {@link GameEventLog} files.
+     * Re-runs unit test {@link TestRecorder#testLoadAndBasicSequences(RecordingSOCServer, String, List, boolean)},
+     * saves and loads the resulting event entries:
+     * Calls {@link GameEventLog} constructor, {@link GameEventLog#save(File, String, boolean, boolean)},
+     * {@link GameEventLog#load(File, boolean, int)}.
+     *
+     * @throws IOException if game artifact file can't be loaded, or soclog can't be saved or loaded
+     * @throws ParseException if soclog fails parsing during load
+     * @throws NoSuchElementException if soclog is missing a header during load
+     */
+    @Test
+    public void testSaveLoadBasicSequences()
+        throws IOException, NoSuchElementException, ParseException
+    {
+        // unique client nickname, in case tests run in parallel
+        final String CLIENT_NAME = "testSaveLoadBasic";
+
+        ArrayList<EventEntry> allRecords = new ArrayList<>();
+        final SOCGame ga = TestRecorder.testLoadAndBasicSequences(srv, CLIENT_NAME, allRecords, false);
+        final int logSize = allRecords.size();
+        assertNotEquals(0, logSize);
+
+        final GameEventLog savedLog = new GameEventLog(ga, false);
+        savedLog.entries.addAll(allRecords);
+        assertEquals(logSize, savedLog.entries.size());
+
+        final Path tmpSoclogFilePath = Files.createTempFile(CLIENT_NAME, ".soclog.tmp");
+        try
+        {
+            // save:
+            final File tmpSoclogFile = tmpSoclogFilePath.toFile();
+            savedLog.save(tmpSoclogFile.getParentFile(), tmpSoclogFile.getName(), true, false);
+            final long size = tmpSoclogFile.length();
+            assertTrue("tmp soclog size >= 1k", size >= 1024);
+            srv.destroyGameAndBroadcast(ga.getName(), null);
+
+            // load:
+            final GameEventLog loadedLog = GameEventLog.load(tmpSoclogFile, true, -1);
+            assertNotNull(loadedLog);
+
+            // compare:
+            assertEquals("saved log size " + logSize + " == loaded size?", logSize, loadedLog.entries.size());
+            assertEquals(ga.getName(), loadedLog.gameName);
+            assertEquals(Version.versionNumber(), loadedLog.version);
+            assertNotNull(loadedLog.optsStr);  // to compare in detail to ga.getGameOptions(), would need to parse/sort them
+            for (int i = 0; i < logSize; ++i)
+            {
+                final GameEventLog.EventEntry eeSave = allRecords.get(i), eeLoad = loadedLog.entries.get(i);
+                if ((eeSave.event instanceof SOCNewGameWithOptions)
+                    && (eeLoad.event instanceof SOCNewGameWithOptions))
+                    continue;  // skip; game opts string match is inexact (leading ',', etc)
+
+                assertEquals("log index " + i, eeSave, eeLoad);
+            }
+        } finally {
+            // cleanup
+            Files.deleteIfExists(tmpSoclogFilePath);
+        }
+    }
+
 
     /**
      * Tests building pieces and moving ships.
@@ -671,14 +742,14 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " will move the pirate ship."},
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=-d0a"},
                 {
-                    (observabilityMode != 2) ? "p3:SOCReportRobbery:" : "all:SOCReportRobbery:",
+                    (observabilityMode != 2) ? "p3:SOCRobberyResult:" : "all:SOCRobberyResult:",
                     "|perp=3|victim=1|resType=" + resType + "|amount=1|isGainLose=true"
                 },
                 (observabilityMode != 2)
-                    ? new String[]{"p1:SOCReportRobbery:", "|perp=3|victim=1|resType=" + resType + "|amount=1|isGainLose=true"}
+                    ? new String[]{"p1:SOCRobberyResult:", "|perp=3|victim=1|resType=" + resType + "|amount=1|isGainLose=true"}
                     : null,
                 (observabilityMode != 2)
-                    ? new String[]{"!p[3, 1]:SOCReportRobbery:", "|perp=3|victim=1|resType=6|amount=1|isGainLose=true"}
+                    ? new String[]{"!p[3, 1]:SOCRobberyResult:", "|perp=3|victim=1|resType=6|amount=1|isGainLose=true"}
                     : null,
                 {"all:SOCGameState:", "|state=20"},
             }, false);
@@ -758,14 +829,14 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " will move the robber."},
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=703"},
                 {
-                    (observabilityMode != 2) ? "p3:SOCReportRobbery:" : "all:SOCReportRobbery:",
+                    (observabilityMode != 2) ? "p3:SOCRobberyResult:" : "all:SOCRobberyResult:",
                     "|perp=3|victim=2|resType=" + resType + "|amount=1|isGainLose=true"
                 },
                 (observabilityMode != 2)
-                    ? new String[]{"p2:SOCReportRobbery:", "|perp=3|victim=2|resType=" + resType + "|amount=1|isGainLose=true"}
+                    ? new String[]{"p2:SOCRobberyResult:", "|perp=3|victim=2|resType=" + resType + "|amount=1|isGainLose=true"}
                     : null,
                 (observabilityMode != 2)
-                    ? new String[]{"!p[3, 2]:SOCReportRobbery:", "|perp=3|victim=2|resType=6|amount=1|isGainLose=true"}
+                    ? new String[]{"!p[3, 2]:SOCRobberyResult:", "|perp=3|victim=2|resType=6|amount=1|isGainLose=true"}
                     : null,
                 {"all:SOCGameState:", "|state=20"}
             }, false);
@@ -1484,6 +1555,8 @@ public class TestActionsMessages
     /**
      * Player trade offers: Connect with 2 clients, have one offer a trade to the other,
      * send a counter-offer, first client accepts counter-offer. Also tests clear offer.
+     * Then tests resource tracking when non-client trade partner has unknown resources
+     * (indirectly tests {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}).
      * Declining a trade offer is tested by {@link TestRecorder#testTradeDecline2Clients()}.
      */
     @Test
@@ -1573,13 +1646,98 @@ public class TestActionsMessages
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
-        assertArrayEquals(new int[]{4, 2, 3, 3, 4}, cli1Pl.getResources().getAmounts(false));
-        assertArrayEquals(new int[]{0, 2, 2, 1, 0}, cli2Pl.getResources().getAmounts(false));
+        assertArrayEquals
+            (gaName + ": cli1 res at server after trade",
+             new int[]{4, 2, 3, 3, 4}, cli1Pl.getResources().getAmounts(false));
+        assertArrayEquals
+            (gaName + ": cli2 res at server after trade",
+             new int[]{0, 2, 2, 1, 0}, cli2Pl.getResources().getAmounts(false));
         assertNull(cli2Pl.getCurrentOffer());
+
+        /* Test tracking unknown resources: */
+
+        final SOCGame gaAtCli1 = tcli1.getGame(gaName), gaAtCli2 = tcli2.getGame(gaName);
+        assertNotNull("found " + gaName + " at cli1", gaAtCli1);
+        assertNotNull("found " + gaName + " at cli2", gaAtCli2);
+        final SOCPlayer pl1AtCli1 = gaAtCli1.getPlayer(PN_C1), pl2AtCli1 = gaAtCli1.getPlayer(PN_C2),
+            pl1AtCli2 = gaAtCli2.getPlayer(PN_C1), pl2AtCli2 = gaAtCli2.getPlayer(PN_C2);
+        {
+            final String pname1 = cli1Pl.getName(), pname2 = cli2Pl.getName();
+            assertFalse(pname1.isEmpty());
+            assertFalse(pname2.isEmpty());
+            assertEquals("found " + pname1 + " in cli1 game", pname1, pl1AtCli1.getName());
+            assertEquals("found " + pname1 + " in cli2 game", pname1, pl1AtCli2.getName());
+            assertEquals("found " + pname2 + " in cli1 game", pname2, pl2AtCli1.getName());
+            assertEquals("found " + pname2 + " in cli2 game", pname2, pl2AtCli2.getName());
+        }
+
+        /* set up known and unknown resources at clients and server */
+
+        // PN_C1 will offer to give 1 ore, receive 2 wood from PN_C2:
+        // PN_C1: Start with 1 clay 3 ore, or 1 clay 3 unknown; trade away 1 non-clay resource (ore),
+        //        then afterwards have (1 clay 2 ore, or 1 clay 2 unknown) + the received 2 wood
+        // PN_C2: Start with 2 sheep 2 wood, or 1 wood 3 unknown; trade away 2 wood resources,
+        //        so will convert all to 4 unknown before trade,
+        //        then afterwards have (2 sheep, or 2 unknown) + the received 1 ore resource
+        final SOCResourceSet c1Known = new SOCResourceSet(1, 3, 0, 0, 0, 0),
+            c2Known = new SOCResourceSet(0, 0, 2, 0, 2, 0);
+        cli1Pl.getResources().setAmounts(c1Known);
+        cli2Pl.getResources().setAmounts(c2Known);
+        pl1AtCli1.getResources().setAmounts(c1Known);
+        pl2AtCli2.getResources().setAmounts(c2Known);
+        pl1AtCli2.getResources().setAmounts(new SOCResourceSet(1, 0, 0, 0, 0, 3));
+        pl2AtCli1.getResources().setAmounts(new SOCResourceSet(0, 0, 0, 0, 1, 3));
+
+        /* client 1: make offer only to client 2 */
+
+        final SOCResourceSet GIVING_2 = new SOCResourceSet(0, 1, 0, 0, 0, 0),
+            GETTING_2 = new SOCResourceSet(0, 0, 0, 0, 2, 0);
+        tcli1.offerTrade(ga, new SOCTradeOffer
+            (gaName, PN_C1, OFFERED_TO, GIVING_2, GETTING_2));
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        offer = cli1Pl.getCurrentOffer();
+        assertNotNull(offer);
+        assertEquals(PN_C1, offer.getFrom());
+        assertArrayEquals(OFFERED_TO, offer.getTo());
+        assertEquals(GIVING_2, offer.getGiveSet());
+        assertEquals(GETTING_2, offer.getGetSet());
+        assertTrue(offer.isWaitingReplyFrom(PN_C2));
+
+        /* client 2: accept offer */
+
+        tcli2.acceptOffer(ga, PN_C1);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        // players at server:
+        assertArrayEquals
+            (gaName + ": cli1 res at server after trade",
+             new int[]{1, 2, 0, 0, 2}, cli1Pl.getResources().getAmounts(false));
+        assertArrayEquals
+            (gaName + ": cli2 res at server after trade",
+             new int[]{0, 1, 2, 0, 0}, cli2Pl.getResources().getAmounts(false));
+        assertNull(cli1Pl.getCurrentOffer());
+        // at tcli1:
+        assertArrayEquals
+            (gaName + ": cli1 res at cli1 after trade",
+             new int[]{1, 2, 0, 0, 2}, pl1AtCli1.getResources().getAmounts(false));
+        assertArrayEquals
+            (gaName + ": cli2 res at cli1 after trade",
+             new int[]{0, 1, 0, 0, 0, 2}, pl2AtCli1.getResources().getAmounts(true));
+        // at tcli2:
+        assertArrayEquals
+            (gaName + ": cli1 res at cli2 after trade",
+             new int[]{1, 0, 0, 0, 2, 2}, pl1AtCli2.getResources().getAmounts(true));
+        assertArrayEquals
+            (gaName + ": cli2 res at cli2 after trade",
+             new int[]{0, 1, 2, 0, 0}, pl2AtCli2.getResources().getAmounts(false));
 
         StringBuilder compares = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
+                // usual trade
                 {"all:SOCMakeOffer:", "|from=" + PN_C1
                  + "|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"},
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
@@ -1590,7 +1748,15 @@ public class TestActionsMessages
                 {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
                 {"all:SOCAcceptOffer:", "|accepting=" + PN_C1 + "|offering=" + PN_C2
                     + "|toAccepting=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|toOffering=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0"},
-                {"all:SOCClearOffer:", "|playerNumber=-1"}
+                {"all:SOCClearOffer:", "|playerNumber=-1"},
+
+                // tracking unknown resources
+                {"all:SOCMakeOffer:", "|from=" + PN_C1
+                 + "|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=2|unknown=0"},
+                {"all:SOCClearTradeMsg:", "|playerNumber=-1"},
+                {"all:SOCAcceptOffer:", "|accepting=" + PN_C2 + "|offering=" + PN_C1
+                 + "|toAccepting=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0|toOffering=clay=0|ore=0|sheep=0|wheat=0|wood=2|unknown=0"},
+                {"all:SOCClearOffer:", "|playerNumber=-1"},
             }, false);
 
         /* leave game, check results */

@@ -6584,7 +6584,7 @@ public class SOCGame implements Serializable, Cloneable
             if (isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
             {
                 // Call is from rollDice():
-                // If player has warships, might tie or be stronger, otherwise steal multiple items
+                // If player has warships, might tie or be stronger (win gold), otherwise pirate steals multiple items
                 // Set sc_piri_loot; don't change gameState
                 stealFromPlayerPirateFleet(vpn, pirFleetStrength);
             }
@@ -7109,7 +7109,7 @@ public class SOCGame implements Serializable, Cloneable
     public List<SOCPlayer> getPossibleVictims()
     {
         if ((currentRoll.sc_robPossibleVictims != null)
-            && (gameState == WAITING_FOR_ROB_CHOOSE_PLAYER))
+            && ((gameState == WAITING_FOR_ROB_CHOOSE_PLAYER) || (gameState == WAITING_FOR_ROB_CLOTH_OR_RESOURCE)))
         {
             // already computed this turn
             return currentRoll.sc_robPossibleVictims;
@@ -8551,8 +8551,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * @return true if the current player can
-     *         do the discovery card action and the
-     *         pick contains exactly 2 resources
+     *         do the discovery card action
+     *         (state is {@link #WAITING_FOR_DISCOVERY})
+     *         and the pick contains exactly 2 resources
      *
      * @param pick  the resources that the player wants
      */

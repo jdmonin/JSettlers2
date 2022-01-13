@@ -1693,7 +1693,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     public int getHexNumFromCoord(final int hexCoord)
         throws UnsupportedOperationException
     {
-        if ((hexCoord >= 0) && (hexCoord <= hexIDtoNum.length))
+        if ((hexCoord >= 0) && (hexCoord < hexIDtoNum.length))
             return hexIDtoNum[hexCoord];
         else
             return -1;
@@ -1717,7 +1717,10 @@ public abstract class SOCBoard implements Serializable, Cloneable
      */
     public int getHexTypeFromCoord(final int hex)
     {
-        return getHexTypeFromNumber(hexIDtoNum[hex]);
+        if ((hex >= 0) && (hex < hexIDtoNum.length))
+            return getHexTypeFromNumber(hexIDtoNum[hex]);
+        else
+            return -1;
     }
 
     /**

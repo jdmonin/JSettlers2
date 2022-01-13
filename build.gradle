@@ -17,7 +17,7 @@ buildscript {
 }
 
 version = '3.0.00'  // same as in src/main/resources/resources/version.info
-ext.i18neditor_version = '1.2.0'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
+ext.i18neditor_version = '1.2.1'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
 ext.git_revision = '?'  // placed in jar manifests as Build-Revision attrib; will be filled in by findGitRevision task
 
 mainClassName = "soc.client.SOCPlayerClient"
@@ -403,7 +403,7 @@ artifacts {
  * This file is part of the JSettlers project.
  *
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

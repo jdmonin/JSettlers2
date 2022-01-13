@@ -40,7 +40,8 @@ import soc.proto.Message;
  *   The special inventory items in PLACING_INV_ITEM each have a different placement message, but if item placement
  *   can be canceled, use this common message type, with {@code pieceType} == -3 ({@link #INV_ITEM_PLACE_CANCEL}).
  *   See {@link SOCInventoryItem} for when this is allowed.
- *   If placement can't be canceled, server will reply with {@link SOCGameServerText}.
+ *   If placement can't be canceled, server will reply with {@link SOCDeclinePlayerRequest}
+ *   or {@link SOCGameServerText}.
  *
  *<LI> While placing a free road or ship from Road Building dev card (PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2),
  *   means the player has decided to skip placing that free road or ship,
@@ -55,8 +56,8 @@ import soc.proto.Message;
  *   {@link SOCPlayerElement.PEType#PLAYED_DEV_CARD_FLAG PLAYED_DEV_CARD_FLAG}, false)</tt>
  *   so they can still play a dev card this turn.
  *
- *<LI> Not sent from client during other game states. Server will reply with {@link SOCGameServerText}
- *   instead.
+ *<LI> Shouldn't be sent from client during other game states.
+ *   Server will reply with {@link SOCDeclinePlayerRequest} or {@link SOCGameServerText}.
  *
  *<H3>When sent from server to a client player:</H3>
  *

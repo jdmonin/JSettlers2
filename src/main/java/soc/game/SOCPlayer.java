@@ -832,8 +832,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (ga == null)
             throw new IllegalArgumentException("game");
 
-        int i;
-
         game = ga;
         playerNumber = pn;
         numPieces = new int[SOCPlayingPiece.MAXPLUSONE];

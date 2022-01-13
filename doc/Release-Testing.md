@@ -6,7 +6,7 @@ When preparing to release a new version, testing should include:
 
 - Before building the JARs to be tested, `git status` should have no untracked or uncommitted changes
     - Run `gradle distCheckSrcDirty` to check that and list any files with such changes
-- `gradle clean test` runs without failures, under gradle 5.6 and also gradle 6.4
+- `gradle clean test` runs without failures, under gradle 5.6 and also gradle 6.9.2
 - These should print the expected version and build number:
     - `java -jar build/libs/JSettlers-3.*.jar --version`
     - `java -jar build/libs/JSettlersServer-3.*.jar --version`
@@ -87,7 +87,10 @@ When preparing to release a new version, testing should include:
 - Basic rules and game play
     - Can build pieces by right-clicking board or with the Build Panel
     - Can trade with ports by right-clicking board or using Trade Offer Bank/Port button
+        - Trade to have resources to build city; should update Build Panel buttons
+        - Undo trade; should update Build Panel buttons
     - Trade offer, rejection, counter-offer accept/rejection
+        - Build 2 roads, trade to have resources to build settlement; should update Build Panel buttons
     - Can play dev card before dice roll
     - Can win only on your own turn
         - This can be tested using the 6-player board's Special Building Phase
@@ -120,10 +123,11 @@ When preparing to release a new version, testing should include:
         - Play card, end turn; should see "cancelled the Road Building card" and card returned to inventory
         - In a new 2-player game on 6-player board, give debug player 2 Road Building cards:  
           `dev: 1 debug` (2 times)
-        - Join again as other player
+        - In another client, join same game as other player
         - Other player: Request Special Build
         - Debug player: Play card, build 1 free road, end turn; other player's Special Build should start as usual
-        - Other player: Request Special Build
+        - Other player: Finish that Special Build and usual turn
+        - Other player: During debug's turn, request Special Build
         - Debug player: Play card, end turn instead of building; card should be returned to debug's inventory, other player's Special Build should start as usual
     - Gain Longest Road/Route
         - To save time with these tests, run the test server with Savegame feature enabled:
@@ -161,6 +165,49 @@ When preparing to release a new version, testing should include:
         - With 8 VP and playing 3rd Soldier card, test each item in "Move robber/steal resources" list above.
           When card is played, game might immediately award Largest Army and Hand Panel might show 10 VP.
           Card should fully play out (choose player, etc) before server announces game is over.
+- Scenarios and Victory Points to Win
+    - New Game dialog: VP to Win vs scenarios
+        - In client's main window, click "New Game"
+        - Note default "Victory points to Win" is 10
+        - Click "Create Game" to create; in created game, note VP is default (10);
+          is 10 if not shown in Building Panel
+        - Briefly join game with another client; should also see VP is default
+        - Quit that game
+        - Click "New Game" again
+        - Note VP still at default (10)
+        - In the Game Scenario dropdown, pick Fog Islands; VP to Win should change to 12
+        - Pick scenario Through the Desert; VP should remain 12
+        - Pick scenario Cloth Trade; VP should change to 14
+        - Pick scenario Wonders; VP should change back to default
+        - Pick scenario "(none)"; VP should remain default
+        - Change VP to Win to 11; if it wasn't already, VP checkbox should automatically be checked by doing so
+        - Now pick each of those scenarios again; VP should not change from 11
+        - Keep VP at 11, pick scenario Fog Islands
+        - Click "Create Game" to create; note VP is 11
+        - Briefly join game with another client; should also see VP is 11
+        - Quit that game
+        - Click "New Game" again
+        - Set VP to 11, pick scenario Through the Desert; VP should remain 11
+        - Un-check the VP checkbox
+        - Click "Create game"; in created game, note VP was set to 12 by server based on scenario
+        - Briefly join game with another client; should also see VP is 12
+        - Quit that game
+    - When server has larger default VP
+        - Start a server; add at end of usual command line: `-o VP=t13`
+        - Repeat the above test. Should get same results, except default VP is 13 not 10, so Cloth Trade will be 14 VP and all others will be 13, except when directly changing VP to 11 in dialog
+    - When server has a default scenario (standard VP)
+        - Start a server; add at end of usual command line: `-o SC=SC_WOND`
+        - Repeat the above test. Should get same results, except dialog's default scenario is Wonders when first shown
+    - When server has a default scenario and larger default VP
+        - Start a server; add at end of usual command line: `-o SC=SC_WOND -o VP=t13`
+        - Repeat the above test. Should get same results, except for changes described for VP=t13 and SC=SC_WOND
+    - Optional: When server has a default scenario, VP, and uses default VP for all scenarios
+        - Start a server; add at end of usual command line: `-o SC=SC_CLVI -o VP=t13 -o _VP_ALL=t`
+        - Repeat the above test. Should get same results, except for changes described for VP=t13, and default scenario should be Cloth Trade, but with 13 VP not its usual 14
+    - If the version being tested has changed things about the VP-Scenario interaction, also test the above with a recent previous version
+        - New client with previous server
+        - New server; new client creates game, previous client joins it
+        - New server; previous client creates game, new client joins it
 - Unprivileged info commands  
     As a non-admin non-debug user, start playing a game. These should all work:
     - `*WHO*` lists all players and observers in game
@@ -395,9 +442,9 @@ When preparing to release a new version, testing should include:
         - Server config:
             - When testing a 2.3 or newer server, start it with prop `jsettlers.admin.welcome=hi,customized`  
               All client versions should see that custom text when they connect
-        - With an older client connected to a newer server, available new-game options
+        - With an older client connected to a newer server, list of available new-game options
           should adapt to the older client version.  
-          With a newer client connected to an older server, available new-game options
+          With a newer client connected to an older server, list of available new-game options
           should adapt to the older server version.  
         - Create and start playing a 4-player game with No Trading option
             - Click Options button: Game options should be those chosen in this game's New Game dialog
@@ -423,11 +470,19 @@ When preparing to release a new version, testing should include:
             - Start a game with robot player at seat number 2
             - Give dev cards to bot player:  
               `dev: 3 #2`  
-              `dev: 6 #2`
+              `dev: 6 #2`  
+              `dev: 9 #2`
             - Have second client join as observer (same version as first client)
             - Should see correct number of dev cards for bot
             - Sit down observer to take over bot's seat
-            - Should see correct card types in inventory (Monopoly, University); shouldn't see any unknown cards
+            - Should see correct card types in inventory (Monopoly, University, Knight); shouldn't see any unknown cards
+            - Play 1 round, so new dev cards become old
+            - Give that player another dev card:  
+              `dev: 1 #2`
+            - Have former observer exit, re-launch, rejoin and sit at bot player
+            - Should see 3 old, 1 new dev cards
+            - Optional: Do this test once with PLAY_VPO game option active
+                - A 2nd client (same version as 1st; must be v2.5+) should see those card details correctly as observer, without sitting down
         - When testing a 3.x client and 1.x server: In any game, test robot seat-lock button
             - Click its lock button multiple times: Should only show Locked or Unlocked, never Marked
             - Lock a bot seat and reset the game: Seat should be empty in new game
@@ -435,15 +490,19 @@ When preparing to release a new version, testing should include:
             - All clients in game (players and observers) should see expected results in player hand panels and game text area for:
                 - Bank trade and Undo trade
                     - Total resource counts should be accurate before and after
+                    - Gain/lose resources to build a piece type; should update Build Panel buttons
                     - Clients older than v2.5.00 are sent `SOCPlayerElement`s before `SOCBankTrade` message
                 - Trade between players
                     - Do a trade where a player gives 1, receives 2; total resource counts should be accurate before and after
+                    - Gain/lose resources to build a piece type; should update Build Panel buttons
                     - Clients older than v2.5.00 are sent `SOCPlayerElement`s before `SOCAcceptOffer` message
+                - Discard
+                    - Total resource counts should be accurate before and after
                 - Soldier dev card
                     - Give Soldier cards to client players:  
                       `dev: 9 #2` etc
                     - Test robbery, with each client as victim, robber, observer
-                    - Clients v2.5.00 or newer are sent `SOCReportRobbery` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
+                    - Clients v2.5.00 or newer are sent `SOCRobberyResult` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
                 - Discovery/Year of Plenty dev card
                     - Give Discovery cards to client players:  
                       `dev: 2 #2` etc
@@ -495,7 +554,7 @@ When preparing to release a new version, testing should include:
           `("DEBUGBOOL", 3000, Version.versionNumber(), false, ...)`
         - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 3000 -> 3001, 3.0.00 -> 3.0.01
         - Build client (at that "new" version) using `gradle assemble` to skip the usual unit tests.
-          The built jars' filenames might include current version number; that's not an issue.
+          The built jars' filenames might include current version number; that's normal.
         - Launch that client (prints the "new" version number at startup), don't connect to server
         - Click "Practice"; dialog's game options should include DEBUGBOOL,
           Scenario dropdown should include those 3 "new" scenarios
@@ -558,7 +617,7 @@ When preparing to release a new version, testing should include:
         - Click Practice button; in Practice Game dialog, should see and set checkbox for game option "Client test 3p option XYZ"
         - Start the practice game
         - In game window, click "Options" button; game opt XYZ should be set
-        - Start a server without that `gameopt3p` param
+        - Start a server without any `gameopt3p` param
         - Connect from that client
         - Click New Game button; New Game dialog shouldn't have game opt "Client test 3p option XYZ"
         - Quit that client and server
@@ -583,7 +642,7 @@ When preparing to release a new version, testing should include:
         - In list of games, the game with option XYZ should show "(cannot join)"
         - Click "Game Info"; popup should show "This game does not use options"
         - Double-click game, popup should show message "Cannot join"
-        - Double-click again, popup should show message "Cannot join ... This client does not have required feature(s): com.example.js.XYZ"
+        - Double-click again, popup should show message "Cannot join ... This client does not have required feature(s): com.example.js.feat.XYZ"
     - Quit all clients and server
     - Unit tests handle third-party options if added in a fork
         - In soc.game.SOCGameOptionSet.getAllKnownOptions, temporarily uncomment game opts `"_3P"` and `"_3P2"`
@@ -644,7 +703,7 @@ When preparing to release a new version, testing should include:
           - Game Info dialog: Click Scenario Info button: Except Fog Islands,
             game's scenario info should be localized as expected
           - In message traffic, should see `SOCLocalizedStrings:type=S` with text for only that game's scenario
-            (except for english client), or for Fog Islands, `SC_FOG|K` as visible part of the marker for "unknown"
+            (except for english client), or for Fog Islands, `SC_FOG|K` because it's marked as "unknown"
         - Join each of those 3 games
           - In message traffic, shouldn't see another `SOCLocalizedStrings:type=S`, because server tracks already-sent ones
         - Re-launch client, to clear that server-side and client-side tracking
@@ -1052,6 +1111,30 @@ Start with a recently-created database with latest schema/setup scripts.
     - Start a new client and connect as that same username
       - Should allow connect after appropriate number of seconds
       - Player's private info should be correct
+- `*SAVELOG*` debug command:
+    - In IDE or command line (see [Readme.developer.md](Readme.developer.md)),
+      launch RecordingSOCServer and log in as `debug` with the standard client
+    - As debug player, start a game and play at least 1 round past initial placement
+    - In chat text field, enter and send: `*SAVELOG* testsave`
+    - Should create file `testsave.soclog` in server's current directory, with header and messages to/from server
+    - Repeat command: `*SAVELOG* testsave`
+    - Should see text like: "Log file already exists: Add -f flag to force, or use a different name"
+    - Send command: `*SAVELOG* -f testsave`
+    - Should overwrite testsave.soclog; this is same game, so new contents are previous contents + the savelog commands
+    - Send command: `*SAVELOG* -f -u testsave`
+    - Should overwrite testsave.soclog; new contents should not have the timestamp field
+    - Send command: `*SAVELOG* -f -c testsave`
+    - Should overwrite testsave.soclog; new contents should have only messages to clients, not from clients
+    - Send command: `*SAVELOG* -f -c -u testsave`
+    - Should overwrite testsave.soclog; only messages to clients, no timestamps
+    - Reset the board and play at least 1 round
+    - Send command: `*SAVELOG* -f testsave`
+    - Should overwrite testsave.soclog; contents are the new game, nothing from before the reset
+    - Make note of game name
+    - Leave game, make sure it disappears from client's list of server games
+    - Make new game with same name, start initial placement
+    - Send command: `*SAVELOG* -f testsave`
+    - Should overwrite testsave.soclog; contents are the new game, nothing from the previous one of same name
 - Idle games, timeout behaviors:
     - Leave a practice game idle for hours, then finish it; bots should not time out or leave game
     - Leave a non-practice game idle for hours; should warn 10-15 minutes before 2-hour limit,
@@ -1090,7 +1173,7 @@ Start with a recently-created database with latest schema/setup scripts.
 - Robot stability:
     - This test can be started and run in the background.
     - At a command line, start and run a server with 100 robot-only games:  
-      `java -jar JSettlersServer-3.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=10 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.gametypes=3 -Djsettlers.debug.bots.datacheck.rsrc=Y -Djsettlers.allow.debug=Y -Djsettlers.bots.botgames.shutdown=Y 8118 15`
+      `java -jar JSettlersServer-3.*.jar -Djsettlers.bots.botgames.total=100 -Djsettlers.bots.botgames.parallel=6 -Djsettlers.bots.fast_pause_percent=5 -Djsettlers.bots.botgames.gametypes=3 -Djsettlers.debug.bots.datacheck.rsrc=Y -Djsettlers.allow.debug=Y -Djsettlers.bots.botgames.shutdown=Y 8118 15`
     - To optionally see progress, connect to port 8118 with a client. Game numbers start at 100 and count down.
     - These games should complete in under 10 minutes
     - Once the games complete, that server will exit
@@ -1100,7 +1183,7 @@ Start with a recently-created database with latest schema/setup scripts.
 - Board layout generator stability:
     - See `TestBoardLayoutsRounds` in "extraTest" section
 - Build contents and built artifacts:
-    - `gradle dist` runs without errors or unusual warnings, under gradle 5.6 and also gradle 6.4
+    - `gradle dist` runs without errors or unusual warnings, under gradle 5.6 and also gradle 6.9.2
     - Full jar and server jar manifests should include correct JSettlers version and git commit id:
         - `unzip -q -c build/libs/JSettlers-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`
         - `unzip -q -c build/libs/JSettlersServer-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`
@@ -1153,14 +1236,15 @@ The current Extra Tests are:
 
 ## Platform-specific
 
-On most recent and less-recent OSX and Windows; JRE 8 and a new JDK:
-(Can download installer from https://jdk.java.net/ )
+On most recent and less-recent OSX and Windows; JRE 8 and a new JDK:  
+(Note: Java 8 runs on Win XP and higher; can download installer from https://jdk.java.net/ )
 
 - Dialog keyboard shortcuts, including New Game and Game Reset dialogs' esc/enter keys, FaceChooserFrame arrow keys
 - Hotkey shortcuts
     - Generic modifier key: Ctrl on all platforms (Ctrl-R, Ctrl-D, etc)
     - MacOSX or Windows: also test modifier Cmd or Alt
     - Roll and Done buttons: R, D + modifier
+    - Ask to Special Build in 6-player game: B + modifier
     - Accept, Reject, Counter trade offer when just one is visible: A, J, C + modifier
     - Click in chat text input field
       - Try Ctrl-A, Ctrl-C, Ctrl-V (or Cmd on MacOSX); should be Select All, Copy, Paste as usual

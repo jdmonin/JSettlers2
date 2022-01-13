@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017,2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,17 +26,18 @@ import java.util.StringTokenizer;
 /**
  * This message from client means that a player wants to play a development card.
  *<P>
- * If client player can play it, server will respond to all players with
+ * If client player can play it, server will announce the play to game with
  * {@link SOCDevCardAction}({@link SOCDevCardAction#PLAY PLAY}), {@link SOCSetPlayedDevCard}
  * or {@link SOCPlayerElement}({@link SOCPlayerElement.PEType#PLAYED_DEV_CARD_FLAG PLAYED_DEV_CARD_FLAG}),
- * and other messages, followed by {@link SOCGameState} if it changed.
+ * any other messages, followed by {@link SOCGameState} if state changed.
  *<BR>
  * If playing a {@code KNIGHT} card leads to Largest Army, server announces that
  * after {@code SOCPlayerElement} before {@code SOCGameState}:
  * {@link SOCGameElements}({@link SOCGameElements.GEType#LARGEST_ARMY_PLAYER LARGEST_ARMY_PLAYER}).
  *<P>
- * If client player can't play the card, server will reply to human player with {@link SOCGameServerText}
- * or robot with {@link SOCDevCardAction}({@link SOCDevCardAction#CANNOT_PLAY CANNOT_PLAY}).
+ * If client player can't play the card, server will reply to human player with the reason
+ * using {@link SOCDeclinePlayerRequest} if new enough, {@link SOCGameServerText} otherwise,
+ * or to robot with {@link SOCDevCardAction}({@link SOCDevCardAction#CANNOT_PLAY CANNOT_PLAY}).
  *<P>
  * Note that in v2.0.00, the {@link #getDevCard()} value for <tt>SOCDevCardConstants.KNIGHT</tt>
  * was changed.  This class doesn't handle the translation from old clients

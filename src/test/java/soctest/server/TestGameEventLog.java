@@ -36,7 +36,7 @@ import soc.message.SOCGameTextMsg;
 import soc.message.SOCMessage;
 import soc.message.SOCMessageForGame;
 import soc.message.SOCPutPiece;
-import soc.message.SOCReportRobbery;
+import soc.message.SOCRobberyResult;
 import soc.message.SOCVersion;
 import soc.server.SOCServer;
 import soc.util.Version;
@@ -63,7 +63,7 @@ public class TestGameEventLog
      * @param testResFilename  Base name of test artifact, like {@code "classic-botturn.game.json"},
      *     to be loaded from {@code /src/test/resources/resources/gameevent/}
      * @param ignoreComments  Parameter to pass to {@code GameEventLog.load(..)}
-     * @param filterServerOnlyToClientPN  Parameter to pass to {@code GameEventLog.load(..)}
+     * @param filterAtClientPN  Parameter to pass to {@code GameEventLog.load(..)}
      * @return loaded and parsed log file
      * @throws IOException if file can't be loaded
      * @throws ParseException if thrown by {@code GameEventLog.load(..)}
@@ -71,7 +71,7 @@ public class TestGameEventLog
      * @see soctest.server.savegame.TestLoadgame#load(String, SOCServer)
      */
     public static GameEventLog load
-        (final String testRsrcFilename, final boolean ignoreComments, final int filterServerOnlyToClientPN)
+        (final String testRsrcFilename, final boolean ignoreComments, final int filterAtClientPN)
         throws IOException, ParseException, NoSuchElementException
     {
         final String rsrcPath = "/resources/gameevent/" + testRsrcFilename;
@@ -85,7 +85,7 @@ public class TestGameEventLog
             throw new RuntimeException("unlikely internal error", e);
         }
 
-        return GameEventLog.load(f, ignoreComments, filterServerOnlyToClientPN);
+        return GameEventLog.load(f, ignoreComments, filterAtClientPN);
     }
 
     /**
@@ -395,8 +395,8 @@ public class TestGameEventLog
 
     /**
      * Test {@link GameEventLog#GameEventLog(GameEventLog, int)} copy constructor
-     * with and without {@code filterServerOnlyToClientPN}.
-     * @see #testLoadWithFilterToClientPN()
+     * with and without {@code filterAtClientPN}.
+     * @see #testLoadWithFilterAtClientPN()
      */
     @Test
     public void testFilteringCopyConstructor()
@@ -408,8 +408,8 @@ public class TestGameEventLog
         assertTrue(game == source.game);
         assertNull(source.gameName);
         source.gameName = GAME_NAME;  // to test copying; an actual log would have either game or gameName, not both
-        assertFalse(source.isServerOnly);
-        assertEquals(-1, source.serverOnlyToClientPN);
+        assertFalse(source.isAtClient);
+        assertEquals(-1, source.atClientPN);
         assertEquals(0, source.version);
         source.version = Version.versionNumber();  // to test copying
         assertFalse(source.hasTimestamps);
@@ -436,8 +436,8 @@ public class TestGameEventLog
         GameEventLog copied = new GameEventLog(source, -1);
         assertTrue(game == copied.game);
         assertEquals(source.gameName, copied.gameName);
-        assertEquals(source.isServerOnly, copied.isServerOnly);
-        assertEquals(source.serverOnlyToClientPN, copied.serverOnlyToClientPN);
+        assertEquals(source.isAtClient, copied.isAtClient);
+        assertEquals(source.atClientPN, copied.atClientPN);
         assertEquals(source.version, copied.version);
         assertFalse(copied.hasTimestamps);
         assertEquals(source.optsStr, copied.optsStr);
@@ -452,8 +452,8 @@ public class TestGameEventLog
         final GameEventLog filtered = new GameEventLog(source, TO_PN);
         assertTrue(game == filtered.game);
         assertEquals(source.gameName, filtered.gameName);
-        assertTrue(filtered.isServerOnly);
-        assertEquals(TO_PN, filtered.serverOnlyToClientPN);
+        assertTrue(filtered.isAtClient);
+        assertEquals(TO_PN, filtered.atClientPN);
         assertEquals(source.version, filtered.version);
         assertFalse(filtered.hasTimestamps);
         assertEquals(source.optsStr, filtered.optsStr);
@@ -472,8 +472,8 @@ public class TestGameEventLog
         copied = new GameEventLog(filtered, -1);
         assertTrue(game == copied.game);
         assertEquals(filtered.gameName, copied.gameName);
-        assertEquals(filtered.isServerOnly, copied.isServerOnly);
-        assertEquals(filtered.serverOnlyToClientPN, copied.serverOnlyToClientPN);
+        assertEquals(filtered.isAtClient, copied.isAtClient);
+        assertEquals(filtered.atClientPN, copied.atClientPN);
         assertEquals(filtered.version, copied.version);
         assertEquals(filtered.optsStr, copied.optsStr);
         assertEquals(filtered.numLines, copied.numLines);
@@ -485,9 +485,9 @@ public class TestGameEventLog
         // Test bad parameters:
         try
         {
-            assertEquals(TO_PN, filtered.serverOnlyToClientPN);
+            assertEquals(TO_PN, filtered.atClientPN);
             GameEventLog log = new GameEventLog(filtered, TO_PN + 1);
-            fail("Should throw IllegalArgumentException when already filtered: " + log.serverOnlyToClientPN);
+            fail("Should throw IllegalArgumentException when already filtered: " + log.atClientPN);
         } catch (IllegalArgumentException e) {}
     }
 
@@ -495,19 +495,19 @@ public class TestGameEventLog
      * Test {@link GameEventLog#load(File, boolean, int)}
      * on the known-good {@code all-basic-actions.soclog} artifact.
      * @see #testLoadWithTimestamps()
-     * @see #testLoadWithServerOnly()
+     * @see #testLoadWithAtClient()
      */
     @Test
     public void testLoadKnownGood()
         throws NoSuchElementException, IOException, ParseException
     {
         final GameEventLog log = load("all-basic-actions.soclog", false, -1);
-        final int EXPECTED_FILE_LINE_COUNT = 770;  // length from wc -l
+        final int EXPECTED_FILE_LINE_COUNT = 773;  // length from wc -l
 
         assertNotNull(log);
         assertEquals("test", log.gameName);
-        assertFalse(log.isServerOnly);
-        assertEquals(-1, log.serverOnlyToClientPN);
+        assertFalse(log.isAtClient);
+        assertEquals(-1, log.atClientPN);
         assertEquals(2500, log.version);
         assertEquals("BC=t4,N7=f7,RD=f,SBL=t,PL=4", log.optsStr);
         assertFalse(log.entries.isEmpty());
@@ -525,26 +525,26 @@ public class TestGameEventLog
         // spot-check a few parsed messages:
 
         // ob:SOCDiceResult:game=test|param=-1
-        entry = log.entries.get(18);
+        entry = log.entries.get(19);
         SOCMessage msg = entry.event;
         assertFalse(entry.isFromClient);
         assertEquals(SOCServer.PN_OBSERVER, entry.pn);
         assertNull(entry.excludedPN);
-        assertTrue("Line 20 expected SOCDiceResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+        assertTrue("Line 21 expected SOCDiceResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
             msg instanceof SOCDiceResult);
         assertEquals("test", ((SOCDiceResult) msg).getGame());
         assertEquals(-1, ((SOCDiceResult) msg).getResult());
 
-        // !p[3, 2]:SOCReportRobbery:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
-        entry = log.entries.get(304);
+        // !p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+        entry = log.entries.get(307);
         msg = entry.event;
         assertFalse(entry.isFromClient);
         assertEquals(-1, entry.pn);
         assertArrayEquals(new int[]{3, 2}, entry.excludedPN);
-        assertTrue("Line 306 expected SOCReportRobbery, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
-            msg instanceof SOCReportRobbery);
-        assertEquals(3, ((SOCReportRobbery) msg).perpPN);
-        assertEquals(2, ((SOCReportRobbery) msg).victimPN);
+        assertTrue("Line 309 expected SOCRobberyResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+            msg instanceof SOCRobberyResult);
+        assertEquals(3, ((SOCRobberyResult) msg).perpPN);
+        assertEquals(2, ((SOCRobberyResult) msg).victimPN);
 
         // all:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=603
         entry = log.entries.get(EXPECTED_FILE_LINE_COUNT - 16 - 2);
@@ -567,8 +567,8 @@ public class TestGameEventLog
      * Test {@link GameEventLog#load(File, boolean, int)}
      * on the known-good {@code has-timestamps.soclog} artifact.
      * @see #testLoadKnownGood()
-     * @see #testLoadWithServerOnly()
-     * @see #testLoadWithFilterToClientPN()
+     * @see #testLoadWithAtClient()
+     * @see #testLoadWithFilterAtClientPN()
      */
     @Test
     public void testLoadWithTimestamps()
@@ -578,8 +578,8 @@ public class TestGameEventLog
 
         assertNotNull(log);
         assertEquals("g", log.gameName);
-        assertFalse(log.isServerOnly);
-        assertEquals(-1, log.serverOnlyToClientPN);
+        assertFalse(log.isAtClient);
+        assertEquals(-1, log.atClientPN);
         assertEquals(2500, log.version);
         assertEquals("BC=t4,N7=f7,RD=f,PL=4", log.optsStr);
         assertFalse(log.entries.isEmpty());
@@ -631,15 +631,15 @@ public class TestGameEventLog
     }
 
     /**
-     * Test {@link GameEventLog#load(File, boolean, int)} with {@code filterServerOnlyToClientPN}
+     * Test {@link GameEventLog#load(File, boolean, int)} with {@code filterAtClientPN}
      * on the known-good {@code has-timestamps.soclog} artifact, against separately-tested
      * {@link GameEventLog#GameEventLog(soc.game.SOCGame, boolean)} filtering copy constructor.
      * @see #testFilteringCopyConstructor()
      * @see #testLoadWithTimestamps()
-     * @see #testLoadWithServerOnly()
+     * @see #testLoadWithAtClient()
      */
     @Test
-    public void testLoadWithFilterToClientPN()
+    public void testLoadWithFilterAtClientPN()
         throws NoSuchElementException, IOException, ParseException
     {
         final int TO_PN = 3,
@@ -649,8 +649,8 @@ public class TestGameEventLog
         GameEventLog log = load("has-timestamps.soclog", false, -1);
         assertNotNull(log);
         assertEquals("g", log.gameName);
-        assertFalse(log.isServerOnly);
-        assertEquals(-1, log.serverOnlyToClientPN);
+        assertFalse(log.isAtClient);
+        assertEquals(-1, log.atClientPN);
         assertEquals(2500, log.version);
         assertFalse(log.entries.isEmpty());
         assertEquals(HAS_TIMESTAMPS_EXPECTED_FILE_LINE_COUNT, log.numLines);
@@ -670,8 +670,8 @@ public class TestGameEventLog
         log = load("has-timestamps.soclog", false, TO_PN);
         assertNotNull(log);
         assertEquals("g", log.gameName);
-        assertTrue(log.isServerOnly);
-        assertEquals(TO_PN, log.serverOnlyToClientPN);
+        assertTrue(log.isAtClient);
+        assertEquals(TO_PN, log.atClientPN);
         assertEquals(2500, log.version);
         assertFalse(log.entries.isEmpty());
         assertEquals(HAS_TIMESTAMPS_EXPECTED_FILE_LINE_COUNT, log.numLines);
@@ -686,22 +686,23 @@ public class TestGameEventLog
 
     /**
      * Test {@link GameEventLog#load(File, boolean, int)}
-     * on the known-good {@code is-server-only.soclog} artifact.
+     * on the known-good {@code is-at-client.soclog} artifact.
      * @see #testLoadKnownGood()
      * @see #testLoadWithTimestamps()
-     * @see #testLoadWithFilterToClientPN()
+     * @see #testLoadWithFilterAtClientPN()
+     * @see soctest.robot.TestGameActionExtractor#testLoadAndExtractInitialPlacement()
      */
     @Test
-    public void testLoadWithServerOnly()
+    public void testLoadWithAtClient()
         throws NoSuchElementException, IOException, ParseException
     {
-        final GameEventLog log = load("is-server-only.soclog", false, -1);
+        final GameEventLog log = load("is-at-client.soclog", false, -1);
         final int EXPECTED_FILE_LINE_COUNT = 198;  // length from wc -l
 
         assertNotNull(log);
         assertEquals("test", log.gameName);
-        assertTrue(log.isServerOnly);
-        assertEquals(-1, log.serverOnlyToClientPN);
+        assertTrue(log.isAtClient);
+        assertEquals(-1, log.atClientPN);
         assertEquals(2500, log.version);
         assertEquals("BC=t4,N7=f7,RD=f,PL=4", log.optsStr);
         assertFalse(log.entries.isEmpty());
@@ -724,17 +725,17 @@ public class TestGameEventLog
         assertEquals(0, ((SOCPutPiece) msg).getPieceType());
         assertEquals(0xa6, ((SOCPutPiece) msg).getCoordinates());
 
-        // 2:04.365:!p[2, 1]:SOCReportRobbery:game=test|perp=2|victim=1|resType=6|amount=1|isGainLose=true
+        // 2:04.365:!p[2, 1]:SOCRobberyResult:game=test|perp=2|victim=1|resType=6|amount=1|isGainLose=true
         entry = log.entries.get(182);
         msg = entry.event;
         assertEquals(124365, entry.timeElapsedMS);
         assertFalse(entry.isFromClient);
         assertEquals(-1, entry.pn);
         assertArrayEquals(new int[]{2, 1}, entry.excludedPN);
-        assertTrue("Line 184 expected SOCReportRobbery, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
-            msg instanceof SOCReportRobbery);
-        assertEquals(2, ((SOCReportRobbery) msg).perpPN);
-        assertEquals(1, ((SOCReportRobbery) msg).victimPN);
+        assertTrue("Line 184 expected SOCRobberyResult, got " + ((msg != null) ? msg.getClass().getSimpleName() : "null"),
+            msg instanceof SOCRobberyResult);
+        assertEquals(2, ((SOCRobberyResult) msg).perpPN);
+        assertEquals(1, ((SOCRobberyResult) msg).victimPN);
     }
 
     /**

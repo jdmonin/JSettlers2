@@ -22,6 +22,7 @@ package soctest.server;
 
 import soc.server.SOCServer;
 import soc.util.SOCFeatureSet;
+import soc.util.Version;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -32,6 +33,18 @@ import static org.junit.Assert.*;
  */
 public class TestSOCServerMisc
 {
+    /**
+     * Test that {@link SOCServer#CLI_VERSION_MAX_REPORT} is at least 3.3 versions newer than {@link Version#versionNumber()}.
+     */
+    @Test
+    public void testCliVersionMaxReport()
+    {
+        final int currVersion = Version.versionNumber(),
+            gap = SOCServer.CLI_VERSION_MAX_REPORT - currVersion;
+        if (gap < 3300)
+            fail("SOCServer.CLI_VERSION_MAX_REPORT should be at least 3.3 versions newer than current: "
+                + SOCServer.CLI_VERSION_MAX_REPORT + " - " + currVersion + " = " + gap);
+    }
 
     /**
      * Test {@link SOCServer#checkLimitClientFeaturesForServerDisallows(SOCFeatureSet)}.

@@ -101,7 +101,8 @@ and run it.
 
 To host a non-HTML5 traditional JSettlers server, use any server OS and
 hosting provider you like. To also provide a download for the full Jar,
-you will need any http server such as Apache's httpd (available from https://httpd.apache.org).
+you will need any web server
+such as [nginx](https://nginx.org/) or [Apache's httpd](https://httpd.apache.org).
 
 The JSettlers-full.jar file can also run locally as a server, without needing a
 web server. If you're running a LAN game for friends, that Jar is all you need.
@@ -194,19 +195,25 @@ on the command line.  If the command includes -jar, switches and options go
 after the jar filename.
 
 To change a Game Option from its default, for example to activate the house rule
-"Robber can't return to the desert", use the `-o` switch with the game option's
-name and value, or equivalently "-Djsettlers.gameopt." + the name and value:
+"Robber can't return to the desert" and set default Victory Points to Win to 13,
+use `-o` switches with the game options' names and values, or equivalently
+"-Djsettlers.gameopt." + the names and values:
 
-    -o RD=t
-    -Djsettlers.gameopt.RD=t
+    -o RD=t -o VP=t13
+    -Djsettlers.gameopt.RD=t -Djsettlers.gameopt.VP=t13
+
+If a default VP is set, that will also be the minimum winning VP for any scenario.
+Some scenarios like Cloth Trade may have a higher VP amount, but none will be lower.
+To use the default VP in all scenarios, even those specifying a higher VP amount,
+also set game option `_VP_ALL=t` when starting the server.
 
 You could also set a default game scenario this way; for example if your server
 was running a tournament of Fog Islands games:
 
     -o SC=SC_FOG
 
-If the scenario's game options conflict with any other game options given (VP,
-etc), a warning will be printed during startup.  In general, servers shouldn't
+If the scenario's game options conflict with any other game options given,
+a warning will be printed during startup.  In general, servers shouldn't
 set a default scenario; users can choose a scenario on their own if they want.
 
 To have all completed games' results saved in the database, use this option:
@@ -219,7 +226,7 @@ To see a list of all jsettlers options (use them with -D), run:
 
 This will print all server options, and all Game Option default values. Note the
 format of those default values: Some options need both a true/false flag and a
-numeric value. To change the default winning victory points to 12 for example:
+numeric value. To change the default winning Victory Points to 12 for example:
 
     -o VP=t12
 
@@ -394,7 +401,7 @@ Remote users can simply start their clients as described there,
 and connect to your server's DNS name or IP address.
 
 To provide a web page where players can download the Jar, you will need to
-set up a web server such as Apache. Alternately, have them download the
+set up a web server such as nginx or Apache. Alternately, have them download the
 full Jar from https://github.com/jdmonin/JSettlers2/releases/latest .
 
 If setting up a web server: We assume you have installed the web server
@@ -464,6 +471,8 @@ Admin Users let you manage your server without the debug user. They authenticate
 stored in a SQLite file or a database system. To set up Admin Users, see
 section "Security, Admin Users, Admin Commands" of [doc/Database.md](doc/Database.md).
 
+JSettlers does not use `log4j`, and all released versions are not vulnerable to CVE-2021-44228.
+
 
 ## Development and Building JSettlers
 
@@ -507,7 +516,7 @@ retrieved 2020-01-11 from https://unpkg.com/konva@4.0.0/konva.js, konva.min.js
 Miscellaneous code is attributed to the Strategic Conversation (STAC) Project -
 https://www.irit.fr/STAC/ - from their fork published at https://github.com/sorinMD/StacSettlers
 and reintegrated into JSettlers by Jeremy D Monin for v2.5.00.
-[The StacSettlers readme](https://github.com/sorinMD/StacSettlers/blob/main/README.md)
+[The StacSettlers readme](https://github.com/sorinMD/StacSettlers/blob/master/README.md)
 says "Copyright (C) 2017  STAC" and that repo's most recent substantial change was in 2018.
 In the JSettlers repository, commits from that code use "STAC Project" as the author.
 
