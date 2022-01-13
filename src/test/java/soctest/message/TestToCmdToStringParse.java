@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -799,9 +799,9 @@ public class TestToCmdToStringParse
         {new SOCNewChannel("ch name"), "1001|ch name", "SOCNewChannel:channel=ch name"},
         {new SOCNewGame("ga"), "1016|ga", "SOCNewGame:game=ga"},
         {
-            new SOCNewGameWithOptions("ga", SOCGameOption.parseOptionsToSet("BC=t4,RD=f", knownOpts), -1, 0),
-            "1079|ga,-1,BC=t4,RD=f",
-            "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f",
+            new SOCNewGameWithOptions("ga", SOCGameOption.parseOptionsToSet("BC=t4,RD=f,SBL=t", knownOpts), -1, 0),
+            "1079|ga,-1,BC=t4,RD=f,SBL=t",
+            "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f,SBL=t",
             OPT_IGNORE_OBJ_FIELDS, new HashSet<String>(Arrays.asList("p2"))
             // TODO +stripAttribNames
         },
