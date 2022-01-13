@@ -1209,7 +1209,8 @@ STAC forked JSettlers and added several bot types, UI for partial trades
 and "fully observable" open-hand games, a way to record a game's actions to
 logs or a database for playback later, some bot API refactoring, and other
 miscellaneous work. Some of STAC's features and APIs have been
-adapted upstream as part of JSettlers v2.5.00.
+adapted upstream as part of JSettlers v2.5.00. Jeremy occasionally contributes
+PRs to the STAC fork at https://github.com/ruflab/StacSettlers .
 
 Website: https://www.irit.fr/STAC/about.html  
 Github: https://github.com/ruflab/StacSettlers  

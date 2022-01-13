@@ -86,8 +86,8 @@ https://github.com/jdmonin/JSettlers2/releases or https://nand.net/jsettlers/
 and run it.
 
 To host a JSettlers server, use any server OS and hosting provider you like.
-To also provide a download for the full Jar, you will need any http server
-such as Apache's httpd (available from https://httpd.apache.org).
+To also provide a download for the full Jar, you will need any web server
+such as [nginx](https://nginx.org/) or [Apache's httpd](https://httpd.apache.org).
 
 The JSettlers-full.jar file can also run locally as a server, without needing a
 web server. If you're running a LAN game for friends, that Jar is all you need.
@@ -353,7 +353,7 @@ Remote users can simply start their clients as described there,
 and connect to your server's DNS name or IP address.
 
 To provide a web page where players can download the Jar, you will need to
-set up a web server such as Apache. Alternately, have them download the
+set up a web server such as nginx or Apache. Alternately, have them download the
 full Jar from https://github.com/jdmonin/JSettlers2/releases/latest .
 
 If setting up a web server: We assume you have installed the web server
