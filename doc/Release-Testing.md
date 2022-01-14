@@ -167,6 +167,7 @@ When preparing to release a new version, testing should include:
           Card should fully play out (choose player, etc) before server announces game is over.
 - Scenarios and Victory Points to Win
     - New Game dialog: VP to Win vs scenarios
+        - Start server which doesn't specify opts VP or \_VP\_ALL
         - In client's main window, click "New Game"
         - Note default "Victory points to Win" is 10
         - Click "Create Game" to create; in created game, note VP is default (10);
@@ -192,6 +193,7 @@ When preparing to release a new version, testing should include:
         - Click "Create game"; in created game, note VP was set to 12 by server based on scenario
         - Briefly join game with another client; should also see VP is 12
         - Quit that game
+        - Shut down server
     - When server has larger default VP
         - Start a server; add at end of usual command line: `-o VP=t13`
         - Repeat the above test. Should get same results, except default VP is 13 not 10, so Cloth Trade will be 14 VP and all others will be 13, except when directly changing VP to 11 in dialog
