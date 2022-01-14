@@ -185,7 +185,8 @@ message PieceValue {
  *<P>
  * If this is a placement request from a client player: If successful, server announces
  * {@link PlayerElement} messages to the game for the resources spent, {@code BuildPiece},
- * and the new {@link State}. Otherwise server responds with an explanatory {@link GameServerText} and,
+ * and the new {@link State}. Otherwise server responds with an explanatory
+ * {@code SOCDeclinePlayerRequest} or {@link GameServerText} and,
  * if the gamestate allowed placement but resources or requested coordinates
  * disallowed it, the current {@link State} and then a {@link CancelBuild}.
  * After rejection the gamestate may be a placement state such as {@code PLACING_ROAD}.
@@ -252,7 +253,8 @@ message BuildPiece {
  *<P>
  * If there are no cards remaining to buy, or player doesn't have enough resources,
  * isn't currently their turn, or the player otherwise can't buy a card right now,
- * the server will send them a text response denying the buy. Instead of that text,
+ * the server will send them a text response or {@code SOCDeclinePlayerRequest}
+ * denying the buy. Instead of that,
  * robot clients will be sent a {@link CancelBuildRequest} message.
  *<P>
  * Before v3.0.00 this message was {@code SOCBuyDevCardRequest} and
@@ -276,16 +278,17 @@ message BuyInventoryItemRequest {
  *<P>
  * Dev Cards:
  *<P>
- * If client player can play it, server will respond to all players with
+ * If client player can play it, server will announce the play to game with
  * {@code InventoryItemAction}({@code PLAY}, cardType),
  * {@link PlayerElement}(PLAYED_DEV_CARD_FLAG),
- * and other messages, followed by {@link State} if it changed.
+ * and other messages, followed by {@link State} if state changed.
  *<P>
  * If playing a {@code KNIGHT} card leads to Largest Army, server announces that
  * after {@link PlayerElement} before {@link State}: {@link GameElements}(LARGEST_ARMY_PLAYER).
  *<P>
- * If client player can't play the card, server will reply to human player with {@link GameServerText}
- * or robot with InventoryItemAction(-1, {@code CANNOT_PLAY}, cardType).
+ * If client player can't play the card, server will reply to human player with the reason
+ * using {@code SOCDeclinePlayerRequest} if new enough, {@link GameServerText} otherwise,
+ * or to robot with InventoryItemAction(-1, {@code CANNOT_PLAY}, cardType).
  *<P>
  * Player Number field is -1 for action type {@code CANNOT_PLAY}; see that enum value for details.
  *<P>
@@ -422,14 +425,16 @@ message InventoryItemAction {
  *   The special inventory items in PLACING_INV_ITEM each have a different placement message, but if item placement
  *   can be canceled, use this common message type, with {@code item_type} == ({@link Data.OtherPlayableItem#INV_ITEM}).
  *   See {@link soc.game.SOCInventoryItem} for when this is allowed.
- *   If placement can't be canceled, server will reply with {@link GameServerText}.
+ *   If placement can't be canceled, server will reply with {@code SOCDeclinePlayerRequest}
+ *   or {@link GameServerText}.
  *
  *<LI> While placing the second free road or ship (PLACING_FREE_ROAD2), means
  *   the player has decided to skip placing the second free road or ship,
  *   to use just one road or ship piece.  Server will reply with new game state.
  *   (This was added in v1.1.17)
  *
- *<LI> Not sent from client during other game states. Server will reply with {@link GameServerText}.
+ *<LI> Shouldn't be sent from client during other game states.
+ *   Server will reply with {@code SOCDeclinePlayerRequest} or {@link GameServerText}.
  *
  *<H3>When sent from server to a client player:</H3>
  *
@@ -659,7 +664,11 @@ enum _PlayerElementType {
 
     /*
      * Number of knights in player's army; sent after a Soldier card is played.
-    *<P>
+     *<P>
+     * If playing a KNIGHT card leads to Largest Army, server announces with
+     * {@link GameElements}(LARGEST_ARMY_PLAYER})
+     * after {@code PlayerElement}(PLAYED_DEV_CARD_FLAG) before {@code State}.
+     *<P>
      * During normal gameplay, "largest army" indicator at client is updated
      * by examining game state, not by {@link GameElements._ElementType#LARGEST_ARMY_PLAYER} message from server:
      *<BR>
@@ -1104,6 +1113,10 @@ message GainResources {
 /* A player picks a resource type, typically for a Monopoly card.
  * Sent by current player client in response to GameState(WAITING_FOR_MONOPOLY).
  *<P>
+ * If client isn't currently allowed to request that pick, server responds
+ * with {@code SOCDeclinePlayerRequest}, or to an older client with
+ * {@link GameServerText} and {@link State}.
+ *<P>
  * Before v3.0.00 this message type was SOCPickResourceType.
  */
 message ChooseResourceType {
@@ -1113,6 +1126,15 @@ message ChooseResourceType {
 /* A player chooses another player, typically to rob from.
  * This message type is used for the prompt from server,
  * and the response from client player.
+ *<P>
+ * If client isn't currently allowed to make that choice, server responds
+ * with {@code SOCDeclinePlayerRequest}, or to an older client with
+ * {@link GameServerText} and {@link State}.
+ *<P>
+ * If client is allowed but their choice is wrong (player number isn't a possible victim, etc),
+ * server resends {@link ChoosePlayer} to that client.
+ *<P>
+ * Otherwise server will respond with the results of the choice: {@link RobberyResult}, {@link State}, etc.
  */
 message ChoosePlayer {
     /* From client: player number to choose, or -1 for none if allowed.
@@ -1132,7 +1154,7 @@ message ChoosePlayer {
  *   and either is_robber or is_pirate flag.
  * - If player can move there, server announces the move to the game
  *   with MoveRobber and the new game state.
- *   Otherwise server sends error text to the client and
+ *   Otherwise server sends error text or {@code SOCDeclinePlayerRequest} to the client and
  *   game state remains PLACING_ROBBER or PLACING_PIRATE.
  */
 message MoveRobber {

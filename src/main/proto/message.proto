@@ -684,7 +684,7 @@ message SetSeatLock {
  * such as {@link AcceptOffer}.
  *<P>
  * Occasionally, game text is sent with additional information
- * via {@link SVPTextMessage} instead of using this message type.
+ * via {@link SVPTextMessage} or {@code SOCDeclinePlayerRequest} instead of using this message type.
  * Some simple actions or prompts are sent by the server with {@link SimpleAction}
  * or {@link SimpleRequest} instead of as text.
  *<P>

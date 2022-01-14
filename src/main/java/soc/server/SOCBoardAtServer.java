@@ -3069,7 +3069,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
     /**
      * Classic layouts: Land hex types.
      * For hex coordinates see {@link #CLASSIC_LANDHEX_COORDS}.
-     * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
+     * For more information see {@link #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int, boolean, boolean, int, SOCGameOption, String, SOCGameOptionSet)}.
      *<P>
      * In v2.x.xx these were {@code makeNewBoard_landHexTypes_v1, makeNewBoard_landHexTypes_v2}.
      */
@@ -3120,7 +3120,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
     /**
      * Dice numbers in the classic 4- and 6-player board layouts, in order along {@code numPath}
      * ({@link #CLASSIC_LANDHEX_COORD}). For more information see
-     * {@link #makeNewBoard_placeHexes(int[], int[], int[], boolean, boolean, int, boolean, int, SOCGameOption, String)}.
+     * {@link #makeNewBoard_placeHexes(int[], int[], boolean, int[], boolean, boolean, int, boolean, boolean, int, SOCGameOption, String, SOCGameOptionSet)}.
      *<P>
      * In v2.x.xx these were {@code makeNewBoard_diceNums_v1, makeNewBoard_diceNums_v2}.
      */
