@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -348,9 +348,7 @@ public class SOCBoardLayout extends SOCMessage
 
         // robber hex: need to convert from hex string to int - strip 0x and parse with radix=16
         // If robber hex is -1, will be 0xffffffff
-        long robber = Long.parseLong(pieces[3].substring(2), 16);  // TODO java 8: use Integer.parseUnsignedInt
-        if (robber >= 0x80000000L)  // 2^31
-            robber -= 0x100000000L;  // 0xffffffff -> -1
+        int robber = Integer.parseUnsignedInt(pieces[3].substring(2), 16);
         ret.append(robber);
 
         return ret.toString();
