@@ -397,10 +397,12 @@ message LeaveAll {
  * one {@link TimingPing} per second in their active games.
  */
 message ServerPing {
-    /* For human clients, the value to echo (send back to the server),
+    /* For human clients, the value (seconds) to echo (send back to the server),
      * or -1 if server is telling a client it's being disconnected
-     * because a new client is replacing it. For bots (informational)
-     * the amount of time server will sleep waiting to send the next ping.
+     * because a new client is replacing it.
+     * For bots (informational), the amount of milliseconds server will sleep
+     * waiting to send the next ping. The server's ping thread typically wakes and sends that next ping
+     * about 60 seconds earlier than indicated by {@code sleep_time}.
      */
     int32 sleep_time = 1;
 }
