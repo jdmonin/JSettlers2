@@ -85,7 +85,8 @@ https://github.com/jdmonin/JSettlers2/blob/main/Readme.md .
 
 To watch a JSettlers game in a browser, you will need one new enough for HTML5
 and Javascript version ES6. You will also need the `socweb.war` and `socserver.war`
-packages, and a Java 8 servlet container software such as Jetty or Tomcat.
+packages, and a Java 8 servlet container software such as Jetty or Tomcat
+which supports WebSockets.
 Currently you must build `socweb.war` and `socserver.war` from source,
 because no versions of it have yet been released:
 See [doc/Readme.developer.md](doc/Readme.developer.md) for details.

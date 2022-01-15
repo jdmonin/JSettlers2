@@ -41,7 +41,7 @@ dependencies {
     providedCompile 'javax.websocket:javax.websocket-api:1.0'  // for java EE 7
     implementation 'com.google.code.gson:gson:2.8.6'  // optional at runtime, for savegame feature
         // If version changes, update Readme.developer.md and jsserver.properties.sample
-        // Same version is used by v3 branch (dependency of protobuf-java-util)
+        // Same version is used for protobuf (dependency of protobuf-java-util)
 }
 
 sourceSets {

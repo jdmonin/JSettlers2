@@ -68,9 +68,9 @@ v3 uses Protobuf to communicate, see `src/main/proto/message.proto` for
 the `FromServer` and `FromClient` main message types. For more details see
 the "Network Communication and interop" section below.
 
-The v3 web app server runs in a Java servlet container such as Jetty or Tomcat.
-This is currently optional. Web app HTML content is under `src/main/webcli` and
-servlets are under `src/main/java/socweb` .
+The v3 web app server runs in a Java servlet container such as Jetty or Tomcat
+which supports WebSockets. This is currently optional. Web app HTML content
+is under `src/main/webcli` and servlets are under `src/main/java/socweb`.
 
 For more information about the AI, please see the "Robots (AI)" section
 and Robert S Thomas' dissertation.
@@ -361,7 +361,7 @@ If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
 file-based local database.
 
-This project was designed to build with gradle 5.6 or 6.x, or from
+This project is designed to build with gradle 5.6 or 6.x, or from
 within an IDE like eclipse. Gradle builds output to `build/libs/`.
 
 To quickly run the client and server, in the Package Explorer pane:
@@ -479,6 +479,27 @@ to use those extra runtime JARs.
 To run the web app, see [Readme](../Readme.md) section "Server Web App Deployment".
 
 
+### SOCServer Web Server for HTML5: Protobuf as JSON over websockets
+
+To run JSettlersServer under Jetty or Tomcat to use protobuf as JSON over websockets,
+you will need to build `socweb.war` and `socserver.war` and copy related runtime JARs.
+
+#### Details for Jetty 9.2:
+
+- Run `gradle war` to build socserver.war, which includes JSettlersServer.jar
+  but not its runtime-dependency JARs, and socweb.war the HTML5 client.
+- Copy `build/libs/socserver.war` and `socweb.war` to $JETTY_HOME/webapps/
+- Copy the runtime JARs to $JETTY_HOME/lib/ext/  
+  gson-2.8.6.jar, guava-30.1.1-android.jar, protobuf-java-3.17.3.jar, protobuf-java-util-3.17.3.jar
+- To run with those libs, start jetty with a command like: `java -jar $JETTY_HOME/start.jar --module=ext`
+- The server listens on endpoint path `/socserver/apisock` for JSON over websockets,
+  port `4000` for Protobuf, and port `8880` for the classic SOCMessage protocol
+- At startup the server prints its random robot cookie to the Jetty log, for bot development and testing
+- Example Message.FromServer as JSON:
+
+       { "vers": { "versNum": 3000, "versStr": "3.0.00", "versBuild": "JX20171123", "srvFeats": ";ch;" } }
+
+
 ## Using protobuf (currently optional; work in progress)
 
 Right now protobuf support is a work in progress in the v3 branch.
@@ -488,6 +509,8 @@ in the "Network Communication and interop" section.
 
 Here are some brief notes:
 
+- Not all message types have protobuf added yet. Messages which do have
+  protobuf override methods toProtoFromClient and/or toProtoFromServer.
 - Development and the JSettlers build require `protobuf-java-3.17.3.jar`,
   `protobuf-java-util-3.17.3.jar`, and other JARs.
   Running `gradle test` can download them for you, or see section
@@ -533,37 +556,16 @@ Here are some brief notes:
 
      - This sample client connects like a bot but can't participate in games at this point.
 
-### SOCServer Web Server for HTML5: Protobuf as JSON over websockets
-
-To run JSettlersServer under Jetty or Tomcat to use protobuf as JSON over websockets,
-you will need to build `socweb.war` and `socserver.war` and copy related runtime JARs.
-
-#### Details for Jetty 9.2:
-
-- Run `gradle war` to build socserver.war, which includes JSettlersServer.jar
-  but not its runtime-dependency JARs, and socweb.war the HTML5 client.
-- Copy `build/libs/socserver.war` and `socweb.war` to $JETTY_HOME/webapps/
-- Copy the runtime JARs to $JETTY_HOME/lib/ext/  
-  gson-2.8.6.jar, guava-30.1.1-android.jar, protobuf-java-3.17.3.jar, protobuf-java-util-3.17.3.jar
-- To run with those libs, start jetty with a command like: `java -jar $JETTY_HOME/start.jar --module=ext`
-- The server listens on endpoint path `/socserver/apisock` for JSON over websockets,
-  port `4000` for Protobuf, and port `8880` for the classic SOCMessage protocol
-- At startup the server prints its random robot cookie to the Jetty log, for bot development and testing
-- Example Message.FromServer as JSON:
-
-       { "vers": { "versNum": 3000, "versStr": "3.0.00", "versBuild": "JX20171123", "srvFeats": ";ch;" } }
-
 ### Protobuf Interop with Other Languages
 
 For interop with other languages, see the **python** sample protobuf client `DummyProtoClient`.
 
 - The gradle build creates protobuf python classes under `/generated/src/proto/main/python`
-  alongside the java ones; those should work with python 2 or 3.
+  alongside the java ones; those work with python 3.
 - Like the java `DummyProtoClient`, this sample python client connects like a bot but can't join games.
   It includes functions to implement `Message.writeDelimitedTo` and `Message.parseDelimitedFrom`
   since those are included only with protobuf's java runtime, not other languages.
-- The sample client is written in Python 3.
-- To install the protobuf python runtime (requires v3.17.3 or newer), run:  
+- To install the protobuf python runtime (requires protobuf 3.17.3 or newer), run:  
   `pip3 install protobuf`  
   or to upgrade from an earlier runtime version:  
   `pip3 install --upgrade protobuf==3.17.3`  
@@ -1322,7 +1324,7 @@ release. As soon as a bug is fixed or a feature's design is fairly stable,
 it should be committed to main.
 
 v3 is the experimental branch with major architectural changes.
-Protobuf replaces the homegrown SOCMessage protocol.
+Protobuf will replace the homegrown SOCMessage protocol, plus JSON for an HTML5 client.
 
 Releases are tagged as format "release-2.4.00". Each release's last commit
 updates [Versions.md](Versions.md) with the final build number,
