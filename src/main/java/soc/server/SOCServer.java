@@ -4785,6 +4785,7 @@ public class SOCServer extends Server
     {
         // Very similar code to impl_messageToGameKeyedSpecial, messageToGameForVersionsKeyedExcept:
         // if you change code here, consider changing it there too
+        // Indentation within try/catch matches impl_messageToGameKeyedSpecial's.
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
         final String gaName = ga.getName();
@@ -4796,10 +4797,10 @@ public class SOCServer extends Server
 
         try
         {
-            Vector<Connection> v = gameList.getMembers(gaName);
+                Vector<Connection> v = gameList.getMembers(gaName);
+                if (v == null)
+                    return;
 
-            if (v != null)
-            {
                 Enumeration<Connection> menum = v.elements();
 
                 final String msgKey = msg.getKey();
@@ -4862,7 +4863,6 @@ public class SOCServer extends Server
 
                     recordGameEvent(gaName, msgForRecord);
                 }
-            }
         }
         catch (Throwable e)
         {
@@ -5601,37 +5601,36 @@ public class SOCServer extends Server
         if ((ga.clientVersionLowest > vmax) || (ga.clientVersionHighest < vmin))
             return;  // <--- All clients too old or too new ---
 
-        final String gn = ga.getName();
+        // Some code here is similar to messageToGameForVersionsKeyed, messageToGameForVersionsKeyedExcept:
+        // If you change code here, consider changing it there too
+
+        final String gaName = ga.getName();
 
         if (takeMon)
-            gameList.takeMonitorForGame(gn);
-
-        // Some code here is similar to messageToGameForVersionsKeyed:
-        // If you change code here, consider changing it there too
+            gameList.takeMonitorForGame(gaName);
 
         try
         {
-            Vector<Connection> v = gameList.getMembers(gn);
-            if (v != null)
+            Vector<Connection> v = gameList.getMembers(gaName);
+            if (v == null)
+                return;
+
+            String mesCmd = null;  // lazy init, will be mes.toCmd()
+            final Enumeration<Connection> menum = v.elements();
+            while (menum.hasMoreElements())
             {
-                String mesCmd = null;  // lazy init, will be mes.toCmd()
-                Enumeration<Connection> menum = v.elements();
+                final Connection c = menum.nextElement();
+                if ((c == null) || ((ex != null) && ex.contains(c)))
+                    continue;
 
-                while (menum.hasMoreElements())
-                {
-                    Connection con = menum.nextElement();
-                    if ((con == null) || ((ex != null) && ex.contains(con)))
-                        continue;
+                final int cv = c.getVersion();
+                if ((cv < vmin) || (cv > vmax))
+                    continue;
 
-                    final int cv = con.getVersion();
-                    if ((cv < vmin) || (cv > vmax))
-                        continue;
-
-                    //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", con.getData()));
-                    if (mesCmd == null)
-                        mesCmd = mes.toCmd();
-                    con.put(mesCmd);
-                }
+                //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", con.getData()));
+                if (mesCmd == null)
+                    mesCmd = mes.toCmd();
+                c.put(mesCmd);
             }
         }
         catch (Exception e)
@@ -5641,7 +5640,7 @@ public class SOCServer extends Server
         finally
         {
             if (takeMon)
-                gameList.releaseMonitorForGame(gn);
+                gameList.releaseMonitorForGame(gaName);
         }
     }
 
@@ -5749,14 +5748,14 @@ public class SOCServer extends Server
         if ((ga.clientVersionLowest > vmax) || (ga.clientVersionHighest < vmin))
             return;  // <--- All clients too old or too new ---
 
+        // Some code here is similar to messageToGameKeyedType, impl_messageToGameKeyedSpecial,
+        // or messageToGameForVersionsExcept: If you change code here, consider changing it there too
+
         final boolean hasMultiLocales = ga.hasMultiLocales;
         final String gaName = ga.getName();
 
         if (takeMon)
             gameList.takeMonitorForGame(gaName);
-
-        // Some code here is similar to messageToGameKeyedType, impl_messageToGameKeyedSpecial,
-        // or messageToGameForVersionsExcept: If you change code here, consider changing it there too
 
         try
         {
@@ -5799,7 +5798,6 @@ public class SOCServer extends Server
                     // old client (this is uncommon) needs a different message type
                     c.put(new SOCGameTextMsg
                         (gaName, SERVERNAME, gameText));
-
             }
         }
         catch (Exception e)
@@ -6062,7 +6060,7 @@ public class SOCServer extends Server
          * the waiting message is something other than VERSION,
          * server callback {@link #processFirstCommand} will set up the version TimerTask
          * using {@link SOCClientData#setVersionTimer}.
-         * The version timer will call {@link SOCServer#sendGameList} when it expires.
+         * The version timer will call SOCGameListAtServer.sendGameList when it expires.
          * If no input awaits us right now, set up the timer here.
          */
         if (! c.isInputAvailable())
