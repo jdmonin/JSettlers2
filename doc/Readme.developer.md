@@ -27,7 +27,7 @@
 
 ### Project layout
 
-This project uses gradle 5.6 or higher (or IDEs) to build. For developer familiarity,
+This project uses gradle 5.6 or 6.x (or IDEs) to build. For developer familiarity,
 the project uses the directory structure/layout of a maven/gradle project.
 
 Also see the "Build Setup and Results" section.
@@ -90,7 +90,7 @@ Same coordinates as 4-player classic. Trading ports' hexes are off the edge of t
 ### Development
 
 Coding is done in Java 8 for client compatibility, but should compile cleanly
-in newer JDKs. The build system is gradle 5.6 or higher;
+in newer JDKs. The build system is gradle 5.6 or 6.x;
 the newest tested version is gradle 6.9.2. Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the
 current code (see "Coding Style" below for more details.).
@@ -289,6 +289,7 @@ its `build.gradle` into other IDEs.
         - Buildship 3.x runs on JDK 8 or newer, eclipse 4.3 or newer
     - Install
     - If prompted to restart Eclipse, do so
+- Eclipse preferences -> Gradle -> Gradle distribution: Specific gradle version: 5.6.4, or a 6.x  (6.4, 6.9.2 are tested)
 - Choose File -> Import -> Gradle -> Existing Gradle Project
 - Browse to the jsettlers git checkout's top-level directory (containing `build.gradle`)
 - Hit Finish
@@ -307,6 +308,8 @@ its `build.gradle` into other IDEs.
                 - Name shadowing and conflicts -> All
     - OK
     	- If eclipse asks "Build the project now?", hit Yes
+- Gradle downloads the project's required and optional library JARs, and the import wizard
+  adds them to the project's Dependencies list.
 - Run the `assemble` or `build` gradle task now to copy resources from `src/main/resources/`.  
   To do so: Gradle tasks tab -> jsettlers -> build -> assemble
 
@@ -330,7 +333,7 @@ If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
 file-based local database.
 
-This project is designed to build with gradle 5.6 or higher, or from within an IDE
+This project is designed to build with gradle 5.6 or 6.x, or from within an IDE
 like eclipse. Gradle builds output to `build/libs/`.
 
 To quickly run the client and server, in the Package Explorer pane:
@@ -748,9 +751,8 @@ welcomes contributions. Please keep these things in mind:
 
 ## Internationalization (I18N)
 
-An internationalization framework has just been put into place for v2.0.00,
-and not yet fully used, so you won't see it used in every server and client
-class. Some work in progress is surrounded by marker comments:
+An internationalization framework was put into place for v2.0.00.
+Temporary work in progress is surrounded by marker comments:
 `/*I*/"{0} has won the game with {1} points."/*18N*/`
 
 When building strings that the user will see, don't use + to build the strings;
@@ -1167,6 +1169,7 @@ release. As soon as a bug is fixed or a feature's design is fairly stable,
 it should be committed to main.
 
 v3 is the experimental branch with major architectural changes.
+Protobuf replaces the homegrown SOCMessage protocol.
 
 Releases are tagged as format "release-2.4.00". Each release's last commit
 updates [Versions.md](Versions.md) with the final build number,

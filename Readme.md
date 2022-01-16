@@ -87,7 +87,7 @@ and run it.
 
 To host a JSettlers server, use any server OS and hosting provider you like.
 To also provide a download for the full Jar, you will need any web server
-such as [nginx](https://nginx.org/) or [Apache's httpd](https://httpd.apache.org).
+such as [nginx](https://nginx.org/) or [Apache httpd](https://httpd.apache.org).
 
 The JSettlers-full.jar file can also run locally as a server, without needing a
 web server. If you're running a LAN game for friends, that Jar is all you need.

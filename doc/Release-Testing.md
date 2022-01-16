@@ -6,7 +6,7 @@ When preparing to release a new version, testing should include:
 
 - Before building the JARs to be tested, `git status` should have no untracked or uncommitted changes
     - Run `gradle distCheckSrcDirty` to check that and list any files with such changes
-- `gradle clean test` runs without failures, under gradle 5.6 and also gradle 6.9.2
+- `gradle clean test` runs without failures, under gradle 5.6 and also gradle 6.9.x
 - These should print the expected version and build number:
     - `java -jar build/libs/JSettlers-2.*.jar --version`
     - `java -jar build/libs/JSettlersServer-2.*.jar --version`
@@ -567,7 +567,7 @@ When preparing to release a new version, testing should include:
           `("DEBUGBOOL", 2400, Version.versionNumber(), false, ...)`
         - In `src/main/resources/resources/version.info`, add 1 to versionnum and version. Example: 2400 -> 2401, 2.4.00 -> 2.4.01
         - Build client (at that "new" version) using `gradle assemble` to skip the usual unit tests.
-          The built jars' filenames might include current version number; that's normal.
+          The built jars' filenames might include current version number (not + .0.01); that's normal.
         - Launch that client (prints the "new" version number at startup), don't connect to server
         - Click "Practice"; dialog's game options should include DEBUGBOOL,
           Scenario dropdown should include those 3 "new" scenarios
@@ -1196,7 +1196,7 @@ Start with a recently-created database with latest schema/setup scripts.
 - Board layout generator stability:
     - See `TestBoardLayoutsRounds` in "extraTest" section
 - Build contents and built artifacts:
-    - `gradle dist` runs without errors or unusual warnings, under gradle 5.6 and also gradle 6.9.2
+    - `gradle dist` runs without errors or unusual warnings, under gradle 5.6 and also gradle 6.9.x
     - Full jar and server jar manifests should include correct JSettlers version and git commit id:
         - `unzip -q -c build/libs/JSettlers-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`
         - `unzip -q -c build/libs/JSettlersServer-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`
@@ -1249,7 +1249,7 @@ The current Extra Tests are:
 
 ## Platform-specific
 
-On most recent and less-recent OSX and Windows; oldest JRE (java 8) and a new JRE/JDK:  
+On most recent and less-recent OSX and Windows; JRE 8 and a new JDK:  
 (Note: Java 8 runs on Win XP and higher; can download installer from https://jdk.java.net/ )
 
 - Dialog keyboard shortcuts, including New Game and Game Reset dialogs' esc/enter keys, FaceChooserFrame arrow keys
