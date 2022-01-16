@@ -1,7 +1,7 @@
 /*
  * This file is part of the Java Settlers Server Web App.
  *
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,6 +41,7 @@ public class API extends HttpServlet
 {
     private static final long serialVersionUID = 3000L;  // 3.0.00
 
+    @SuppressWarnings("unused")  // will use ctx sooner or later, so keep it around
     private ServletContext ctx;
 
     @Override

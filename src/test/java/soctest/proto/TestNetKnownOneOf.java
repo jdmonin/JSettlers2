@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -198,6 +198,7 @@ public class TestNetKnownOneOf
          * @param s  Open socket to a server; do not close this socket
          * @throws Exception  Any errors thrown here are printed to {@link #sb} by {@link #run()}.
          */
+        @Override
         public void encodeAndSend(final Socket s)
             throws Exception
         {

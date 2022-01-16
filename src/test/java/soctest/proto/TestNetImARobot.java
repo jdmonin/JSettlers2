@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -219,19 +219,21 @@ public class TestNetImARobot
         }
 
         /**
-         * Called from {@link #run()}, encode and send protobuf messages to a server.
-         * @param s  Open socket to a server; do not close this socket
+         * Called from {@link #run()}, encode and send protobuf messages to the server.
+         * @param sock  Open socket to a server; do not close this socket
          * @throws Exception  Any errors thrown here are printed to {@link #sb} by {@link #run()}.
          */
-        public void encodeAndSend(final Socket s)
+        public void encodeAndSend(final Socket sock)
             throws Exception
         {
+            // sock is a parameter for use by other tests, although in this class it's same as instance field s.
+
             Message.ImARobot msg1 = Message.ImARobot.newBuilder()
                 .setNickname(FIELD_NICKNAME_1).setCookie(FIELD_COOKIE).setRbClass(FIELD_RBCLASS).build();
             Message.ImARobot msg2 = Message.ImARobot.newBuilder()
                 .setNickname(FIELD_NICKNAME_2).setCookie(FIELD_COOKIE).setRbClass(FIELD_RBCLASS).build();
 
-            final OutputStream os = s.getOutputStream();
+            final OutputStream os = sock.getOutputStream();
             msg1.writeDelimitedTo(os);
             msg2.writeDelimitedTo(os);
             os.flush();
