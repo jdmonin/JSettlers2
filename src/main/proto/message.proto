@@ -65,7 +65,7 @@ message ImARobot {
  * those older versions wouldn't reject the client until after they had filled out that dialog, which is
  * less than ideal.
  *<P>
- * The server responds to this message from the client with a {@link StatusMessage}:
+ * The server responds to this message from the client with a {@link ServerStatusText}:
  *<UL>
  * <LI> {@link ServerStatusText.StatusValue#OK} if the username and password were authenticated
  * <LI> {@link ServerStatusText.StatusValue#NOT_OK_GENERIC} if the auth scheme number is unknown
@@ -339,13 +339,13 @@ message ServerStatusText {
          */
         GAME_CLIENT_FEATURES_NEEDED = 22;
 
-        /* Server broadcasts StatusMessage(SV_SERVER_SHUTDOWN) at clean shutdown.
+        /* Server broadcasts ServerStatusText(SV_SERVER_SHUTDOWN) at clean shutdown.
          * Clients and bots shouldn't immediately try to reconnect when the server closes their connection.
          * @since 2.1.00
          */
         SV_SERVER_SHUTDOWN = 23;
 
-        /** Client has sent server a message type which requires authentication before sending,
+        /* Client has sent server a message type which requires authentication before sending,
          * such as a channel chat message or in-game action. Client must authenticate
          * ({@link AuthRequest} or another message with nickname/password fields)
          * for server to process that message type.
@@ -555,6 +555,9 @@ message Games {
 
 /* Client's request to create a game, or server's announcement that a game has been created.
  * If the client has requested creating this game, announcement will be followed by {@link JoinGame} to them.
+  *<P>
+ * If a new game can't be created (name too long, etc), server will reply with {@link ServerStatusText}
+ * with a status value explaining the reason: SV_NEWGAME_TOO_MANY_CREATED, SV_NEWGAME_NAME_REJECTED, etc.
  *<P>
  * Before v3.0.00 this message was {@code SOCNewGameWithOptions} from the server,
  * and {@code SOCNewGameWithOptionsRequest} from the client with an optional password.
@@ -567,9 +570,6 @@ message NewGame {
 /* Server request to this robot client to join a game.
  * The bot should respond with {@link JoinGame},
  * the message sent by human players to request joining a game.
- *<P>
- * Before 2.0.00, this class was called {@code SOCJoinGameRequest};
- * renamed to clarify versus {@link SOCJoinGame}.
  */
 message BotJoinGameRequest {
     _GameWithOptions game = 1;  // Name and options; bot doesn't necessarily keep list of all of server's games
@@ -635,6 +635,7 @@ message JoinGame {
  * Robots use {@code GameMembers} as their cue to sit down at the game, if they've been
  * asked to sit from {@link BotJoinGameRequest}. In order for the robot to be certain
  * it has all details about a game, bots should take no action before receiving this message.
+ * Once this is received, they should send their {@link SitDown} request.
  *<P>
  * When forming a new game, clients will be sent the sequence as described above, and
  * then will each choose a position and sit down. Any client can then send {@link StartGame}
@@ -658,6 +659,12 @@ message GameMembers {
  * The server is about to privately send it {@link InventoryItemAction}
  * with the detailed contents of that inventory.
  *<P>
+ * If human clients are joining a game which was reloaded from a saved snapshot
+ * (game state {@link Data.GameState#LOADING}), the game might have unclaimed non-vacant seats
+ * which were a human player when game was saved, but no client is currently connected to.
+ * SitDown for those seats is sent with {@code is_robot} true so the client will show
+ * a "Take Over" button for them.
+ *<P>
  * Although it's a game-specific message, it's handled by {@code SOCServer} instead of a {@code GameHandler}.
  */
 message SitDown {
@@ -669,6 +676,11 @@ message SitDown {
 
 /* From client, request to lock or unlock a seat.
  * From server, announcement of a seat lock status change to one or all seats.
+ *<P>
+ * Server sends seat locks to a joining client before the {@link SitDown} messages.
+ * This helps while loading a savegame: The client who requested load might be a seated player.
+ *<P>
+ * For player consistency, seat locks can't be changed while {@link soc.game.SOCGame#getResetVoteActive()}.
  */
 message SetSeatLock {
     string ga_name = 1;  // Name of game having this seat

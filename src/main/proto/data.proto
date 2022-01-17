@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017-2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -251,8 +251,8 @@ enum GameState {
     PLACING_ROBBER = 33;
     PLACING_PIRATE = 34;
     PLACING_SHIP = 35;
-    PLACING_FREE_ROAD1 = 40;
-    PLACING_FREE_ROAD2 = 41;
+    PLACING_FREE_ROAD1 = 40;  // Player is placing their first free road/ship. If {@link soc.game.SOCGame#getCurrentDice()} == 0, the Road Building card was played before rolling the dice.
+    PLACING_FREE_ROAD2 = 41;  // Player is placing their second free road/ship. If {@link soc.game.SOCGame#getCurrentDice()} == 0, the Road Building card was played before rolling the dice.
     PLACING_INV_ITEM = 42;
     WAITING_FOR_DISCARDS = 50;  // Current player must choose which resources to discard
     WAITING_FOR_ROB_CHOOSE_PLAYER = 51;  // Current player must choose a player to rob
@@ -262,6 +262,8 @@ enum GameState {
     WAITING_FOR_ROB_CLOTH_OR_RESOURCE = 55;
     WAITING_FOR_PICK_GOLD_RESOURCE = 56;
     SPECIAL_BUILDING = 100;
+    LOADING = 990;  // A saved game is being loaded
+    LOADING_RESUMING = 992;  // A saved game was loaded and is about to resume, now waiting for some bots to rejoin
     OVER = 1000;  // The game is over
     RESET_OLD = 1001;  // Old game object, a new game with same name exists
 }

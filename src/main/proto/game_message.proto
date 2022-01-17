@@ -28,6 +28,9 @@ import public "data.proto";
 
 // Messages during play of a specific game, dispatched at server by a GameMessageHandler.
 //
+// A list of basic game actions and their message sequences is in
+// /doc/Message-Sequences-for-Game-Actions.md .
+//
 // GameMessages are grouped by category. See the bottom of this file
 // for GameMessageFromServer and FromClient, which use OneOf union groups.
 // Those main GameMessage types are themselves sent as a OneOf field
@@ -40,7 +43,9 @@ import public "data.proto";
 //
 
 /* Board layout contents.
- * Sent when game starts or to a client who has joined a game as an observer or player.
+ * Sent when game starts or to a client who has joined a game as an observer or player,
+ * after {@link SitDown} messages about current players.
+ * Also sent during start of the game when its board is generated.
  * Applies to entire game (player_number field is unused).
  * TODO: Ref to list of part keynames, etc
  *
@@ -136,6 +141,7 @@ message PotentialSettlements {
     /* Each land area's legal node coordinates; keys are 1 to {@link areaCount}.
      * Areas 0 and {@link #startingLandArea} are unused. All other indexes are non-null Sets.
      * Not sent if {@code areaCount} == 1.
+     * From {@link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
      */
     map<uint32, _NodeList> land_areas_legal_nodes = 4;
 
@@ -236,7 +242,7 @@ message BuildPiece {
  *   <LI> Resource cost paid: {@link PlayerElements}
  *          (gaName, playerNumber, {@link PlayerElement#LOSE}, {@link SOCDevCard#COST})
  *   <LI> New remaining card count: {@link GameElements}
- *          (gaName, DEV_CARD_COUNT}, remainingUnboughtCount)
+ *          (gaName, DEV_CARD_COUNT, remainingUnboughtCount)
  *  </UL>
  * <LI> Action announcement/display:
  *  <UL>
@@ -255,7 +261,7 @@ message BuildPiece {
  * isn't currently their turn, or the player otherwise can't buy a card right now,
  * the server will send them a text response or {@code SOCDeclinePlayerRequest}
  * denying the buy. Instead of that,
- * robot clients will be sent a {@link CancelBuildRequest} message.
+ * robot clients will be sent a {@link CancelBuild} message.
  *<P>
  * Before v3.0.00 this message was {@code SOCBuyDevCardRequest} and
  * {@code SOCInventoryItemAction(action = BUY)}.
@@ -428,10 +434,16 @@ message InventoryItemAction {
  *   If placement can't be canceled, server will reply with {@code SOCDeclinePlayerRequest}
  *   or {@link GameServerText}.
  *
- *<LI> While placing the second free road or ship (PLACING_FREE_ROAD2), means
- *   the player has decided to skip placing the second free road or ship,
- *   to use just one road or ship piece.  Server will reply with new game state.
- *   (This was added in v1.1.17)
+ *<LI> While placing a free road or ship from Road Building dev card (PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2),
+ *   means the player has decided to skip placing that free road or ship,
+ *   to cancel playing the card or to use just one road or ship piece. Server will reply with new game state.
+ *   Or, player can end their turn ({@link EndTurn}) to cancel free road placement.
+ *   <P>
+ *   If canceled before placing the 1st free road or ship, server first sends
+ *   {@link InventoryItemAction}(playerNum, action=ADD_OLD,
+ *   dev_card_value=ROADS) to return the card to player's inventory
+ *   and {@link PlayerElement}(SET, PLAYED_DEV_CARD_FLAG, false)
+ *   so they can still play a dev card this turn.
  *
  *<LI> Shouldn't be sent from client during other game states.
  *   Server will reply with {@code SOCDeclinePlayerRequest} or {@link GameServerText}.
@@ -524,7 +536,7 @@ message RevealFogHex {
  * the current player and game state are both changing.
  *<P>
  * For some states, such as {@link Data.GameState#WAITING_FOR_ROB_CHOOSE_PLAYER},
- * another message (such as {@link ChoosePlayerRequest}) will
+ * another message (such as {@link ChoosePlayer}) will
  * follow to prompt the current player.  For others, such as
  * {@link Data.GameState#WAITING_FOR_DISCOVERY} or
  * {@link Data.GameState#WAITING_FOR_ROBBER_OR_PIRATE}, sending this
@@ -558,8 +570,8 @@ message RevealFogHex {
  * <LI>{@code PLACING_ROBBER}: Current player: Choose a new robber hex and send {@link MoveRobber}
  * <LI>{@code PLACING_PIRATE}: Current player: Choose a new pirate hex and send {@link MoveRobber}
  * <LI>{@code PLACING_SHIP}: Current player: Place a ship
- * <LI>{@code PLACING_FREE_ROAD1}: Current player: Place a road
- * <LI>{@code PLACING_FREE_ROAD2}: Current player: Place a road
+ * <LI>{@code PLACING_FREE_ROAD1}: Current player: Place a road or ship
+ * <LI>{@code PLACING_FREE_ROAD2}: Current player: Place a road or ship
  * <LI>{@code PLACING_INV_ITEM}: Current player: Place the previously-designated
  *     {@link soc.game.SOCInventoryItem}. Their placement message to server depends on the scenario and item type,
  *     documented at {@link InventoryItemAction}. For example, in scenario SC_FTRI the player sends a
@@ -572,7 +584,8 @@ message RevealFogHex {
  * <LI>{@code WAITING_FOR_DISCARDS}: Server sends game a "x, y, and z need to discard"
  *     prompt text. Players who must discard are sent a {@link LoseResources} request and must
  *     respond with {@link LoseResources}. After each client response, if still waiting for other players to discard,
- *     server sends game another prompt text. Otherwise sends game its new {@link State}
+ *     server sends game the same {@link State}(WAITING_FOR_DISCARDS) and another prompt text.
+ *     Otherwise sends game its new {@link State}.
  * <LI>{@code WAITING_FOR_ROB_CHOOSE_PLAYER}:
  *     Server sends current player {@link ChoosePlayer} listing possible victims.
  *     Current player: Choose a victim to rob, send {@link ChoosePlayer}
@@ -600,11 +613,15 @@ message RevealFogHex {
  *     After each client response, server sends game its {@link State}; if multiple players had to pick,
  *     that state is still {@code WAITING_FOR_PICK_GOLD_RESOURCE} and another "need to pick" prompt text is also sent.
  * <LI>{@code SPECIAL_BUILDING}: Current player: Build, buy cards, etc. When done, send {@link EndTurn}
+ * <LI>{@code LOADING}: -
+ * <LI>{@code LOADING_RESUMING}: -
  * <LI>{@code OVER}: Server announces the winner with
- *     {@link GameElements}({@link GameElements#CURRENT_PLAYER CURRENT_PLAYER}), and sends text messages reporting
+ *     {@link GameElements}(CURRENT_PLAYER) (or {@link Turn} instead of {@link State}),
+ *     and sends text messages reporting
  *     winner's name, final score, each player's victory-point cards, game length, and a {@link GameStats}.
  *     Each player is sent text with their resource roll totals. win-loss count for this session, and
  *     how long they've been connected.
+ *     See {@link GameStats} for sequence details.
  *</UL>
  * This list doesn't mention some informational/cosmetic text messages, such as the {@code START1A}
  * prompt "It's Joe's turn to build a settlement" or {@code PLACING_ROBBER}'s "Lily will move the robber".
@@ -625,7 +642,7 @@ enum _PlayerElementAction {
 
 /* Player element types for use in PlayerElement and PlayerElements; not sent as a standalone message type */
 enum _PlayerElementType {
-    /* Required for enum, but not sent: not a valid player element */
+    /* Required for enum, but not sent: not a valid player element. Not to be confused with {@link #ELEM_UNKNOWN_RESOURCE}. */
     _UNSENT_DEFAULT_PLAYER_ELEM = 0;
 
     /*
@@ -644,6 +661,12 @@ enum _PlayerElementType {
      * Amount of resources of unknown type; sent in messages about opponents' resources.
      * For some loops which send resource types + unknown, this constant is assumed to be 6
      * (5 known resource types + 1).
+     *<P>
+     * Before sending this from server, check if game option {@link soc.game.SOCGameOptionSet#K_PLAY_FO PLAY_FO} is set:
+     * May want to send as known resource type instead.
+     *<P>
+     * Not to be confused with {@link #_UNSENT_DEFAULT_PLAYER_ELEM}.
+     * @see #RESOURCE_COUNT
      */
     ELEM_UNKNOWN_RESOURCE = 6;
 
@@ -682,6 +705,9 @@ enum _PlayerElementType {
      * For the 6-player board, player element type for asking to build
      * during the {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
      * This element is {@code SET} to 1 or 0.
+     *<P>
+     * Also used by {@link soc.server.savegame.SavedGameModel}, omitted when value is 0.
+     * @see #HAS_SPECIAL_BUILT
      * @since 1.1.08
      */
     ASK_SPECIAL_BUILD = 16;
@@ -689,6 +715,9 @@ enum _PlayerElementType {
     /*
      * Total resources this player has available in hand to use.
      * Sent only with {@code SET}, not {@code GAIN} or {@code #LOSE}.
+     *<P>
+     * Alternately, send that info as part of a {@link DiceResultResources} message.
+     * @see #UNKNOWN_RESOURCE
      * @since 2.0.00
      */
     RESOURCE_COUNT = 17;
@@ -708,6 +737,54 @@ enum _PlayerElementType {
      * @since 2.0.00
      */
     PLAYED_DEV_CARD_FLAG = 19;
+
+    /*
+     * Is {@link SOCPlayer#getNeedToDiscard()} true?
+     * This element is 1 if so, otherwise 0 or omitted.
+     *<P>
+     * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel}.
+     * Clients are sent {@link LoseResources} instead.
+     *
+     * @since 2.3.00
+     */
+    DISCARD_FLAG = 20;
+
+    /*
+     * In 6-player game's Special Building Phase, has the player already Special Built this turn?
+     * From {@link SOCPlayer#hasSpecialBuilt()}.
+     * This element is 1 or 0.
+     *<P>
+     * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel}
+     * when gameState is SPECIAL_BUILDING.
+     *
+     * @see #ASK_SPECIAL_BUILD
+     * @since 2.3.00
+     */
+    HAS_SPECIAL_BUILT = 21;
+
+    /*
+     * Dev card stats: Value of {@link SOCPlayer#numDISCCards}.
+     *<P>
+     * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
+     * @since 2.5.00
+     */
+    NUM_PLAYED_DEV_CARD_DISC = 22;
+
+    /*
+     * Dev card stats: Value of {@link SOCPlayer#numMONOCards}.
+     *<P>
+     * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
+     * @since 2.5.00
+     */
+    NUM_PLAYED_DEV_CARD_MONO = 23;
+
+    /*
+     * Dev card stats: Value of {@link SOCPlayer#numRBCards}.
+     *<P>
+     * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
+     * @since 2.5.00
+     */
+    NUM_PLAYED_DEV_CARD_ROADS = 24;
 
     //
     // Elements related to scenarios and sea boards:
@@ -753,9 +830,13 @@ enum _PlayerElementType {
     SCENARIO_SVP_LANDAREAS_BITMASK = 104;
 
     /*
-     * Player's starting land area numbers.
+     * Player's starting land area numbers, from {@link soc.game.SOCPlayer#getStartingLandAreasEncoded()}.
      * Sent only at reconnect, because these are also tracked during play at the client.
      * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
+     *<P>
+     * Server will also send this at the end of initial placement if
+     * game is using a scenario like {@link soc.game.SOCScenario#K_SC_TTD SC_TTD} which uses
+     * {@link soc.server.SOCBoardAtServer#getBonusExcludeLandArea()} (an uncommon situation).
      * @since 2.0.00
      */
     STARTING_LANDAREAS = 105;
@@ -805,8 +886,15 @@ enum _PlayerElementType {
  *<UL>
  * <LI> For a bank trade (server response to player's {@link TradeWithBank}),
  *   all the {@code LOSE} messages come before the {@code GAIN}s.
- * <LI> For trade between players ({@link AcceptOffer}), the {@code LOSE}s and {@code GAIN}s
+ * <LI> For trade between players ({@link TradeAcceptOffer}), the {@code LOSE}s and {@code GAIN}s
  *   are interspersed to simplify server code.
+ * <LI> When dice roll result is 7 and player(s) must discard, server announces
+ *   game state {@link Data.GameState#WAITING_FOR_DISCARDS}, then prompts individual players to discard;
+ *   see {@link DiceResult} docs for more of that sequence.
+ *   Once a players's chosen their resources to discard, server announces they've done so
+ *   with a {@code PlayerElement}(playerNum, LOSE}, UNKNOWN_RESOURCE, total)</tt>
+ *   while game is still in state {@code WAITING_FOR_DISCARDS}; any {@code LOSE} message in that
+ *   game state is for a discard.
  * <LI> Most other situations send single PlayerElement messages or their sequence doesn't matter.
  *</UL>
  *<P>
@@ -835,6 +923,8 @@ message PlayerElement {
  * For a given player number and action type, contains parallel lists for sending
  * (element type, amount) pairs.
  *<P>
+ * Unlike {@link PlayerElement}, has no "is_news" flag (client treats as if flagged false).
+ *<P>
  * Defined in v1.1.09 but unused before v2.0.00.
  */
 message PlayerElements {
@@ -860,9 +950,11 @@ message GameElements {
 
         /* Number of development cards remaining in the deck to be bought,
          * from {@link soc.game.SOCGame#getNumDevCards()}.
-         * Sent to clients during game join/start. When a dev card is bought,
-         * is sent to clients as part of game data before action announcement/display:
-         * See {@link BuyInventoryItemRequest} javadoc.
+         *<P>
+         * Sent to clients during game join/start.
+         *<P>
+         * When a dev card is bought, server sends {@link SOCSimpleAction}(DEVCARD_BOUGHT)'s
+         * remaining-card count field instead: See {@link BuyInventoryItemRequest} javadoc.
          */
         DEV_CARD_COUNT = 2;
 
@@ -883,6 +975,14 @@ message GameElements {
          * in response to a player's {@link BuildPiece}, {@link MovePiece}, or DebugFreePlace.
          */
         LONGEST_ROAD_PLAYER = 6;
+
+        /* During 6-player game's Special Building Phase,
+         * the value of {@link SOCGame#getSpecialBuildingPlayerNumberAfter()}.
+         *<P>
+         * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel}
+         * when gameState is {@link Data.GameState#SPECIAL_BUILDING}.
+         */
+        SPECIAL_BUILDING_AFTER_PLAYER = 7;
     }
 
     repeated _ElementType element_types = 1;
@@ -897,6 +997,10 @@ message GameElements {
 /* From client, this message means that a player wants to start the game;
  * from server, it means that a game has just started, leaving state {@code NEW}.
  * Applies to entire game (player_number field is unused).
+ * First player number will be announced soon with a {@link Turn}.
+ *<P>
+ * This message optionally includes a {@code state} field
+ * instead of a separate {@link State} message, since the state is part of the Start Game transition.
  *<P>
  * If a client joins a game in progress it won't be sent a {@code StartGame} message,
  * only the game's current {@code GameState} and other parts of the game's and
@@ -907,18 +1011,21 @@ message StartGame {
 }
 
 /* End of the current player's turn, start of a new turn.
- * Client should end current turn, clear dice, set current player number, reset votes, etc.
+ * Client should end current turn, set current player number and game state,
+ * then clear dice, reset votes, etc by calling {@link SOCGame#updateAtTurn()}.
+ * When client receives this message,
+ * {@link SOCGame#updateAtTurn()} will clear the new player's {@link SOCPlayer#hasPlayedDevCard()} flag.
  * New player's client should check the state field to inform that player's options and actions.
  *<P>
  * Applies to entire game: player_number is the new current player's seat number.
  *<P>
- * Is also sent to robot players during initial placement when a round ends
- * and the direction of play changes, and bot has just placed a road or ship and should now place
- * the next settlement or roll the dice as first player.
- *<BR>
- * Currently, server won't send a TURN message to human players after the final road or ship is placed
- * at the end of initial placement and start of regular gameplay, only a {@link State}
- * message (START2 -> ROLL_OR_CARD).
+ * During Special Building (SBP) server doesn't follow this message
+ * with {@link GameServerText}("Special building phase: Lily's turn to place"); client should print
+ * a prompt like that when it receives {@code Turn}(SPECIAL_BUILDING).
+ *<P>
+ * Is also sent to game during initial placement when a round ends,
+ * since the direction of play changes, and player has just placed a road or ship and should now place
+ * the next settlement or roll the dice to start the game's first turn of regular play.
  *<P>
  * Also sent at game state {@link Data.GameState#OVER} to confirm the winning player,
  * who will already be the current player.
@@ -959,17 +1066,39 @@ message DiceRollRequest {
  * Applies to entire game (player_number field is unused).
  *<P>
  * This is in response to a client player's {@link DiceRollRequest}.
- * Will always be followed by {@link State} (rolling a 7 might lead to discards
- * or moving the robber, etc.) and sometimes with further messages after that,
- * depending on the roll results and scenario/rules in effect.
- *<P>
+ * Will sometimes be followed with various messages to entire game and/or
+ * to some players, depending on the roll results and scenario/rules in effect.
+ * The last data message of sequence sent to entire game is always {@link State}
+ * (rolling a 7 might lead to discards or moving the robber, etc.).
+  *<P>
+ * The guideline is that the "public" sequence ends with the new game state message,
+ * then any new state text for human clients, then any prompt for action
+ * sent to individual player clients in the new state.
+ * Any special resource (cloth) distributed as roll results, or any report of action happening
+ * (fleet battle lost/won), is sent before the state message.
+ *
+ *<H4>Sequence details</H4>
+ *
  * When players gain resources on the roll, game members will be sent {@link DiceResultResources}.
  *<P>
- * Players who gain resources on the roll will be sent
- * {@link PlayerElement PlayerElement(SET, resType, amount)} messages
- * for all their new resource counts.  Before v2.0.00 those were sent to each
- * player in the game after a roll, not just those who gained resources, followed by
- * sending the game a PlayerElement with their new total {@code RESOURCE_COUNT}.
+ * Each player who gained resources on the roll is sent their currently
+ * held amounts for each resource as {@link PlayerElements}(SET, resType, amount) messages
+ * for all their new resource counts.
+ * When client receives such a 5-element {@link PlayerElements} in state {@code ROLL_OR_CARD},
+ * they may want to clear their Unknown resource amount to 0 in case it has drifted.
+ *<P>
+ * When 7 is rolled and players must discard, then instead, {@code DiceResult}
+ * is followed by a {@link State}({@code WAITING_FOR_DISCARDS}) announcement,
+ * then a {@link LoseResources} prompt to each affected player.
+ * See {@link LoseResources} for player response and the next part of that sequence.
+ *
+ *<H4>End of sequence</H4>
+ *
+ * As noted above, the message sequence to the entire game always ends with {@code State}.
+ * That might be followed with {@link GameServerText} for human players to read,
+ * and/or messages sent privately to a player such as {@link LoseResources}
+ * (which doesn't need to be "public" because entire game knew the number of cards held
+ * when the 7 was rolled).
  */
 message DiceResult {
     /* Total rolled on both dice, 0 at start of turn,
@@ -1019,6 +1148,12 @@ message EndTurn {
 /* Client is making, or server is announcing, a bank trade or port trade.
  * Also used to undo player's previous trade (swap previous give/get resource sets).
  *<P>
+ * If the client's trade request is acceptable, server responds to entire game with
+ * {@code TradeWithBank} to announce the trade details.
+ *<P>
+ * TThe server disallows any unacceptable trade by sending the client a
+ * {@code TradeRejectOffer} with a reason code like {@code REASON_NOT_YOUR_TURN}.
+ *<P>
  * Before v3.0.00 this message was SOCBankTrade.
  * @see TradeMakeOffer
  */
@@ -1031,6 +1166,9 @@ message TradeWithBank {
  * Other player clients may respond with TradeRejectOffer or TradeAcceptOffer.
  *<P>
  * player_number is the player offering this trade to some or all other players.
+ *<P>
+ * If this trade offer is disallowed, server replies with a {@link TradeRejectOffer}
+ * with reason REASON_CANNOT_MAKE_OFFER.
  *<P>
  * Before v3.0.00 this message was SOCMakeOffer.
  * @see TradeWithBank
@@ -1054,27 +1192,96 @@ message TradeClearOffer {
     // No detail fields are needed beyond GameMessageFromServer.player_number
 }
 
-/* A player is rejecting any and all trade offers currently made to them.
+/* Typically this message means that the player is rejecting all offers ("no thanks").
+ * Server can also send it with a "reason code" when rejecting a client's trade-related request
+ * (player trade or bank trade).
+ *
+ *<H3>Typical usage: (without a reason code)</H3>
+ *
+ * Sent from rejecting player's client to server.
+ * The server then sends a copy of the message to all players
+ * to announce the rejection.
+ *<UL>
+ * <LI> Message to server is client player's response to a {@link SOCMakeOffer} sent earlier this turn.
+ * <LI> Followed by (from server, to all clients) {@link TradeRejectOffer} with the same data.
+ *</UL>
+ *
+ *<H3>With a reason code:</H3>
+ *
+ * Sent from server to a player's client in response to their bank trade, player trade offer,
+ * or request to accept a trade, with the specific reason it was disallowed ({@link #REASON_NOT_YOUR_TURN},
+ * {@link #REASON_CANNOT_MAKE_OFFER}, or generic {@link #REASON_CANNOT_MAKE_TRADE}).
+ * See those constants for info about when they're used,
+ * or {@link #getReasonCode()} for general info.
+ *<P>
+ * In a future version or fork, reason codes could also be sent from a rejecting player's client
+ * to give a specific reason for the rejection. This would be mentioned in that reason code constant's
+ * javadoc. Server would then announce the rejection to all players.
+ *<P>
+ * Before v3.0.00 this message type was SOCRejectOffer.
  * @see TradeMakeOffer
  * @see TradeAcceptOffer
  */
 message TradeRejectOffer {
-    // No detail fields are needed beyond GameMessageFromServer.player_number
+
+    /* Reason codes; added to classic message type SOCRejectOffer in v2.5.00. */
+    enum _ReasonCode {
+        /* Required for enum; the actual generic reason code is {@link #REASON_CANNOT_MAKE_TRADE}. */
+        _UNSENT_DEFAULT = 0;
+
+        /* Server's generic reason code when the requesting client can't offer or accept this trade now
+         * for whatever reason, or make this bank trade. Usually because they don't have the right resources to give.
+         * See {@link TradeRejectOffer#reason_code} for more info.
+         *<P>
+         * Sent in response to {@link TradeWithBank} and {@link TradeAcceptOffer}.
+         * For a more specific reason, see {@link #REASON_NOT_YOUR_TURN}.
+         *<P>
+         * {@code player_number} is -1 if rejecting a player's port/bank trade request,
+         * otherwise is the client's player number.
+         * @see #REASON_CANNOT_MAKE_OFFER
+         */
+        REASON_CANNOT_MAKE_TRADE = 1;
+
+        /* Server's reply reason code when the requesting client can't make this trade now
+         * because it isn't their turn.
+         *<P>
+         * Sent in response to {@link TradeWithBank}.
+         *<P>
+         * {@code player_number} will be -1.
+         * @see #REASON_CANNOT_MAKE_TRADE
+         */
+        REASON_NOT_YOUR_TURN = 2;
+
+        /* Server's reason code when the requesting client can't make this trade offer now.
+         *<P>
+         * Sent in response to {@link TradeMakeOffer}, but not {@link TradeWithBank}.
+         * @see #REASON_CANNOT_MAKE_TRADE
+         */
+        REASON_CANNOT_MAKE_OFFER = 3;
+    };
+
+    /* From server, optional reason code for why an offer was rejected by server or declined by a player;
+     * not sent from client.
+     */
+    _ReasonCode reason_code = 1;
 }
 
 /* A player is accepting a trade offer currently made to them.
- * If sent from client and trade is allowed, server responds with
- * {@link PlayerElement}s, {@link GameServerText}, {@link TradeClearOffer}s,
- * then (for robots' benefit) the received TradeAcceptOffer is re-sent to
- * all clients in the game.
+ * If sent from client and trade is allowed, server announces the received TradeAcceptOffer
+ * to all clients in the game, followed by {@link TradeClearOffer}.
  *<P>
  * From server, player_number is the player accepting this trade from offering_player_number.
+ *<P>
+ * The server disallows any unacceptable trade by sending that "accepting" client a
+ * {@code TradeRejectOffer} with reason code {@code REASON_CANNOT_MAKE_TRADE}.
  * @see TradeMakeOffer
  * @see TradeRejectOffer
  */
 message TradeAcceptOffer {
     int32 offering_player_number = 1;  // player number offering the trade being accepted
     int32 offer_serial = 2;  // offer number from TradeMakeOffer, if not 0, in case of unexpected last-minute new offers
+    ResourceSet resToAccepting = 3;  // resources being given to accepting player, if sent from server
+    ResourceSet resToOffering  = 4;  // resources being given to offering player, if sent from server
 }
 
 
@@ -1086,18 +1293,19 @@ message TradeAcceptOffer {
 /* A player picks which resources to discard or lose.
  * - First sent to client as prompt with the amount to lose.
  * - Client player responds with specific resources from their hand.
- * - If they have those resources to lose, server announces the total amount lost
- *   to the game as PlayerElement(ELEM_UNKNOWN_RESOURCE=n, is_news=true).
- *   Otherwise server re-sends the prompt to client.
- * - If no other players need to discard, server will then send the new {@link GameState}.
- *   Or if waiting for others to discard, server sends the game a {@link GameServerText} that lists
+ * - If they have those resources to lose: Server replies to them
+ *   with LoseResources(pn, lose), announces the total amount lost
+ *   to other game members as LoseResources(pn, unknownResources).
+ *   Otherwise: Server re-sends the prompt to client.
+ * - Server will then send the new {@link State}.
+ *   If waiting for others to discard, server also sends the game a {@link GameServerText} that lists
  *   who we're still waiting for.
  *<P>
  * Before v3.0.00 this message type was SOCDiscardRequest and SOCDiscard.
  */
 message LoseResources {
     int32 amount = 1;  // prompt or announcement from server: player must lose this many resources
-    ResourceSet lose = 2;  // from client: lose these resources
+    ResourceSet lose = 2;  // the resources lost
 }
 
 /* A player picks which resources to gain. (Year of Plenty, Gold hex, etc).
@@ -1127,9 +1335,18 @@ message ChooseResourceType {
  * This message type is used for the prompt from server,
  * and the response from client player.
  *<P>
+ * In some game scenarios like {@code SC_PIRI}, the player might have the option to steal from no one
+ * (see game state {@link Data.GameState.WAITING_FOR_ROB_CHOOSE_PLAYER}).
+ *<P>
+ * In response to a server's State({@link Data.GameState.WAITING_FOR_ROBBER_OR_PIRATE}),
+ * it says whether the player wants to move the robber or the pirate ship.
+ *<P>
+ * In response to a server's {@link ChoosePlayer} message while in
+ * game state {@link Data.GameState.WAITING_FOR_ROB_CLOTH_OR_RESOURCE},
+ * it says whether the player wants to rob cloth or rob a resource from the victim.
+ *<P>
  * If client isn't currently allowed to make that choice, server responds
- * with {@code SOCDeclinePlayerRequest}, or to an older client with
- * {@link GameServerText} and {@link State}.
+ * with {@code SOCDeclinePlayerRequest}.
  *<P>
  * If client is allowed but their choice is wrong (player number isn't a possible victim, etc),
  * server resends {@link ChoosePlayer} to that client.
@@ -1138,6 +1355,9 @@ message ChooseResourceType {
  */
 message ChoosePlayer {
     /* From client: player number to choose, or -1 for none if allowed.
+     *<P>
+     * From client during game state {@link Data.GameState.WAITING_FOR_ROBBER_OR_PIRATE}:
+     * -2 to move robber, or -3 to move pirate ship.
      *<P>
      * From client during game state {@link Data.GameState.WAITING_FOR_ROB_CLOTH_OR_RESOURCE}:
      * To rob a resource set this field to playerNumber as usual, to rob cloth set it to -(playerNumber + 1).
@@ -1148,17 +1368,23 @@ message ChoosePlayer {
     repeated uint32 chooseable_player_number = 3;  // from server: List of player numbers who can be chosen
 }
 
-/* A player moves the robber, or the pirate ship on the sea board.
+/* A player's request or server's announcement to move the robber or pirate ship.
  * - Server sends GameState(PLACING_ROBBER) or (PLACING_PIRATE)
  * - Client player responds with MoveRobber with a location to move to,
  *   and either is_robber or is_pirate flag.
  * - If player can move there, server announces the move to the game
- *   with MoveRobber and the new game state.
- *   Otherwise server sends error text or {@code SOCDeclinePlayerRequest} to the client and
+ *   with MoveRobber and the new game state. May be followed by other messages
+ *   about gaining/losing resources: {@link RobberyResult} or {@link PlayerElement}.
+ *   So for this message, the client should only call {@link soc.game.SOCBoard#setRobberHex(int, boolean)}
+ *   and not {@link soc.game.SOCGame#moveRobber(int, int)}.
+ * - Otherwise server sends {@code SOCDeclinePlayerRequest} to the client and
  *   game state remains PLACING_ROBBER or PLACING_PIRATE.
+ *<P>
+ * Once the robber is placed on the board, it cannot be taken off the board.
+ * The pirate can be taken off by sending {@code move_to = 0}.
  */
 message MoveRobber {
-    HexCoord move_to = 1;  // Move to this location
+    HexCoord move_to = 1;  // Move to this location, or 0 to remove pirate ship
 
     /* In server prompt, true if robber can be moved.
      * From client or server announcement, true if robber was moved
@@ -1292,7 +1518,7 @@ message GameMessageFromServer {
 }
 
 message GameMessageFromClient {
-    string game_name = 1;
+    string game_name = 1;  // the game; some message types may send special marker {@link SOCMessage#GAME_NONE}
 
     oneof msg {
         // turn

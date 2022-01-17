@@ -187,7 +187,7 @@ public final class GameMessage {
       implements com.google.protobuf.ProtocolMessageEnum {
     /**
      * <pre>
-     * Required for enum, but not sent: not a valid player element 
+     * Required for enum, but not sent: not a valid player element. Not to be confused with {&#64;link #ELEM_UNKNOWN_RESOURCE}. 
      * </pre>
      *
      * <code>_UNSENT_DEFAULT_PLAYER_ELEM = 0;</code>
@@ -225,6 +225,12 @@ public final class GameMessage {
      * Amount of resources of unknown type; sent in messages about opponents' resources.
      * For some loops which send resource types + unknown, this constant is assumed to be 6
      * (5 known resource types + 1).
+     *&lt;P&gt;
+     * Before sending this from server, check if game option {&#64;link soc.game.SOCGameOptionSet#K_PLAY_FO PLAY_FO} is set:
+     * May want to send as known resource type instead.
+     *&lt;P&gt;
+     * Not to be confused with {&#64;link #_UNSENT_DEFAULT_PLAYER_ELEM}.
+     * &#64;see #RESOURCE_COUNT
      * </pre>
      *
      * <code>ELEM_UNKNOWN_RESOURCE = 6;</code>
@@ -266,6 +272,17 @@ public final class GameMessage {
     /**
      * <pre>
      * Number of knights in player's army; sent after a Soldier card is played.
+     *&lt;P&gt;
+     * If playing a KNIGHT card leads to Largest Army, server announces with
+     * {&#64;link GameElements}(LARGEST_ARMY_PLAYER})
+     * after {&#64;code PlayerElement}(PLAYED_DEV_CARD_FLAG) before {&#64;code State}.
+     *&lt;P&gt;
+     * During normal gameplay, "largest army" indicator at client is updated
+     * by examining game state, not by {&#64;link GameElements._ElementType#LARGEST_ARMY_PLAYER} message from server:
+     *&lt;BR&gt;
+     * Client should update player's number of knights with {&#64;link SOCPlayer#setNumKnights(int)},
+     * then game's largest army by calling {&#64;link SOCGame#updateLargestArmy()},
+     * then update any related displays.
      * </pre>
      *
      * <code>NUMKNIGHTS = 15;</code>
@@ -276,6 +293,9 @@ public final class GameMessage {
      * For the 6-player board, player element type for asking to build
      * during the {&#64;link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
      * This element is {&#64;code SET} to 1 or 0.
+     *&lt;P&gt;
+     * Also used by {&#64;link soc.server.savegame.SavedGameModel}, omitted when value is 0.
+     * &#64;see #HAS_SPECIAL_BUILT
      * &#64;since 1.1.08
      * </pre>
      *
@@ -286,6 +306,9 @@ public final class GameMessage {
      * <pre>
      * Total resources this player has available in hand to use.
      * Sent only with {&#64;code SET}, not {&#64;code GAIN} or {&#64;code #LOSE}.
+     *&lt;P&gt;
+     * Alternately, send that info as part of a {&#64;link DiceResultResources} message.
+     * &#64;see #UNKNOWN_RESOURCE
      * &#64;since 2.0.00
      * </pre>
      *
@@ -314,6 +337,67 @@ public final class GameMessage {
      * <code>PLAYED_DEV_CARD_FLAG = 19;</code>
      */
     PLAYED_DEV_CARD_FLAG(19),
+    /**
+     * <pre>
+     * Is {&#64;link SOCPlayer#getNeedToDiscard()} true?
+     * This element is 1 if so, otherwise 0 or omitted.
+     *&lt;P&gt;
+     * Not sent to clients over network; used only by {&#64;link soc.server.savegame.SavedGameModel}.
+     * Clients are sent {&#64;link LoseResources} instead.
+     * &#64;since 2.3.00
+     * </pre>
+     *
+     * <code>DISCARD_FLAG = 20;</code>
+     */
+    DISCARD_FLAG(20),
+    /**
+     * <pre>
+     * In 6-player game's Special Building Phase, has the player already Special Built this turn?
+     * From {&#64;link SOCPlayer#hasSpecialBuilt()}.
+     * This element is 1 or 0.
+     *&lt;P&gt;
+     * Not sent to clients over network; used only by {&#64;link soc.server.savegame.SavedGameModel}
+     * when gameState is SPECIAL_BUILDING.
+     * &#64;see #ASK_SPECIAL_BUILD
+     * &#64;since 2.3.00
+     * </pre>
+     *
+     * <code>HAS_SPECIAL_BUILT = 21;</code>
+     */
+    HAS_SPECIAL_BUILT(21),
+    /**
+     * <pre>
+     * Dev card stats: Value of {&#64;link SOCPlayer#numDISCCards}.
+     *&lt;P&gt;
+     * Not sent to clients over network; used only by {&#64;link soc.server.savegame.SavedGameModel} when value &gt; 0.
+     * &#64;since 2.5.00
+     * </pre>
+     *
+     * <code>NUM_PLAYED_DEV_CARD_DISC = 22;</code>
+     */
+    NUM_PLAYED_DEV_CARD_DISC(22),
+    /**
+     * <pre>
+     * Dev card stats: Value of {&#64;link SOCPlayer#numMONOCards}.
+     *&lt;P&gt;
+     * Not sent to clients over network; used only by {&#64;link soc.server.savegame.SavedGameModel} when value &gt; 0.
+     * &#64;since 2.5.00
+     * </pre>
+     *
+     * <code>NUM_PLAYED_DEV_CARD_MONO = 23;</code>
+     */
+    NUM_PLAYED_DEV_CARD_MONO(23),
+    /**
+     * <pre>
+     * Dev card stats: Value of {&#64;link SOCPlayer#numRBCards}.
+     *&lt;P&gt;
+     * Not sent to clients over network; used only by {&#64;link soc.server.savegame.SavedGameModel} when value &gt; 0.
+     * &#64;since 2.5.00
+     * </pre>
+     *
+     * <code>NUM_PLAYED_DEV_CARD_ROADS = 24;</code>
+     */
+    NUM_PLAYED_DEV_CARD_ROADS(24),
     /**
      * <pre>
      * For the {&#64;link soc.game.SOCBoardLarge large sea board},
@@ -367,9 +451,13 @@ public final class GameMessage {
     SCENARIO_SVP_LANDAREAS_BITMASK(104),
     /**
      * <pre>
-     * Player's starting land area numbers.
+     * Player's starting land area numbers, from {&#64;link soc.game.SOCPlayer#getStartingLandAreasEncoded()}.
      * Sent only at reconnect, because these are also tracked during play at the client.
      * Sent as &lt;tt&gt;(landArea2 &amp;lt;&amp;lt; 8) | landArea1&lt;/tt&gt;.
+     *&lt;P&gt;
+     * Server will also send this at the end of initial placement if
+     * game is using a scenario like {&#64;link soc.game.SOCScenario#K_SC_TTD SC_TTD} which uses
+     * {&#64;link soc.server.SOCBoardAtServer#getBonusExcludeLandArea()} (an uncommon situation).
      * &#64;since 2.0.00
      * </pre>
      *
@@ -401,7 +489,7 @@ public final class GameMessage {
      * This element can be {&#64;code SET} or {&#64;code GAIN}ed.  For clarity, if the number of
      * warships decreases, send {&#64;code SET}, never send {&#64;code LOSE}.
      * {&#64;code GAIN} is sent only in response to a player's successful
-     * {&#64;link SOCPlayDevCardRequest} to convert a ship to a warship.
+     * {&#64;link InventoryItemAction} to convert a ship to a warship.
      *&lt;P&gt;
      * If a player is joining a game in progress, the &lt;tt&gt;PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)&lt;/tt&gt;
      * message is sent to their client only after sending their SOCShip piece positions.
@@ -416,7 +504,7 @@ public final class GameMessage {
 
     /**
      * <pre>
-     * Required for enum, but not sent: not a valid player element 
+     * Required for enum, but not sent: not a valid player element. Not to be confused with {&#64;link #ELEM_UNKNOWN_RESOURCE}. 
      * </pre>
      *
      * <code>_UNSENT_DEFAULT_PLAYER_ELEM = 0;</code>
@@ -454,6 +542,12 @@ public final class GameMessage {
      * Amount of resources of unknown type; sent in messages about opponents' resources.
      * For some loops which send resource types + unknown, this constant is assumed to be 6
      * (5 known resource types + 1).
+     *&lt;P&gt;
+     * Before sending this from server, check if game option {&#64;link soc.game.SOCGameOptionSet#K_PLAY_FO PLAY_FO} is set:
+     * May want to send as known resource type instead.
+     *&lt;P&gt;
+     * Not to be confused with {&#64;link #_UNSENT_DEFAULT_PLAYER_ELEM}.
+     * &#64;see #RESOURCE_COUNT
      * </pre>
      *
      * <code>ELEM_UNKNOWN_RESOURCE = 6;</code>
@@ -495,6 +589,17 @@ public final class GameMessage {
     /**
      * <pre>
      * Number of knights in player's army; sent after a Soldier card is played.
+     *&lt;P&gt;
+     * If playing a KNIGHT card leads to Largest Army, server announces with
+     * {&#64;link GameElements}(LARGEST_ARMY_PLAYER})
+     * after {&#64;code PlayerElement}(PLAYED_DEV_CARD_FLAG) before {&#64;code State}.
+     *&lt;P&gt;
+     * During normal gameplay, "largest army" indicator at client is updated
+     * by examining game state, not by {&#64;link GameElements._ElementType#LARGEST_ARMY_PLAYER} message from server:
+     *&lt;BR&gt;
+     * Client should update player's number of knights with {&#64;link SOCPlayer#setNumKnights(int)},
+     * then game's largest army by calling {&#64;link SOCGame#updateLargestArmy()},
+     * then update any related displays.
      * </pre>
      *
      * <code>NUMKNIGHTS = 15;</code>
@@ -505,6 +610,9 @@ public final class GameMessage {
      * For the 6-player board, player element type for asking to build
      * during the {&#64;link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
      * This element is {&#64;code SET} to 1 or 0.
+     *&lt;P&gt;
+     * Also used by {&#64;link soc.server.savegame.SavedGameModel}, omitted when value is 0.
+     * &#64;see #HAS_SPECIAL_BUILT
      * &#64;since 1.1.08
      * </pre>
      *
@@ -515,6 +623,9 @@ public final class GameMessage {
      * <pre>
      * Total resources this player has available in hand to use.
      * Sent only with {&#64;code SET}, not {&#64;code GAIN} or {&#64;code #LOSE}.
+     *&lt;P&gt;
+     * Alternately, send that info as part of a {&#64;link DiceResultResources} message.
+     * &#64;see #UNKNOWN_RESOURCE
      * &#64;since 2.0.00
      * </pre>
      *
@@ -543,6 +654,67 @@ public final class GameMessage {
      * <code>PLAYED_DEV_CARD_FLAG = 19;</code>
      */
     public static final int PLAYED_DEV_CARD_FLAG_VALUE = 19;
+    /**
+     * <pre>
+     * Is {&#64;link SOCPlayer#getNeedToDiscard()} true?
+     * This element is 1 if so, otherwise 0 or omitted.
+     *&lt;P&gt;
+     * Not sent to clients over network; used only by {&#64;link soc.server.savegame.SavedGameModel}.
+     * Clients are sent {&#64;link LoseResources} instead.
+     * &#64;since 2.3.00
+     * </pre>
+     *
+     * <code>DISCARD_FLAG = 20;</code>
+     */
+    public static final int DISCARD_FLAG_VALUE = 20;
+    /**
+     * <pre>
+     * In 6-player game's Special Building Phase, has the player already Special Built this turn?
+     * From {&#64;link SOCPlayer#hasSpecialBuilt()}.
+     * This element is 1 or 0.
+     *&lt;P&gt;
+     * Not sent to clients over network; used only by {&#64;link soc.server.savegame.SavedGameModel}
+     * when gameState is SPECIAL_BUILDING.
+     * &#64;see #ASK_SPECIAL_BUILD
+     * &#64;since 2.3.00
+     * </pre>
+     *
+     * <code>HAS_SPECIAL_BUILT = 21;</code>
+     */
+    public static final int HAS_SPECIAL_BUILT_VALUE = 21;
+    /**
+     * <pre>
+     * Dev card stats: Value of {&#64;link SOCPlayer#numDISCCards}.
+     *&lt;P&gt;
+     * Not sent to clients over network; used only by {&#64;link soc.server.savegame.SavedGameModel} when value &gt; 0.
+     * &#64;since 2.5.00
+     * </pre>
+     *
+     * <code>NUM_PLAYED_DEV_CARD_DISC = 22;</code>
+     */
+    public static final int NUM_PLAYED_DEV_CARD_DISC_VALUE = 22;
+    /**
+     * <pre>
+     * Dev card stats: Value of {&#64;link SOCPlayer#numMONOCards}.
+     *&lt;P&gt;
+     * Not sent to clients over network; used only by {&#64;link soc.server.savegame.SavedGameModel} when value &gt; 0.
+     * &#64;since 2.5.00
+     * </pre>
+     *
+     * <code>NUM_PLAYED_DEV_CARD_MONO = 23;</code>
+     */
+    public static final int NUM_PLAYED_DEV_CARD_MONO_VALUE = 23;
+    /**
+     * <pre>
+     * Dev card stats: Value of {&#64;link SOCPlayer#numRBCards}.
+     *&lt;P&gt;
+     * Not sent to clients over network; used only by {&#64;link soc.server.savegame.SavedGameModel} when value &gt; 0.
+     * &#64;since 2.5.00
+     * </pre>
+     *
+     * <code>NUM_PLAYED_DEV_CARD_ROADS = 24;</code>
+     */
+    public static final int NUM_PLAYED_DEV_CARD_ROADS_VALUE = 24;
     /**
      * <pre>
      * For the {&#64;link soc.game.SOCBoardLarge large sea board},
@@ -596,9 +768,13 @@ public final class GameMessage {
     public static final int SCENARIO_SVP_LANDAREAS_BITMASK_VALUE = 104;
     /**
      * <pre>
-     * Player's starting land area numbers.
+     * Player's starting land area numbers, from {&#64;link soc.game.SOCPlayer#getStartingLandAreasEncoded()}.
      * Sent only at reconnect, because these are also tracked during play at the client.
      * Sent as &lt;tt&gt;(landArea2 &amp;lt;&amp;lt; 8) | landArea1&lt;/tt&gt;.
+     *&lt;P&gt;
+     * Server will also send this at the end of initial placement if
+     * game is using a scenario like {&#64;link soc.game.SOCScenario#K_SC_TTD SC_TTD} which uses
+     * {&#64;link soc.server.SOCBoardAtServer#getBonusExcludeLandArea()} (an uncommon situation).
      * &#64;since 2.0.00
      * </pre>
      *
@@ -630,7 +806,7 @@ public final class GameMessage {
      * This element can be {&#64;code SET} or {&#64;code GAIN}ed.  For clarity, if the number of
      * warships decreases, send {&#64;code SET}, never send {&#64;code LOSE}.
      * {&#64;code GAIN} is sent only in response to a player's successful
-     * {&#64;link SOCPlayDevCardRequest} to convert a ship to a warship.
+     * {&#64;link InventoryItemAction} to convert a ship to a warship.
      *&lt;P&gt;
      * If a player is joining a game in progress, the &lt;tt&gt;PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)&lt;/tt&gt;
      * message is sent to their client only after sending their SOCShip piece positions.
@@ -682,6 +858,11 @@ public final class GameMessage {
         case 17: return RESOURCE_COUNT;
         case 18: return LAST_SETTLEMENT_NODE;
         case 19: return PLAYED_DEV_CARD_FLAG;
+        case 20: return DISCARD_FLAG;
+        case 21: return HAS_SPECIAL_BUILT;
+        case 22: return NUM_PLAYED_DEV_CARD_DISC;
+        case 23: return NUM_PLAYED_DEV_CARD_MONO;
+        case 24: return NUM_PLAYED_DEV_CARD_ROADS;
         case 101: return NUM_PICK_GOLD_HEX_RESOURCES;
         case 102: return SCENARIO_SVP;
         case 103: return SCENARIO_PLAYEREVENTS_BITMASK;
@@ -825,7 +1006,9 @@ public final class GameMessage {
   /**
    * <pre>
    * Board layout contents.
-   * Sent when game starts or client joins a game in progress.
+   * Sent when game starts or to a client who has joined a game as an observer or player,
+   * after {&#64;link SitDown} messages about current players.
+   * Also sent during start of the game when its board is generated.
    * Applies to entire game (player_number field is unused).
    * TODO: Ref to list of part keynames, etc
    *&lt;H4&gt;Optimization:&lt;/H4&gt;
@@ -3733,7 +3916,9 @@ public final class GameMessage {
     /**
      * <pre>
      * Board layout contents.
-     * Sent when game starts or client joins a game in progress.
+     * Sent when game starts or to a client who has joined a game as an observer or player,
+     * after {&#64;link SitDown} messages about current players.
+     * Also sent during start of the game when its board is generated.
      * Applies to entire game (player_number field is unused).
      * TODO: Ref to list of part keynames, etc
      *&lt;H4&gt;Optimization:&lt;/H4&gt;
@@ -4294,7 +4479,9 @@ public final class GameMessage {
     /**
      * <pre>
      * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+     * Not sent if {&#64;code areaCount} == 1.
+     * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
      * </pre>
      *
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -4303,7 +4490,9 @@ public final class GameMessage {
     /**
      * <pre>
      * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+     * Not sent if {&#64;code areaCount} == 1.
+     * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
      * </pre>
      *
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -4319,7 +4508,9 @@ public final class GameMessage {
     /**
      * <pre>
      * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+     * Not sent if {&#64;code areaCount} == 1.
+     * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
      * </pre>
      *
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -4329,7 +4520,9 @@ public final class GameMessage {
     /**
      * <pre>
      * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+     * Not sent if {&#64;code areaCount} == 1.
+     * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
      * </pre>
      *
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -4341,7 +4534,9 @@ public final class GameMessage {
     /**
      * <pre>
      * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+     * Not sent if {&#64;code areaCount} == 1.
+     * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
      * </pre>
      *
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -4453,13 +4648,21 @@ public final class GameMessage {
    * on where the players can place. By having the server be authoritative on this, more scenarios
    * could be added later without a client change.
    *&lt;P&gt;
+   * This message is sent before any {&#64;link BuildPiece}.
+   * So even if game is in progress, each player receives their unique potential settlement node list,
+   * to populate their legal node/edge sets, before seeing any of their piece locations.
+   *&lt;P&gt;
    * Player Number field may be -1 if applies to all players at start of game.
    * -1 also indicates that the legal settlements should be set and the
    * legal roads recalculated from this message's list of potential nodes.
    *&lt;P&gt;
    * If the game has already started, Land Area contents are sent when
-   * {&#64;code player_number} == 0 and board's legal roads should be
-   * calculated at that point.
+   * {&#64;code player_number} == 0 (the first player sent) and board's legal roads should be
+   * calculated at that point, before calculating any player's
+   * legal or potential sets. Server typically must send several (one per player)
+   * {&#64;code PotentialSettlements} messages because of each player's unique potential/legal coordinate sets.
+   * Each has the player's Potential Settlements and optional Legal Sea Edges,
+   * but not the board layout's Land Areas (which are sent only with pn = 0, not again for every player).
    * </pre>
    *
    * Protobuf type {@code PotentialSettlements}
@@ -4743,7 +4946,9 @@ public final class GameMessage {
     /**
      * <pre>
      * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+     * Not sent if {&#64;code areaCount} == 1.
+     * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
      * </pre>
      *
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -4766,7 +4971,9 @@ public final class GameMessage {
     /**
      * <pre>
      * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+     * Not sent if {&#64;code areaCount} == 1.
+     * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
      * </pre>
      *
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -4779,7 +4986,9 @@ public final class GameMessage {
     /**
      * <pre>
      * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+     * Not sent if {&#64;code areaCount} == 1.
+     * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
      * </pre>
      *
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -4797,7 +5006,9 @@ public final class GameMessage {
     /**
      * <pre>
      * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-     * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+     * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+     * Not sent if {&#64;code areaCount} == 1.
+     * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
      * </pre>
      *
      * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -5148,13 +5359,21 @@ public final class GameMessage {
      * on where the players can place. By having the server be authoritative on this, more scenarios
      * could be added later without a client change.
      *&lt;P&gt;
+     * This message is sent before any {&#64;link BuildPiece}.
+     * So even if game is in progress, each player receives their unique potential settlement node list,
+     * to populate their legal node/edge sets, before seeing any of their piece locations.
+     *&lt;P&gt;
      * Player Number field may be -1 if applies to all players at start of game.
      * -1 also indicates that the legal settlements should be set and the
      * legal roads recalculated from this message's list of potential nodes.
      *&lt;P&gt;
      * If the game has already started, Land Area contents are sent when
-     * {&#64;code player_number} == 0 and board's legal roads should be
-     * calculated at that point.
+     * {&#64;code player_number} == 0 (the first player sent) and board's legal roads should be
+     * calculated at that point, before calculating any player's
+     * legal or potential sets. Server typically must send several (one per player)
+     * {&#64;code PotentialSettlements} messages because of each player's unique potential/legal coordinate sets.
+     * Each has the player's Potential Settlements and optional Legal Sea Edges,
+     * but not the board layout's Land Areas (which are sent only with pn = 0, not again for every player).
      * </pre>
      *
      * Protobuf type {@code PotentialSettlements}
@@ -5933,7 +6152,9 @@ public final class GameMessage {
       /**
        * <pre>
        * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+       * Not sent if {&#64;code areaCount} == 1.
+       * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
        * </pre>
        *
        * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -5956,7 +6177,9 @@ public final class GameMessage {
       /**
        * <pre>
        * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+       * Not sent if {&#64;code areaCount} == 1.
+       * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
        * </pre>
        *
        * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -5969,7 +6192,9 @@ public final class GameMessage {
       /**
        * <pre>
        * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+       * Not sent if {&#64;code areaCount} == 1.
+       * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
        * </pre>
        *
        * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -5987,7 +6212,9 @@ public final class GameMessage {
       /**
        * <pre>
        * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+       * Not sent if {&#64;code areaCount} == 1.
+       * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
        * </pre>
        *
        * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -6013,7 +6240,9 @@ public final class GameMessage {
       /**
        * <pre>
        * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+       * Not sent if {&#64;code areaCount} == 1.
+       * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
        * </pre>
        *
        * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -6037,7 +6266,9 @@ public final class GameMessage {
       /**
        * <pre>
        * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+       * Not sent if {&#64;code areaCount} == 1.
+       * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
        * </pre>
        *
        * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -6054,7 +6285,9 @@ public final class GameMessage {
       /**
        * <pre>
        * Each land area's legal node coordinates; keys are 1 to {&#64;link areaCount}.
-       * Areas 0 and {&#64;link #startingLandArea} are unused. Not sent if {&#64;code areaCount} == 1.
+       * Areas 0 and {&#64;link #startingLandArea} are unused. All other indexes are non-null Sets.
+       * Not sent if {&#64;code areaCount} == 1.
+       * From {&#64;link soc.game.SOCBoardLarge#getLandAreasLegalNodes()}.
        * </pre>
        *
        * <code>map&lt;uint32, ._NodeList&gt; land_areas_legal_nodes = 4;</code>
@@ -7695,14 +7928,29 @@ public final class GameMessage {
    * Client player is asking to buy and build, or server is announcing placement of, a piece on the board.
    * Also used when joining a new game or a game in progress, to send the game state so far.
    *&lt;P&gt;
+   * If message is from server for a {&#64;link soc.game.SOCRoad} or {&#64;link soc.game.SOCShip}:
+   * After updating game data with the new piece, client should call {&#64;link SOCGame#getPlayerWithLongestRoad()}
+   * and update displays if needed.
+   *&lt;P&gt;
    * If message is from server for a {&#64;link soc.game.SOCCity} while client is joining a game, must precede
    * by sending that client a {&#64;code BuildPiece} message with the Settlement at the same coordinate
    * which was upgraded to that city.
    *&lt;P&gt;
+   * If this is a placement request from a client player: If successful, server announces
+   * {&#64;link PlayerElement} messages to the game for the resources spent, {&#64;code BuildPiece},
+   * and the new {&#64;link State}. Otherwise server responds with an explanatory
+   * {&#64;code SOCDeclinePlayerRequest} or {&#64;link GameServerText} and,
+   * if the gamestate allowed placement but resources or requested coordinates
+   * disallowed it, the current {&#64;link State} and then a {&#64;link CancelBuild}.
+   * After rejection the gamestate may be a placement state such as {&#64;code PLACING_ROAD}.
+   *&lt;P&gt;
+   * If PutPiece leads to Longest Route player changing, server sends that
+   * after {&#64;code PlayerElement}s before {&#64;code State}: {&#64;link GameElements}(LONGEST_ROAD_PLAYER).
+   *&lt;P&gt;
    * Some game scenarios use {&#64;link soc.game.SOCVillage villages} which aren't owned by any player;
    * their {&#64;code player_number} is -1 in this message.
    *&lt;P&gt;
-   * See also {&#64;link MovePiece}. The messages similar but opposite to this one
+   * See also {&#64;link MovePiece} and DebugFreePlace. Messages similar but opposite to this one
    * are {&#64;link CancelBuild} and the very-limited {&#64;link RemovePiece}.
    *&lt;P&gt;
    * Some scenarios like {&#64;link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces
@@ -7711,13 +7959,6 @@ public final class GameMessage {
    * sending them {&#64;link StartGame}. Scenario {&#64;link soc.game.SOCScenario#K_SC_CLVI SC_CLVI}
    * sends its neutral villages before {&#64;code START1A} but as part {&#64;code "CV"} of the board layout
    * message, not as {&#64;code BuildPiece}s.
-   *&lt;P&gt;
-   * If this is a placement request from a client player: If successful, server announces
-   * {&#64;link PlayerElement} messages to the game for the resources spent, {&#64;code BuildPiece},
-   * and the new {&#64;link State}. Otherwise server responds with an explanatory {&#64;link GameServerText} and,
-   * if the gamestate allowed placement but resources or requested coordinates
-   * disallowed it, the current {&#64;link State} and then a {&#64;link CancelBuild}.
-   * After rejection the gamestate may be a placement state such as {&#64;code PLACING_ROAD}.
    *&lt;P&gt;
    * Before v3.0.00 this message was {&#64;code SOCPutPiece}.
    * &#64;see CancelBuild
@@ -8058,14 +8299,29 @@ public final class GameMessage {
      * Client player is asking to buy and build, or server is announcing placement of, a piece on the board.
      * Also used when joining a new game or a game in progress, to send the game state so far.
      *&lt;P&gt;
+     * If message is from server for a {&#64;link soc.game.SOCRoad} or {&#64;link soc.game.SOCShip}:
+     * After updating game data with the new piece, client should call {&#64;link SOCGame#getPlayerWithLongestRoad()}
+     * and update displays if needed.
+     *&lt;P&gt;
      * If message is from server for a {&#64;link soc.game.SOCCity} while client is joining a game, must precede
      * by sending that client a {&#64;code BuildPiece} message with the Settlement at the same coordinate
      * which was upgraded to that city.
      *&lt;P&gt;
+     * If this is a placement request from a client player: If successful, server announces
+     * {&#64;link PlayerElement} messages to the game for the resources spent, {&#64;code BuildPiece},
+     * and the new {&#64;link State}. Otherwise server responds with an explanatory
+     * {&#64;code SOCDeclinePlayerRequest} or {&#64;link GameServerText} and,
+     * if the gamestate allowed placement but resources or requested coordinates
+     * disallowed it, the current {&#64;link State} and then a {&#64;link CancelBuild}.
+     * After rejection the gamestate may be a placement state such as {&#64;code PLACING_ROAD}.
+     *&lt;P&gt;
+     * If PutPiece leads to Longest Route player changing, server sends that
+     * after {&#64;code PlayerElement}s before {&#64;code State}: {&#64;link GameElements}(LONGEST_ROAD_PLAYER).
+     *&lt;P&gt;
      * Some game scenarios use {&#64;link soc.game.SOCVillage villages} which aren't owned by any player;
      * their {&#64;code player_number} is -1 in this message.
      *&lt;P&gt;
-     * See also {&#64;link MovePiece}. The messages similar but opposite to this one
+     * See also {&#64;link MovePiece} and DebugFreePlace. Messages similar but opposite to this one
      * are {&#64;link CancelBuild} and the very-limited {&#64;link RemovePiece}.
      *&lt;P&gt;
      * Some scenarios like {&#64;link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces
@@ -8074,13 +8330,6 @@ public final class GameMessage {
      * sending them {&#64;link StartGame}. Scenario {&#64;link soc.game.SOCScenario#K_SC_CLVI SC_CLVI}
      * sends its neutral villages before {&#64;code START1A} but as part {&#64;code "CV"} of the board layout
      * message, not as {&#64;code BuildPiece}s.
-     *&lt;P&gt;
-     * If this is a placement request from a client player: If successful, server announces
-     * {&#64;link PlayerElement} messages to the game for the resources spent, {&#64;code BuildPiece},
-     * and the new {&#64;link State}. Otherwise server responds with an explanatory {&#64;link GameServerText} and,
-     * if the gamestate allowed placement but resources or requested coordinates
-     * disallowed it, the current {&#64;link State} and then a {&#64;link CancelBuild}.
-     * After rejection the gamestate may be a placement state such as {&#64;code PLACING_ROAD}.
      *&lt;P&gt;
      * Before v3.0.00 this message was {&#64;code SOCPutPiece}.
      * &#64;see CancelBuild
@@ -8560,15 +8809,33 @@ public final class GameMessage {
    * When sent during other game states, and other players' turns, this is a request
    * to start the 6-player Special Building Phase.
    *&lt;P&gt;
-   * If the player can buy a card, the server replies to the client with
-   * {&#64;link SOCDevCardAction DEVCARDACTION}({&#64;link SOCDevCardAction#DRAW}, {&#64;link SOCDevCardConstants typeconstant}),
-   * and to all other players with {&#64;link SOCDevCardAction DEVCARDACTION}({&#64;link SOCDevCardAction#DRAW},
-   * {&#64;link SOCDevCardConstants#UNKNOWN}).
+   * If the player can buy a card, the server responds with:
+   *&lt;UL&gt;
+   * &lt;LI&gt; Announce game data to entire game:
+   *  &lt;UL&gt;
+   *   &lt;LI&gt; Resource cost paid: {&#64;link PlayerElements}
+   *          (gaName, playerNumber, {&#64;link PlayerElement#LOSE}, {&#64;link SOCDevCard#COST})
+   *   &lt;LI&gt; New remaining card count: {&#64;link GameElements}
+   *          (gaName, DEV_CARD_COUNT, remainingUnboughtCount)
+   *  &lt;/UL&gt;
+   * &lt;LI&gt; Action announcement/display:
+   *  &lt;UL&gt;
+   *   &lt;LI&gt; Detail to the client: {&#64;link InventoryItemAction}(DRAW, {&#64;link SOCDevCardConstants cardTypeConstant})
+   *   &lt;LI&gt; To all other players: {&#64;link InventoryItemAction}(DRAW, {&#64;link SOCDevCardConstants#UNKNOWN})
+   *   &lt;LI&gt; Action announcement to entire game: {&#64;link SimpleAction}
+   *          (gaName, playerNumber, DEVCARD_BOUGHT, remainingUnboughtCount, 0)
+   *   &lt;LI&gt; New {&#64;code gameState}, to entire game: {&#64;link State}.
+   *        Usually unchanged; sent in case buying the card ended the game or otherwise changed its state.
+   *        This is sent via {&#64;link soc.server.SOCGameHandler#sendGameState(soc.game.SOCGame)},
+   *        which may also send other messages depending on the gameState.
+   *  &lt;/UL&gt;
+   *&lt;/UL&gt;
    *&lt;P&gt;
    * If there are no cards remaining to buy, or player doesn't have enough resources,
    * isn't currently their turn, or the player otherwise can't buy a card right now,
-   * the server will send them a text response denying the buy. Instead of that text,
-   * robot clients will be sent a {&#64;link CancelBuildRequest} message.
+   * the server will send them a text response or {&#64;code SOCDeclinePlayerRequest}
+   * denying the buy. Instead of that,
+   * robot clients will be sent a {&#64;link CancelBuild} message.
    *&lt;P&gt;
    * Before v3.0.00 this message was {&#64;code SOCBuyDevCardRequest} and
    * {&#64;code SOCInventoryItemAction(action = BUY)}.
@@ -8868,15 +9135,33 @@ public final class GameMessage {
      * When sent during other game states, and other players' turns, this is a request
      * to start the 6-player Special Building Phase.
      *&lt;P&gt;
-     * If the player can buy a card, the server replies to the client with
-     * {&#64;link SOCDevCardAction DEVCARDACTION}({&#64;link SOCDevCardAction#DRAW}, {&#64;link SOCDevCardConstants typeconstant}),
-     * and to all other players with {&#64;link SOCDevCardAction DEVCARDACTION}({&#64;link SOCDevCardAction#DRAW},
-     * {&#64;link SOCDevCardConstants#UNKNOWN}).
+     * If the player can buy a card, the server responds with:
+     *&lt;UL&gt;
+     * &lt;LI&gt; Announce game data to entire game:
+     *  &lt;UL&gt;
+     *   &lt;LI&gt; Resource cost paid: {&#64;link PlayerElements}
+     *          (gaName, playerNumber, {&#64;link PlayerElement#LOSE}, {&#64;link SOCDevCard#COST})
+     *   &lt;LI&gt; New remaining card count: {&#64;link GameElements}
+     *          (gaName, DEV_CARD_COUNT, remainingUnboughtCount)
+     *  &lt;/UL&gt;
+     * &lt;LI&gt; Action announcement/display:
+     *  &lt;UL&gt;
+     *   &lt;LI&gt; Detail to the client: {&#64;link InventoryItemAction}(DRAW, {&#64;link SOCDevCardConstants cardTypeConstant})
+     *   &lt;LI&gt; To all other players: {&#64;link InventoryItemAction}(DRAW, {&#64;link SOCDevCardConstants#UNKNOWN})
+     *   &lt;LI&gt; Action announcement to entire game: {&#64;link SimpleAction}
+     *          (gaName, playerNumber, DEVCARD_BOUGHT, remainingUnboughtCount, 0)
+     *   &lt;LI&gt; New {&#64;code gameState}, to entire game: {&#64;link State}.
+     *        Usually unchanged; sent in case buying the card ended the game or otherwise changed its state.
+     *        This is sent via {&#64;link soc.server.SOCGameHandler#sendGameState(soc.game.SOCGame)},
+     *        which may also send other messages depending on the gameState.
+     *  &lt;/UL&gt;
+     *&lt;/UL&gt;
      *&lt;P&gt;
      * If there are no cards remaining to buy, or player doesn't have enough resources,
      * isn't currently their turn, or the player otherwise can't buy a card right now,
-     * the server will send them a text response denying the buy. Instead of that text,
-     * robot clients will be sent a {&#64;link CancelBuildRequest} message.
+     * the server will send them a text response or {&#64;code SOCDeclinePlayerRequest}
+     * denying the buy. Instead of that,
+     * robot clients will be sent a {&#64;link CancelBuild} message.
      *&lt;P&gt;
      * Before v3.0.00 this message was {&#64;code SOCBuyDevCardRequest} and
      * {&#64;code SOCInventoryItemAction(action = BUY)}.
@@ -9193,7 +9478,8 @@ public final class GameMessage {
 
     /**
      * <pre>
-     * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+     * Type of dev card, like {&#64;link DevCardValue#ROADS} or {&#64;link DevCardValue#UNKNOWN_DEV_CARD}.
+     * If dev_cards_set is used, this field is not used.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
      * </pre>
      *
@@ -9203,7 +9489,8 @@ public final class GameMessage {
     boolean hasDevCardValue();
     /**
      * <pre>
-     * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+     * Type of dev card, like {&#64;link DevCardValue#ROADS} or {&#64;link DevCardValue#UNKNOWN_DEV_CARD}.
+     * If dev_cards_set is used, this field is not used.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
      * </pre>
      *
@@ -9213,7 +9500,8 @@ public final class GameMessage {
     int getDevCardValueValue();
     /**
      * <pre>
-     * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+     * Type of dev card, like {&#64;link DevCardValue#ROADS} or {&#64;link DevCardValue#UNKNOWN_DEV_CARD}.
+     * If dev_cards_set is used, this field is not used.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
      * </pre>
      *
@@ -9244,6 +9532,7 @@ public final class GameMessage {
     /**
      * <pre>
      * several dev cards, like the Victory Point cards revealed at end of game.
+     * When sending 1 item, use dev_card_value or other_inv_item_type instead.
      * Flag values like is_VP are the same for all cards in the set.
      * Not usable with action PLAY or CANNOT_PLAY.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -9256,6 +9545,7 @@ public final class GameMessage {
     /**
      * <pre>
      * several dev cards, like the Victory Point cards revealed at end of game.
+     * When sending 1 item, use dev_card_value or other_inv_item_type instead.
      * Flag values like is_VP are the same for all cards in the set.
      * Not usable with action PLAY or CANNOT_PLAY.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -9268,6 +9558,7 @@ public final class GameMessage {
     /**
      * <pre>
      * several dev cards, like the Victory Point cards revealed at end of game.
+     * When sending 1 item, use dev_card_value or other_inv_item_type instead.
      * Flag values like is_VP are the same for all cards in the set.
      * Not usable with action PLAY or CANNOT_PLAY.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -9281,6 +9572,7 @@ public final class GameMessage {
     /**
      * <pre>
      * several dev cards, like the Victory Point cards revealed at end of game.
+     * When sending 1 item, use dev_card_value or other_inv_item_type instead.
      * Flag values like is_VP are the same for all cards in the set.
      * Not usable with action PLAY or CANNOT_PLAY.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -9294,6 +9586,7 @@ public final class GameMessage {
     /**
      * <pre>
      * several dev cards, like the Victory Point cards revealed at end of game.
+     * When sending 1 item, use dev_card_value or other_inv_item_type instead.
      * Flag values like is_VP are the same for all cards in the set.
      * Not usable with action PLAY or CANNOT_PLAY.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -9365,29 +9658,41 @@ public final class GameMessage {
   }
   /**
    * <pre>
-   * Client player request, or server response or announcement, about
-   * Development Cards or other {&#64;link SOCInventoryItem}s in a player's inventory.
-   * Server sometimes sends to a specific player, sometimes to all game members.
+   * Client player request, or server announcement or response to client's {&#64;link BuyInventoryItemRequest} or
+   * {&#64;link InventoryItemAction}, about Development Cards or other {&#64;link SOCInventoryItem}s in a player's inventory.
+   * Server sometimes sends to a specific player, sometimes to all other members or to entire game.
    *&lt;P&gt;
    * Dev Cards:
    *&lt;P&gt;
-   * If a robot asks to play a dev card that they can't right now, the server
-   * replies to that bot with InventoryItemAction(-1, {&#64;code CANNOT_PLAY}, cardType).
+   * If client player can play it, server will announce the play to game with
+   * {&#64;code InventoryItemAction}({&#64;code PLAY}, cardType),
+   * {&#64;link PlayerElement}(PLAYED_DEV_CARD_FLAG),
+   * and other messages, followed by {&#64;link State} if state changed.
+   *&lt;P&gt;
+   * If playing a {&#64;code KNIGHT} card leads to Largest Army, server announces that
+   * after {&#64;link PlayerElement} before {&#64;link State}: {&#64;link GameElements}(LARGEST_ARMY_PLAYER).
+   *&lt;P&gt;
+   * If client player can't play the card, server will reply to human player with the reason
+   * using {&#64;code SOCDeclinePlayerRequest} if new enough, {&#64;link GameServerText} otherwise,
+   * or to robot with InventoryItemAction(-1, {&#64;code CANNOT_PLAY}, cardType).
    *&lt;P&gt;
    * Player Number field is -1 for action type {&#64;code CANNOT_PLAY}; see that enum value for details.
+   *&lt;P&gt;
+   * Also sent to client when they sit down to play, to give the private details of their dev card inventory.
    *&lt;P&gt;
    * At end of game (state {&#64;code OVER}), server reveals players' hidden Victory Point cards by announcing an
    * InventoryItemAction(playerNumber, ADD_OLD, devCardsSet={cardType, cardType, ...})
    * for each player that has them. This is sent to all game members; a client player should ignore
    * messages about their own cards in state {&#64;code OVER} by checking playerNumber.
-   * That multiple-cardtype form is currently used only at end of game.
+   * That multiple-cardtype form (dev_cards_set != null) is currently used only at end of game.
    *&lt;P&gt;
    * Other Inventory Items:
    *&lt;P&gt;
    * Detailed message documentation location is TBD; for now see javadoc
    * of {&#64;code soc.message.SOCInventoryItemAction}.
    *&lt;P&gt;
-   * Before v3.0.00 this message was {&#64;code SOCDevCardAction} and {&#64;code SOCInventoryItemAction}.
+   * Before v3.0.00 this message was {&#64;code SOCDevCardAction}, {&#64;code SOCPlayDevCardRequest},
+   * and {&#64;code SOCInventoryItemAction}.
    * </pre>
    *
    * Protobuf type {@code InventoryItemAction}
@@ -9860,7 +10165,8 @@ public final class GameMessage {
     public static final int DEV_CARD_VALUE_FIELD_NUMBER = 2;
     /**
      * <pre>
-     * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+     * Type of dev card, like {&#64;link DevCardValue#ROADS} or {&#64;link DevCardValue#UNKNOWN_DEV_CARD}.
+     * If dev_cards_set is used, this field is not used.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
      * </pre>
      *
@@ -9872,7 +10178,8 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+     * Type of dev card, like {&#64;link DevCardValue#ROADS} or {&#64;link DevCardValue#UNKNOWN_DEV_CARD}.
+     * If dev_cards_set is used, this field is not used.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
      * </pre>
      *
@@ -9887,7 +10194,8 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+     * Type of dev card, like {&#64;link DevCardValue#ROADS} or {&#64;link DevCardValue#UNKNOWN_DEV_CARD}.
+     * If dev_cards_set is used, this field is not used.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
      * </pre>
      *
@@ -9948,6 +10256,7 @@ public final class GameMessage {
     /**
      * <pre>
      * several dev cards, like the Victory Point cards revealed at end of game.
+     * When sending 1 item, use dev_card_value or other_inv_item_type instead.
      * Flag values like is_VP are the same for all cards in the set.
      * Not usable with action PLAY or CANNOT_PLAY.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -9964,6 +10273,7 @@ public final class GameMessage {
     /**
      * <pre>
      * several dev cards, like the Victory Point cards revealed at end of game.
+     * When sending 1 item, use dev_card_value or other_inv_item_type instead.
      * Flag values like is_VP are the same for all cards in the set.
      * Not usable with action PLAY or CANNOT_PLAY.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -9979,6 +10289,7 @@ public final class GameMessage {
     /**
      * <pre>
      * several dev cards, like the Victory Point cards revealed at end of game.
+     * When sending 1 item, use dev_card_value or other_inv_item_type instead.
      * Flag values like is_VP are the same for all cards in the set.
      * Not usable with action PLAY or CANNOT_PLAY.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -9995,6 +10306,7 @@ public final class GameMessage {
     /**
      * <pre>
      * several dev cards, like the Victory Point cards revealed at end of game.
+     * When sending 1 item, use dev_card_value or other_inv_item_type instead.
      * Flag values like is_VP are the same for all cards in the set.
      * Not usable with action PLAY or CANNOT_PLAY.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -10011,6 +10323,7 @@ public final class GameMessage {
     /**
      * <pre>
      * several dev cards, like the Victory Point cards revealed at end of game.
+     * When sending 1 item, use dev_card_value or other_inv_item_type instead.
      * Flag values like is_VP are the same for all cards in the set.
      * Not usable with action PLAY or CANNOT_PLAY.
      * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -10388,29 +10701,41 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * Client player request, or server response or announcement, about
-     * Development Cards or other {&#64;link SOCInventoryItem}s in a player's inventory.
-     * Server sometimes sends to a specific player, sometimes to all game members.
+     * Client player request, or server announcement or response to client's {&#64;link BuyInventoryItemRequest} or
+     * {&#64;link InventoryItemAction}, about Development Cards or other {&#64;link SOCInventoryItem}s in a player's inventory.
+     * Server sometimes sends to a specific player, sometimes to all other members or to entire game.
      *&lt;P&gt;
      * Dev Cards:
      *&lt;P&gt;
-     * If a robot asks to play a dev card that they can't right now, the server
-     * replies to that bot with InventoryItemAction(-1, {&#64;code CANNOT_PLAY}, cardType).
+     * If client player can play it, server will announce the play to game with
+     * {&#64;code InventoryItemAction}({&#64;code PLAY}, cardType),
+     * {&#64;link PlayerElement}(PLAYED_DEV_CARD_FLAG),
+     * and other messages, followed by {&#64;link State} if state changed.
+     *&lt;P&gt;
+     * If playing a {&#64;code KNIGHT} card leads to Largest Army, server announces that
+     * after {&#64;link PlayerElement} before {&#64;link State}: {&#64;link GameElements}(LARGEST_ARMY_PLAYER).
+     *&lt;P&gt;
+     * If client player can't play the card, server will reply to human player with the reason
+     * using {&#64;code SOCDeclinePlayerRequest} if new enough, {&#64;link GameServerText} otherwise,
+     * or to robot with InventoryItemAction(-1, {&#64;code CANNOT_PLAY}, cardType).
      *&lt;P&gt;
      * Player Number field is -1 for action type {&#64;code CANNOT_PLAY}; see that enum value for details.
+     *&lt;P&gt;
+     * Also sent to client when they sit down to play, to give the private details of their dev card inventory.
      *&lt;P&gt;
      * At end of game (state {&#64;code OVER}), server reveals players' hidden Victory Point cards by announcing an
      * InventoryItemAction(playerNumber, ADD_OLD, devCardsSet={cardType, cardType, ...})
      * for each player that has them. This is sent to all game members; a client player should ignore
      * messages about their own cards in state {&#64;code OVER} by checking playerNumber.
-     * That multiple-cardtype form is currently used only at end of game.
+     * That multiple-cardtype form (dev_cards_set != null) is currently used only at end of game.
      *&lt;P&gt;
      * Other Inventory Items:
      *&lt;P&gt;
      * Detailed message documentation location is TBD; for now see javadoc
      * of {&#64;code soc.message.SOCInventoryItemAction}.
      *&lt;P&gt;
-     * Before v3.0.00 this message was {&#64;code SOCDevCardAction} and {&#64;code SOCInventoryItemAction}.
+     * Before v3.0.00 this message was {&#64;code SOCDevCardAction}, {&#64;code SOCPlayDevCardRequest},
+     * and {&#64;code SOCInventoryItemAction}.
      * </pre>
      *
      * Protobuf type {@code InventoryItemAction}
@@ -10701,7 +11026,8 @@ public final class GameMessage {
 
       /**
        * <pre>
-       * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+       * Type of dev card, like {&#64;link DevCardValue#ROADS} or {&#64;link DevCardValue#UNKNOWN_DEV_CARD}.
+       * If dev_cards_set is used, this field is not used.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
        * </pre>
        *
@@ -10714,7 +11040,8 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+       * Type of dev card, like {&#64;link DevCardValue#ROADS} or {&#64;link DevCardValue#UNKNOWN_DEV_CARD}.
+       * If dev_cards_set is used, this field is not used.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
        * </pre>
        *
@@ -10730,7 +11057,8 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+       * Type of dev card, like {&#64;link DevCardValue#ROADS} or {&#64;link DevCardValue#UNKNOWN_DEV_CARD}.
+       * If dev_cards_set is used, this field is not used.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
        * </pre>
        *
@@ -10746,7 +11074,8 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+       * Type of dev card, like {&#64;link DevCardValue#ROADS} or {&#64;link DevCardValue#UNKNOWN_DEV_CARD}.
+       * If dev_cards_set is used, this field is not used.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
        * </pre>
        *
@@ -10765,7 +11094,8 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+       * Type of dev card, like {&#64;link DevCardValue#ROADS} or {&#64;link DevCardValue#UNKNOWN_DEV_CARD}.
+       * If dev_cards_set is used, this field is not used.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
        * </pre>
        *
@@ -10784,7 +11114,8 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Type of dev card, like {&#64;link DevCardValue#ROADS}.
+       * Type of dev card, like {&#64;link DevCardValue#ROADS} or {&#64;link DevCardValue#UNKNOWN_DEV_CARD}.
+       * If dev_cards_set is used, this field is not used.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
        * </pre>
        *
@@ -10868,6 +11199,7 @@ public final class GameMessage {
       /**
        * <pre>
        * several dev cards, like the Victory Point cards revealed at end of game.
+       * When sending 1 item, use dev_card_value or other_inv_item_type instead.
        * Flag values like is_VP are the same for all cards in the set.
        * Not usable with action PLAY or CANNOT_PLAY.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -10883,6 +11215,7 @@ public final class GameMessage {
       /**
        * <pre>
        * several dev cards, like the Victory Point cards revealed at end of game.
+       * When sending 1 item, use dev_card_value or other_inv_item_type instead.
        * Flag values like is_VP are the same for all cards in the set.
        * Not usable with action PLAY or CANNOT_PLAY.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -10897,6 +11230,7 @@ public final class GameMessage {
       /**
        * <pre>
        * several dev cards, like the Victory Point cards revealed at end of game.
+       * When sending 1 item, use dev_card_value or other_inv_item_type instead.
        * Flag values like is_VP are the same for all cards in the set.
        * Not usable with action PLAY or CANNOT_PLAY.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -10912,6 +11246,7 @@ public final class GameMessage {
       /**
        * <pre>
        * several dev cards, like the Victory Point cards revealed at end of game.
+       * When sending 1 item, use dev_card_value or other_inv_item_type instead.
        * Flag values like is_VP are the same for all cards in the set.
        * Not usable with action PLAY or CANNOT_PLAY.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -10935,6 +11270,7 @@ public final class GameMessage {
       /**
        * <pre>
        * several dev cards, like the Victory Point cards revealed at end of game.
+       * When sending 1 item, use dev_card_value or other_inv_item_type instead.
        * Flag values like is_VP are the same for all cards in the set.
        * Not usable with action PLAY or CANNOT_PLAY.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -10956,6 +11292,7 @@ public final class GameMessage {
       /**
        * <pre>
        * several dev cards, like the Victory Point cards revealed at end of game.
+       * When sending 1 item, use dev_card_value or other_inv_item_type instead.
        * Flag values like is_VP are the same for all cards in the set.
        * Not usable with action PLAY or CANNOT_PLAY.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -10977,6 +11314,7 @@ public final class GameMessage {
       /**
        * <pre>
        * several dev cards, like the Victory Point cards revealed at end of game.
+       * When sending 1 item, use dev_card_value or other_inv_item_type instead.
        * Flag values like is_VP are the same for all cards in the set.
        * Not usable with action PLAY or CANNOT_PLAY.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -10994,6 +11332,7 @@ public final class GameMessage {
       /**
        * <pre>
        * several dev cards, like the Victory Point cards revealed at end of game.
+       * When sending 1 item, use dev_card_value or other_inv_item_type instead.
        * Flag values like is_VP are the same for all cards in the set.
        * Not usable with action PLAY or CANNOT_PLAY.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -11009,6 +11348,7 @@ public final class GameMessage {
       /**
        * <pre>
        * several dev cards, like the Victory Point cards revealed at end of game.
+       * When sending 1 item, use dev_card_value or other_inv_item_type instead.
        * Flag values like is_VP are the same for all cards in the set.
        * Not usable with action PLAY or CANNOT_PLAY.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -11024,6 +11364,7 @@ public final class GameMessage {
       /**
        * <pre>
        * several dev cards, like the Victory Point cards revealed at end of game.
+       * When sending 1 item, use dev_card_value or other_inv_item_type instead.
        * Flag values like is_VP are the same for all cards in the set.
        * Not usable with action PLAY or CANNOT_PLAY.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -11044,6 +11385,7 @@ public final class GameMessage {
       /**
        * <pre>
        * several dev cards, like the Victory Point cards revealed at end of game.
+       * When sending 1 item, use dev_card_value or other_inv_item_type instead.
        * Flag values like is_VP are the same for all cards in the set.
        * Not usable with action PLAY or CANNOT_PLAY.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -11062,6 +11404,7 @@ public final class GameMessage {
       /**
        * <pre>
        * several dev cards, like the Victory Point cards revealed at end of game.
+       * When sending 1 item, use dev_card_value or other_inv_item_type instead.
        * Flag values like is_VP are the same for all cards in the set.
        * Not usable with action PLAY or CANNOT_PLAY.
        * See ProtoMessageBuildHelper.fromDevCardValue / .toDevCardValue methods
@@ -11416,12 +11759,20 @@ public final class GameMessage {
    *   The special inventory items in PLACING_INV_ITEM each have a different placement message, but if item placement
    *   can be canceled, use this common message type, with {&#64;code item_type} == ({&#64;link Data.OtherPlayableItem#INV_ITEM}).
    *   See {&#64;link soc.game.SOCInventoryItem} for when this is allowed.
-   *   If placement can't be canceled, server will reply with {&#64;link GameServerText}.
-   *&lt;LI&gt; While placing the second free road or ship (PLACING_FREE_ROAD2), means
-   *   the player has decided to skip placing the second free road or ship,
-   *   to use just one road or ship piece.  Server will reply with new game state.
-   *   (This was added in v1.1.17)
-   *&lt;LI&gt; Not sent from client during other game states. Server will reply with {&#64;link GameServerText}.
+   *   If placement can't be canceled, server will reply with {&#64;code SOCDeclinePlayerRequest}
+   *   or {&#64;link GameServerText}.
+   *&lt;LI&gt; While placing a free road or ship from Road Building dev card (PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2),
+   *   means the player has decided to skip placing that free road or ship,
+   *   to cancel playing the card or to use just one road or ship piece. Server will reply with new game state.
+   *   Or, player can end their turn ({&#64;link EndTurn}) to cancel free road placement.
+   *   &lt;P&gt;
+   *   If canceled before placing the 1st free road or ship, server first sends
+   *   {&#64;link InventoryItemAction}(playerNum, action=ADD_OLD,
+   *   dev_card_value=ROADS) to return the card to player's inventory
+   *   and {&#64;link PlayerElement}(SET, PLAYED_DEV_CARD_FLAG, false)
+   *   so they can still play a dev card this turn.
+   *&lt;LI&gt; Shouldn't be sent from client during other game states.
+   *   Server will reply with {&#64;code SOCDeclinePlayerRequest} or {&#64;link GameServerText}.
    *&lt;H3&gt;When sent from server to a client player:&lt;/H3&gt;
    *&lt;LI&gt; During game startup (START1B, START2B or START3B): &lt;BR&gt;
    *   Sent from server, CancelBuild means the current player
@@ -11829,12 +12180,20 @@ public final class GameMessage {
      *   The special inventory items in PLACING_INV_ITEM each have a different placement message, but if item placement
      *   can be canceled, use this common message type, with {&#64;code item_type} == ({&#64;link Data.OtherPlayableItem#INV_ITEM}).
      *   See {&#64;link soc.game.SOCInventoryItem} for when this is allowed.
-     *   If placement can't be canceled, server will reply with {&#64;link GameServerText}.
-     *&lt;LI&gt; While placing the second free road or ship (PLACING_FREE_ROAD2), means
-     *   the player has decided to skip placing the second free road or ship,
-     *   to use just one road or ship piece.  Server will reply with new game state.
-     *   (This was added in v1.1.17)
-     *&lt;LI&gt; Not sent from client during other game states. Server will reply with {&#64;link GameServerText}.
+     *   If placement can't be canceled, server will reply with {&#64;code SOCDeclinePlayerRequest}
+     *   or {&#64;link GameServerText}.
+     *&lt;LI&gt; While placing a free road or ship from Road Building dev card (PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2),
+     *   means the player has decided to skip placing that free road or ship,
+     *   to cancel playing the card or to use just one road or ship piece. Server will reply with new game state.
+     *   Or, player can end their turn ({&#64;link EndTurn}) to cancel free road placement.
+     *   &lt;P&gt;
+     *   If canceled before placing the 1st free road or ship, server first sends
+     *   {&#64;link InventoryItemAction}(playerNum, action=ADD_OLD,
+     *   dev_card_value=ROADS) to return the card to player's inventory
+     *   and {&#64;link PlayerElement}(SET, PLAYED_DEV_CARD_FLAG, false)
+     *   so they can still play a dev card this turn.
+     *&lt;LI&gt; Shouldn't be sent from client during other game states.
+     *   Server will reply with {&#64;code SOCDeclinePlayerRequest} or {&#64;link GameServerText}.
      *&lt;H3&gt;When sent from server to a client player:&lt;/H3&gt;
      *&lt;LI&gt; During game startup (START1B, START2B or START3B): &lt;BR&gt;
      *   Sent from server, CancelBuild means the current player
@@ -12284,6 +12643,9 @@ public final class GameMessage {
    * a piece on the board to a new location.
    *&lt;H3&gt;From Server:&lt;/H3&gt;
    * The client should also print a line of text such as "* Joe moved a ship."
+   *&lt;P&gt;
+   * If MovePiece leads to Longest Route player changing, server sends that after its MovePiece message:
+   * {&#64;link GameElements}(LONGEST_ROAD_PLAYER).
    *&lt;H3&gt;From Client:&lt;/H3&gt;
    * The server will reply to all players with {&#64;link MovePiece} if piece can be moved,
    * or reply to the requesting client with {&#64;link CancelBuildRequest}.
@@ -12671,6 +13033,9 @@ public final class GameMessage {
      * a piece on the board to a new location.
      *&lt;H3&gt;From Server:&lt;/H3&gt;
      * The client should also print a line of text such as "* Joe moved a ship."
+     *&lt;P&gt;
+     * If MovePiece leads to Longest Route player changing, server sends that after its MovePiece message:
+     * {&#64;link GameElements}(LONGEST_ROAD_PLAYER).
      *&lt;H3&gt;From Client:&lt;/H3&gt;
      * The server will reply to all players with {&#64;link MovePiece} if piece can be moved,
      * or reply to the requesting client with {&#64;link CancelBuildRequest}.
@@ -14955,7 +15320,7 @@ public final class GameMessage {
    * the current player and game state are both changing.
    *&lt;P&gt;
    * For some states, such as {&#64;link Data.GameState#WAITING_FOR_ROB_CHOOSE_PLAYER},
-   * another message (such as {&#64;link ChoosePlayerRequest}) will
+   * another message (such as {&#64;link ChoosePlayer}) will
    * follow to prompt the current player.  For others, such as
    * {&#64;link Data.GameState#WAITING_FOR_DISCOVERY} or
    * {&#64;link Data.GameState#WAITING_FOR_ROBBER_OR_PIRATE}, sending this
@@ -14980,7 +15345,7 @@ public final class GameMessage {
    *     {&#64;link PlayerElement}({&#64;link _PlayerElementType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
    *     Sends specific player(s) {&#64;link SimpleRequest}({&#64;link SimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
    * &lt;LI&gt;{&#64;code ROLL_OR_CARD}: Server sends game {&#64;link DiceRollRequest} with current player number.
-   *     Current player: Send {&#64;link DiceRollRequest} or {&#64;link SOCPlayDevCardRequest}
+   *     Current player: Send {&#64;link DiceRollRequest} or {&#64;link InventoryItemAction}
    * &lt;LI&gt;{&#64;code PLAY1}: Current player: Build, play and buy cards, trade, etc.
    *     When done with turn, send {&#64;link EndTurn}
    * &lt;LI&gt;{&#64;code PLACING_ROAD}: Current player: Place a road
@@ -14989,8 +15354,8 @@ public final class GameMessage {
    * &lt;LI&gt;{&#64;code PLACING_ROBBER}: Current player: Choose a new robber hex and send {&#64;link MoveRobber}
    * &lt;LI&gt;{&#64;code PLACING_PIRATE}: Current player: Choose a new pirate hex and send {&#64;link MoveRobber}
    * &lt;LI&gt;{&#64;code PLACING_SHIP}: Current player: Place a ship
-   * &lt;LI&gt;{&#64;code PLACING_FREE_ROAD1}: Current player: Place a road
-   * &lt;LI&gt;{&#64;code PLACING_FREE_ROAD2}: Current player: Place a road
+   * &lt;LI&gt;{&#64;code PLACING_FREE_ROAD1}: Current player: Place a road or ship
+   * &lt;LI&gt;{&#64;code PLACING_FREE_ROAD2}: Current player: Place a road or ship
    * &lt;LI&gt;{&#64;code PLACING_INV_ITEM}: Current player: Place the previously-designated
    *     {&#64;link soc.game.SOCInventoryItem}. Their placement message to server depends on the scenario and item type,
    *     documented at {&#64;link InventoryItemAction}. For example, in scenario SC_FTRI the player sends a
@@ -15003,7 +15368,8 @@ public final class GameMessage {
    * &lt;LI&gt;{&#64;code WAITING_FOR_DISCARDS}: Server sends game a "x, y, and z need to discard"
    *     prompt text. Players who must discard are sent a {&#64;link LoseResources} request and must
    *     respond with {&#64;link LoseResources}. After each client response, if still waiting for other players to discard,
-   *     server sends game another prompt text. Otherwise sends game its new {&#64;link State}
+   *     server sends game the same {&#64;link State}(WAITING_FOR_DISCARDS) and another prompt text.
+   *     Otherwise sends game its new {&#64;link State}.
    * &lt;LI&gt;{&#64;code WAITING_FOR_ROB_CHOOSE_PLAYER}:
    *     Server sends current player {&#64;link ChoosePlayer} listing possible victims.
    *     Current player: Choose a victim to rob, send {&#64;link ChoosePlayer}
@@ -15020,7 +15386,10 @@ public final class GameMessage {
    *     See that message's javadoc for how to encode both choices
    * &lt;LI&gt;{&#64;code WAITING_FOR_PICK_GOLD_RESOURCE}:
    *     Same message flow as {&#64;code WAITING_FOR_DISCARDS}: Server sends game a
-   *     "x, y, and z need to pick resources from the gold hex" prompt text. For each player who must pick, the game is sent
+   *     "x, y, and z need to pick resources from the gold hex" prompt text.
+   *     When receiving this state from server, a client shouldn't immediately check their user player's
+   *     {&#64;link SOCPlayer#getNeedToPickGoldHexResources()} or prompt the user to pick resources.
+   *     For each player who must pick, the game is sent
    *     {&#64;link PlayerElement}({&#64;link _PlayerElementType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES})
    *     and the player is sent
    *     {&#64;link SimpleRequest}({&#64;link SimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
@@ -15028,11 +15397,15 @@ public final class GameMessage {
    *     After each client response, server sends game its {&#64;link State}; if multiple players had to pick,
    *     that state is still {&#64;code WAITING_FOR_PICK_GOLD_RESOURCE} and another "need to pick" prompt text is also sent.
    * &lt;LI&gt;{&#64;code SPECIAL_BUILDING}: Current player: Build, buy cards, etc. When done, send {&#64;link EndTurn}
+   * &lt;LI&gt;{&#64;code LOADING}: -
+   * &lt;LI&gt;{&#64;code LOADING_RESUMING}: -
    * &lt;LI&gt;{&#64;code OVER}: Server announces the winner with
-   *     {&#64;link GameElements}({&#64;link GameElements#CURRENT_PLAYER CURRENT_PLAYER}), and sends text messages reporting
+   *     {&#64;link GameElements}(CURRENT_PLAYER) (or {&#64;link Turn} instead of {&#64;link State}),
+   *     and sends text messages reporting
    *     winner's name, final score, each player's victory-point cards, game length, and a {&#64;link GameStats}.
    *     Each player is sent text with their resource roll totals. win-loss count for this session, and
    *     how long they've been connected.
+   *     See {&#64;link GameStats} for sequence details.
    *&lt;/UL&gt;
    * This list doesn't mention some informational/cosmetic text messages, such as the {&#64;code START1A}
    * prompt "It's Joe's turn to build a settlement" or {&#64;code PLACING_ROBBER}'s "Lily will move the robber".
@@ -15306,7 +15679,7 @@ public final class GameMessage {
      * the current player and game state are both changing.
      *&lt;P&gt;
      * For some states, such as {&#64;link Data.GameState#WAITING_FOR_ROB_CHOOSE_PLAYER},
-     * another message (such as {&#64;link ChoosePlayerRequest}) will
+     * another message (such as {&#64;link ChoosePlayer}) will
      * follow to prompt the current player.  For others, such as
      * {&#64;link Data.GameState#WAITING_FOR_DISCOVERY} or
      * {&#64;link Data.GameState#WAITING_FOR_ROBBER_OR_PIRATE}, sending this
@@ -15331,7 +15704,7 @@ public final class GameMessage {
      *     {&#64;link PlayerElement}({&#64;link _PlayerElementType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
      *     Sends specific player(s) {&#64;link SimpleRequest}({&#64;link SimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
      * &lt;LI&gt;{&#64;code ROLL_OR_CARD}: Server sends game {&#64;link DiceRollRequest} with current player number.
-     *     Current player: Send {&#64;link DiceRollRequest} or {&#64;link SOCPlayDevCardRequest}
+     *     Current player: Send {&#64;link DiceRollRequest} or {&#64;link InventoryItemAction}
      * &lt;LI&gt;{&#64;code PLAY1}: Current player: Build, play and buy cards, trade, etc.
      *     When done with turn, send {&#64;link EndTurn}
      * &lt;LI&gt;{&#64;code PLACING_ROAD}: Current player: Place a road
@@ -15340,8 +15713,8 @@ public final class GameMessage {
      * &lt;LI&gt;{&#64;code PLACING_ROBBER}: Current player: Choose a new robber hex and send {&#64;link MoveRobber}
      * &lt;LI&gt;{&#64;code PLACING_PIRATE}: Current player: Choose a new pirate hex and send {&#64;link MoveRobber}
      * &lt;LI&gt;{&#64;code PLACING_SHIP}: Current player: Place a ship
-     * &lt;LI&gt;{&#64;code PLACING_FREE_ROAD1}: Current player: Place a road
-     * &lt;LI&gt;{&#64;code PLACING_FREE_ROAD2}: Current player: Place a road
+     * &lt;LI&gt;{&#64;code PLACING_FREE_ROAD1}: Current player: Place a road or ship
+     * &lt;LI&gt;{&#64;code PLACING_FREE_ROAD2}: Current player: Place a road or ship
      * &lt;LI&gt;{&#64;code PLACING_INV_ITEM}: Current player: Place the previously-designated
      *     {&#64;link soc.game.SOCInventoryItem}. Their placement message to server depends on the scenario and item type,
      *     documented at {&#64;link InventoryItemAction}. For example, in scenario SC_FTRI the player sends a
@@ -15354,7 +15727,8 @@ public final class GameMessage {
      * &lt;LI&gt;{&#64;code WAITING_FOR_DISCARDS}: Server sends game a "x, y, and z need to discard"
      *     prompt text. Players who must discard are sent a {&#64;link LoseResources} request and must
      *     respond with {&#64;link LoseResources}. After each client response, if still waiting for other players to discard,
-     *     server sends game another prompt text. Otherwise sends game its new {&#64;link State}
+     *     server sends game the same {&#64;link State}(WAITING_FOR_DISCARDS) and another prompt text.
+     *     Otherwise sends game its new {&#64;link State}.
      * &lt;LI&gt;{&#64;code WAITING_FOR_ROB_CHOOSE_PLAYER}:
      *     Server sends current player {&#64;link ChoosePlayer} listing possible victims.
      *     Current player: Choose a victim to rob, send {&#64;link ChoosePlayer}
@@ -15371,7 +15745,10 @@ public final class GameMessage {
      *     See that message's javadoc for how to encode both choices
      * &lt;LI&gt;{&#64;code WAITING_FOR_PICK_GOLD_RESOURCE}:
      *     Same message flow as {&#64;code WAITING_FOR_DISCARDS}: Server sends game a
-     *     "x, y, and z need to pick resources from the gold hex" prompt text. For each player who must pick, the game is sent
+     *     "x, y, and z need to pick resources from the gold hex" prompt text.
+     *     When receiving this state from server, a client shouldn't immediately check their user player's
+     *     {&#64;link SOCPlayer#getNeedToPickGoldHexResources()} or prompt the user to pick resources.
+     *     For each player who must pick, the game is sent
      *     {&#64;link PlayerElement}({&#64;link _PlayerElementType#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES})
      *     and the player is sent
      *     {&#64;link SimpleRequest}({&#64;link SimpleRequest#PROMPT_PICK_RESOURCES PROMPT_PICK_RESOURCES}).
@@ -15379,11 +15756,15 @@ public final class GameMessage {
      *     After each client response, server sends game its {&#64;link State}; if multiple players had to pick,
      *     that state is still {&#64;code WAITING_FOR_PICK_GOLD_RESOURCE} and another "need to pick" prompt text is also sent.
      * &lt;LI&gt;{&#64;code SPECIAL_BUILDING}: Current player: Build, buy cards, etc. When done, send {&#64;link EndTurn}
+     * &lt;LI&gt;{&#64;code LOADING}: -
+     * &lt;LI&gt;{&#64;code LOADING_RESUMING}: -
      * &lt;LI&gt;{&#64;code OVER}: Server announces the winner with
-     *     {&#64;link GameElements}({&#64;link GameElements#CURRENT_PLAYER CURRENT_PLAYER}), and sends text messages reporting
+     *     {&#64;link GameElements}(CURRENT_PLAYER) (or {&#64;link Turn} instead of {&#64;link State}),
+     *     and sends text messages reporting
      *     winner's name, final score, each player's victory-point cards, game length, and a {&#64;link GameStats}.
      *     Each player is sent text with their resource roll totals. win-loss count for this session, and
      *     how long they've been connected.
+     *     See {&#64;link GameStats} for sequence details.
      *&lt;/UL&gt;
      * This list doesn't mention some informational/cosmetic text messages, such as the {&#64;code START1A}
      * prompt "It's Joe's turn to build a settlement" or {&#64;code PLACING_ROBBER}'s "Lily will move the robber".
@@ -15694,10 +16075,17 @@ public final class GameMessage {
    * See _PlayerElementType for details.
    *&lt;H3&gt;Message Sequence:&lt;/H3&gt;
    *&lt;UL&gt;
-   * &lt;LI&gt; For a bank trade (server response to player's {&#64;link BankTrade}),
+   * &lt;LI&gt; For a bank trade (server response to player's {&#64;link TradeWithBank}),
    *   all the {&#64;code LOSE} messages come before the {&#64;code GAIN}s.
-   * &lt;LI&gt; For trade between players ({&#64;link AcceptOffer}), the {&#64;code LOSE}s and {&#64;code GAIN}s
+   * &lt;LI&gt; For trade between players ({&#64;link TradeAcceptOffer}), the {&#64;code LOSE}s and {&#64;code GAIN}s
    *   are interspersed to simplify server code.
+   * &lt;LI&gt; When dice roll result is 7 and player(s) must discard, server announces
+   *   game state {&#64;link Data.GameState#WAITING_FOR_DISCARDS}, then prompts individual players to discard;
+   *   see {&#64;link DiceResult} docs for more of that sequence.
+   *   Once a players's chosen their resources to discard, server announces they've done so
+   *   with a {&#64;code PlayerElement}(playerNum, LOSE}, UNKNOWN_RESOURCE, total)&lt;/tt&gt;
+   *   while game is still in state {&#64;code WAITING_FOR_DISCARDS}; any {&#64;code LOSE} message in that
+   *   game state is for a discard.
    * &lt;LI&gt; Most other situations send single PlayerElement messages or their sequence doesn't matter.
    *&lt;/UL&gt;
    *&lt;P&gt;
@@ -16069,10 +16457,17 @@ public final class GameMessage {
      * See _PlayerElementType for details.
      *&lt;H3&gt;Message Sequence:&lt;/H3&gt;
      *&lt;UL&gt;
-     * &lt;LI&gt; For a bank trade (server response to player's {&#64;link BankTrade}),
+     * &lt;LI&gt; For a bank trade (server response to player's {&#64;link TradeWithBank}),
      *   all the {&#64;code LOSE} messages come before the {&#64;code GAIN}s.
-     * &lt;LI&gt; For trade between players ({&#64;link AcceptOffer}), the {&#64;code LOSE}s and {&#64;code GAIN}s
+     * &lt;LI&gt; For trade between players ({&#64;link TradeAcceptOffer}), the {&#64;code LOSE}s and {&#64;code GAIN}s
      *   are interspersed to simplify server code.
+     * &lt;LI&gt; When dice roll result is 7 and player(s) must discard, server announces
+     *   game state {&#64;link Data.GameState#WAITING_FOR_DISCARDS}, then prompts individual players to discard;
+     *   see {&#64;link DiceResult} docs for more of that sequence.
+     *   Once a players's chosen their resources to discard, server announces they've done so
+     *   with a {&#64;code PlayerElement}(playerNum, LOSE}, UNKNOWN_RESOURCE, total)&lt;/tt&gt;
+     *   while game is still in state {&#64;code WAITING_FOR_DISCARDS}; any {&#64;code LOSE} message in that
+     *   game state is for a discard.
      * &lt;LI&gt; Most other situations send single PlayerElement messages or their sequence doesn't matter.
      *&lt;/UL&gt;
      *&lt;P&gt;
@@ -16543,6 +16938,8 @@ public final class GameMessage {
    * For a given player number and action type, contains parallel lists for sending
    * (element type, amount) pairs.
    *&lt;P&gt;
+   * Unlike {&#64;link PlayerElement}, has no "is_news" flag (client treats as if flagged false).
+   *&lt;P&gt;
    * Defined in v1.1.09 but unused before v2.0.00.
    * </pre>
    *
@@ -17004,6 +17401,8 @@ public final class GameMessage {
      *&lt;P&gt;
      * For a given player number and action type, contains parallel lists for sending
      * (element type, amount) pairs.
+     *&lt;P&gt;
+     * Unlike {&#64;link PlayerElement}, has no "is_news" flag (client treats as if flagged false).
      *&lt;P&gt;
      * Defined in v1.1.09 but unused before v2.0.00.
      * </pre>
@@ -17728,6 +18127,11 @@ public final class GameMessage {
        * <pre>
        * Number of development cards remaining in the deck to be bought,
        * from {&#64;link soc.game.SOCGame#getNumDevCards()}.
+       *&lt;P&gt;
+       * Sent to clients during game join/start.
+       *&lt;P&gt;
+       * When a dev card is bought, server sends {&#64;link SOCSimpleAction}(DEVCARD_BOUGHT)'s
+       * remaining-card count field instead: See {&#64;link BuyInventoryItemRequest} javadoc.
        * </pre>
        *
        * <code>DEV_CARD_COUNT = 2;</code>
@@ -17751,7 +18155,9 @@ public final class GameMessage {
       CURRENT_PLAYER(4),
       /**
        * <pre>
-       * Player number of player with largest army, or -1, from {&#64;link soc.game.SOCGame#getPlayerWithLargestArmy()}. 
+       * Player number of player with Largest Army, or -1, from {&#64;link soc.game.SOCGame#getPlayerWithLargestArmy()}.
+       * Sent when a client joins a game, and when changes occur during normal gameplay
+       * in response to a player's {&#64;link InventoryItemAction}(PLAY, KNIGHT).
        * </pre>
        *
        * <code>LARGEST_ARMY_PLAYER = 5;</code>
@@ -17759,12 +18165,26 @@ public final class GameMessage {
       LARGEST_ARMY_PLAYER(5),
       /**
        * <pre>
-       * Player number of player with longest road, or -1, from {&#64;link soc.game.SOCGame#getPlayerWithLongestRoad()}. 
+       * Player number of player with Longest Road/Route, or -1, from {&#64;link soc.game.SOCGame#getPlayerWithLongestRoad()}.
+       * Sent when a client joins a game, and when changes occur during normal gameplay
+       * in response to a player's {&#64;link BuildPiece}, {&#64;link MovePiece}, or DebugFreePlace.
        * </pre>
        *
        * <code>LONGEST_ROAD_PLAYER = 6;</code>
        */
       LONGEST_ROAD_PLAYER(6),
+      /**
+       * <pre>
+       * During 6-player game's Special Building Phase,
+       * the value of {&#64;link SOCGame#getSpecialBuildingPlayerNumberAfter()}.
+       *&lt;P&gt;
+       * Not sent to clients over network; used only by {&#64;link soc.server.savegame.SavedGameModel}
+       * when gameState is {&#64;link Data.GameState#SPECIAL_BUILDING}.
+       * </pre>
+       *
+       * <code>SPECIAL_BUILDING_AFTER_PLAYER = 7;</code>
+       */
+      SPECIAL_BUILDING_AFTER_PLAYER(7),
       UNRECOGNIZED(-1),
       ;
 
@@ -17788,6 +18208,11 @@ public final class GameMessage {
        * <pre>
        * Number of development cards remaining in the deck to be bought,
        * from {&#64;link soc.game.SOCGame#getNumDevCards()}.
+       *&lt;P&gt;
+       * Sent to clients during game join/start.
+       *&lt;P&gt;
+       * When a dev card is bought, server sends {&#64;link SOCSimpleAction}(DEVCARD_BOUGHT)'s
+       * remaining-card count field instead: See {&#64;link BuyInventoryItemRequest} javadoc.
        * </pre>
        *
        * <code>DEV_CARD_COUNT = 2;</code>
@@ -17811,7 +18236,9 @@ public final class GameMessage {
       public static final int CURRENT_PLAYER_VALUE = 4;
       /**
        * <pre>
-       * Player number of player with largest army, or -1, from {&#64;link soc.game.SOCGame#getPlayerWithLargestArmy()}. 
+       * Player number of player with Largest Army, or -1, from {&#64;link soc.game.SOCGame#getPlayerWithLargestArmy()}.
+       * Sent when a client joins a game, and when changes occur during normal gameplay
+       * in response to a player's {&#64;link InventoryItemAction}(PLAY, KNIGHT).
        * </pre>
        *
        * <code>LARGEST_ARMY_PLAYER = 5;</code>
@@ -17819,12 +18246,26 @@ public final class GameMessage {
       public static final int LARGEST_ARMY_PLAYER_VALUE = 5;
       /**
        * <pre>
-       * Player number of player with longest road, or -1, from {&#64;link soc.game.SOCGame#getPlayerWithLongestRoad()}. 
+       * Player number of player with Longest Road/Route, or -1, from {&#64;link soc.game.SOCGame#getPlayerWithLongestRoad()}.
+       * Sent when a client joins a game, and when changes occur during normal gameplay
+       * in response to a player's {&#64;link BuildPiece}, {&#64;link MovePiece}, or DebugFreePlace.
        * </pre>
        *
        * <code>LONGEST_ROAD_PLAYER = 6;</code>
        */
       public static final int LONGEST_ROAD_PLAYER_VALUE = 6;
+      /**
+       * <pre>
+       * During 6-player game's Special Building Phase,
+       * the value of {&#64;link SOCGame#getSpecialBuildingPlayerNumberAfter()}.
+       *&lt;P&gt;
+       * Not sent to clients over network; used only by {&#64;link soc.server.savegame.SavedGameModel}
+       * when gameState is {&#64;link Data.GameState#SPECIAL_BUILDING}.
+       * </pre>
+       *
+       * <code>SPECIAL_BUILDING_AFTER_PLAYER = 7;</code>
+       */
+      public static final int SPECIAL_BUILDING_AFTER_PLAYER_VALUE = 7;
 
 
       public final int getNumber() {
@@ -17858,6 +18299,7 @@ public final class GameMessage {
           case 4: return CURRENT_PLAYER;
           case 5: return LARGEST_ARMY_PLAYER;
           case 6: return LONGEST_ROAD_PLAYER;
+          case 7: return SPECIAL_BUILDING_AFTER_PLAYER;
           default: return null;
         }
       }
@@ -18680,10 +19122,14 @@ public final class GameMessage {
    * From client, this message means that a player wants to start the game;
    * from server, it means that a game has just started, leaving state {&#64;code NEW}.
    * Applies to entire game (player_number field is unused).
+   * First player number will be announced soon with a {&#64;link Turn}.
    *&lt;P&gt;
-   * If a client joins a game in progress it won't be sent a {&#64;code SOCStartGame} message,
+   * This message optionally includes a {&#64;code state} field
+   * instead of a separate {&#64;link State} message, since the state is part of the Start Game transition.
+   *&lt;P&gt;
+   * If a client joins a game in progress it won't be sent a {&#64;code StartGame} message,
    * only the game's current {&#64;code GameState} and other parts of the game's and
-   * players' current status.
+   * players' current status: See {&#64;link JoinGame}.
    * </pre>
    *
    * Protobuf type {@code StartGame}
@@ -18955,10 +19401,14 @@ public final class GameMessage {
      * From client, this message means that a player wants to start the game;
      * from server, it means that a game has just started, leaving state {&#64;code NEW}.
      * Applies to entire game (player_number field is unused).
+     * First player number will be announced soon with a {&#64;link Turn}.
      *&lt;P&gt;
-     * If a client joins a game in progress it won't be sent a {&#64;code SOCStartGame} message,
+     * This message optionally includes a {&#64;code state} field
+     * instead of a separate {&#64;link State} message, since the state is part of the Start Game transition.
+     *&lt;P&gt;
+     * If a client joins a game in progress it won't be sent a {&#64;code StartGame} message,
      * only the game's current {&#64;code GameState} and other parts of the game's and
-     * players' current status.
+     * players' current status: See {&#64;link JoinGame}.
      * </pre>
      *
      * Protobuf type {@code StartGame}
@@ -19259,10 +19709,21 @@ public final class GameMessage {
   /**
    * <pre>
    * End of the current player's turn, start of a new turn.
-   * Client should end current turn, clear dice, set current player number, reset votes, etc.
+   * Client should end current turn, set current player number and game state,
+   * then clear dice, reset votes, etc by calling {&#64;link SOCGame#updateAtTurn()}.
+   * When client receives this message,
+   * {&#64;link SOCGame#updateAtTurn()} will clear the new player's {&#64;link SOCPlayer#hasPlayedDevCard()} flag.
    * New player's client should check the state field to inform that player's options and actions.
    *&lt;P&gt;
    * Applies to entire game: player_number is the new current player's seat number.
+   *&lt;P&gt;
+   * During Special Building (SBP) server doesn't follow this message
+   * with {&#64;link GameServerText}("Special building phase: Lily's turn to place"); client should print
+   * a prompt like that when it receives {&#64;code Turn}(SPECIAL_BUILDING).
+   *&lt;P&gt;
+   * Is also sent to game during initial placement when a round ends,
+   * since the direction of play changes, and player has just placed a road or ship and should now place
+   * the next settlement or roll the dice to start the game's first turn of regular play.
    *&lt;P&gt;
    * Also sent at game state {&#64;link Data.GameState#OVER} to confirm the winning player,
    * who will already be the current player.
@@ -19539,10 +20000,21 @@ public final class GameMessage {
     /**
      * <pre>
      * End of the current player's turn, start of a new turn.
-     * Client should end current turn, clear dice, set current player number, reset votes, etc.
+     * Client should end current turn, set current player number and game state,
+     * then clear dice, reset votes, etc by calling {&#64;link SOCGame#updateAtTurn()}.
+     * When client receives this message,
+     * {&#64;link SOCGame#updateAtTurn()} will clear the new player's {&#64;link SOCPlayer#hasPlayedDevCard()} flag.
      * New player's client should check the state field to inform that player's options and actions.
      *&lt;P&gt;
      * Applies to entire game: player_number is the new current player's seat number.
+     *&lt;P&gt;
+     * During Special Building (SBP) server doesn't follow this message
+     * with {&#64;link GameServerText}("Special building phase: Lily's turn to place"); client should print
+     * a prompt like that when it receives {&#64;code Turn}(SPECIAL_BUILDING).
+     *&lt;P&gt;
+     * Is also sent to game during initial placement when a round ends,
+     * since the direction of play changes, and player has just placed a road or ship and should now place
+     * the next settlement or roll the dice to start the game's first turn of regular play.
      *&lt;P&gt;
      * Also sent at game state {&#64;link Data.GameState#OVER} to confirm the winning player,
      * who will already be the current player.
@@ -20720,17 +21192,35 @@ public final class GameMessage {
    * Applies to entire game (player_number field is unused).
    *&lt;P&gt;
    * This is in response to a client player's {&#64;link DiceRollRequest}.
-   * Will always be followed by {&#64;link State} (rolling a 7 might lead to discards
-   * or moving the robber, etc.) and sometimes with further messages after that,
-   * depending on the roll results and scenario/rules in effect.
+   * Will sometimes be followed with various messages to entire game and/or
+   * to some players, depending on the roll results and scenario/rules in effect.
+   * The last data message of sequence sent to entire game is always {&#64;link State}
+   * (rolling a 7 might lead to discards or moving the robber, etc.).
    *&lt;P&gt;
+   * The guideline is that the "public" sequence ends with the new game state message,
+   * then any new state text for human clients, then any prompt for action
+   * sent to individual player clients in the new state.
+   * Any special resource (cloth) distributed as roll results, or any report of action happening
+   * (fleet battle lost/won), is sent before the state message.
+   *&lt;H4&gt;Sequence details&lt;/H4&gt;
    * When players gain resources on the roll, game members will be sent {&#64;link DiceResultResources}.
    *&lt;P&gt;
-   * Players who gain resources on the roll will be sent
-   * {&#64;link PlayerElement PlayerElement(SET, resType, amount)} messages
-   * for all their new resource counts.  Before v2.0.00 those were sent to each
-   * player in the game after a roll, not just those who gained resources, followed by
-   * sending the game a PlayerElement with their new total {&#64;code RESOURCE_COUNT}.
+   * Each player who gained resources on the roll is sent their currently
+   * held amounts for each resource as {&#64;link PlayerElements}(SET, resType, amount) messages
+   * for all their new resource counts.
+   * When client receives such a 5-element {&#64;link PlayerElements} in state {&#64;code ROLL_OR_CARD},
+   * they may want to clear their Unknown resource amount to 0 in case it has drifted.
+   *&lt;P&gt;
+   * When 7 is rolled and players must discard, then instead, {&#64;code DiceResult}
+   * is followed by a {&#64;link State}({&#64;code WAITING_FOR_DISCARDS}) announcement,
+   * then a {&#64;link LoseResources} prompt to each affected player.
+   * See {&#64;link LoseResources} for player response and the next part of that sequence.
+   *&lt;H4&gt;End of sequence&lt;/H4&gt;
+   * As noted above, the message sequence to the entire game always ends with {&#64;code State}.
+   * That might be followed with {&#64;link GameServerText} for human players to read,
+   * and/or messages sent privately to a player such as {&#64;link LoseResources}
+   * (which doesn't need to be "public" because entire game knew the number of cards held
+   * when the 7 was rolled).
    * </pre>
    *
    * Protobuf type {@code DiceResult}
@@ -20992,17 +21482,35 @@ public final class GameMessage {
      * Applies to entire game (player_number field is unused).
      *&lt;P&gt;
      * This is in response to a client player's {&#64;link DiceRollRequest}.
-     * Will always be followed by {&#64;link State} (rolling a 7 might lead to discards
-     * or moving the robber, etc.) and sometimes with further messages after that,
-     * depending on the roll results and scenario/rules in effect.
+     * Will sometimes be followed with various messages to entire game and/or
+     * to some players, depending on the roll results and scenario/rules in effect.
+     * The last data message of sequence sent to entire game is always {&#64;link State}
+     * (rolling a 7 might lead to discards or moving the robber, etc.).
      *&lt;P&gt;
+     * The guideline is that the "public" sequence ends with the new game state message,
+     * then any new state text for human clients, then any prompt for action
+     * sent to individual player clients in the new state.
+     * Any special resource (cloth) distributed as roll results, or any report of action happening
+     * (fleet battle lost/won), is sent before the state message.
+     *&lt;H4&gt;Sequence details&lt;/H4&gt;
      * When players gain resources on the roll, game members will be sent {&#64;link DiceResultResources}.
      *&lt;P&gt;
-     * Players who gain resources on the roll will be sent
-     * {&#64;link PlayerElement PlayerElement(SET, resType, amount)} messages
-     * for all their new resource counts.  Before v2.0.00 those were sent to each
-     * player in the game after a roll, not just those who gained resources, followed by
-     * sending the game a PlayerElement with their new total {&#64;code RESOURCE_COUNT}.
+     * Each player who gained resources on the roll is sent their currently
+     * held amounts for each resource as {&#64;link PlayerElements}(SET, resType, amount) messages
+     * for all their new resource counts.
+     * When client receives such a 5-element {&#64;link PlayerElements} in state {&#64;code ROLL_OR_CARD},
+     * they may want to clear their Unknown resource amount to 0 in case it has drifted.
+     *&lt;P&gt;
+     * When 7 is rolled and players must discard, then instead, {&#64;code DiceResult}
+     * is followed by a {&#64;link State}({&#64;code WAITING_FOR_DISCARDS}) announcement,
+     * then a {&#64;link LoseResources} prompt to each affected player.
+     * See {&#64;link LoseResources} for player response and the next part of that sequence.
+     *&lt;H4&gt;End of sequence&lt;/H4&gt;
+     * As noted above, the message sequence to the entire game always ends with {&#64;code State}.
+     * That might be followed with {&#64;link GameServerText} for human players to read,
+     * and/or messages sent privately to a player such as {&#64;link LoseResources}
+     * (which doesn't need to be "public" because entire game knew the number of cards held
+     * when the 7 was rolled).
      * </pre>
      *
      * Protobuf type {@code DiceResult}
@@ -23388,6 +23896,12 @@ public final class GameMessage {
    * Client is making, or server is announcing, a bank trade or port trade.
    * Also used to undo player's previous trade (swap previous give/get resource sets).
    *&lt;P&gt;
+   * If the client's trade request is acceptable, server responds to entire game with
+   * {&#64;code TradeWithBank} to announce the trade details.
+   *&lt;P&gt;
+   * TThe server disallows any unacceptable trade by sending the client a
+   * {&#64;code TradeRejectOffer} with a reason code like {&#64;code REASON_NOT_YOUR_TURN}.
+   *&lt;P&gt;
    * Before v3.0.00 this message was SOCBankTrade.
    * &#64;see TradeMakeOffer
    * </pre>
@@ -23726,6 +24240,12 @@ public final class GameMessage {
      * <pre>
      * Client is making, or server is announcing, a bank trade or port trade.
      * Also used to undo player's previous trade (swap previous give/get resource sets).
+     *&lt;P&gt;
+     * If the client's trade request is acceptable, server responds to entire game with
+     * {&#64;code TradeWithBank} to announce the trade details.
+     *&lt;P&gt;
+     * TThe server disallows any unacceptable trade by sending the client a
+     * {&#64;code TradeRejectOffer} with a reason code like {&#64;code REASON_NOT_YOUR_TURN}.
      *&lt;P&gt;
      * Before v3.0.00 this message was SOCBankTrade.
      * &#64;see TradeMakeOffer
@@ -24267,6 +24787,9 @@ public final class GameMessage {
    *&lt;P&gt;
    * player_number is the player offering this trade to some or all other players.
    *&lt;P&gt;
+   * If this trade offer is disallowed, server replies with a {&#64;link TradeRejectOffer}
+   * with reason REASON_CANNOT_MAKE_OFFER.
+   *&lt;P&gt;
    * Before v3.0.00 this message was SOCMakeOffer.
    * &#64;see TradeWithBank
    * &#64;see TradeClearOffer
@@ -24706,6 +25229,9 @@ public final class GameMessage {
      * Other player clients may respond with TradeRejectOffer or TradeAcceptOffer.
      *&lt;P&gt;
      * player_number is the player offering this trade to some or all other players.
+     *&lt;P&gt;
+     * If this trade offer is disallowed, server replies with a {&#64;link TradeRejectOffer}
+     * with reason REASON_CANNOT_MAKE_OFFER.
      *&lt;P&gt;
      * Before v3.0.00 this message was SOCMakeOffer.
      * &#64;see TradeWithBank
@@ -25395,7 +25921,8 @@ public final class GameMessage {
   /**
    * <pre>
    * A the player is retracting an offer.
-   * Or, server wants any trade messages/responses cleared in the client UI (usually at end of turn).
+   * Or, server wants any trade messages/responses cleared in the client UI
+   * at end of turn or after {&#64;link TradeAcceptOffer}.
    *&lt;P&gt;
    * player_number can be -1 to clear all offers by all players.
    * &#64;see TradeMakeOffer
@@ -25624,7 +26151,8 @@ public final class GameMessage {
     /**
      * <pre>
      * A the player is retracting an offer.
-     * Or, server wants any trade messages/responses cleared in the client UI (usually at end of turn).
+     * Or, server wants any trade messages/responses cleared in the client UI
+     * at end of turn or after {&#64;link TradeAcceptOffer}.
      *&lt;P&gt;
      * player_number can be -1 to clear all offers by all players.
      * &#64;see TradeMakeOffer
@@ -25825,10 +26353,53 @@ public final class GameMessage {
   public interface TradeRejectOfferOrBuilder extends
       // @@protoc_insertion_point(interface_extends:TradeRejectOffer)
       com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <pre>
+     * From server, optional reason code for why an offer was rejected by server or declined by a player;
+     * not sent from client.
+     * </pre>
+     *
+     * <code>.TradeRejectOffer._ReasonCode reason_code = 1;</code>
+     * @return The enum numeric value on the wire for reasonCode.
+     */
+    int getReasonCodeValue();
+    /**
+     * <pre>
+     * From server, optional reason code for why an offer was rejected by server or declined by a player;
+     * not sent from client.
+     * </pre>
+     *
+     * <code>.TradeRejectOffer._ReasonCode reason_code = 1;</code>
+     * @return The reasonCode.
+     */
+    soc.proto.GameMessage.TradeRejectOffer._ReasonCode getReasonCode();
   }
   /**
    * <pre>
-   * A player is rejecting any and all trade offers currently made to them.
+   * Typically this message means that the player is rejecting all offers ("no thanks").
+   * Server can also send it with a "reason code" when rejecting a client's trade-related request
+   * (player trade or bank trade).
+   *&lt;H3&gt;Typical usage: (without a reason code)&lt;/H3&gt;
+   * Sent from rejecting player's client to server.
+   * The server then sends a copy of the message to all players
+   * to announce the rejection.
+   *&lt;UL&gt;
+   * &lt;LI&gt; Message to server is client player's response to a {&#64;link SOCMakeOffer} sent earlier this turn.
+   * &lt;LI&gt; Followed by (from server, to all clients) {&#64;link TradeRejectOffer} with the same data.
+   *&lt;/UL&gt;
+   *&lt;H3&gt;With a reason code:&lt;/H3&gt;
+   * Sent from server to a player's client in response to their bank trade, player trade offer,
+   * or request to accept a trade, with the specific reason it was disallowed ({&#64;link #REASON_NOT_YOUR_TURN},
+   * {&#64;link #REASON_CANNOT_MAKE_OFFER}, or generic {&#64;link #REASON_CANNOT_MAKE_TRADE}).
+   * See those constants for info about when they're used,
+   * or {&#64;link #getReasonCode()} for general info.
+   *&lt;P&gt;
+   * In a future version or fork, reason codes could also be sent from a rejecting player's client
+   * to give a specific reason for the rejection. This would be mentioned in that reason code constant's
+   * javadoc. Server would then announce the rejection to all players.
+   *&lt;P&gt;
+   * Before v3.0.00 this message type was SOCRejectOffer.
    * &#64;see TradeMakeOffer
    * &#64;see TradeAcceptOffer
    * </pre>
@@ -25845,6 +26416,7 @@ public final class GameMessage {
       super(builder);
     }
     private TradeRejectOffer() {
+      reasonCode_ = 0;
     }
 
     @java.lang.Override
@@ -25877,6 +26449,12 @@ public final class GameMessage {
             case 0:
               done = true;
               break;
+            case 8: {
+              int rawValue = input.readEnum();
+
+              reasonCode_ = rawValue;
+              break;
+            }
             default: {
               if (!parseUnknownField(
                   input, unknownFields, extensionRegistry, tag)) {
@@ -25909,6 +26487,233 @@ public final class GameMessage {
               soc.proto.GameMessage.TradeRejectOffer.class, soc.proto.GameMessage.TradeRejectOffer.Builder.class);
     }
 
+    /**
+     * <pre>
+     * Reason codes; added to classic message type SOCRejectOffer in v2.5.00. 
+     * </pre>
+     *
+     * Protobuf enum {@code TradeRejectOffer._ReasonCode}
+     */
+    public enum _ReasonCode
+        implements com.google.protobuf.ProtocolMessageEnum {
+      /**
+       * <pre>
+       * Required for enum; the actual generic reason code is {&#64;link #REASON_CANNOT_MAKE_TRADE}. 
+       * </pre>
+       *
+       * <code>_UNSENT_DEFAULT = 0;</code>
+       */
+      _UNSENT_DEFAULT(0),
+      /**
+       * <pre>
+       * Server's generic reason code when the requesting client can't offer or accept this trade now
+       * for whatever reason, or make this bank trade. Usually because they don't have the right resources to give.
+       * See {&#64;link TradeRejectOffer#reason_code} for more info.
+       *&lt;P&gt;
+       * Sent in response to {&#64;link TradeWithBank} and {&#64;link TradeAcceptOffer}.
+       * For a more specific reason, see {&#64;link #REASON_NOT_YOUR_TURN}.
+       *&lt;P&gt;
+       * {&#64;code player_number} is -1 if rejecting a player's port/bank trade request,
+       * otherwise is the client's player number.
+       * &#64;see #REASON_CANNOT_MAKE_OFFER
+       * </pre>
+       *
+       * <code>REASON_CANNOT_MAKE_TRADE = 1;</code>
+       */
+      REASON_CANNOT_MAKE_TRADE(1),
+      /**
+       * <pre>
+       * Server's reply reason code when the requesting client can't make this trade now
+       * because it isn't their turn.
+       *&lt;P&gt;
+       * Sent in response to {&#64;link TradeWithBank}.
+       *&lt;P&gt;
+       * {&#64;code player_number} will be -1.
+       * &#64;see #REASON_CANNOT_MAKE_TRADE
+       * </pre>
+       *
+       * <code>REASON_NOT_YOUR_TURN = 2;</code>
+       */
+      REASON_NOT_YOUR_TURN(2),
+      /**
+       * <pre>
+       * Server's reason code when the requesting client can't make this trade offer now.
+       *&lt;P&gt;
+       * Sent in response to {&#64;link TradeMakeOffer}, but not {&#64;link TradeWithBank}.
+       * &#64;see #REASON_CANNOT_MAKE_TRADE
+       * </pre>
+       *
+       * <code>REASON_CANNOT_MAKE_OFFER = 3;</code>
+       */
+      REASON_CANNOT_MAKE_OFFER(3),
+      UNRECOGNIZED(-1),
+      ;
+
+      /**
+       * <pre>
+       * Required for enum; the actual generic reason code is {&#64;link #REASON_CANNOT_MAKE_TRADE}. 
+       * </pre>
+       *
+       * <code>_UNSENT_DEFAULT = 0;</code>
+       */
+      public static final int _UNSENT_DEFAULT_VALUE = 0;
+      /**
+       * <pre>
+       * Server's generic reason code when the requesting client can't offer or accept this trade now
+       * for whatever reason, or make this bank trade. Usually because they don't have the right resources to give.
+       * See {&#64;link TradeRejectOffer#reason_code} for more info.
+       *&lt;P&gt;
+       * Sent in response to {&#64;link TradeWithBank} and {&#64;link TradeAcceptOffer}.
+       * For a more specific reason, see {&#64;link #REASON_NOT_YOUR_TURN}.
+       *&lt;P&gt;
+       * {&#64;code player_number} is -1 if rejecting a player's port/bank trade request,
+       * otherwise is the client's player number.
+       * &#64;see #REASON_CANNOT_MAKE_OFFER
+       * </pre>
+       *
+       * <code>REASON_CANNOT_MAKE_TRADE = 1;</code>
+       */
+      public static final int REASON_CANNOT_MAKE_TRADE_VALUE = 1;
+      /**
+       * <pre>
+       * Server's reply reason code when the requesting client can't make this trade now
+       * because it isn't their turn.
+       *&lt;P&gt;
+       * Sent in response to {&#64;link TradeWithBank}.
+       *&lt;P&gt;
+       * {&#64;code player_number} will be -1.
+       * &#64;see #REASON_CANNOT_MAKE_TRADE
+       * </pre>
+       *
+       * <code>REASON_NOT_YOUR_TURN = 2;</code>
+       */
+      public static final int REASON_NOT_YOUR_TURN_VALUE = 2;
+      /**
+       * <pre>
+       * Server's reason code when the requesting client can't make this trade offer now.
+       *&lt;P&gt;
+       * Sent in response to {&#64;link TradeMakeOffer}, but not {&#64;link TradeWithBank}.
+       * &#64;see #REASON_CANNOT_MAKE_TRADE
+       * </pre>
+       *
+       * <code>REASON_CANNOT_MAKE_OFFER = 3;</code>
+       */
+      public static final int REASON_CANNOT_MAKE_OFFER_VALUE = 3;
+
+
+      public final int getNumber() {
+        if (this == UNRECOGNIZED) {
+          throw new java.lang.IllegalArgumentException(
+              "Can't get the number of an unknown enum value.");
+        }
+        return value;
+      }
+
+      /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static _ReasonCode valueOf(int value) {
+        return forNumber(value);
+      }
+
+      /**
+       * @param value The numeric wire value of the corresponding enum entry.
+       * @return The enum associated with the given numeric wire value.
+       */
+      public static _ReasonCode forNumber(int value) {
+        switch (value) {
+          case 0: return _UNSENT_DEFAULT;
+          case 1: return REASON_CANNOT_MAKE_TRADE;
+          case 2: return REASON_NOT_YOUR_TURN;
+          case 3: return REASON_CANNOT_MAKE_OFFER;
+          default: return null;
+        }
+      }
+
+      public static com.google.protobuf.Internal.EnumLiteMap<_ReasonCode>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static final com.google.protobuf.Internal.EnumLiteMap<
+          _ReasonCode> internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<_ReasonCode>() {
+              public _ReasonCode findValueByNumber(int number) {
+                return _ReasonCode.forNumber(number);
+              }
+            };
+
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        if (this == UNRECOGNIZED) {
+          throw new java.lang.IllegalStateException(
+              "Can't get the descriptor of an unrecognized enum value.");
+        }
+        return getDescriptor().getValues().get(ordinal());
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return soc.proto.GameMessage.TradeRejectOffer.getDescriptor().getEnumTypes().get(0);
+      }
+
+      private static final _ReasonCode[] VALUES = values();
+
+      public static _ReasonCode valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        if (desc.getIndex() == -1) {
+          return UNRECOGNIZED;
+        }
+        return VALUES[desc.getIndex()];
+      }
+
+      private final int value;
+
+      private _ReasonCode(int value) {
+        this.value = value;
+      }
+
+      // @@protoc_insertion_point(enum_scope:TradeRejectOffer._ReasonCode)
+    }
+
+    public static final int REASON_CODE_FIELD_NUMBER = 1;
+    private int reasonCode_;
+    /**
+     * <pre>
+     * From server, optional reason code for why an offer was rejected by server or declined by a player;
+     * not sent from client.
+     * </pre>
+     *
+     * <code>.TradeRejectOffer._ReasonCode reason_code = 1;</code>
+     * @return The enum numeric value on the wire for reasonCode.
+     */
+    @java.lang.Override public int getReasonCodeValue() {
+      return reasonCode_;
+    }
+    /**
+     * <pre>
+     * From server, optional reason code for why an offer was rejected by server or declined by a player;
+     * not sent from client.
+     * </pre>
+     *
+     * <code>.TradeRejectOffer._ReasonCode reason_code = 1;</code>
+     * @return The reasonCode.
+     */
+    @java.lang.Override public soc.proto.GameMessage.TradeRejectOffer._ReasonCode getReasonCode() {
+      @SuppressWarnings("deprecation")
+      soc.proto.GameMessage.TradeRejectOffer._ReasonCode result = soc.proto.GameMessage.TradeRejectOffer._ReasonCode.valueOf(reasonCode_);
+      return result == null ? soc.proto.GameMessage.TradeRejectOffer._ReasonCode.UNRECOGNIZED : result;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -25923,6 +26728,9 @@ public final class GameMessage {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      if (reasonCode_ != soc.proto.GameMessage.TradeRejectOffer._ReasonCode._UNSENT_DEFAULT.getNumber()) {
+        output.writeEnum(1, reasonCode_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -25932,6 +26740,10 @@ public final class GameMessage {
       if (size != -1) return size;
 
       size = 0;
+      if (reasonCode_ != soc.proto.GameMessage.TradeRejectOffer._ReasonCode._UNSENT_DEFAULT.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(1, reasonCode_);
+      }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
       return size;
@@ -25947,6 +26759,7 @@ public final class GameMessage {
       }
       soc.proto.GameMessage.TradeRejectOffer other = (soc.proto.GameMessage.TradeRejectOffer) obj;
 
+      if (reasonCode_ != other.reasonCode_) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -25958,6 +26771,8 @@ public final class GameMessage {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + REASON_CODE_FIELD_NUMBER;
+      hash = (53 * hash) + reasonCode_;
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -26055,7 +26870,29 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * A player is rejecting any and all trade offers currently made to them.
+     * Typically this message means that the player is rejecting all offers ("no thanks").
+     * Server can also send it with a "reason code" when rejecting a client's trade-related request
+     * (player trade or bank trade).
+     *&lt;H3&gt;Typical usage: (without a reason code)&lt;/H3&gt;
+     * Sent from rejecting player's client to server.
+     * The server then sends a copy of the message to all players
+     * to announce the rejection.
+     *&lt;UL&gt;
+     * &lt;LI&gt; Message to server is client player's response to a {&#64;link SOCMakeOffer} sent earlier this turn.
+     * &lt;LI&gt; Followed by (from server, to all clients) {&#64;link TradeRejectOffer} with the same data.
+     *&lt;/UL&gt;
+     *&lt;H3&gt;With a reason code:&lt;/H3&gt;
+     * Sent from server to a player's client in response to their bank trade, player trade offer,
+     * or request to accept a trade, with the specific reason it was disallowed ({&#64;link #REASON_NOT_YOUR_TURN},
+     * {&#64;link #REASON_CANNOT_MAKE_OFFER}, or generic {&#64;link #REASON_CANNOT_MAKE_TRADE}).
+     * See those constants for info about when they're used,
+     * or {&#64;link #getReasonCode()} for general info.
+     *&lt;P&gt;
+     * In a future version or fork, reason codes could also be sent from a rejecting player's client
+     * to give a specific reason for the rejection. This would be mentioned in that reason code constant's
+     * javadoc. Server would then announce the rejection to all players.
+     *&lt;P&gt;
+     * Before v3.0.00 this message type was SOCRejectOffer.
      * &#64;see TradeMakeOffer
      * &#64;see TradeAcceptOffer
      * </pre>
@@ -26097,6 +26934,8 @@ public final class GameMessage {
       @java.lang.Override
       public Builder clear() {
         super.clear();
+        reasonCode_ = 0;
+
         return this;
       }
 
@@ -26123,6 +26962,7 @@ public final class GameMessage {
       @java.lang.Override
       public soc.proto.GameMessage.TradeRejectOffer buildPartial() {
         soc.proto.GameMessage.TradeRejectOffer result = new soc.proto.GameMessage.TradeRejectOffer(this);
+        result.reasonCode_ = reasonCode_;
         onBuilt();
         return result;
       }
@@ -26171,6 +27011,9 @@ public final class GameMessage {
 
       public Builder mergeFrom(soc.proto.GameMessage.TradeRejectOffer other) {
         if (other == soc.proto.GameMessage.TradeRejectOffer.getDefaultInstance()) return this;
+        if (other.reasonCode_ != 0) {
+          setReasonCodeValue(other.getReasonCodeValue());
+        }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
         return this;
@@ -26197,6 +27040,85 @@ public final class GameMessage {
             mergeFrom(parsedMessage);
           }
         }
+        return this;
+      }
+
+      private int reasonCode_ = 0;
+      /**
+       * <pre>
+       * From server, optional reason code for why an offer was rejected by server or declined by a player;
+       * not sent from client.
+       * </pre>
+       *
+       * <code>.TradeRejectOffer._ReasonCode reason_code = 1;</code>
+       * @return The enum numeric value on the wire for reasonCode.
+       */
+      @java.lang.Override public int getReasonCodeValue() {
+        return reasonCode_;
+      }
+      /**
+       * <pre>
+       * From server, optional reason code for why an offer was rejected by server or declined by a player;
+       * not sent from client.
+       * </pre>
+       *
+       * <code>.TradeRejectOffer._ReasonCode reason_code = 1;</code>
+       * @param value The enum numeric value on the wire for reasonCode to set.
+       * @return This builder for chaining.
+       */
+      public Builder setReasonCodeValue(int value) {
+        
+        reasonCode_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * From server, optional reason code for why an offer was rejected by server or declined by a player;
+       * not sent from client.
+       * </pre>
+       *
+       * <code>.TradeRejectOffer._ReasonCode reason_code = 1;</code>
+       * @return The reasonCode.
+       */
+      @java.lang.Override
+      public soc.proto.GameMessage.TradeRejectOffer._ReasonCode getReasonCode() {
+        @SuppressWarnings("deprecation")
+        soc.proto.GameMessage.TradeRejectOffer._ReasonCode result = soc.proto.GameMessage.TradeRejectOffer._ReasonCode.valueOf(reasonCode_);
+        return result == null ? soc.proto.GameMessage.TradeRejectOffer._ReasonCode.UNRECOGNIZED : result;
+      }
+      /**
+       * <pre>
+       * From server, optional reason code for why an offer was rejected by server or declined by a player;
+       * not sent from client.
+       * </pre>
+       *
+       * <code>.TradeRejectOffer._ReasonCode reason_code = 1;</code>
+       * @param value The reasonCode to set.
+       * @return This builder for chaining.
+       */
+      public Builder setReasonCode(soc.proto.GameMessage.TradeRejectOffer._ReasonCode value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        
+        reasonCode_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * From server, optional reason code for why an offer was rejected by server or declined by a player;
+       * not sent from client.
+       * </pre>
+       *
+       * <code>.TradeRejectOffer._ReasonCode reason_code = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearReasonCode() {
+        
+        reasonCode_ = 0;
+        onChanged();
         return this;
       }
       @java.lang.Override
@@ -26275,16 +27197,71 @@ public final class GameMessage {
      * @return The offerSerial.
      */
     int getOfferSerial();
+
+    /**
+     * <pre>
+     * resources being given to accepting player, if sent from server
+     * </pre>
+     *
+     * <code>.ResourceSet resToAccepting = 3;</code>
+     * @return Whether the resToAccepting field is set.
+     */
+    boolean hasResToAccepting();
+    /**
+     * <pre>
+     * resources being given to accepting player, if sent from server
+     * </pre>
+     *
+     * <code>.ResourceSet resToAccepting = 3;</code>
+     * @return The resToAccepting.
+     */
+    soc.proto.Data.ResourceSet getResToAccepting();
+    /**
+     * <pre>
+     * resources being given to accepting player, if sent from server
+     * </pre>
+     *
+     * <code>.ResourceSet resToAccepting = 3;</code>
+     */
+    soc.proto.Data.ResourceSetOrBuilder getResToAcceptingOrBuilder();
+
+    /**
+     * <pre>
+     * resources being given to offering player, if sent from server
+     * </pre>
+     *
+     * <code>.ResourceSet resToOffering = 4;</code>
+     * @return Whether the resToOffering field is set.
+     */
+    boolean hasResToOffering();
+    /**
+     * <pre>
+     * resources being given to offering player, if sent from server
+     * </pre>
+     *
+     * <code>.ResourceSet resToOffering = 4;</code>
+     * @return The resToOffering.
+     */
+    soc.proto.Data.ResourceSet getResToOffering();
+    /**
+     * <pre>
+     * resources being given to offering player, if sent from server
+     * </pre>
+     *
+     * <code>.ResourceSet resToOffering = 4;</code>
+     */
+    soc.proto.Data.ResourceSetOrBuilder getResToOfferingOrBuilder();
   }
   /**
    * <pre>
    * A player is accepting a trade offer currently made to them.
-   * If sent from client and trade is allowed, server responds with
-   * {&#64;link PlayerElement}s, {&#64;link GameServerText}, {&#64;link TradeClearOffer}s,
-   * then (for robots' benefit) the received TradeAcceptOffer is re-sent to
-   * all clients in the game.
+   * If sent from client and trade is allowed, server announces the received TradeAcceptOffer
+   * to all clients in the game, followed by {&#64;link TradeClearOffer}.
    *&lt;P&gt;
    * From server, player_number is the player accepting this trade from offering_player_number.
+   *&lt;P&gt;
+   * The server disallows any unacceptable trade by sending that "accepting" client a
+   * {&#64;code TradeRejectOffer} with reason code {&#64;code REASON_CANNOT_MAKE_TRADE}.
    * &#64;see TradeMakeOffer
    * &#64;see TradeRejectOffer
    * </pre>
@@ -26341,6 +27318,32 @@ public final class GameMessage {
             case 16: {
 
               offerSerial_ = input.readInt32();
+              break;
+            }
+            case 26: {
+              soc.proto.Data.ResourceSet.Builder subBuilder = null;
+              if (resToAccepting_ != null) {
+                subBuilder = resToAccepting_.toBuilder();
+              }
+              resToAccepting_ = input.readMessage(soc.proto.Data.ResourceSet.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(resToAccepting_);
+                resToAccepting_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 34: {
+              soc.proto.Data.ResourceSet.Builder subBuilder = null;
+              if (resToOffering_ != null) {
+                subBuilder = resToOffering_.toBuilder();
+              }
+              resToOffering_ = input.readMessage(soc.proto.Data.ResourceSet.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(resToOffering_);
+                resToOffering_ = subBuilder.buildPartial();
+              }
+
               break;
             }
             default: {
@@ -26405,6 +27408,82 @@ public final class GameMessage {
       return offerSerial_;
     }
 
+    public static final int RESTOACCEPTING_FIELD_NUMBER = 3;
+    private soc.proto.Data.ResourceSet resToAccepting_;
+    /**
+     * <pre>
+     * resources being given to accepting player, if sent from server
+     * </pre>
+     *
+     * <code>.ResourceSet resToAccepting = 3;</code>
+     * @return Whether the resToAccepting field is set.
+     */
+    @java.lang.Override
+    public boolean hasResToAccepting() {
+      return resToAccepting_ != null;
+    }
+    /**
+     * <pre>
+     * resources being given to accepting player, if sent from server
+     * </pre>
+     *
+     * <code>.ResourceSet resToAccepting = 3;</code>
+     * @return The resToAccepting.
+     */
+    @java.lang.Override
+    public soc.proto.Data.ResourceSet getResToAccepting() {
+      return resToAccepting_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : resToAccepting_;
+    }
+    /**
+     * <pre>
+     * resources being given to accepting player, if sent from server
+     * </pre>
+     *
+     * <code>.ResourceSet resToAccepting = 3;</code>
+     */
+    @java.lang.Override
+    public soc.proto.Data.ResourceSetOrBuilder getResToAcceptingOrBuilder() {
+      return getResToAccepting();
+    }
+
+    public static final int RESTOOFFERING_FIELD_NUMBER = 4;
+    private soc.proto.Data.ResourceSet resToOffering_;
+    /**
+     * <pre>
+     * resources being given to offering player, if sent from server
+     * </pre>
+     *
+     * <code>.ResourceSet resToOffering = 4;</code>
+     * @return Whether the resToOffering field is set.
+     */
+    @java.lang.Override
+    public boolean hasResToOffering() {
+      return resToOffering_ != null;
+    }
+    /**
+     * <pre>
+     * resources being given to offering player, if sent from server
+     * </pre>
+     *
+     * <code>.ResourceSet resToOffering = 4;</code>
+     * @return The resToOffering.
+     */
+    @java.lang.Override
+    public soc.proto.Data.ResourceSet getResToOffering() {
+      return resToOffering_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : resToOffering_;
+    }
+    /**
+     * <pre>
+     * resources being given to offering player, if sent from server
+     * </pre>
+     *
+     * <code>.ResourceSet resToOffering = 4;</code>
+     */
+    @java.lang.Override
+    public soc.proto.Data.ResourceSetOrBuilder getResToOfferingOrBuilder() {
+      return getResToOffering();
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -26425,6 +27504,12 @@ public final class GameMessage {
       if (offerSerial_ != 0) {
         output.writeInt32(2, offerSerial_);
       }
+      if (resToAccepting_ != null) {
+        output.writeMessage(3, getResToAccepting());
+      }
+      if (resToOffering_ != null) {
+        output.writeMessage(4, getResToOffering());
+      }
       unknownFields.writeTo(output);
     }
 
@@ -26441,6 +27526,14 @@ public final class GameMessage {
       if (offerSerial_ != 0) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(2, offerSerial_);
+      }
+      if (resToAccepting_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getResToAccepting());
+      }
+      if (resToOffering_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, getResToOffering());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -26461,6 +27554,16 @@ public final class GameMessage {
           != other.getOfferingPlayerNumber()) return false;
       if (getOfferSerial()
           != other.getOfferSerial()) return false;
+      if (hasResToAccepting() != other.hasResToAccepting()) return false;
+      if (hasResToAccepting()) {
+        if (!getResToAccepting()
+            .equals(other.getResToAccepting())) return false;
+      }
+      if (hasResToOffering() != other.hasResToOffering()) return false;
+      if (hasResToOffering()) {
+        if (!getResToOffering()
+            .equals(other.getResToOffering())) return false;
+      }
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -26476,6 +27579,14 @@ public final class GameMessage {
       hash = (53 * hash) + getOfferingPlayerNumber();
       hash = (37 * hash) + OFFER_SERIAL_FIELD_NUMBER;
       hash = (53 * hash) + getOfferSerial();
+      if (hasResToAccepting()) {
+        hash = (37 * hash) + RESTOACCEPTING_FIELD_NUMBER;
+        hash = (53 * hash) + getResToAccepting().hashCode();
+      }
+      if (hasResToOffering()) {
+        hash = (37 * hash) + RESTOOFFERING_FIELD_NUMBER;
+        hash = (53 * hash) + getResToOffering().hashCode();
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -26574,12 +27685,13 @@ public final class GameMessage {
     /**
      * <pre>
      * A player is accepting a trade offer currently made to them.
-     * If sent from client and trade is allowed, server responds with
-     * {&#64;link PlayerElement}s, {&#64;link GameServerText}, {&#64;link TradeClearOffer}s,
-     * then (for robots' benefit) the received TradeAcceptOffer is re-sent to
-     * all clients in the game.
+     * If sent from client and trade is allowed, server announces the received TradeAcceptOffer
+     * to all clients in the game, followed by {&#64;link TradeClearOffer}.
      *&lt;P&gt;
      * From server, player_number is the player accepting this trade from offering_player_number.
+     *&lt;P&gt;
+     * The server disallows any unacceptable trade by sending that "accepting" client a
+     * {&#64;code TradeRejectOffer} with reason code {&#64;code REASON_CANNOT_MAKE_TRADE}.
      * &#64;see TradeMakeOffer
      * &#64;see TradeRejectOffer
      * </pre>
@@ -26625,6 +27737,18 @@ public final class GameMessage {
 
         offerSerial_ = 0;
 
+        if (resToAcceptingBuilder_ == null) {
+          resToAccepting_ = null;
+        } else {
+          resToAccepting_ = null;
+          resToAcceptingBuilder_ = null;
+        }
+        if (resToOfferingBuilder_ == null) {
+          resToOffering_ = null;
+        } else {
+          resToOffering_ = null;
+          resToOfferingBuilder_ = null;
+        }
         return this;
       }
 
@@ -26653,6 +27777,16 @@ public final class GameMessage {
         soc.proto.GameMessage.TradeAcceptOffer result = new soc.proto.GameMessage.TradeAcceptOffer(this);
         result.offeringPlayerNumber_ = offeringPlayerNumber_;
         result.offerSerial_ = offerSerial_;
+        if (resToAcceptingBuilder_ == null) {
+          result.resToAccepting_ = resToAccepting_;
+        } else {
+          result.resToAccepting_ = resToAcceptingBuilder_.build();
+        }
+        if (resToOfferingBuilder_ == null) {
+          result.resToOffering_ = resToOffering_;
+        } else {
+          result.resToOffering_ = resToOfferingBuilder_.build();
+        }
         onBuilt();
         return result;
       }
@@ -26706,6 +27840,12 @@ public final class GameMessage {
         }
         if (other.getOfferSerial() != 0) {
           setOfferSerial(other.getOfferSerial());
+        }
+        if (other.hasResToAccepting()) {
+          mergeResToAccepting(other.getResToAccepting());
+        }
+        if (other.hasResToOffering()) {
+          mergeResToOffering(other.getResToOffering());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -26821,6 +27961,316 @@ public final class GameMessage {
         onChanged();
         return this;
       }
+
+      private soc.proto.Data.ResourceSet resToAccepting_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> resToAcceptingBuilder_;
+      /**
+       * <pre>
+       * resources being given to accepting player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToAccepting = 3;</code>
+       * @return Whether the resToAccepting field is set.
+       */
+      public boolean hasResToAccepting() {
+        return resToAcceptingBuilder_ != null || resToAccepting_ != null;
+      }
+      /**
+       * <pre>
+       * resources being given to accepting player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToAccepting = 3;</code>
+       * @return The resToAccepting.
+       */
+      public soc.proto.Data.ResourceSet getResToAccepting() {
+        if (resToAcceptingBuilder_ == null) {
+          return resToAccepting_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : resToAccepting_;
+        } else {
+          return resToAcceptingBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * resources being given to accepting player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToAccepting = 3;</code>
+       */
+      public Builder setResToAccepting(soc.proto.Data.ResourceSet value) {
+        if (resToAcceptingBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          resToAccepting_ = value;
+          onChanged();
+        } else {
+          resToAcceptingBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * resources being given to accepting player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToAccepting = 3;</code>
+       */
+      public Builder setResToAccepting(
+          soc.proto.Data.ResourceSet.Builder builderForValue) {
+        if (resToAcceptingBuilder_ == null) {
+          resToAccepting_ = builderForValue.build();
+          onChanged();
+        } else {
+          resToAcceptingBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * resources being given to accepting player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToAccepting = 3;</code>
+       */
+      public Builder mergeResToAccepting(soc.proto.Data.ResourceSet value) {
+        if (resToAcceptingBuilder_ == null) {
+          if (resToAccepting_ != null) {
+            resToAccepting_ =
+              soc.proto.Data.ResourceSet.newBuilder(resToAccepting_).mergeFrom(value).buildPartial();
+          } else {
+            resToAccepting_ = value;
+          }
+          onChanged();
+        } else {
+          resToAcceptingBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * resources being given to accepting player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToAccepting = 3;</code>
+       */
+      public Builder clearResToAccepting() {
+        if (resToAcceptingBuilder_ == null) {
+          resToAccepting_ = null;
+          onChanged();
+        } else {
+          resToAccepting_ = null;
+          resToAcceptingBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * resources being given to accepting player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToAccepting = 3;</code>
+       */
+      public soc.proto.Data.ResourceSet.Builder getResToAcceptingBuilder() {
+        
+        onChanged();
+        return getResToAcceptingFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * resources being given to accepting player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToAccepting = 3;</code>
+       */
+      public soc.proto.Data.ResourceSetOrBuilder getResToAcceptingOrBuilder() {
+        if (resToAcceptingBuilder_ != null) {
+          return resToAcceptingBuilder_.getMessageOrBuilder();
+        } else {
+          return resToAccepting_ == null ?
+              soc.proto.Data.ResourceSet.getDefaultInstance() : resToAccepting_;
+        }
+      }
+      /**
+       * <pre>
+       * resources being given to accepting player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToAccepting = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> 
+          getResToAcceptingFieldBuilder() {
+        if (resToAcceptingBuilder_ == null) {
+          resToAcceptingBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder>(
+                  getResToAccepting(),
+                  getParentForChildren(),
+                  isClean());
+          resToAccepting_ = null;
+        }
+        return resToAcceptingBuilder_;
+      }
+
+      private soc.proto.Data.ResourceSet resToOffering_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> resToOfferingBuilder_;
+      /**
+       * <pre>
+       * resources being given to offering player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToOffering = 4;</code>
+       * @return Whether the resToOffering field is set.
+       */
+      public boolean hasResToOffering() {
+        return resToOfferingBuilder_ != null || resToOffering_ != null;
+      }
+      /**
+       * <pre>
+       * resources being given to offering player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToOffering = 4;</code>
+       * @return The resToOffering.
+       */
+      public soc.proto.Data.ResourceSet getResToOffering() {
+        if (resToOfferingBuilder_ == null) {
+          return resToOffering_ == null ? soc.proto.Data.ResourceSet.getDefaultInstance() : resToOffering_;
+        } else {
+          return resToOfferingBuilder_.getMessage();
+        }
+      }
+      /**
+       * <pre>
+       * resources being given to offering player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToOffering = 4;</code>
+       */
+      public Builder setResToOffering(soc.proto.Data.ResourceSet value) {
+        if (resToOfferingBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          resToOffering_ = value;
+          onChanged();
+        } else {
+          resToOfferingBuilder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * resources being given to offering player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToOffering = 4;</code>
+       */
+      public Builder setResToOffering(
+          soc.proto.Data.ResourceSet.Builder builderForValue) {
+        if (resToOfferingBuilder_ == null) {
+          resToOffering_ = builderForValue.build();
+          onChanged();
+        } else {
+          resToOfferingBuilder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * resources being given to offering player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToOffering = 4;</code>
+       */
+      public Builder mergeResToOffering(soc.proto.Data.ResourceSet value) {
+        if (resToOfferingBuilder_ == null) {
+          if (resToOffering_ != null) {
+            resToOffering_ =
+              soc.proto.Data.ResourceSet.newBuilder(resToOffering_).mergeFrom(value).buildPartial();
+          } else {
+            resToOffering_ = value;
+          }
+          onChanged();
+        } else {
+          resToOfferingBuilder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * resources being given to offering player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToOffering = 4;</code>
+       */
+      public Builder clearResToOffering() {
+        if (resToOfferingBuilder_ == null) {
+          resToOffering_ = null;
+          onChanged();
+        } else {
+          resToOffering_ = null;
+          resToOfferingBuilder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <pre>
+       * resources being given to offering player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToOffering = 4;</code>
+       */
+      public soc.proto.Data.ResourceSet.Builder getResToOfferingBuilder() {
+        
+        onChanged();
+        return getResToOfferingFieldBuilder().getBuilder();
+      }
+      /**
+       * <pre>
+       * resources being given to offering player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToOffering = 4;</code>
+       */
+      public soc.proto.Data.ResourceSetOrBuilder getResToOfferingOrBuilder() {
+        if (resToOfferingBuilder_ != null) {
+          return resToOfferingBuilder_.getMessageOrBuilder();
+        } else {
+          return resToOffering_ == null ?
+              soc.proto.Data.ResourceSet.getDefaultInstance() : resToOffering_;
+        }
+      }
+      /**
+       * <pre>
+       * resources being given to offering player, if sent from server
+       * </pre>
+       *
+       * <code>.ResourceSet resToOffering = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> 
+          getResToOfferingFieldBuilder() {
+        if (resToOfferingBuilder_ == null) {
+          resToOfferingBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder>(
+                  getResToOffering(),
+                  getParentForChildren(),
+                  isClean());
+          resToOffering_ = null;
+        }
+        return resToOfferingBuilder_;
+      }
       @java.lang.Override
       public final Builder setUnknownFields(
           final com.google.protobuf.UnknownFieldSet unknownFields) {
@@ -26890,7 +28340,7 @@ public final class GameMessage {
 
     /**
      * <pre>
-     * from client: lose these resources
+     * the resources lost
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
@@ -26899,7 +28349,7 @@ public final class GameMessage {
     boolean hasLose();
     /**
      * <pre>
-     * from client: lose these resources
+     * the resources lost
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
@@ -26908,7 +28358,7 @@ public final class GameMessage {
     soc.proto.Data.ResourceSet getLose();
     /**
      * <pre>
-     * from client: lose these resources
+     * the resources lost
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
@@ -26920,12 +28370,15 @@ public final class GameMessage {
    * A player picks which resources to discard or lose.
    * - First sent to client as prompt with the amount to lose.
    * - Client player responds with specific resources from their hand.
-   * - If they have those resources to lose, server announces the total amount lost
-   *   to the game as PlayerElement(ELEM_UNKNOWN_RESOURCE=n, is_news=true).
-   *   Otherwise server re-sends the prompt to client.
-   * - If no other players need to discard, server will then send the new {&#64;link GameState}.
-   *   Or if waiting for others to discard, server sends the game a {&#64;link GameServerText} that lists
+   * - If they have those resources to lose: Server replies to them
+   *   with LoseResources(pn, lose), announces the total amount lost
+   *   to other game members as LoseResources(pn, unknownResources).
+   *   Otherwise: Server re-sends the prompt to client.
+   * - Server will then send the new {&#64;link State}.
+   *   If waiting for others to discard, server also sends the game a {&#64;link GameServerText} that lists
    *   who we're still waiting for.
+   *&lt;P&gt;
+   * Before v3.0.00 this message type was SOCDiscardRequest and SOCDiscard.
    * </pre>
    *
    * Protobuf type {@code LoseResources}
@@ -27041,7 +28494,7 @@ public final class GameMessage {
     private soc.proto.Data.ResourceSet lose_;
     /**
      * <pre>
-     * from client: lose these resources
+     * the resources lost
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
@@ -27053,7 +28506,7 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * from client: lose these resources
+     * the resources lost
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
@@ -27065,7 +28518,7 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * from client: lose these resources
+     * the resources lost
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
@@ -27251,12 +28704,15 @@ public final class GameMessage {
      * A player picks which resources to discard or lose.
      * - First sent to client as prompt with the amount to lose.
      * - Client player responds with specific resources from their hand.
-     * - If they have those resources to lose, server announces the total amount lost
-     *   to the game as PlayerElement(ELEM_UNKNOWN_RESOURCE=n, is_news=true).
-     *   Otherwise server re-sends the prompt to client.
-     * - If no other players need to discard, server will then send the new {&#64;link GameState}.
-     *   Or if waiting for others to discard, server sends the game a {&#64;link GameServerText} that lists
+     * - If they have those resources to lose: Server replies to them
+     *   with LoseResources(pn, lose), announces the total amount lost
+     *   to other game members as LoseResources(pn, unknownResources).
+     *   Otherwise: Server re-sends the prompt to client.
+     * - Server will then send the new {&#64;link State}.
+     *   If waiting for others to discard, server also sends the game a {&#64;link GameServerText} that lists
      *   who we're still waiting for.
+     *&lt;P&gt;
+     * Before v3.0.00 this message type was SOCDiscardRequest and SOCDiscard.
      * </pre>
      *
      * Protobuf type {@code LoseResources}
@@ -27467,7 +28923,7 @@ public final class GameMessage {
           soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> loseBuilder_;
       /**
        * <pre>
-       * from client: lose these resources
+       * the resources lost
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -27478,7 +28934,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * from client: lose these resources
+       * the resources lost
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -27493,7 +28949,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * from client: lose these resources
+       * the resources lost
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -27513,7 +28969,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * from client: lose these resources
+       * the resources lost
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -27531,7 +28987,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * from client: lose these resources
+       * the resources lost
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -27553,7 +29009,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * from client: lose these resources
+       * the resources lost
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -27571,7 +29027,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * from client: lose these resources
+       * the resources lost
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -27583,7 +29039,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * from client: lose these resources
+       * the resources lost
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -27598,7 +29054,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * from client: lose these resources
+       * the resources lost
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -28482,6 +29938,10 @@ public final class GameMessage {
    * A player picks a resource type, typically for a Monopoly card.
    * Sent by current player client in response to GameState(WAITING_FOR_MONOPOLY).
    *&lt;P&gt;
+   * If client isn't currently allowed to request that pick, server responds
+   * with {&#64;code SOCDeclinePlayerRequest}, or to an older client with
+   * {&#64;link GameServerText} and {&#64;link State}.
+   *&lt;P&gt;
    * Before v3.0.00 this message type was SOCPickResourceType.
    * </pre>
    *
@@ -28753,6 +30213,10 @@ public final class GameMessage {
      * <pre>
      * A player picks a resource type, typically for a Monopoly card.
      * Sent by current player client in response to GameState(WAITING_FOR_MONOPOLY).
+     *&lt;P&gt;
+     * If client isn't currently allowed to request that pick, server responds
+     * with {&#64;code SOCDeclinePlayerRequest}, or to an older client with
+     * {&#64;link GameServerText} and {&#64;link State}.
      *&lt;P&gt;
      * Before v3.0.00 this message type was SOCPickResourceType.
      * </pre>
@@ -29037,6 +30501,9 @@ public final class GameMessage {
      * <pre>
      * From client: player number to choose, or -1 for none if allowed.
      *&lt;P&gt;
+     * From client during game state {&#64;link Data.GameState.WAITING_FOR_ROBBER_OR_PIRATE}:
+     * -2 to move robber, or -3 to move pirate ship.
+     *&lt;P&gt;
      * From client during game state {&#64;link Data.GameState.WAITING_FOR_ROB_CLOTH_OR_RESOURCE}:
      * To rob a resource set this field to playerNumber as usual, to rob cloth set it to -(playerNumber + 1).
      * </pre>
@@ -29090,6 +30557,24 @@ public final class GameMessage {
    * A player chooses another player, typically to rob from.
    * This message type is used for the prompt from server,
    * and the response from client player.
+   *&lt;P&gt;
+   * In some game scenarios like {&#64;code SC_PIRI}, the player might have the option to steal from no one
+   * (see game state {&#64;link Data.GameState.WAITING_FOR_ROB_CHOOSE_PLAYER}).
+   *&lt;P&gt;
+   * In response to a server's State({&#64;link Data.GameState.WAITING_FOR_ROBBER_OR_PIRATE}),
+   * it says whether the player wants to move the robber or the pirate ship.
+   *&lt;P&gt;
+   * In response to a server's {&#64;link ChoosePlayer} message while in
+   * game state {&#64;link Data.GameState.WAITING_FOR_ROB_CLOTH_OR_RESOURCE},
+   * it says whether the player wants to rob cloth or rob a resource from the victim.
+   *&lt;P&gt;
+   * If client isn't currently allowed to make that choice, server responds
+   * with {&#64;code SOCDeclinePlayerRequest}.
+   *&lt;P&gt;
+   * If client is allowed but their choice is wrong (player number isn't a possible victim, etc),
+   * server resends {&#64;link ChoosePlayer} to that client.
+   *&lt;P&gt;
+   * Otherwise server will respond with the results of the choice: {&#64;link RobberyResult}, {&#64;link State}, etc.
    * </pre>
    *
    * Protobuf type {@code ChoosePlayer}
@@ -29209,6 +30694,9 @@ public final class GameMessage {
     /**
      * <pre>
      * From client: player number to choose, or -1 for none if allowed.
+     *&lt;P&gt;
+     * From client during game state {&#64;link Data.GameState.WAITING_FOR_ROBBER_OR_PIRATE}:
+     * -2 to move robber, or -3 to move pirate ship.
      *&lt;P&gt;
      * From client during game state {&#64;link Data.GameState.WAITING_FOR_ROB_CLOTH_OR_RESOURCE}:
      * To rob a resource set this field to playerNumber as usual, to rob cloth set it to -(playerNumber + 1).
@@ -29477,6 +30965,24 @@ public final class GameMessage {
      * A player chooses another player, typically to rob from.
      * This message type is used for the prompt from server,
      * and the response from client player.
+     *&lt;P&gt;
+     * In some game scenarios like {&#64;code SC_PIRI}, the player might have the option to steal from no one
+     * (see game state {&#64;link Data.GameState.WAITING_FOR_ROB_CHOOSE_PLAYER}).
+     *&lt;P&gt;
+     * In response to a server's State({&#64;link Data.GameState.WAITING_FOR_ROBBER_OR_PIRATE}),
+     * it says whether the player wants to move the robber or the pirate ship.
+     *&lt;P&gt;
+     * In response to a server's {&#64;link ChoosePlayer} message while in
+     * game state {&#64;link Data.GameState.WAITING_FOR_ROB_CLOTH_OR_RESOURCE},
+     * it says whether the player wants to rob cloth or rob a resource from the victim.
+     *&lt;P&gt;
+     * If client isn't currently allowed to make that choice, server responds
+     * with {&#64;code SOCDeclinePlayerRequest}.
+     *&lt;P&gt;
+     * If client is allowed but their choice is wrong (player number isn't a possible victim, etc),
+     * server resends {&#64;link ChoosePlayer} to that client.
+     *&lt;P&gt;
+     * Otherwise server will respond with the results of the choice: {&#64;link RobberyResult}, {&#64;link State}, etc.
      * </pre>
      *
      * Protobuf type {@code ChoosePlayer}
@@ -29655,6 +31161,9 @@ public final class GameMessage {
        * <pre>
        * From client: player number to choose, or -1 for none if allowed.
        *&lt;P&gt;
+       * From client during game state {&#64;link Data.GameState.WAITING_FOR_ROBBER_OR_PIRATE}:
+       * -2 to move robber, or -3 to move pirate ship.
+       *&lt;P&gt;
        * From client during game state {&#64;link Data.GameState.WAITING_FOR_ROB_CLOTH_OR_RESOURCE}:
        * To rob a resource set this field to playerNumber as usual, to rob cloth set it to -(playerNumber + 1).
        * </pre>
@@ -29669,6 +31178,9 @@ public final class GameMessage {
       /**
        * <pre>
        * From client: player number to choose, or -1 for none if allowed.
+       *&lt;P&gt;
+       * From client during game state {&#64;link Data.GameState.WAITING_FOR_ROBBER_OR_PIRATE}:
+       * -2 to move robber, or -3 to move pirate ship.
        *&lt;P&gt;
        * From client during game state {&#64;link Data.GameState.WAITING_FOR_ROB_CLOTH_OR_RESOURCE}:
        * To rob a resource set this field to playerNumber as usual, to rob cloth set it to -(playerNumber + 1).
@@ -29687,6 +31199,9 @@ public final class GameMessage {
       /**
        * <pre>
        * From client: player number to choose, or -1 for none if allowed.
+       *&lt;P&gt;
+       * From client during game state {&#64;link Data.GameState.WAITING_FOR_ROBBER_OR_PIRATE}:
+       * -2 to move robber, or -3 to move pirate ship.
        *&lt;P&gt;
        * From client during game state {&#64;link Data.GameState.WAITING_FOR_ROB_CLOTH_OR_RESOURCE}:
        * To rob a resource set this field to playerNumber as usual, to rob cloth set it to -(playerNumber + 1).
@@ -29910,7 +31425,7 @@ public final class GameMessage {
 
     /**
      * <pre>
-     * Move to this location
+     * Move to this location, or 0 to remove pirate ship
      * </pre>
      *
      * <code>.HexCoord move_to = 1;</code>
@@ -29919,7 +31434,7 @@ public final class GameMessage {
     boolean hasMoveTo();
     /**
      * <pre>
-     * Move to this location
+     * Move to this location, or 0 to remove pirate ship
      * </pre>
      *
      * <code>.HexCoord move_to = 1;</code>
@@ -29928,7 +31443,7 @@ public final class GameMessage {
     soc.proto.Data.HexCoord getMoveTo();
     /**
      * <pre>
-     * Move to this location
+     * Move to this location, or 0 to remove pirate ship
      * </pre>
      *
      * <code>.HexCoord move_to = 1;</code>
@@ -29961,14 +31476,20 @@ public final class GameMessage {
   }
   /**
    * <pre>
-   * A player moves the robber, or the pirate ship on the sea board.
+   * A player's request or server's announcement to move the robber or pirate ship.
    * - Server sends GameState(PLACING_ROBBER) or (PLACING_PIRATE)
    * - Client player responds with MoveRobber with a location to move to,
    *   and either is_robber or is_pirate flag.
    * - If player can move there, server announces the move to the game
-   *   with MoveRobber and the new game state.
-   *   Otherwise server sends error text to the client and
+   *   with MoveRobber and the new game state. May be followed by other messages
+   *   about gaining/losing resources: {&#64;link RobberyResult} or {&#64;link PlayerElement}.
+   *   So for this message, the client should only call {&#64;link soc.game.SOCBoard#setRobberHex(int, boolean)}
+   *   and not {&#64;link soc.game.SOCGame#moveRobber(int, int)}.
+   * - Otherwise server sends {&#64;code SOCDeclinePlayerRequest} to the client and
    *   game state remains PLACING_ROBBER or PLACING_PIRATE.
+   *&lt;P&gt;
+   * Once the robber is placed on the board, it cannot be taken off the board.
+   * The pirate can be taken off by sending {&#64;code move_to = 0}.
    * </pre>
    *
    * Protobuf type {@code MoveRobber}
@@ -30074,7 +31595,7 @@ public final class GameMessage {
     private soc.proto.Data.HexCoord moveTo_;
     /**
      * <pre>
-     * Move to this location
+     * Move to this location, or 0 to remove pirate ship
      * </pre>
      *
      * <code>.HexCoord move_to = 1;</code>
@@ -30086,7 +31607,7 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * Move to this location
+     * Move to this location, or 0 to remove pirate ship
      * </pre>
      *
      * <code>.HexCoord move_to = 1;</code>
@@ -30098,7 +31619,7 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * Move to this location
+     * Move to this location, or 0 to remove pirate ship
      * </pre>
      *
      * <code>.HexCoord move_to = 1;</code>
@@ -30328,14 +31849,20 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * A player moves the robber, or the pirate ship on the sea board.
+     * A player's request or server's announcement to move the robber or pirate ship.
      * - Server sends GameState(PLACING_ROBBER) or (PLACING_PIRATE)
      * - Client player responds with MoveRobber with a location to move to,
      *   and either is_robber or is_pirate flag.
      * - If player can move there, server announces the move to the game
-     *   with MoveRobber and the new game state.
-     *   Otherwise server sends error text to the client and
+     *   with MoveRobber and the new game state. May be followed by other messages
+     *   about gaining/losing resources: {&#64;link RobberyResult} or {&#64;link PlayerElement}.
+     *   So for this message, the client should only call {&#64;link soc.game.SOCBoard#setRobberHex(int, boolean)}
+     *   and not {&#64;link soc.game.SOCGame#moveRobber(int, int)}.
+     * - Otherwise server sends {&#64;code SOCDeclinePlayerRequest} to the client and
      *   game state remains PLACING_ROBBER or PLACING_PIRATE.
+     *&lt;P&gt;
+     * Once the robber is placed on the board, it cannot be taken off the board.
+     * The pirate can be taken off by sending {&#64;code move_to = 0}.
      * </pre>
      *
      * Protobuf type {@code MoveRobber}
@@ -30509,7 +32036,7 @@ public final class GameMessage {
           soc.proto.Data.HexCoord, soc.proto.Data.HexCoord.Builder, soc.proto.Data.HexCoordOrBuilder> moveToBuilder_;
       /**
        * <pre>
-       * Move to this location
+       * Move to this location, or 0 to remove pirate ship
        * </pre>
        *
        * <code>.HexCoord move_to = 1;</code>
@@ -30520,7 +32047,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Move to this location
+       * Move to this location, or 0 to remove pirate ship
        * </pre>
        *
        * <code>.HexCoord move_to = 1;</code>
@@ -30535,7 +32062,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Move to this location
+       * Move to this location, or 0 to remove pirate ship
        * </pre>
        *
        * <code>.HexCoord move_to = 1;</code>
@@ -30555,7 +32082,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Move to this location
+       * Move to this location, or 0 to remove pirate ship
        * </pre>
        *
        * <code>.HexCoord move_to = 1;</code>
@@ -30573,7 +32100,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Move to this location
+       * Move to this location, or 0 to remove pirate ship
        * </pre>
        *
        * <code>.HexCoord move_to = 1;</code>
@@ -30595,7 +32122,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Move to this location
+       * Move to this location, or 0 to remove pirate ship
        * </pre>
        *
        * <code>.HexCoord move_to = 1;</code>
@@ -30613,7 +32140,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Move to this location
+       * Move to this location, or 0 to remove pirate ship
        * </pre>
        *
        * <code>.HexCoord move_to = 1;</code>
@@ -30625,7 +32152,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Move to this location
+       * Move to this location, or 0 to remove pirate ship
        * </pre>
        *
        * <code>.HexCoord move_to = 1;</code>
@@ -30640,7 +32167,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * Move to this location
+       * Move to this location, or 0 to remove pirate ship
        * </pre>
        *
        * <code>.HexCoord move_to = 1;</code>
@@ -41351,11 +42878,19 @@ public final class GameMessage {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * the game; some message types may send special marker {&#64;link SOCMessage#GAME_NONE}
+     * </pre>
+     *
      * <code>string game_name = 1;</code>
      * @return The gameName.
      */
     java.lang.String getGameName();
     /**
+     * <pre>
+     * the game; some message types may send special marker {&#64;link SOCMessage#GAME_NONE}
+     * </pre>
+     *
      * <code>string game_name = 1;</code>
      * @return The bytes for gameName.
      */
@@ -42168,6 +43703,10 @@ public final class GameMessage {
     public static final int GAME_NAME_FIELD_NUMBER = 1;
     private volatile java.lang.Object gameName_;
     /**
+     * <pre>
+     * the game; some message types may send special marker {&#64;link SOCMessage#GAME_NONE}
+     * </pre>
+     *
      * <code>string game_name = 1;</code>
      * @return The gameName.
      */
@@ -42185,6 +43724,10 @@ public final class GameMessage {
       }
     }
     /**
+     * <pre>
+     * the game; some message types may send special marker {&#64;link SOCMessage#GAME_NONE}
+     * </pre>
+     *
      * <code>string game_name = 1;</code>
      * @return The bytes for gameName.
      */
@@ -43739,6 +45282,10 @@ public final class GameMessage {
 
       private java.lang.Object gameName_ = "";
       /**
+       * <pre>
+       * the game; some message types may send special marker {&#64;link SOCMessage#GAME_NONE}
+       * </pre>
+       *
        * <code>string game_name = 1;</code>
        * @return The gameName.
        */
@@ -43755,6 +45302,10 @@ public final class GameMessage {
         }
       }
       /**
+       * <pre>
+       * the game; some message types may send special marker {&#64;link SOCMessage#GAME_NONE}
+       * </pre>
+       *
        * <code>string game_name = 1;</code>
        * @return The bytes for gameName.
        */
@@ -43772,6 +45323,10 @@ public final class GameMessage {
         }
       }
       /**
+       * <pre>
+       * the game; some message types may send special marker {&#64;link SOCMessage#GAME_NONE}
+       * </pre>
+       *
        * <code>string game_name = 1;</code>
        * @param value The gameName to set.
        * @return This builder for chaining.
@@ -43787,6 +45342,10 @@ public final class GameMessage {
         return this;
       }
       /**
+       * <pre>
+       * the game; some message types may send special marker {&#64;link SOCMessage#GAME_NONE}
+       * </pre>
+       *
        * <code>string game_name = 1;</code>
        * @return This builder for chaining.
        */
@@ -43797,6 +45356,10 @@ public final class GameMessage {
         return this;
       }
       /**
+       * <pre>
+       * the game; some message types may send special marker {&#64;link SOCMessage#GAME_NONE}
+       * </pre>
+       *
        * <code>string game_name = 1;</code>
        * @param value The bytes for gameName to set.
        * @return This builder for chaining.
@@ -47130,119 +48693,129 @@ public final class GameMessage {
       "\030\003 \001(\021\022\017\n\007is_news\030\004 \001(\010\"t\n\016PlayerElement" +
       "s\022%\n\006action\030\001 \001(\0162\025._PlayerElementAction" +
       "\022*\n\relement_types\030\002 \003(\0162\023._PlayerElement" +
-      "Type\022\017\n\007amounts\030\003 \003(\021\"\376\001\n\014GameElements\0221" +
+      "Type\022\017\n\007amounts\030\003 \003(\021\"\241\002\n\014GameElements\0221" +
       "\n\relement_types\030\001 \003(\0162\032.GameElements._El" +
-      "ementType\022\016\n\006values\030\002 \003(\021\"\252\001\n\014_ElementTy" +
+      "ementType\022\016\n\006values\030\002 \003(\021\"\315\001\n\014_ElementTy" +
       "pe\022\035\n\031_UNSENT_DEFAULT_GAME_ELEM\020\000\022\017\n\013ROU" +
       "ND_COUNT\020\001\022\022\n\016DEV_CARD_COUNT\020\002\022\020\n\014FIRST_" +
       "PLAYER\020\003\022\022\n\016CURRENT_PLAYER\020\004\022\027\n\023LARGEST_" +
-      "ARMY_PLAYER\020\005\022\027\n\023LONGEST_ROAD_PLAYER\020\006\"&" +
-      "\n\tStartGame\022\031\n\005state\030\001 \001(\0162\n.GameState\"!" +
-      "\n\004Turn\022\031\n\005state\030\001 \001(\0162\n.GameState\"\t\n\007Set" +
-      "Turn\"\021\n\017DiceRollRequest\" \n\nDiceResult\022\022\n" +
-      "\ndice_total\030\001 \001(\021\"\264\001\n\023DiceResultResource" +
-      "s\022>\n\020player_resources\030\001 \003(\0132$.DiceResult" +
-      "Resources.PlayerResources\032]\n\017PlayerResou" +
-      "rces\022\025\n\rplayer_number\030\001 \001(\r\022 \n\nres_gaine" +
-      "d\030\002 \001(\0132\014.ResourceSet\022\021\n\tres_total\030\003 \001(\r" +
-      "\"\t\n\007EndTurn\"F\n\rTradeWithBank\022\032\n\004give\030\001 \001" +
-      "(\0132\014.ResourceSet\022\031\n\003get\030\002 \001(\0132\014.Resource" +
-      "Set\"}\n\016TradeMakeOffer\022\032\n\004give\030\001 \001(\0132\014.Re" +
-      "sourceSet\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\022\036\n\n" +
-      "to_players\030\003 \001(\0132\n._IntArray\022\024\n\014offer_se" +
-      "rial\030\004 \001(\005\"\021\n\017TradeClearOffer\"\022\n\020TradeRe" +
-      "jectOffer\"H\n\020TradeAcceptOffer\022\036\n\026offerin" +
-      "g_player_number\030\001 \001(\005\022\024\n\014offer_serial\030\002 " +
-      "\001(\005\";\n\rLoseResources\022\016\n\006amount\030\001 \001(\005\022\032\n\004" +
-      "lose\030\002 \001(\0132\014.ResourceSet\";\n\rGainResource" +
-      "s\022\016\n\006amount\030\001 \001(\005\022\032\n\004gain\030\002 \001(\0132\014.Resour" +
-      "ceSet\"2\n\022ChooseResourceType\022\034\n\005rtype\030\001 \001" +
-      "(\0162\r.ResourceType\"g\n\014ChoosePlayer\022\034\n\024cho" +
-      "sen_player_number\030\001 \001(\021\022\027\n\017can_choose_no" +
-      "ne\030\002 \001(\010\022 \n\030chooseable_player_number\030\003 \003" +
-      "(\r\"N\n\nMoveRobber\022\032\n\007move_to\030\001 \001(\0132\t.HexC" +
-      "oord\022\021\n\tis_robber\030\002 \001(\010\022\021\n\tis_pirate\030\003 \001" +
-      "(\010\"\023\n\021ResetBoardRequest\" \n\016ResetBoardVot" +
-      "e\022\016\n\006is_yes\030\001 \001(\010\"(\n\020ResetBoardResult\022\024\n" +
-      "\014was_rejected\030\001 \001(\010\"\200\014\n\025GameMessageFromS" +
-      "erver\022\021\n\tgame_name\030\001 \001(\t\022\025\n\rplayer_numbe" +
-      "r\030\002 \001(\021\022\034\n\ngame_state\030\003 \001(\0132\006.StateH\000\022(\n" +
-      "\016player_element\030\017 \001(\0132\016.PlayerElementH\000\022" +
-      "*\n\017player_elements\030\020 \001(\0132\017.PlayerElement" +
-      "sH\000\022&\n\rgame_elements\030\021 \001(\0132\r.GameElement" +
-      "sH\000\022$\n\014board_layout\030\036 \001(\0132\014.BoardLayoutH" +
-      "\000\0226\n\025potential_settlements\030\037 \001(\0132\025.Poten" +
-      "tialSettlementsH\000\022\"\n\013piece_value\030  \001(\0132\013" +
-      ".PieceValueH\000\022\"\n\013build_piece\030! \001(\0132\013.Bui" +
-      "ldPieceH\000\022$\n\014cancel_build\030\" \001(\0132\014.Cancel" +
-      "BuildH\000\022 \n\nmove_piece\030# \001(\0132\n.MovePieceH" +
-      "\000\022$\n\014remove_piece\030$ \001(\0132\014.RemovePieceH\000\022" +
-      "\'\n\016reveal_fog_hex\030% \001(\0132\r.RevealFogHexH\000" +
-      "\022 \n\nstart_game\030d \001(\0132\n.StartGameH\000\022\025\n\004tu" +
-      "rn\030e \001(\0132\005.TurnH\000\022\034\n\010set_turn\030f \001(\0132\010.Se" +
-      "tTurnH\000\022-\n\021dice_roll_request\030g \001(\0132\020.Dic" +
-      "eRollRequestH\000\022\"\n\013dice_result\030h \001(\0132\013.Di" +
-      "ceResultH\000\0225\n\025dice_result_resources\030i \001(" +
-      "\0132\024.DiceResultResourcesH\000\0226\n\025inventory_i" +
-      "tem_action\030\256\002 \001(\0132\024.InventoryItemActionH" +
-      "\000\022*\n\017trade_with_bank\030\220\003 \001(\0132\016.TradeWithB" +
-      "ankH\000\022,\n\020trade_make_offer\030\221\003 \001(\0132\017.Trade" +
-      "MakeOfferH\000\022.\n\021trade_clear_offer\030\222\003 \001(\0132" +
-      "\020.TradeClearOfferH\000\0220\n\022trade_reject_offe" +
-      "r\030\223\003 \001(\0132\021.TradeRejectOfferH\000\0220\n\022trade_a" +
-      "ccept_offer\030\224\003 \001(\0132\021.TradeAcceptOfferH\000\022" +
-      "0\n\025lose_resources_prompt\030\364\003 \001(\0132\016.LoseRe" +
-      "sourcesH\000\022)\n\016lose_resources\030\365\003 \001(\0132\016.Los" +
-      "eResourcesH\000\0220\n\025gain_resources_prompt\030\366\003" +
-      " \001(\0132\016.GainResourcesH\000\022)\n\016gain_resources" +
-      "\030\367\003 \001(\0132\016.GainResourcesH\000\022.\n\024choose_play" +
-      "er_prompt\030\370\003 \001(\0132\r.ChoosePlayerH\000\022#\n\013mov" +
-      "e_robber\030\371\003 \001(\0132\013.MoveRobberH\000\0222\n\023reset_" +
-      "board_request\030\350\007 \001(\0132\022.ResetBoardRequest" +
-      "H\000\0223\n\027reset_board_vote_prompt\030\351\007 \001(\0132\017.R" +
-      "esetBoardVoteH\000\022,\n\020reset_board_vote\030\352\007 \001" +
-      "(\0132\017.ResetBoardVoteH\000\0220\n\022reset_board_res" +
-      "ult\030\353\007 \001(\0132\021.ResetBoardResultH\000B\005\n\003msg\"\252" +
-      "\007\n\025GameMessageFromClient\022\021\n\tgame_name\030\001 " +
-      "\001(\t\022 \n\nstart_game\030d \001(\0132\n.StartGameH\000\022-\n" +
-      "\021dice_roll_request\030e \001(\0132\020.DiceRollReque" +
-      "stH\000\022\034\n\010end_turn\030f \001(\0132\010.EndTurnH\000\022#\n\013bu" +
-      "ild_piece\030\310\001 \001(\0132\013.BuildPieceH\000\022%\n\014cance" +
-      "l_build\030\311\001 \001(\0132\014.CancelBuildH\000\022!\n\nmove_p" +
-      "iece\030\312\001 \001(\0132\n.MovePieceH\000\0227\n\022buy_invento" +
-      "ry_item\030\313\001 \001(\0132\030.BuyInventoryItemRequest" +
-      "H\000\0226\n\025inventory_item_action\030\314\001 \001(\0132\024.Inv" +
-      "entoryItemActionH\000\022*\n\017trade_with_bank\030\220\003" +
-      " \001(\0132\016.TradeWithBankH\000\022,\n\020trade_make_off" +
-      "er\030\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021trade_cl" +
-      "ear_offer\030\222\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022" +
-      "trade_reject_offer\030\223\003 \001(\0132\021.TradeRejectO" +
-      "fferH\000\0220\n\022trade_accept_offer\030\224\003 \001(\0132\021.Tr" +
-      "adeAcceptOfferH\000\022)\n\016lose_resources\030\364\003 \001(" +
-      "\0132\016.LoseResourcesH\000\022)\n\016gain_resources\030\365\003" +
-      " \001(\0132\016.GainResourcesH\000\0224\n\024choose_resourc" +
-      "e_type\030\366\003 \001(\0132\023.ChooseResourceTypeH\000\022\'\n\r" +
-      "choose_player\030\367\003 \001(\0132\r.ChoosePlayerH\000\022#\n" +
-      "\013move_robber\030\370\003 \001(\0132\013.MoveRobberH\000\0222\n\023re" +
-      "set_board_request\030\350\007 \001(\0132\022.ResetBoardReq" +
-      "uestH\000\022,\n\020reset_board_vote\030\351\007 \001(\0132\017.Rese" +
-      "tBoardVoteH\000B\005\n\003msg*O\n\024_PlayerElementAct" +
-      "ion\022\032\n\026_UNSENT_DEFAULT_ACTION\020\000\022\007\n\003SET\020\001" +
-      "\022\010\n\004GAIN\020\002\022\010\n\004LOSE\020\003*\206\004\n\022_PlayerElementT" +
-      "ype\022\037\n\033_UNSENT_DEFAULT_PLAYER_ELEM\020\000\022\r\n\t" +
-      "ELEM_CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_SHEEP\020" +
-      "\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031\n\025ELEM" +
-      "_UNKNOWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013SETTLE" +
-      "MENTS\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\nNUMKNI" +
-      "GHTS\020\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\022\n\016RESOURC" +
-      "E_COUNT\020\021\022\030\n\024LAST_SETTLEMENT_NODE\020\022\022\030\n\024P" +
-      "LAYED_DEV_CARD_FLAG\020\023\022\037\n\033NUM_PICK_GOLD_H" +
-      "EX_RESOURCES\020e\022\020\n\014SCENARIO_SVP\020f\022!\n\035SCEN" +
-      "ARIO_PLAYEREVENTS_BITMASK\020g\022\"\n\036SCENARIO_" +
-      "SVP_LANDAREAS_BITMASK\020h\022\026\n\022STARTING_LAND" +
-      "AREAS\020i\022\030\n\024SCENARIO_CLOTH_COUNT\020j\022\032\n\026SCE" +
-      "NARIO_WARSHIP_COUNT\020kB\r\n\tsoc.protoH\001P\000b\006" +
-      "proto3"
+      "ARMY_PLAYER\020\005\022\027\n\023LONGEST_ROAD_PLAYER\020\006\022!" +
+      "\n\035SPECIAL_BUILDING_AFTER_PLAYER\020\007\"&\n\tSta" +
+      "rtGame\022\031\n\005state\030\001 \001(\0162\n.GameState\"!\n\004Tur" +
+      "n\022\031\n\005state\030\001 \001(\0162\n.GameState\"\t\n\007SetTurn\"" +
+      "\021\n\017DiceRollRequest\" \n\nDiceResult\022\022\n\ndice" +
+      "_total\030\001 \001(\021\"\264\001\n\023DiceResultResources\022>\n\020" +
+      "player_resources\030\001 \003(\0132$.DiceResultResou" +
+      "rces.PlayerResources\032]\n\017PlayerResources\022" +
+      "\025\n\rplayer_number\030\001 \001(\r\022 \n\nres_gained\030\002 \001" +
+      "(\0132\014.ResourceSet\022\021\n\tres_total\030\003 \001(\r\"\t\n\007E" +
+      "ndTurn\"F\n\rTradeWithBank\022\032\n\004give\030\001 \001(\0132\014." +
+      "ResourceSet\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\"}" +
+      "\n\016TradeMakeOffer\022\032\n\004give\030\001 \001(\0132\014.Resourc" +
+      "eSet\022\031\n\003get\030\002 \001(\0132\014.ResourceSet\022\036\n\nto_pl" +
+      "ayers\030\003 \001(\0132\n._IntArray\022\024\n\014offer_serial\030" +
+      "\004 \001(\005\"\021\n\017TradeClearOffer\"\300\001\n\020TradeReject" +
+      "Offer\0222\n\013reason_code\030\001 \001(\0162\035.TradeReject" +
+      "Offer._ReasonCode\"x\n\013_ReasonCode\022\023\n\017_UNS" +
+      "ENT_DEFAULT\020\000\022\034\n\030REASON_CANNOT_MAKE_TRAD" +
+      "E\020\001\022\030\n\024REASON_NOT_YOUR_TURN\020\002\022\034\n\030REASON_" +
+      "CANNOT_MAKE_OFFER\020\003\"\223\001\n\020TradeAcceptOffer" +
+      "\022\036\n\026offering_player_number\030\001 \001(\005\022\024\n\014offe" +
+      "r_serial\030\002 \001(\005\022$\n\016resToAccepting\030\003 \001(\0132\014" +
+      ".ResourceSet\022#\n\rresToOffering\030\004 \001(\0132\014.Re" +
+      "sourceSet\";\n\rLoseResources\022\016\n\006amount\030\001 \001" +
+      "(\005\022\032\n\004lose\030\002 \001(\0132\014.ResourceSet\";\n\rGainRe" +
+      "sources\022\016\n\006amount\030\001 \001(\005\022\032\n\004gain\030\002 \001(\0132\014." +
+      "ResourceSet\"2\n\022ChooseResourceType\022\034\n\005rty" +
+      "pe\030\001 \001(\0162\r.ResourceType\"g\n\014ChoosePlayer\022" +
+      "\034\n\024chosen_player_number\030\001 \001(\021\022\027\n\017can_cho" +
+      "ose_none\030\002 \001(\010\022 \n\030chooseable_player_numb" +
+      "er\030\003 \003(\r\"N\n\nMoveRobber\022\032\n\007move_to\030\001 \001(\0132" +
+      "\t.HexCoord\022\021\n\tis_robber\030\002 \001(\010\022\021\n\tis_pira" +
+      "te\030\003 \001(\010\"\023\n\021ResetBoardRequest\" \n\016ResetBo" +
+      "ardVote\022\016\n\006is_yes\030\001 \001(\010\"(\n\020ResetBoardRes" +
+      "ult\022\024\n\014was_rejected\030\001 \001(\010\"\200\014\n\025GameMessag" +
+      "eFromServer\022\021\n\tgame_name\030\001 \001(\t\022\025\n\rplayer" +
+      "_number\030\002 \001(\021\022\034\n\ngame_state\030\003 \001(\0132\006.Stat" +
+      "eH\000\022(\n\016player_element\030\017 \001(\0132\016.PlayerElem" +
+      "entH\000\022*\n\017player_elements\030\020 \001(\0132\017.PlayerE" +
+      "lementsH\000\022&\n\rgame_elements\030\021 \001(\0132\r.GameE" +
+      "lementsH\000\022$\n\014board_layout\030\036 \001(\0132\014.BoardL" +
+      "ayoutH\000\0226\n\025potential_settlements\030\037 \001(\0132\025" +
+      ".PotentialSettlementsH\000\022\"\n\013piece_value\030 " +
+      " \001(\0132\013.PieceValueH\000\022\"\n\013build_piece\030! \001(\013" +
+      "2\013.BuildPieceH\000\022$\n\014cancel_build\030\" \001(\0132\014." +
+      "CancelBuildH\000\022 \n\nmove_piece\030# \001(\0132\n.Move" +
+      "PieceH\000\022$\n\014remove_piece\030$ \001(\0132\014.RemovePi" +
+      "eceH\000\022\'\n\016reveal_fog_hex\030% \001(\0132\r.RevealFo" +
+      "gHexH\000\022 \n\nstart_game\030d \001(\0132\n.StartGameH\000" +
+      "\022\025\n\004turn\030e \001(\0132\005.TurnH\000\022\034\n\010set_turn\030f \001(" +
+      "\0132\010.SetTurnH\000\022-\n\021dice_roll_request\030g \001(\013" +
+      "2\020.DiceRollRequestH\000\022\"\n\013dice_result\030h \001(" +
+      "\0132\013.DiceResultH\000\0225\n\025dice_result_resource" +
+      "s\030i \001(\0132\024.DiceResultResourcesH\000\0226\n\025inven" +
+      "tory_item_action\030\256\002 \001(\0132\024.InventoryItemA" +
+      "ctionH\000\022*\n\017trade_with_bank\030\220\003 \001(\0132\016.Trad" +
+      "eWithBankH\000\022,\n\020trade_make_offer\030\221\003 \001(\0132\017" +
+      ".TradeMakeOfferH\000\022.\n\021trade_clear_offer\030\222" +
+      "\003 \001(\0132\020.TradeClearOfferH\000\0220\n\022trade_rejec" +
+      "t_offer\030\223\003 \001(\0132\021.TradeRejectOfferH\000\0220\n\022t" +
+      "rade_accept_offer\030\224\003 \001(\0132\021.TradeAcceptOf" +
+      "ferH\000\0220\n\025lose_resources_prompt\030\364\003 \001(\0132\016." +
+      "LoseResourcesH\000\022)\n\016lose_resources\030\365\003 \001(\013" +
+      "2\016.LoseResourcesH\000\0220\n\025gain_resources_pro" +
+      "mpt\030\366\003 \001(\0132\016.GainResourcesH\000\022)\n\016gain_res" +
+      "ources\030\367\003 \001(\0132\016.GainResourcesH\000\022.\n\024choos" +
+      "e_player_prompt\030\370\003 \001(\0132\r.ChoosePlayerH\000\022" +
+      "#\n\013move_robber\030\371\003 \001(\0132\013.MoveRobberH\000\0222\n\023" +
+      "reset_board_request\030\350\007 \001(\0132\022.ResetBoardR" +
+      "equestH\000\0223\n\027reset_board_vote_prompt\030\351\007 \001" +
+      "(\0132\017.ResetBoardVoteH\000\022,\n\020reset_board_vot" +
+      "e\030\352\007 \001(\0132\017.ResetBoardVoteH\000\0220\n\022reset_boa" +
+      "rd_result\030\353\007 \001(\0132\021.ResetBoardResultH\000B\005\n" +
+      "\003msg\"\252\007\n\025GameMessageFromClient\022\021\n\tgame_n" +
+      "ame\030\001 \001(\t\022 \n\nstart_game\030d \001(\0132\n.StartGam" +
+      "eH\000\022-\n\021dice_roll_request\030e \001(\0132\020.DiceRol" +
+      "lRequestH\000\022\034\n\010end_turn\030f \001(\0132\010.EndTurnH\000" +
+      "\022#\n\013build_piece\030\310\001 \001(\0132\013.BuildPieceH\000\022%\n" +
+      "\014cancel_build\030\311\001 \001(\0132\014.CancelBuildH\000\022!\n\n" +
+      "move_piece\030\312\001 \001(\0132\n.MovePieceH\000\0227\n\022buy_i" +
+      "nventory_item\030\313\001 \001(\0132\030.BuyInventoryItemR" +
+      "equestH\000\0226\n\025inventory_item_action\030\314\001 \001(\013" +
+      "2\024.InventoryItemActionH\000\022*\n\017trade_with_b" +
+      "ank\030\220\003 \001(\0132\016.TradeWithBankH\000\022,\n\020trade_ma" +
+      "ke_offer\030\221\003 \001(\0132\017.TradeMakeOfferH\000\022.\n\021tr" +
+      "ade_clear_offer\030\222\003 \001(\0132\020.TradeClearOffer" +
+      "H\000\0220\n\022trade_reject_offer\030\223\003 \001(\0132\021.TradeR" +
+      "ejectOfferH\000\0220\n\022trade_accept_offer\030\224\003 \001(" +
+      "\0132\021.TradeAcceptOfferH\000\022)\n\016lose_resources" +
+      "\030\364\003 \001(\0132\016.LoseResourcesH\000\022)\n\016gain_resour" +
+      "ces\030\365\003 \001(\0132\016.GainResourcesH\000\0224\n\024choose_r" +
+      "esource_type\030\366\003 \001(\0132\023.ChooseResourceType" +
+      "H\000\022\'\n\rchoose_player\030\367\003 \001(\0132\r.ChoosePlaye" +
+      "rH\000\022#\n\013move_robber\030\370\003 \001(\0132\013.MoveRobberH\000" +
+      "\0222\n\023reset_board_request\030\350\007 \001(\0132\022.ResetBo" +
+      "ardRequestH\000\022,\n\020reset_board_vote\030\351\007 \001(\0132" +
+      "\017.ResetBoardVoteH\000B\005\n\003msg*O\n\024_PlayerElem" +
+      "entAction\022\032\n\026_UNSENT_DEFAULT_ACTION\020\000\022\007\n" +
+      "\003SET\020\001\022\010\n\004GAIN\020\002\022\010\n\004LOSE\020\003*\212\005\n\022_PlayerEl" +
+      "ementType\022\037\n\033_UNSENT_DEFAULT_PLAYER_ELEM" +
+      "\020\000\022\r\n\tELEM_CLAY\020\001\022\014\n\010ELEM_ORE\020\002\022\016\n\nELEM_" +
+      "SHEEP\020\003\022\016\n\nELEM_WHEAT\020\004\022\r\n\tELEM_WOOD\020\005\022\031" +
+      "\n\025ELEM_UNKNOWN_RESOURCE\020\006\022\t\n\005ROADS\020\n\022\017\n\013" +
+      "SETTLEMENTS\020\013\022\n\n\006CITIES\020\014\022\t\n\005SHIPS\020\r\022\016\n\n" +
+      "NUMKNIGHTS\020\017\022\025\n\021ASK_SPECIAL_BUILD\020\020\022\022\n\016R" +
+      "ESOURCE_COUNT\020\021\022\030\n\024LAST_SETTLEMENT_NODE\020" +
+      "\022\022\030\n\024PLAYED_DEV_CARD_FLAG\020\023\022\020\n\014DISCARD_F" +
+      "LAG\020\024\022\025\n\021HAS_SPECIAL_BUILT\020\025\022\034\n\030NUM_PLAY" +
+      "ED_DEV_CARD_DISC\020\026\022\034\n\030NUM_PLAYED_DEV_CAR" +
+      "D_MONO\020\027\022\035\n\031NUM_PLAYED_DEV_CARD_ROADS\020\030\022" +
+      "\037\n\033NUM_PICK_GOLD_HEX_RESOURCES\020e\022\020\n\014SCEN" +
+      "ARIO_SVP\020f\022!\n\035SCENARIO_PLAYEREVENTS_BITM" +
+      "ASK\020g\022\"\n\036SCENARIO_SVP_LANDAREAS_BITMASK\020" +
+      "h\022\026\n\022STARTING_LANDAREAS\020i\022\030\n\024SCENARIO_CL" +
+      "OTH_COUNT\020j\022\032\n\026SCENARIO_WARSHIP_COUNT\020kB" +
+      "\r\n\tsoc.protoH\001P\000b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -47422,13 +48995,13 @@ public final class GameMessage {
     internal_static_TradeRejectOffer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeRejectOffer_descriptor,
-        new java.lang.String[] { });
+        new java.lang.String[] { "ReasonCode", });
     internal_static_TradeAcceptOffer_descriptor =
       getDescriptor().getMessageTypes().get(25);
     internal_static_TradeAcceptOffer_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_TradeAcceptOffer_descriptor,
-        new java.lang.String[] { "OfferingPlayerNumber", "OfferSerial", });
+        new java.lang.String[] { "OfferingPlayerNumber", "OfferSerial", "ResToAccepting", "ResToOffering", });
     internal_static_LoseResources_descriptor =
       getDescriptor().getMessageTypes().get(26);
     internal_static_LoseResources_fieldAccessorTable = new

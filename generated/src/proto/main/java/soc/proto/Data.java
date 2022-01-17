@@ -1179,10 +1179,18 @@ public final class Data {
      */
     PLACING_SHIP(35),
     /**
+     * <pre>
+     * Player is placing their first free road/ship. If {&#64;link soc.game.SOCGame#getCurrentDice()} == 0, the Road Building card was played before rolling the dice.
+     * </pre>
+     *
      * <code>PLACING_FREE_ROAD1 = 40;</code>
      */
     PLACING_FREE_ROAD1(40),
     /**
+     * <pre>
+     * Player is placing their second free road/ship. If {&#64;link soc.game.SOCGame#getCurrentDice()} == 0, the Road Building card was played before rolling the dice.
+     * </pre>
+     *
      * <code>PLACING_FREE_ROAD2 = 41;</code>
      */
     PLACING_FREE_ROAD2(41),
@@ -1238,6 +1246,22 @@ public final class Data {
      * <code>SPECIAL_BUILDING = 100;</code>
      */
     SPECIAL_BUILDING(100),
+    /**
+     * <pre>
+     * A saved game is being loaded
+     * </pre>
+     *
+     * <code>LOADING = 990;</code>
+     */
+    LOADING(990),
+    /**
+     * <pre>
+     * A saved game was loaded and is about to resume, now waiting for some bots to rejoin
+     * </pre>
+     *
+     * <code>LOADING_RESUMING = 992;</code>
+     */
+    LOADING_RESUMING(992),
     /**
      * <pre>
      * The game is over
@@ -1378,10 +1402,18 @@ public final class Data {
      */
     public static final int PLACING_SHIP_VALUE = 35;
     /**
+     * <pre>
+     * Player is placing their first free road/ship. If {&#64;link soc.game.SOCGame#getCurrentDice()} == 0, the Road Building card was played before rolling the dice.
+     * </pre>
+     *
      * <code>PLACING_FREE_ROAD1 = 40;</code>
      */
     public static final int PLACING_FREE_ROAD1_VALUE = 40;
     /**
+     * <pre>
+     * Player is placing their second free road/ship. If {&#64;link soc.game.SOCGame#getCurrentDice()} == 0, the Road Building card was played before rolling the dice.
+     * </pre>
+     *
      * <code>PLACING_FREE_ROAD2 = 41;</code>
      */
     public static final int PLACING_FREE_ROAD2_VALUE = 41;
@@ -1437,6 +1469,22 @@ public final class Data {
      * <code>SPECIAL_BUILDING = 100;</code>
      */
     public static final int SPECIAL_BUILDING_VALUE = 100;
+    /**
+     * <pre>
+     * A saved game is being loaded
+     * </pre>
+     *
+     * <code>LOADING = 990;</code>
+     */
+    public static final int LOADING_VALUE = 990;
+    /**
+     * <pre>
+     * A saved game was loaded and is about to resume, now waiting for some bots to rejoin
+     * </pre>
+     *
+     * <code>LOADING_RESUMING = 992;</code>
+     */
+    public static final int LOADING_RESUMING_VALUE = 992;
     /**
      * <pre>
      * The game is over
@@ -1508,6 +1556,8 @@ public final class Data {
         case 55: return WAITING_FOR_ROB_CLOTH_OR_RESOURCE;
         case 56: return WAITING_FOR_PICK_GOLD_RESOURCE;
         case 100: return SPECIAL_BUILDING;
+        case 990: return LOADING;
+        case 992: return LOADING_RESUMING;
         case 1000: return OVER;
         case 1001: return RESET_OLD;
         default: return null;
@@ -11156,7 +11206,7 @@ public final class Data {
       "\020\002\022\014\n\010MONOPOLY\020\003\022\021\n\rROAD_BUILDING\020\004\022\022\n\016Y" +
       "EAR_OF_PLENTY\020\005\022\r\n\tVP_CHAPEL\0202\022\021\n\rVP_GRE" +
       "AT_HALL\0203\022\016\n\nVP_LIBRARY\0204\022\r\n\tVP_MARKET\0205" +
-      "\022\021\n\rVP_UNIVERSITY\0206*\245\005\n\tGameState\022\007\n\003NEW" +
+      "\022\021\n\rVP_UNIVERSITY\0206*\312\005\n\tGameState\022\007\n\003NEW" +
       "\020\000\022\t\n\005READY\020\001\022\"\n\036READY_RESET_WAIT_ROBOT_" +
       "DISMISS\020\004\022\013\n\007START1A\020\005\022\013\n\007START1B\020\006\022\013\n\007S" +
       "TART2A\020\n\022)\n%STARTS_WAITING_FOR_PICK_GOLD" +
@@ -11172,10 +11222,11 @@ public final class Data {
       "AITING_FOR_MONOPOLY\0205\022 \n\034WAITING_FOR_ROB" +
       "BER_OR_PIRATE\0206\022%\n!WAITING_FOR_ROB_CLOTH" +
       "_OR_RESOURCE\0207\022\"\n\036WAITING_FOR_PICK_GOLD_" +
-      "RESOURCE\0208\022\024\n\020SPECIAL_BUILDING\020d\022\t\n\004OVER" +
-      "\020\350\007\022\016\n\tRESET_OLD\020\351\007*=\n\rSeatLockState\022\014\n\010" +
-      "UNLOCKED\020\000\022\n\n\006LOCKED\020\001\022\022\n\016CLEAR_ON_RESET" +
-      "\020\002B\r\n\tsoc.protoH\001b\006proto3"
+      "RESOURCE\0208\022\024\n\020SPECIAL_BUILDING\020d\022\014\n\007LOAD" +
+      "ING\020\336\007\022\025\n\020LOADING_RESUMING\020\340\007\022\t\n\004OVER\020\350\007" +
+      "\022\016\n\tRESET_OLD\020\351\007*=\n\rSeatLockState\022\014\n\010UNL" +
+      "OCKED\020\000\022\n\n\006LOCKED\020\001\022\022\n\016CLEAR_ON_RESET\020\002B" +
+      "\r\n\tsoc.protoH\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

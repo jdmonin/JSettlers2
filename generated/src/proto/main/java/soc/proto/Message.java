@@ -2313,7 +2313,7 @@ public final class Message {
    * those older versions wouldn't reject the client until after they had filled out that dialog, which is
    * less than ideal.
    *&lt;P&gt;
-   * The server responds to this message from the client with a {&#64;link StatusMessage}:
+   * The server responds to this message from the client with a {&#64;link ServerStatusText}:
    *&lt;UL&gt;
    * &lt;LI&gt; {&#64;link ServerStatusText.StatusValue#OK} if the username and password were authenticated
    * &lt;LI&gt; {&#64;link ServerStatusText.StatusValue#NOT_OK_GENERIC} if the auth scheme number is unknown
@@ -3012,7 +3012,7 @@ public final class Message {
      * those older versions wouldn't reject the client until after they had filled out that dialog, which is
      * less than ideal.
      *&lt;P&gt;
-     * The server responds to this message from the client with a {&#64;link StatusMessage}:
+     * The server responds to this message from the client with a {&#64;link ServerStatusText}:
      *&lt;UL&gt;
      * &lt;LI&gt; {&#64;link ServerStatusText.StatusValue#OK} if the username and password were authenticated
      * &lt;LI&gt; {&#64;link ServerStatusText.StatusValue#NOT_OK_GENERIC} if the auth scheme number is unknown
@@ -4487,15 +4487,15 @@ public final class Message {
       NEWGAME_NAME_REJECTED(12),
       /**
        * <pre>
-       * New game requested, but name of game or player is too long.
+       * New game or account-creation requested, but name of game or player is too long.
        * The text returned with this status shall indicate the max permitted length.
        * &#64;see soc.server.SOCServer#createOrJoinGameIfUserOK
        * &#64;since 1.1.07
        * </pre>
        *
-       * <code>NEWGAME_NAME_TOO_LONG = 13;</code>
+       * <code>NAME_TOO_LONG = 13;</code>
        */
-      NEWGAME_NAME_TOO_LONG(13),
+      NAME_TOO_LONG(13),
       /**
        * <pre>
        * New game requested, but client already has created too many active games.
@@ -4622,7 +4622,7 @@ public final class Message {
       GAME_CLIENT_FEATURES_NEEDED(22),
       /**
        * <pre>
-       * Server broadcasts StatusMessage(SV_SERVER_SHUTDOWN) at clean shutdown.
+       * Server broadcasts ServerStatusText(SV_SERVER_SHUTDOWN) at clean shutdown.
        * Clients and bots shouldn't immediately try to reconnect when the server closes their connection.
        * &#64;since 2.1.00
        * </pre>
@@ -4630,6 +4630,18 @@ public final class Message {
        * <code>SV_SERVER_SHUTDOWN = 23;</code>
        */
       SV_SERVER_SHUTDOWN(23),
+      /**
+       * <pre>
+       * Client has sent server a message type which requires authentication before sending,
+       * such as a channel chat message or in-game action. Client must authenticate
+       * ({&#64;link AuthRequest} or another message with nickname/password fields)
+       * for server to process that message type.
+       * &#64;since 2.4.00
+       * </pre>
+       *
+       * <code>SV_MUST_AUTH_FIRST = 24;</code>
+       */
+      SV_MUST_AUTH_FIRST(24),
       UNRECOGNIZED(-1),
       ;
 
@@ -4802,15 +4814,15 @@ public final class Message {
       public static final int NEWGAME_NAME_REJECTED_VALUE = 12;
       /**
        * <pre>
-       * New game requested, but name of game or player is too long.
+       * New game or account-creation requested, but name of game or player is too long.
        * The text returned with this status shall indicate the max permitted length.
        * &#64;see soc.server.SOCServer#createOrJoinGameIfUserOK
        * &#64;since 1.1.07
        * </pre>
        *
-       * <code>NEWGAME_NAME_TOO_LONG = 13;</code>
+       * <code>NAME_TOO_LONG = 13;</code>
        */
-      public static final int NEWGAME_NAME_TOO_LONG_VALUE = 13;
+      public static final int NAME_TOO_LONG_VALUE = 13;
       /**
        * <pre>
        * New game requested, but client already has created too many active games.
@@ -4937,7 +4949,7 @@ public final class Message {
       public static final int GAME_CLIENT_FEATURES_NEEDED_VALUE = 22;
       /**
        * <pre>
-       * Server broadcasts StatusMessage(SV_SERVER_SHUTDOWN) at clean shutdown.
+       * Server broadcasts ServerStatusText(SV_SERVER_SHUTDOWN) at clean shutdown.
        * Clients and bots shouldn't immediately try to reconnect when the server closes their connection.
        * &#64;since 2.1.00
        * </pre>
@@ -4945,6 +4957,18 @@ public final class Message {
        * <code>SV_SERVER_SHUTDOWN = 23;</code>
        */
       public static final int SV_SERVER_SHUTDOWN_VALUE = 23;
+      /**
+       * <pre>
+       * Client has sent server a message type which requires authentication before sending,
+       * such as a channel chat message or in-game action. Client must authenticate
+       * ({&#64;link AuthRequest} or another message with nickname/password fields)
+       * for server to process that message type.
+       * &#64;since 2.4.00
+       * </pre>
+       *
+       * <code>SV_MUST_AUTH_FIRST = 24;</code>
+       */
+      public static final int SV_MUST_AUTH_FIRST_VALUE = 24;
 
 
       public final int getNumber() {
@@ -4984,7 +5008,7 @@ public final class Message {
           case 10: return NEWGAME_OPTION_VALUE_TOONEW;
           case 11: return NEWGAME_ALREADY_EXISTS;
           case 12: return NEWGAME_NAME_REJECTED;
-          case 13: return NEWGAME_NAME_TOO_LONG;
+          case 13: return NAME_TOO_LONG;
           case 14: return NEWGAME_TOO_MANY_CREATED;
           case 15: return NEWCHANNEL_TOO_MANY_CREATED;
           case 16: return PW_REQUIRED;
@@ -4995,6 +5019,7 @@ public final class Message {
           case 21: return OK_DEBUG_MODE_ON;
           case 22: return GAME_CLIENT_FEATURES_NEEDED;
           case 23: return SV_SERVER_SHUTDOWN;
+          case 24: return SV_MUST_AUTH_FIRST;
           default: return null;
         }
       }
@@ -5875,6 +5900,7 @@ public final class Message {
   /**
    * <pre>
    * A text message for everyone connected to all games, all channels.
+   * Server prepends sendingUsername + ": " to the requested text.
    * &#64;see GameServerText
    * &#64;see ChannelText
    * </pre>
@@ -6157,6 +6183,7 @@ public final class Message {
     /**
      * <pre>
      * A text message for everyone connected to all games, all channels.
+     * Server prepends sendingUsername + ": " to the requested text.
      * &#64;see GameServerText
      * &#64;see ChannelText
      * </pre>
@@ -6876,10 +6903,12 @@ public final class Message {
 
     /**
      * <pre>
-     * For human clients, the value to echo (send back to the server),
+     * For human clients, the value (seconds) to echo (send back to the server),
      * or -1 if server is telling a client it's being disconnected
-     * because a new client is replacing it. For bots (informational)
-     * the amount of time server will sleep waiting to send the next ping.
+     * because a new client is replacing it.
+     * For bots (informational), the amount of milliseconds server will sleep
+     * waiting to send the next ping. The server's ping thread typically wakes and sends that next ping
+     * about 60 seconds earlier than indicated by {&#64;code sleep_time}.
      * </pre>
      *
      * <code>int32 sleep_time = 1;</code>
@@ -6987,10 +7016,12 @@ public final class Message {
     private int sleepTime_;
     /**
      * <pre>
-     * For human clients, the value to echo (send back to the server),
+     * For human clients, the value (seconds) to echo (send back to the server),
      * or -1 if server is telling a client it's being disconnected
-     * because a new client is replacing it. For bots (informational)
-     * the amount of time server will sleep waiting to send the next ping.
+     * because a new client is replacing it.
+     * For bots (informational), the amount of milliseconds server will sleep
+     * waiting to send the next ping. The server's ping thread typically wakes and sends that next ping
+     * about 60 seconds earlier than indicated by {&#64;code sleep_time}.
      * </pre>
      *
      * <code>int32 sleep_time = 1;</code>
@@ -7320,10 +7351,12 @@ public final class Message {
       private int sleepTime_ ;
       /**
        * <pre>
-       * For human clients, the value to echo (send back to the server),
+       * For human clients, the value (seconds) to echo (send back to the server),
        * or -1 if server is telling a client it's being disconnected
-       * because a new client is replacing it. For bots (informational)
-       * the amount of time server will sleep waiting to send the next ping.
+       * because a new client is replacing it.
+       * For bots (informational), the amount of milliseconds server will sleep
+       * waiting to send the next ping. The server's ping thread typically wakes and sends that next ping
+       * about 60 seconds earlier than indicated by {&#64;code sleep_time}.
        * </pre>
        *
        * <code>int32 sleep_time = 1;</code>
@@ -7335,10 +7368,12 @@ public final class Message {
       }
       /**
        * <pre>
-       * For human clients, the value to echo (send back to the server),
+       * For human clients, the value (seconds) to echo (send back to the server),
        * or -1 if server is telling a client it's being disconnected
-       * because a new client is replacing it. For bots (informational)
-       * the amount of time server will sleep waiting to send the next ping.
+       * because a new client is replacing it.
+       * For bots (informational), the amount of milliseconds server will sleep
+       * waiting to send the next ping. The server's ping thread typically wakes and sends that next ping
+       * about 60 seconds earlier than indicated by {&#64;code sleep_time}.
        * </pre>
        *
        * <code>int32 sleep_time = 1;</code>
@@ -7353,10 +7388,12 @@ public final class Message {
       }
       /**
        * <pre>
-       * For human clients, the value to echo (send back to the server),
+       * For human clients, the value (seconds) to echo (send back to the server),
        * or -1 if server is telling a client it's being disconnected
-       * because a new client is replacing it. For bots (informational)
-       * the amount of time server will sleep waiting to send the next ping.
+       * because a new client is replacing it.
+       * For bots (informational), the amount of milliseconds server will sleep
+       * waiting to send the next ping. The server's ping thread typically wakes and sends that next ping
+       * about 60 seconds earlier than indicated by {&#64;code sleep_time}.
        * </pre>
        *
        * <code>int32 sleep_time = 1;</code>
@@ -15934,6 +15971,11 @@ public final class Message {
   /**
    * <pre>
    * Client's request to create a game, or server's announcement that a game has been created.
+   * If the client has requested creating this game, announcement will be followed by {&#64;link JoinGame} to them.
+   *&lt;P&gt;
+   * If a new game can't be created (name too long, etc), server will reply with {&#64;link ServerStatusText}
+   * with a status value explaining the reason: SV_NEWGAME_TOO_MANY_CREATED, SV_NEWGAME_NAME_REJECTED, etc.
+   *&lt;P&gt;
    * Before v3.0.00 this message was {&#64;code SOCNewGameWithOptions} from the server,
    * and {&#64;code SOCNewGameWithOptionsRequest} from the client with an optional password.
    * </pre>
@@ -16247,6 +16289,11 @@ public final class Message {
     /**
      * <pre>
      * Client's request to create a game, or server's announcement that a game has been created.
+     * If the client has requested creating this game, announcement will be followed by {&#64;link JoinGame} to them.
+     *&lt;P&gt;
+     * If a new game can't be created (name too long, etc), server will reply with {&#64;link ServerStatusText}
+     * with a status value explaining the reason: SV_NEWGAME_TOO_MANY_CREATED, SV_NEWGAME_NAME_REJECTED, etc.
+     *&lt;P&gt;
      * Before v3.0.00 this message was {&#64;code SOCNewGameWithOptions} from the server,
      * and {&#64;code SOCNewGameWithOptionsRequest} from the client with an optional password.
      * </pre>
@@ -16671,9 +16718,6 @@ public final class Message {
    * Server request to this robot client to join a game.
    * The bot should respond with {&#64;link JoinGame},
    * the message sent by human players to request joining a game.
-   *&lt;P&gt;
-   * Before 2.0.00, this class was called {&#64;code SOCJoinGameRequest};
-   * renamed to clarify versus {&#64;link SOCJoinGame}.
    * </pre>
    *
    * Protobuf type {@code BotJoinGameRequest}
@@ -16999,9 +17043,6 @@ public final class Message {
      * Server request to this robot client to join a game.
      * The bot should respond with {&#64;link JoinGame},
      * the message sent by human players to request joining a game.
-     *&lt;P&gt;
-     * Before 2.0.00, this class was called {&#64;code SOCJoinGameRequest};
-     * renamed to clarify versus {&#64;link SOCJoinGame}.
      * </pre>
      *
      * Protobuf type {@code BotJoinGameRequest}
@@ -17533,6 +17574,10 @@ public final class Message {
    * so it's handled by {&#64;code SOCServer} instead of a {&#64;code GameHandler}.
    *&lt;P&gt;
    * Before v3.0.00 this message was handled by {&#64;code SOCJoinGameRequest} and {&#64;code SOCJoinGameAuth}.
+   *&lt;P&gt;
+   *&lt;B&gt;Scenarios:&lt;/B&gt; If the game being joined uses a scenario added or modified in a version
+   * newer than the client, server may send {&#64;code SOCScenarioInfo} before this {&#64;code JoinGame} message.
+   * That message will include localized strings if available and needed by client.
    * &#64;see JoinChannel
    * &#64;see BotJoinGameRequest
    * </pre>
@@ -18023,6 +18068,10 @@ public final class Message {
      * so it's handled by {&#64;code SOCServer} instead of a {&#64;code GameHandler}.
      *&lt;P&gt;
      * Before v3.0.00 this message was handled by {&#64;code SOCJoinGameRequest} and {&#64;code SOCJoinGameAuth}.
+     *&lt;P&gt;
+     *&lt;B&gt;Scenarios:&lt;/B&gt; If the game being joined uses a scenario added or modified in a version
+     * newer than the client, server may send {&#64;code SOCScenarioInfo} before this {&#64;code JoinGame} message.
+     * That message will include localized strings if available and needed by client.
      * &#64;see JoinChannel
      * &#64;see BotJoinGameRequest
      * </pre>
@@ -18654,12 +18703,16 @@ public final class Message {
    *&lt;P&gt;
    * In response to a client's {&#64;link JoinGame}, the joining player is sent a specific
    * sequence of messages with details about the game: Board layout, player scores,
-   * piece counts, etc. This sequence ends with GAMEMEMBERS, SETTURN and GAMESTATE.
-   * GAMEMEMBERS thus tells the client that the server is ready for its input.
+   * piece counts, current player, etc. This sequence begins with {&#64;link JoinGame}
+   * (sometimes preceded by optional {&#64;code SOCScenarioInfo} or
+   * {&#64;code SOCLocalizedStrings(TYPE_SCENARIO)}),
+   * and ends with: {&#64;code GameMembers}, {&#64;link State}.
+   * {&#64;code GameMembers} thus tells the client that the server is ready for its input.
    *&lt;P&gt;
-   * Robots use GAMEMEMBERS as their cue to sit down at the game, if they've been
+   * Robots use {&#64;code GameMembers} as their cue to sit down at the game, if they've been
    * asked to sit from {&#64;link BotJoinGameRequest}. In order for the robot to be certain
-   * it has all details about a game, bots should take no action before receiving GAMEMEMBERS.
+   * it has all details about a game, bots should take no action before receiving this message.
+   * Once this is received, they should send their {&#64;link SitDown} request.
    *&lt;P&gt;
    * When forming a new game, clients will be sent the sequence as described above, and
    * then will each choose a position and sit down. Any client can then send {&#64;link StartGame}
@@ -19017,12 +19070,16 @@ public final class Message {
      *&lt;P&gt;
      * In response to a client's {&#64;link JoinGame}, the joining player is sent a specific
      * sequence of messages with details about the game: Board layout, player scores,
-     * piece counts, etc. This sequence ends with GAMEMEMBERS, SETTURN and GAMESTATE.
-     * GAMEMEMBERS thus tells the client that the server is ready for its input.
+     * piece counts, current player, etc. This sequence begins with {&#64;link JoinGame}
+     * (sometimes preceded by optional {&#64;code SOCScenarioInfo} or
+     * {&#64;code SOCLocalizedStrings(TYPE_SCENARIO)}),
+     * and ends with: {&#64;code GameMembers}, {&#64;link State}.
+     * {&#64;code GameMembers} thus tells the client that the server is ready for its input.
      *&lt;P&gt;
-     * Robots use GAMEMEMBERS as their cue to sit down at the game, if they've been
+     * Robots use {&#64;code GameMembers} as their cue to sit down at the game, if they've been
      * asked to sit from {&#64;link BotJoinGameRequest}. In order for the robot to be certain
-     * it has all details about a game, bots should take no action before receiving GAMEMEMBERS.
+     * it has all details about a game, bots should take no action before receiving this message.
+     * Once this is received, they should send their {&#64;link SitDown} request.
      *&lt;P&gt;
      * When forming a new game, clients will be sent the sequence as described above, and
      * then will each choose a position and sit down. Any client can then send {&#64;link StartGame}
@@ -19506,6 +19563,17 @@ public final class Message {
    * A game member client's request wants to sit down to play at a specific seat,
    * or server's announcement to all game members that a player has sat.
    *&lt;P&gt;
+   * When client is sitting down to play and receives this message for their own player,
+   * they should clear their currently-unknown inventory contents/dev card count.
+   * The server is about to privately send it {&#64;link InventoryItemAction}
+   * with the detailed contents of that inventory.
+   *&lt;P&gt;
+   * If human clients are joining a game which was reloaded from a saved snapshot
+   * (game state {&#64;link Data.GameState#LOADING}), the game might have unclaimed non-vacant seats
+   * which were a human player when game was saved, but no client is currently connected to.
+   * SitDown for those seats is sent with {&#64;code is_robot} true so the client will show
+   * a "Take Over" button for them.
+   *&lt;P&gt;
    * Although it's a game-specific message, it's handled by {&#64;code SOCServer} instead of a {&#64;code GameHandler}.
    * </pre>
    *
@@ -19922,6 +19990,17 @@ public final class Message {
      * <pre>
      * A game member client's request wants to sit down to play at a specific seat,
      * or server's announcement to all game members that a player has sat.
+     *&lt;P&gt;
+     * When client is sitting down to play and receives this message for their own player,
+     * they should clear their currently-unknown inventory contents/dev card count.
+     * The server is about to privately send it {&#64;link InventoryItemAction}
+     * with the detailed contents of that inventory.
+     *&lt;P&gt;
+     * If human clients are joining a game which was reloaded from a saved snapshot
+     * (game state {&#64;link Data.GameState#LOADING}), the game might have unclaimed non-vacant seats
+     * which were a human player when game was saved, but no client is currently connected to.
+     * SitDown for those seats is sent with {&#64;code is_robot} true so the client will show
+     * a "Take Over" button for them.
      *&lt;P&gt;
      * Although it's a game-specific message, it's handled by {&#64;code SOCServer} instead of a {&#64;code GameHandler}.
      * </pre>
@@ -20509,6 +20588,11 @@ public final class Message {
    * <pre>
    * From client, request to lock or unlock a seat.
    * From server, announcement of a seat lock status change to one or all seats.
+   *&lt;P&gt;
+   * Server sends seat locks to a joining client before the {&#64;link SitDown} messages.
+   * This helps while loading a savegame: The client who requested load might be a seated player.
+   *&lt;P&gt;
+   * For player consistency, seat locks can't be changed while {&#64;link soc.game.SOCGame#getResetVoteActive()}.
    * </pre>
    *
    * Protobuf type {@code SetSeatLock}
@@ -20960,6 +21044,11 @@ public final class Message {
      * <pre>
      * From client, request to lock or unlock a seat.
      * From server, announcement of a seat lock status change to one or all seats.
+     *&lt;P&gt;
+     * Server sends seat locks to a joining client before the {&#64;link SitDown} messages.
+     * This helps while loading a savegame: The client who requested load might be a seated player.
+     *&lt;P&gt;
+     * For player consistency, seat locks can't be changed while {&#64;link soc.game.SOCGame#getResetVoteActive()}.
      * </pre>
      *
      * Protobuf type {@code SetSeatLock}
@@ -21549,13 +21638,13 @@ public final class Message {
    *&lt;P&gt;
    * Robots ignore this message type so they won't be dependent on brittle
    * text parsing. For the benefit of robots and to help client responsiveness,
-   * the server often sends this message type preceded by data-only messages
+   * the server often precedes this message type with data-only messages
    * such as {&#64;link AcceptOffer}.
    *&lt;P&gt;
    * Occasionally, game text is sent with additional information
-   * via {&#64;link SVPTextMessage}, instead of using this message type.
-   * Some simple actions are sent by the server with {&#64;link SimpleAction}
-   * or {&#64;link SimpleRequest} instead of text.
+   * via {&#64;link SVPTextMessage} or {&#64;code SOCDeclinePlayerRequest} instead of using this message type.
+   * Some simple actions or prompts are sent by the server with {&#64;link SimpleAction}
+   * or {&#64;link SimpleRequest} instead of as text.
    *&lt;P&gt;
    * This class was introduced in version 2.0.00; earlier versions of the server
    * and client used {&#64;code SOCGameTextMsg} for server announcements and messages.
@@ -21901,13 +21990,13 @@ public final class Message {
      *&lt;P&gt;
      * Robots ignore this message type so they won't be dependent on brittle
      * text parsing. For the benefit of robots and to help client responsiveness,
-     * the server often sends this message type preceded by data-only messages
+     * the server often precedes this message type with data-only messages
      * such as {&#64;link AcceptOffer}.
      *&lt;P&gt;
      * Occasionally, game text is sent with additional information
-     * via {&#64;link SVPTextMessage}, instead of using this message type.
-     * Some simple actions are sent by the server with {&#64;link SimpleAction}
-     * or {&#64;link SimpleRequest} instead of text.
+     * via {&#64;link SVPTextMessage} or {&#64;code SOCDeclinePlayerRequest} instead of using this message type.
+     * Some simple actions or prompts are sent by the server with {&#64;link SimpleAction}
+     * or {&#64;link SimpleRequest} instead of as text.
      *&lt;P&gt;
      * This class was introduced in version 2.0.00; earlier versions of the server
      * and client used {&#64;code SOCGameTextMsg} for server announcements and messages.
@@ -38152,104 +38241,105 @@ public final class Message {
       "\022\023\n\017_UNSENT_DEFAULT\020\000\022\017\n\013GAME_PLAYER\020\001\022\016" +
       "\n\nUSER_ADMIN\020\002\"7\n\nAuthScheme\022\023\n\017_UNUSED_" +
       "DEFAULT\020\000\022\024\n\020CLIENT_PLAINTEXT\020\001\"\'\n\020Rejec" +
-      "tConnection\022\023\n\013reason_text\030\001 \001(\t\"\260\005\n\020Ser" +
+      "tConnection\022\023\n\013reason_text\030\001 \001(\t\"\300\005\n\020Ser" +
       "verStatusText\022\014\n\004text\030\001 \001(\t\022)\n\002sv\030\002 \001(\0162" +
       "\035.ServerStatusText.StatusValue\022\017\n\007detail" +
-      "s\030\003 \003(\t\"\321\004\n\013StatusValue\022\006\n\002OK\020\000\022\022\n\016NOT_O" +
+      "s\030\003 \003(\t\"\341\004\n\013StatusValue\022\006\n\002OK\020\000\022\022\n\016NOT_O" +
       "K_GENERIC\020\001\022\022\n\016NAME_NOT_FOUND\020\002\022\014\n\010PW_WR" +
       "ONG\020\003\022\017\n\013NAME_IN_USE\020\004\022\032\n\026CANT_JOIN_GAME" +
       "_VERSION\020\005\022\023\n\017PROBLEM_WITH_DB\020\006\022\023\n\017ACCT_" +
       "CREATED_OK\020\007\022\030\n\024ACCT_NOT_CREATED_ERR\020\010\022\032" +
       "\n\026NEWGAME_OPTION_UNKNOWN\020\t\022\037\n\033NEWGAME_OP" +
       "TION_VALUE_TOONEW\020\n\022\032\n\026NEWGAME_ALREADY_E" +
-      "XISTS\020\013\022\031\n\025NEWGAME_NAME_REJECTED\020\014\022\031\n\025NE" +
-      "WGAME_NAME_TOO_LONG\020\r\022\034\n\030NEWGAME_TOO_MAN" +
-      "Y_CREATED\020\016\022\037\n\033NEWCHANNEL_TOO_MANY_CREAT" +
-      "ED\020\017\022\017\n\013PW_REQUIRED\020\020\022\033\n\027ACCT_NOT_CREATE" +
-      "D_DENIED\020\021\022\035\n\031ACCT_CREATED_OK_FIRST_ONE\020" +
-      "\022\022\024\n\020NAME_NOT_ALLOWED\020\023\022\023\n\017OK_SET_NICKNA" +
-      "ME\020\024\022\024\n\020OK_DEBUG_MODE_ON\020\025\022\037\n\033GAME_CLIEN" +
-      "T_FEATURES_NEEDED\020\026\022\026\n\022SV_SERVER_SHUTDOW" +
-      "N\020\027\"\035\n\rBroadcastText\022\014\n\004text\030\001 \001(\t\"\n\n\010Le" +
-      "aveAll\" \n\nServerPing\022\022\n\nsleep_time\030\001 \001(\005" +
-      "\"\367\001\n\017BotUpdateParams\022\027\n\017max_game_length\030" +
-      "\001 \001(\r\022\017\n\007max_eta\030\002 \001(\r\022\030\n\020eta_bonus_fact" +
-      "or\030\003 \001(\002\022\032\n\022adversarial_factor\030\004 \001(\002\022!\n\031" +
-      "leader_adversarial_factor\030\005 \001(\002\022\033\n\023dev_c" +
-      "ard_multiplier\030\006 \001(\002\022\031\n\021threat_multiplie" +
-      "r\030\007 \001(\002\022\025\n\rstrategy_type\030\010 \001(\r\022\022\n\ntrade_" +
-      "flag\030\t \001(\010\"\017\n\rBotAdminReset\"\031\n\010Channels\022" +
-      "\r\n\005names\030\001 \003(\t\"\035\n\nNewChannel\022\017\n\007ch_name\030" +
-      "\001 \001(\t\"3\n\013JoinChannel\022\017\n\007ch_name\030\001 \001(\t\022\023\n" +
-      "\013member_name\030\002 \001(\t\"2\n\016ChannelMembers\022\017\n\007" +
-      "ch_name\030\001 \001(\t\022\017\n\007members\030\002 \003(\t\"A\n\013Channe" +
-      "lText\022\017\n\007ch_name\030\001 \001(\t\022\023\n\013member_name\030\002 " +
-      "\001(\t\022\014\n\004text\030\003 \001(\t\"4\n\014LeaveChannel\022\017\n\007ch_" +
-      "name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\" \n\rDelet" +
-      "eChannel\022\017\n\007ch_name\030\001 \001(\t\"E\n\020_GameWithOp" +
-      "tions\022\017\n\007ga_name\030\001 \001(\t\022\014\n\004opts\030\002 \001(\t\022\022\n\n" +
-      "unjoinable\030\003 \001(\010\"(\n\005Games\022\037\n\004game\030\001 \003(\0132" +
-      "\021._GameWithOptions\"?\n\007NewGame\022\037\n\004game\030\001 " +
-      "\001(\0132\021._GameWithOptions\022\023\n\013min_version\030\002 " +
-      "\001(\r\"J\n\022BotJoinGameRequest\022\037\n\004game\030\001 \001(\0132" +
-      "\021._GameWithOptions\022\023\n\013seat_number\030\002 \001(\r\"" +
-      "K\n\010JoinGame\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_n" +
-      "ame\030\002 \001(\t\022\031\n\021board_size_vshift\030\003 \003(\021\"/\n\013" +
-      "GameMembers\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007members\030" +
-      "\002 \003(\t\"R\n\007SitDown\022\017\n\007ga_name\030\001 \001(\t\022\017\n\007pl_" +
-      "name\030\002 \001(\t\022\023\n\013seat_number\030\003 \001(\r\022\020\n\010is_ro" +
-      "bot\030\004 \001(\010\"R\n\013SetSeatLock\022\017\n\007ga_name\030\001 \001(" +
-      "\t\022\023\n\013seat_number\030\002 \001(\r\022\035\n\005state\030\003 \003(\0162\016." +
-      "SeatLockState\"/\n\016GameServerText\022\017\n\007ga_na" +
-      "me\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\"D\n\016GamePlayerText" +
-      "\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\022\014" +
-      "\n\004text\030\003 \001(\t\" \n\rBotTimingPing\022\017\n\007ga_name" +
-      "\030\001 \001(\t\"\037\n\014BotAdminPing\022\017\n\007ga_name\030\001 \001(\t\"" +
-      "\035\n\nBotDismiss\022\017\n\007ga_name\030\001 \001(\t\"1\n\tLeaveG" +
-      "ame\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(" +
-      "\t\"\035\n\nDeleteGame\022\017\n\007ga_name\030\001 \001(\t\"\322\010\n\nFro" +
-      "mServer\022\030\n\004vers\030\001 \001(\0132\010.VersionH\000\022.\n\021rej" +
-      "ect_connection\030\002 \001(\0132\021.RejectConnectionH" +
-      "\000\022(\n\013status_text\030\003 \001(\0132\021.ServerStatusTex" +
-      "tH\000\022(\n\016broadcast_text\030\004 \001(\0132\016.BroadcastT" +
-      "extH\000\022\"\n\013server_ping\030\005 \001(\0132\013.ServerPingH" +
-      "\000\022.\n\014game_message\030\017 \001(\0132\026.GameMessageFro" +
-      "mServerH\000\022-\n\021bot_update_params\030\024 \001(\0132\020.B" +
-      "otUpdateParamsH\000\022)\n\017bot_admin_reset\030\025 \001(" +
-      "\0132\016.BotAdminResetH\000\022\035\n\010channels\030d \001(\0132\t." +
-      "ChannelsH\000\022\035\n\006ch_new\030e \001(\0132\013.NewChannelH" +
-      "\000\022\037\n\007ch_join\030f \001(\0132\014.JoinChannelH\000\022%\n\nch" +
-      "_members\030g \001(\0132\017.ChannelMembersH\000\022\037\n\007ch_" +
-      "text\030h \001(\0132\014.ChannelTextH\000\022!\n\010ch_leave\030i" +
-      " \001(\0132\r.LeaveChannelH\000\022#\n\tch_delete\030j \001(\013" +
-      "2\016.DeleteChannelH\000\022\030\n\005games\030\310\001 \001(\0132\006.Gam" +
-      "esH\000\022\033\n\006ga_new\030\311\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_" +
-      "join\030\312\001 \001(\0132\t.JoinGameH\000\022,\n\014bot_join_req" +
-      "\030\313\001 \001(\0132\023.BotJoinGameRequestH\000\022#\n\nga_mem" +
-      "bers\030\314\001 \001(\0132\014.GameMembersH\000\022\035\n\010sit_down\030" +
-      "\315\001 \001(\0132\010.SitDownH\000\022&\n\rset_seat_lock\030\316\001 \001" +
-      "(\0132\014.SetSeatLockH\000\022\'\n\013server_text\030\317\001 \001(\013" +
-      "2\017.GameServerTextH\000\022*\n\016ga_player_text\030\320\001" +
-      " \001(\0132\017.GamePlayerTextH\000\022*\n\017bot_timing_pi" +
-      "ng\030\321\001 \001(\0132\016.BotTimingPingH\000\022(\n\016bot_admin" +
-      "_ping\030\322\001 \001(\0132\r.BotAdminPingH\000\022#\n\013bot_dis" +
-      "miss\030\323\001 \001(\0132\013.BotDismissH\000\022\037\n\010ga_leave\030\324" +
-      "\001 \001(\0132\n.LeaveGameH\000\022!\n\tga_delete\030\325\001 \001(\0132" +
-      "\013.DeleteGameH\000B\005\n\003msg\"\231\004\n\nFromClient\022\030\n\004" +
-      "vers\030\001 \001(\0132\010.VersionH\000\022 \n\010auth_req\030\002 \001(\013" +
-      "2\014.AuthRequestH\000\022\037\n\nim_a_robot\030\003 \001(\0132\t.I" +
-      "mARobotH\000\022\"\n\013server_ping\030\004 \001(\0132\013.ServerP" +
-      "ingH\000\022\036\n\tleave_all\030\005 \001(\0132\t.LeaveAllH\000\022.\n" +
-      "\014game_message\030\017 \001(\0132\026.GameMessageFromCli" +
-      "entH\000\022\037\n\007ch_join\030d \001(\0132\014.JoinChannelH\000\022\037" +
-      "\n\007ch_text\030e \001(\0132\014.ChannelTextH\000\022!\n\010ch_le" +
-      "ave\030f \001(\0132\r.LeaveChannelH\000\022\033\n\006ga_new\030\310\001 " +
-      "\001(\0132\010.NewGameH\000\022\035\n\007ga_join\030\311\001 \001(\0132\t.Join" +
-      "GameH\000\022\035\n\010sit_down\030\312\001 \001(\0132\010.SitDownH\000\022&\n" +
-      "\rset_seat_lock\030\313\001 \001(\0132\014.SetSeatLockH\000\022*\n" +
-      "\016ga_player_text\030\314\001 \001(\0132\017.GamePlayerTextH" +
-      "\000\022\037\n\010ga_leave\030\315\001 \001(\0132\n.LeaveGameH\000B\005\n\003ms" +
-      "gB\r\n\tsoc.protoH\001P\000P\001b\006proto3"
+      "XISTS\020\013\022\031\n\025NEWGAME_NAME_REJECTED\020\014\022\021\n\rNA" +
+      "ME_TOO_LONG\020\r\022\034\n\030NEWGAME_TOO_MANY_CREATE" +
+      "D\020\016\022\037\n\033NEWCHANNEL_TOO_MANY_CREATED\020\017\022\017\n\013" +
+      "PW_REQUIRED\020\020\022\033\n\027ACCT_NOT_CREATED_DENIED" +
+      "\020\021\022\035\n\031ACCT_CREATED_OK_FIRST_ONE\020\022\022\024\n\020NAM" +
+      "E_NOT_ALLOWED\020\023\022\023\n\017OK_SET_NICKNAME\020\024\022\024\n\020" +
+      "OK_DEBUG_MODE_ON\020\025\022\037\n\033GAME_CLIENT_FEATUR" +
+      "ES_NEEDED\020\026\022\026\n\022SV_SERVER_SHUTDOWN\020\027\022\026\n\022S" +
+      "V_MUST_AUTH_FIRST\020\030\"\035\n\rBroadcastText\022\014\n\004" +
+      "text\030\001 \001(\t\"\n\n\010LeaveAll\" \n\nServerPing\022\022\n\n" +
+      "sleep_time\030\001 \001(\005\"\367\001\n\017BotUpdateParams\022\027\n\017" +
+      "max_game_length\030\001 \001(\r\022\017\n\007max_eta\030\002 \001(\r\022\030" +
+      "\n\020eta_bonus_factor\030\003 \001(\002\022\032\n\022adversarial_" +
+      "factor\030\004 \001(\002\022!\n\031leader_adversarial_facto" +
+      "r\030\005 \001(\002\022\033\n\023dev_card_multiplier\030\006 \001(\002\022\031\n\021" +
+      "threat_multiplier\030\007 \001(\002\022\025\n\rstrategy_type" +
+      "\030\010 \001(\r\022\022\n\ntrade_flag\030\t \001(\010\"\017\n\rBotAdminRe" +
+      "set\"\031\n\010Channels\022\r\n\005names\030\001 \003(\t\"\035\n\nNewCha" +
+      "nnel\022\017\n\007ch_name\030\001 \001(\t\"3\n\013JoinChannel\022\017\n\007" +
+      "ch_name\030\001 \001(\t\022\023\n\013member_name\030\002 \001(\t\"2\n\016Ch" +
+      "annelMembers\022\017\n\007ch_name\030\001 \001(\t\022\017\n\007members" +
+      "\030\002 \003(\t\"A\n\013ChannelText\022\017\n\007ch_name\030\001 \001(\t\022\023" +
+      "\n\013member_name\030\002 \001(\t\022\014\n\004text\030\003 \001(\t\"4\n\014Lea" +
+      "veChannel\022\017\n\007ch_name\030\001 \001(\t\022\023\n\013member_nam" +
+      "e\030\002 \001(\t\" \n\rDeleteChannel\022\017\n\007ch_name\030\001 \001(" +
+      "\t\"E\n\020_GameWithOptions\022\017\n\007ga_name\030\001 \001(\t\022\014" +
+      "\n\004opts\030\002 \001(\t\022\022\n\nunjoinable\030\003 \001(\010\"(\n\005Game" +
+      "s\022\037\n\004game\030\001 \003(\0132\021._GameWithOptions\"?\n\007Ne" +
+      "wGame\022\037\n\004game\030\001 \001(\0132\021._GameWithOptions\022\023" +
+      "\n\013min_version\030\002 \001(\r\"J\n\022BotJoinGameReques" +
+      "t\022\037\n\004game\030\001 \001(\0132\021._GameWithOptions\022\023\n\013se" +
+      "at_number\030\002 \001(\r\"K\n\010JoinGame\022\017\n\007ga_name\030\001" +
+      " \001(\t\022\023\n\013member_name\030\002 \001(\t\022\031\n\021board_size_" +
+      "vshift\030\003 \003(\021\"/\n\013GameMembers\022\017\n\007ga_name\030\001" +
+      " \001(\t\022\017\n\007members\030\002 \003(\t\"R\n\007SitDown\022\017\n\007ga_n" +
+      "ame\030\001 \001(\t\022\017\n\007pl_name\030\002 \001(\t\022\023\n\013seat_numbe" +
+      "r\030\003 \001(\r\022\020\n\010is_robot\030\004 \001(\010\"R\n\013SetSeatLock" +
+      "\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013seat_number\030\002 \001(\r\022\035" +
+      "\n\005state\030\003 \003(\0162\016.SeatLockState\"/\n\016GameSer" +
+      "verText\022\017\n\007ga_name\030\001 \001(\t\022\014\n\004text\030\002 \001(\t\"D" +
+      "\n\016GamePlayerText\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013mem" +
+      "ber_name\030\002 \001(\t\022\014\n\004text\030\003 \001(\t\" \n\rBotTimin" +
+      "gPing\022\017\n\007ga_name\030\001 \001(\t\"\037\n\014BotAdminPing\022\017" +
+      "\n\007ga_name\030\001 \001(\t\"\035\n\nBotDismiss\022\017\n\007ga_name" +
+      "\030\001 \001(\t\"1\n\tLeaveGame\022\017\n\007ga_name\030\001 \001(\t\022\023\n\013" +
+      "member_name\030\002 \001(\t\"\035\n\nDeleteGame\022\017\n\007ga_na" +
+      "me\030\001 \001(\t\"\322\010\n\nFromServer\022\030\n\004vers\030\001 \001(\0132\010." +
+      "VersionH\000\022.\n\021reject_connection\030\002 \001(\0132\021.R" +
+      "ejectConnectionH\000\022(\n\013status_text\030\003 \001(\0132\021" +
+      ".ServerStatusTextH\000\022(\n\016broadcast_text\030\004 " +
+      "\001(\0132\016.BroadcastTextH\000\022\"\n\013server_ping\030\005 \001" +
+      "(\0132\013.ServerPingH\000\022.\n\014game_message\030\017 \001(\0132" +
+      "\026.GameMessageFromServerH\000\022-\n\021bot_update_" +
+      "params\030\024 \001(\0132\020.BotUpdateParamsH\000\022)\n\017bot_" +
+      "admin_reset\030\025 \001(\0132\016.BotAdminResetH\000\022\035\n\010c" +
+      "hannels\030d \001(\0132\t.ChannelsH\000\022\035\n\006ch_new\030e \001" +
+      "(\0132\013.NewChannelH\000\022\037\n\007ch_join\030f \001(\0132\014.Joi" +
+      "nChannelH\000\022%\n\nch_members\030g \001(\0132\017.Channel" +
+      "MembersH\000\022\037\n\007ch_text\030h \001(\0132\014.ChannelText" +
+      "H\000\022!\n\010ch_leave\030i \001(\0132\r.LeaveChannelH\000\022#\n" +
+      "\tch_delete\030j \001(\0132\016.DeleteChannelH\000\022\030\n\005ga" +
+      "mes\030\310\001 \001(\0132\006.GamesH\000\022\033\n\006ga_new\030\311\001 \001(\0132\010." +
+      "NewGameH\000\022\035\n\007ga_join\030\312\001 \001(\0132\t.JoinGameH\000" +
+      "\022,\n\014bot_join_req\030\313\001 \001(\0132\023.BotJoinGameReq" +
+      "uestH\000\022#\n\nga_members\030\314\001 \001(\0132\014.GameMember" +
+      "sH\000\022\035\n\010sit_down\030\315\001 \001(\0132\010.SitDownH\000\022&\n\rse" +
+      "t_seat_lock\030\316\001 \001(\0132\014.SetSeatLockH\000\022\'\n\013se" +
+      "rver_text\030\317\001 \001(\0132\017.GameServerTextH\000\022*\n\016g" +
+      "a_player_text\030\320\001 \001(\0132\017.GamePlayerTextH\000\022" +
+      "*\n\017bot_timing_ping\030\321\001 \001(\0132\016.BotTimingPin" +
+      "gH\000\022(\n\016bot_admin_ping\030\322\001 \001(\0132\r.BotAdminP" +
+      "ingH\000\022#\n\013bot_dismiss\030\323\001 \001(\0132\013.BotDismiss" +
+      "H\000\022\037\n\010ga_leave\030\324\001 \001(\0132\n.LeaveGameH\000\022!\n\tg" +
+      "a_delete\030\325\001 \001(\0132\013.DeleteGameH\000B\005\n\003msg\"\231\004" +
+      "\n\nFromClient\022\030\n\004vers\030\001 \001(\0132\010.VersionH\000\022 " +
+      "\n\010auth_req\030\002 \001(\0132\014.AuthRequestH\000\022\037\n\nim_a" +
+      "_robot\030\003 \001(\0132\t.ImARobotH\000\022\"\n\013server_ping" +
+      "\030\004 \001(\0132\013.ServerPingH\000\022\036\n\tleave_all\030\005 \001(\013" +
+      "2\t.LeaveAllH\000\022.\n\014game_message\030\017 \001(\0132\026.Ga" +
+      "meMessageFromClientH\000\022\037\n\007ch_join\030d \001(\0132\014" +
+      ".JoinChannelH\000\022\037\n\007ch_text\030e \001(\0132\014.Channe" +
+      "lTextH\000\022!\n\010ch_leave\030f \001(\0132\r.LeaveChannel" +
+      "H\000\022\033\n\006ga_new\030\310\001 \001(\0132\010.NewGameH\000\022\035\n\007ga_jo" +
+      "in\030\311\001 \001(\0132\t.JoinGameH\000\022\035\n\010sit_down\030\312\001 \001(" +
+      "\0132\010.SitDownH\000\022&\n\rset_seat_lock\030\313\001 \001(\0132\014." +
+      "SetSeatLockH\000\022*\n\016ga_player_text\030\314\001 \001(\0132\017" +
+      ".GamePlayerTextH\000\022\037\n\010ga_leave\030\315\001 \001(\0132\n.L" +
+      "eaveGameH\000B\005\n\003msgB\r\n\tsoc.protoH\001P\000P\001b\006pr" +
+      "oto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

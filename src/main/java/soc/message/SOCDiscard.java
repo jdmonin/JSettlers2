@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012,2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012,2014,2016-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -244,6 +244,8 @@ public class SOCDiscard extends SOCMessage
         GameMessage.GameMessageFromServer.Builder gb
             = GameMessage.GameMessageFromServer.newBuilder();
         gb.setGameName(game).setLoseResources(b);
+        if (playerNumber != -1)
+            gb.setPlayerNumber(playerNumber);
         return Message.FromServer.newBuilder().setGameMessage(gb).build();
     }
 
