@@ -114,7 +114,8 @@ enum HexType {
 
 /* Structs here are suffixed "Data" since we eventually want them used in the java code. Many struct names will then get
 the same name as its OO counterparts. As in Java OO is central, I choose to suffix the data.
-*/
+ * @see ResourceSet
+ */
 enum ResourceType {
     // For now, we're still tied to the integer values. Therefore I want the values to be the same as we currently use
     // them until the integer dependencies are refactored out.
@@ -124,13 +125,15 @@ enum ResourceType {
     SHEEP = 3;
     WHEAT = 4;
     WOOD = 5;
-    UNKNOWN = 6; // TODO: shares a slot with GOLD in some instances
+    UNKNOWN = 6; // An unknown or hidden type of resource. TODO: shares a slot with GOLD in some instances
     // TODO maybe modernize resource names
 }
 
-/* Set with amounts of each standard Resource Type, with optional field for other types. */
+/* A Set with amounts of each standard Resource Type, with optional field for other types.
+ * @see ResourceType
+ */
 message ResourceSet {
-    /* Structure to include any other resource type */
+    /* Structure to include any nonstandard resource type */
     message OtherResource {
         ResourceType res_type = 1;
         int32 amount = 2;
@@ -141,11 +144,12 @@ message ResourceSet {
     int32 sheep = 3;  // Amount of sheep
     int32 wheat = 4;  // Amount of wheat
     int32 wood  = 5;  // Amount of wood
+    int32 unknown = 6;  // Amount of unknown/hidden type (ResourceType.UNKNOWN); allowed in only some message types like LoseResources
 
-    // TODO maybe modernize resource names
+    // TODO maybe modernize resource names to 5th edition
 
-    /* Optional field to include any other resource type(s) */
-    repeated OtherResource others = 6;
+    /* Optional field to include any nonstandard resource type(s) */
+    repeated OtherResource others = 7;
 }
 
 /* Piece Types for {@link soc.game.SOCPlayingPiece}; same constant values as that class.

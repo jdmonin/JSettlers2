@@ -1151,8 +1151,9 @@ message EndTurn {
  * If the client's trade request is acceptable, server responds to entire game with
  * {@code TradeWithBank} to announce the trade details.
  *<P>
- * TThe server disallows any unacceptable trade by sending the client a
+ * The server disallows any unacceptable trade by sending the client a
  * {@code TradeRejectOffer} with a reason code like {@code REASON_NOT_YOUR_TURN}.
+ * If client message's ResourceSet contains {@code unknown}, server ignores the message instead.
  *<P>
  * Before v3.0.00 this message was SOCBankTrade.
  * @see TradeMakeOffer
@@ -1169,6 +1170,7 @@ message TradeWithBank {
  *<P>
  * If this trade offer is disallowed, server replies with a {@link TradeRejectOffer}
  * with reason REASON_CANNOT_MAKE_OFFER.
+ * If client message's ResourceSet contains {@code unknown}, server ignores the message instead.
  *<P>
  * Before v3.0.00 this message was SOCMakeOffer.
  * @see TradeWithBank
@@ -1301,17 +1303,23 @@ message TradeAcceptOffer {
  *   If waiting for others to discard, server also sends the game a {@link GameServerText} that lists
  *   who we're still waiting for.
  *<P>
+ * If client message's ResourceSet contains {@code unknown}, server ignores the message instead.
+ *<P>
  * Before v3.0.00 this message type was SOCDiscardRequest and SOCDiscard.
  */
 message LoseResources {
     int32 amount = 1;  // prompt or announcement from server: player must lose this many resources
-    ResourceSet lose = 2;  // the resources lost
+    ResourceSet lose = 2;  // the resources lost; may contain unknowns if from server
 }
 
 /* A player picks which resources to gain. (Year of Plenty, Gold hex, etc).
  * - First sent to client as prompt with the amount to gain.
  * - Client player responds with specific resources they want to gain.
  * - Server announces the specific resources gained to the game.
+ *<P>
+ * If client message's ResourceSet contains {@code unknown}, server ignores the message.
+ *<P>
+ * Before v3.0.00 this message type was SOCPickResources.
  */
 message GainResources {
     int32 amount = 1;  // prompt from server: player must pick this many resources to gain

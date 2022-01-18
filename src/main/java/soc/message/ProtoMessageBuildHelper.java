@@ -403,11 +403,11 @@ public abstract class ProtoMessageBuildHelper
     /**
      * Build a protobuf {@code Data.ResourceSet.Builder} from this
      * {@link SOCResourceSet} or {@link ResourceSet}'s known resources.
-     * Unknown resources are ignored.
+     * Unknown resources are included, although not all message types permit them in ResourceSets.
      * @param rs  Resource set to build from; not {@code null}
      * @return  A {@code Data.ResourceSet.Builder} from {@code rs}
      * @throws NullPointerException if {@code rs == null}
-     * @see #fromResourceSet(soc.proto.Data.ResourceSet)
+     * @see #fromResourceSet(soc.proto.Data.ResourceSet, boolean)
      */
     public static final Data.ResourceSet.Builder toResourceSet(final ResourceSet rs)
         throws NullPointerException
@@ -429,22 +429,29 @@ public abstract class ProtoMessageBuildHelper
         n = rs.getAmount(SOCResourceConstants.WOOD);
         if (n != 0)
             rsb.setWood(n);
+        n = rs.getAmount(SOCResourceConstants.UNKNOWN);
+        if (n != 0)
+            rsb.setUnknown(n);
 
         return rsb;
     }
 
     /**
      * Build a {@link SOCResourceSet} from this protobuf {@code Data.ResourceSet.Builder}'s known resources.
-     * Unknown resources are ignored.
+     * Unknown resources are rejected unless {@code allowUnknowns}.
      * @param rs  Protobuf ResourceSet to build from; not {@code null}
      * @return  A {@link SOCResourceSet} from {@code rs}
-     * @throws NullPointerException if {@code rs == null}
+     * @throws NullPointerException if {@code rs == null},
+     *     or {@code null} if {@code rs} contained {@link SOCResourceConstants#UNKNOWN} and {@code allowUnknowns} false
      * @see #toResourceSet(SOCResourceSet)
      */
-    public static final SOCResourceSet fromResourceSet(final Data.ResourceSet rs)
+    public static final SOCResourceSet fromResourceSet(final Data.ResourceSet rs, final boolean allowUnknowns)
         throws NullPointerException
     {
-        return new SOCResourceSet(rs.getClay(), rs.getOre(), rs.getSheep(), rs.getWheat(), rs.getWood(), 0);
+        int nUnknown = rs.getUnknown();
+        if ((nUnknown > 0) && ! allowUnknowns)
+            return null;
+        return new SOCResourceSet(rs.getClay(), rs.getOre(), rs.getSheep(), rs.getWheat(), rs.getWood(), nUnknown);
     }
 
     //

@@ -37,6 +37,7 @@ import java.util.StringTokenizer;
 import com.google.protobuf.GeneratedMessageV3;
 
 import soc.game.SOCGame;
+import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
 import soc.proto.Data;
 import soc.proto.GameMessage;
@@ -646,6 +647,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * This default stub implementation returns {@code null};
      * subclasses should override to use Protobuf
      * if clients should send that message class.
+     *<P>
+     * Receiving server will call {@link #toMsg(Message.FromClient)}.
+     *
      * @see #toProtoFromServer()
      * @since 3.0.00
      */
@@ -1178,6 +1182,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /**
      * Convert a Protobuf message from client into a SOCMessage.
+     * Calls {@link #toMsgForGame(GameMessage.GameMessageFromClient)} to convert any GameMessageFromClient.
+     *<P>
      * This method is temporary until SOCServer completely uses protobuf.
      * If the message type id is unknown, type is printed to System.err.
      *
@@ -1190,8 +1196,6 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static SOCMessage toMsg(final Message.FromClient msg)
     {
-        // Note: calls toMsgForGame(..) to convert any GameMessageFromClient
-
         final int typ = msg.getMsgCase().getNumber();
         try
         {
@@ -1336,6 +1340,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /**
      * Convert a Protobuf game message from client into a SOCMessage.
+     * Called by {@link #toMsg(Message.FromClient)}.
+     *<P>
      * This method is temporary until SOCServer completely uses protobuf.
      * If the message type id is unknown, type is printed to System.err.
      *
@@ -1432,9 +1438,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case GameMessage.GameMessageFromClient.TRADE_WITH_BANK_FIELD_NUMBER:
                 {
                     GameMessage.TradeWithBank m = msg.getTradeWithBank();
+                    final SOCResourceSet give = ProtoMessageBuildHelper.fromResourceSet(m.getGive(), false),
+                        get = ProtoMessageBuildHelper.fromResourceSet(m.getGet(), false);
+                    if ((give == null) || (get == null))
+                        return null;
                     return new SOCBankTrade
-                        (gaName, ProtoMessageBuildHelper.fromResourceSet(m.getGive()),
-                         ProtoMessageBuildHelper.fromResourceSet(m.getGet()), -1);
+                        (gaName, give, get, -1);
                 }
 
             case GameMessage.GameMessageFromClient.TRADE_MAKE_OFFER_FIELD_NUMBER:
@@ -1445,9 +1454,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
                     final Data._IntArray offerToField = m.getToPlayers();
                     if (offerToField != null)
                         offerTo = SOCTradeOffer.makePNArray(offerToField.getArrList());
+                    final SOCResourceSet give = ProtoMessageBuildHelper.fromResourceSet(m.getGive(), false),
+                        get = ProtoMessageBuildHelper.fromResourceSet(m.getGet(), false);
+                    if ((give == null) || (get == null))
+                        return null;
                     return new SOCMakeOffer(gaName, new SOCTradeOffer
-                        (gaName, -1, offerTo, ProtoMessageBuildHelper.fromResourceSet(m.getGive()),
-                         ProtoMessageBuildHelper.fromResourceSet(m.getGet())));
+                        (gaName, -1, offerTo, give, get));
 
                     // TODO also use offer_serial when that's supported
                 }
@@ -1469,12 +1481,16 @@ public abstract class SOCMessage implements Serializable, Cloneable
             // player actions: resources and robbing
 
             case GameMessage.GameMessageFromClient.LOSE_RESOURCES_FIELD_NUMBER:
-                return new SOCDiscard
-                    (gaName, -1, ProtoMessageBuildHelper.fromResourceSet(msg.getLoseResources().getLose()));
+                {
+                    SOCResourceSet rs = ProtoMessageBuildHelper.fromResourceSet(msg.getLoseResources().getLose(), false);
+                    return (rs != null) ? new SOCDiscard(gaName, -1, rs) : null;
+                }
 
             case GameMessage.GameMessageFromClient.GAIN_RESOURCES_FIELD_NUMBER:
-                return new SOCPickResources
-                    (gaName, ProtoMessageBuildHelper.fromResourceSet(msg.getGainResources().getGain()));
+                {
+                    SOCResourceSet rs = ProtoMessageBuildHelper.fromResourceSet(msg.getGainResources().getGain(), false);
+                    return (rs != null) ? new SOCPickResources(gaName, rs) : null;
+                }
 
             case GameMessage.GameMessageFromClient.CHOOSE_RESOURCE_TYPE_FIELD_NUMBER:
                 return new SOCPickResourceType

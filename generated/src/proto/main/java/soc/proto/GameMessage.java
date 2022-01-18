@@ -23899,8 +23899,9 @@ public final class GameMessage {
    * If the client's trade request is acceptable, server responds to entire game with
    * {&#64;code TradeWithBank} to announce the trade details.
    *&lt;P&gt;
-   * TThe server disallows any unacceptable trade by sending the client a
+   * The server disallows any unacceptable trade by sending the client a
    * {&#64;code TradeRejectOffer} with a reason code like {&#64;code REASON_NOT_YOUR_TURN}.
+   * If client message's ResourceSet contains {&#64;code unknown}, server ignores the message instead.
    *&lt;P&gt;
    * Before v3.0.00 this message was SOCBankTrade.
    * &#64;see TradeMakeOffer
@@ -24244,8 +24245,9 @@ public final class GameMessage {
      * If the client's trade request is acceptable, server responds to entire game with
      * {&#64;code TradeWithBank} to announce the trade details.
      *&lt;P&gt;
-     * TThe server disallows any unacceptable trade by sending the client a
+     * The server disallows any unacceptable trade by sending the client a
      * {&#64;code TradeRejectOffer} with a reason code like {&#64;code REASON_NOT_YOUR_TURN}.
+     * If client message's ResourceSet contains {&#64;code unknown}, server ignores the message instead.
      *&lt;P&gt;
      * Before v3.0.00 this message was SOCBankTrade.
      * &#64;see TradeMakeOffer
@@ -24789,6 +24791,7 @@ public final class GameMessage {
    *&lt;P&gt;
    * If this trade offer is disallowed, server replies with a {&#64;link TradeRejectOffer}
    * with reason REASON_CANNOT_MAKE_OFFER.
+   * If client message's ResourceSet contains {&#64;code unknown}, server ignores the message instead.
    *&lt;P&gt;
    * Before v3.0.00 this message was SOCMakeOffer.
    * &#64;see TradeWithBank
@@ -25232,6 +25235,7 @@ public final class GameMessage {
      *&lt;P&gt;
      * If this trade offer is disallowed, server replies with a {&#64;link TradeRejectOffer}
      * with reason REASON_CANNOT_MAKE_OFFER.
+     * If client message's ResourceSet contains {&#64;code unknown}, server ignores the message instead.
      *&lt;P&gt;
      * Before v3.0.00 this message was SOCMakeOffer.
      * &#64;see TradeWithBank
@@ -28340,7 +28344,7 @@ public final class GameMessage {
 
     /**
      * <pre>
-     * the resources lost
+     * the resources lost; may contain unknowns if from server
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
@@ -28349,7 +28353,7 @@ public final class GameMessage {
     boolean hasLose();
     /**
      * <pre>
-     * the resources lost
+     * the resources lost; may contain unknowns if from server
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
@@ -28358,7 +28362,7 @@ public final class GameMessage {
     soc.proto.Data.ResourceSet getLose();
     /**
      * <pre>
-     * the resources lost
+     * the resources lost; may contain unknowns if from server
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
@@ -28377,6 +28381,8 @@ public final class GameMessage {
    * - Server will then send the new {&#64;link State}.
    *   If waiting for others to discard, server also sends the game a {&#64;link GameServerText} that lists
    *   who we're still waiting for.
+   *&lt;P&gt;
+   * If client message's ResourceSet contains {&#64;code unknown}, server ignores the message instead.
    *&lt;P&gt;
    * Before v3.0.00 this message type was SOCDiscardRequest and SOCDiscard.
    * </pre>
@@ -28494,7 +28500,7 @@ public final class GameMessage {
     private soc.proto.Data.ResourceSet lose_;
     /**
      * <pre>
-     * the resources lost
+     * the resources lost; may contain unknowns if from server
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
@@ -28506,7 +28512,7 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * the resources lost
+     * the resources lost; may contain unknowns if from server
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
@@ -28518,7 +28524,7 @@ public final class GameMessage {
     }
     /**
      * <pre>
-     * the resources lost
+     * the resources lost; may contain unknowns if from server
      * </pre>
      *
      * <code>.ResourceSet lose = 2;</code>
@@ -28711,6 +28717,8 @@ public final class GameMessage {
      * - Server will then send the new {&#64;link State}.
      *   If waiting for others to discard, server also sends the game a {&#64;link GameServerText} that lists
      *   who we're still waiting for.
+     *&lt;P&gt;
+     * If client message's ResourceSet contains {&#64;code unknown}, server ignores the message instead.
      *&lt;P&gt;
      * Before v3.0.00 this message type was SOCDiscardRequest and SOCDiscard.
      * </pre>
@@ -28923,7 +28931,7 @@ public final class GameMessage {
           soc.proto.Data.ResourceSet, soc.proto.Data.ResourceSet.Builder, soc.proto.Data.ResourceSetOrBuilder> loseBuilder_;
       /**
        * <pre>
-       * the resources lost
+       * the resources lost; may contain unknowns if from server
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -28934,7 +28942,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * the resources lost
+       * the resources lost; may contain unknowns if from server
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -28949,7 +28957,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * the resources lost
+       * the resources lost; may contain unknowns if from server
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -28969,7 +28977,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * the resources lost
+       * the resources lost; may contain unknowns if from server
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -28987,7 +28995,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * the resources lost
+       * the resources lost; may contain unknowns if from server
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -29009,7 +29017,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * the resources lost
+       * the resources lost; may contain unknowns if from server
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -29027,7 +29035,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * the resources lost
+       * the resources lost; may contain unknowns if from server
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -29039,7 +29047,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * the resources lost
+       * the resources lost; may contain unknowns if from server
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -29054,7 +29062,7 @@ public final class GameMessage {
       }
       /**
        * <pre>
-       * the resources lost
+       * the resources lost; may contain unknowns if from server
        * </pre>
        *
        * <code>.ResourceSet lose = 2;</code>
@@ -29172,6 +29180,10 @@ public final class GameMessage {
    * - First sent to client as prompt with the amount to gain.
    * - Client player responds with specific resources they want to gain.
    * - Server announces the specific resources gained to the game.
+   *&lt;P&gt;
+   * If client message's ResourceSet contains {&#64;code unknown}, server ignores the message.
+   *&lt;P&gt;
+   * Before v3.0.00 this message type was SOCPickResources.
    * </pre>
    *
    * Protobuf type {@code GainResources}
@@ -29498,6 +29510,10 @@ public final class GameMessage {
      * - First sent to client as prompt with the amount to gain.
      * - Client player responds with specific resources they want to gain.
      * - Server announces the specific resources gained to the game.
+     *&lt;P&gt;
+     * If client message's ResourceSet contains {&#64;code unknown}, server ignores the message.
+     *&lt;P&gt;
+     * Before v3.0.00 this message type was SOCPickResources.
      * </pre>
      *
      * Protobuf type {@code GainResources}

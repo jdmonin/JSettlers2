@@ -221,6 +221,7 @@ public final class Data {
    * <pre>
    * Structs here are suffixed "Data" since we eventually want them used in the java code. Many struct names will then get
    *the same name as its OO counterparts. As in Java OO is central, I choose to suffix the data.
+   * &#64;see ResourceSet
    * </pre>
    *
    * Protobuf enum {@code ResourceType}
@@ -258,7 +259,7 @@ public final class Data {
     WOOD(5),
     /**
      * <pre>
-     * TODO: shares a slot with GOLD in some instances
+     * An unknown or hidden type of resource. TODO: shares a slot with GOLD in some instances
      * </pre>
      *
      * <code>UNKNOWN = 6;</code>
@@ -298,7 +299,7 @@ public final class Data {
     public static final int WOOD_VALUE = 5;
     /**
      * <pre>
-     * TODO: shares a slot with GOLD in some instances
+     * An unknown or hidden type of resource. TODO: shares a slot with GOLD in some instances
      * </pre>
      *
      * <code>UNKNOWN = 6;</code>
@@ -9195,51 +9196,62 @@ public final class Data {
 
     /**
      * <pre>
-     * Optional field to include any other resource type(s) 
+     * Amount of unknown/hidden type (ResourceType.UNKNOWN); allowed in only some message types like LoseResources
      * </pre>
      *
-     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     * <code>int32 unknown = 6;</code>
+     * @return The unknown.
+     */
+    int getUnknown();
+
+    /**
+     * <pre>
+     * Optional field to include any nonstandard resource type(s) 
+     * </pre>
+     *
+     * <code>repeated .ResourceSet.OtherResource others = 7;</code>
      */
     java.util.List<soc.proto.Data.ResourceSet.OtherResource> 
         getOthersList();
     /**
      * <pre>
-     * Optional field to include any other resource type(s) 
+     * Optional field to include any nonstandard resource type(s) 
      * </pre>
      *
-     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     * <code>repeated .ResourceSet.OtherResource others = 7;</code>
      */
     soc.proto.Data.ResourceSet.OtherResource getOthers(int index);
     /**
      * <pre>
-     * Optional field to include any other resource type(s) 
+     * Optional field to include any nonstandard resource type(s) 
      * </pre>
      *
-     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     * <code>repeated .ResourceSet.OtherResource others = 7;</code>
      */
     int getOthersCount();
     /**
      * <pre>
-     * Optional field to include any other resource type(s) 
+     * Optional field to include any nonstandard resource type(s) 
      * </pre>
      *
-     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     * <code>repeated .ResourceSet.OtherResource others = 7;</code>
      */
     java.util.List<? extends soc.proto.Data.ResourceSet.OtherResourceOrBuilder> 
         getOthersOrBuilderList();
     /**
      * <pre>
-     * Optional field to include any other resource type(s) 
+     * Optional field to include any nonstandard resource type(s) 
      * </pre>
      *
-     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     * <code>repeated .ResourceSet.OtherResource others = 7;</code>
      */
     soc.proto.Data.ResourceSet.OtherResourceOrBuilder getOthersOrBuilder(
         int index);
   }
   /**
    * <pre>
-   * Set with amounts of each standard Resource Type, with optional field for other types. 
+   * A Set with amounts of each standard Resource Type, with optional field for other types.
+   * &#64;see ResourceType
    * </pre>
    *
    * Protobuf type {@code ResourceSet}
@@ -9313,7 +9325,12 @@ public final class Data {
               wood_ = input.readInt32();
               break;
             }
-            case 50: {
+            case 48: {
+
+              unknown_ = input.readInt32();
+              break;
+            }
+            case 58: {
               if (!((mutable_bitField0_ & 0x00000001) != 0)) {
                 others_ = new java.util.ArrayList<soc.proto.Data.ResourceSet.OtherResource>();
                 mutable_bitField0_ |= 0x00000001;
@@ -9380,7 +9397,7 @@ public final class Data {
     }
     /**
      * <pre>
-     * Structure to include any other resource type 
+     * Structure to include any nonstandard resource type 
      * </pre>
      *
      * Protobuf type {@code ResourceSet.OtherResource}
@@ -9668,7 +9685,7 @@ public final class Data {
       }
       /**
        * <pre>
-       * Structure to include any other resource type 
+       * Structure to include any nonstandard resource type 
        * </pre>
        *
        * Protobuf type {@code ResourceSet.OtherResource}
@@ -10035,14 +10052,29 @@ public final class Data {
       return wood_;
     }
 
-    public static final int OTHERS_FIELD_NUMBER = 6;
+    public static final int UNKNOWN_FIELD_NUMBER = 6;
+    private int unknown_;
+    /**
+     * <pre>
+     * Amount of unknown/hidden type (ResourceType.UNKNOWN); allowed in only some message types like LoseResources
+     * </pre>
+     *
+     * <code>int32 unknown = 6;</code>
+     * @return The unknown.
+     */
+    @java.lang.Override
+    public int getUnknown() {
+      return unknown_;
+    }
+
+    public static final int OTHERS_FIELD_NUMBER = 7;
     private java.util.List<soc.proto.Data.ResourceSet.OtherResource> others_;
     /**
      * <pre>
-     * Optional field to include any other resource type(s) 
+     * Optional field to include any nonstandard resource type(s) 
      * </pre>
      *
-     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     * <code>repeated .ResourceSet.OtherResource others = 7;</code>
      */
     @java.lang.Override
     public java.util.List<soc.proto.Data.ResourceSet.OtherResource> getOthersList() {
@@ -10050,10 +10082,10 @@ public final class Data {
     }
     /**
      * <pre>
-     * Optional field to include any other resource type(s) 
+     * Optional field to include any nonstandard resource type(s) 
      * </pre>
      *
-     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     * <code>repeated .ResourceSet.OtherResource others = 7;</code>
      */
     @java.lang.Override
     public java.util.List<? extends soc.proto.Data.ResourceSet.OtherResourceOrBuilder> 
@@ -10062,10 +10094,10 @@ public final class Data {
     }
     /**
      * <pre>
-     * Optional field to include any other resource type(s) 
+     * Optional field to include any nonstandard resource type(s) 
      * </pre>
      *
-     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     * <code>repeated .ResourceSet.OtherResource others = 7;</code>
      */
     @java.lang.Override
     public int getOthersCount() {
@@ -10073,10 +10105,10 @@ public final class Data {
     }
     /**
      * <pre>
-     * Optional field to include any other resource type(s) 
+     * Optional field to include any nonstandard resource type(s) 
      * </pre>
      *
-     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     * <code>repeated .ResourceSet.OtherResource others = 7;</code>
      */
     @java.lang.Override
     public soc.proto.Data.ResourceSet.OtherResource getOthers(int index) {
@@ -10084,10 +10116,10 @@ public final class Data {
     }
     /**
      * <pre>
-     * Optional field to include any other resource type(s) 
+     * Optional field to include any nonstandard resource type(s) 
      * </pre>
      *
-     * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+     * <code>repeated .ResourceSet.OtherResource others = 7;</code>
      */
     @java.lang.Override
     public soc.proto.Data.ResourceSet.OtherResourceOrBuilder getOthersOrBuilder(
@@ -10124,8 +10156,11 @@ public final class Data {
       if (wood_ != 0) {
         output.writeInt32(5, wood_);
       }
+      if (unknown_ != 0) {
+        output.writeInt32(6, unknown_);
+      }
       for (int i = 0; i < others_.size(); i++) {
-        output.writeMessage(6, others_.get(i));
+        output.writeMessage(7, others_.get(i));
       }
       unknownFields.writeTo(output);
     }
@@ -10156,9 +10191,13 @@ public final class Data {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(5, wood_);
       }
+      if (unknown_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(6, unknown_);
+      }
       for (int i = 0; i < others_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, others_.get(i));
+          .computeMessageSize(7, others_.get(i));
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -10185,6 +10224,8 @@ public final class Data {
           != other.getWheat()) return false;
       if (getWood()
           != other.getWood()) return false;
+      if (getUnknown()
+          != other.getUnknown()) return false;
       if (!getOthersList()
           .equals(other.getOthersList())) return false;
       if (!unknownFields.equals(other.unknownFields)) return false;
@@ -10208,6 +10249,8 @@ public final class Data {
       hash = (53 * hash) + getWheat();
       hash = (37 * hash) + WOOD_FIELD_NUMBER;
       hash = (53 * hash) + getWood();
+      hash = (37 * hash) + UNKNOWN_FIELD_NUMBER;
+      hash = (53 * hash) + getUnknown();
       if (getOthersCount() > 0) {
         hash = (37 * hash) + OTHERS_FIELD_NUMBER;
         hash = (53 * hash) + getOthersList().hashCode();
@@ -10309,7 +10352,8 @@ public final class Data {
     }
     /**
      * <pre>
-     * Set with amounts of each standard Resource Type, with optional field for other types. 
+     * A Set with amounts of each standard Resource Type, with optional field for other types.
+     * &#64;see ResourceType
      * </pre>
      *
      * Protobuf type {@code ResourceSet}
@@ -10360,6 +10404,8 @@ public final class Data {
 
         wood_ = 0;
 
+        unknown_ = 0;
+
         if (othersBuilder_ == null) {
           others_ = java.util.Collections.emptyList();
           bitField0_ = (bitField0_ & ~0x00000001);
@@ -10398,6 +10444,7 @@ public final class Data {
         result.sheep_ = sheep_;
         result.wheat_ = wheat_;
         result.wood_ = wood_;
+        result.unknown_ = unknown_;
         if (othersBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0)) {
             others_ = java.util.Collections.unmodifiableList(others_);
@@ -10469,6 +10516,9 @@ public final class Data {
         }
         if (other.getWood() != 0) {
           setWood(other.getWood());
+        }
+        if (other.getUnknown() != 0) {
+          setUnknown(other.getUnknown());
         }
         if (othersBuilder_ == null) {
           if (!other.others_.isEmpty()) {
@@ -10741,6 +10791,49 @@ public final class Data {
         return this;
       }
 
+      private int unknown_ ;
+      /**
+       * <pre>
+       * Amount of unknown/hidden type (ResourceType.UNKNOWN); allowed in only some message types like LoseResources
+       * </pre>
+       *
+       * <code>int32 unknown = 6;</code>
+       * @return The unknown.
+       */
+      @java.lang.Override
+      public int getUnknown() {
+        return unknown_;
+      }
+      /**
+       * <pre>
+       * Amount of unknown/hidden type (ResourceType.UNKNOWN); allowed in only some message types like LoseResources
+       * </pre>
+       *
+       * <code>int32 unknown = 6;</code>
+       * @param value The unknown to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUnknown(int value) {
+        
+        unknown_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <pre>
+       * Amount of unknown/hidden type (ResourceType.UNKNOWN); allowed in only some message types like LoseResources
+       * </pre>
+       *
+       * <code>int32 unknown = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUnknown() {
+        
+        unknown_ = 0;
+        onChanged();
+        return this;
+      }
+
       private java.util.List<soc.proto.Data.ResourceSet.OtherResource> others_ =
         java.util.Collections.emptyList();
       private void ensureOthersIsMutable() {
@@ -10755,10 +10848,10 @@ public final class Data {
 
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public java.util.List<soc.proto.Data.ResourceSet.OtherResource> getOthersList() {
         if (othersBuilder_ == null) {
@@ -10769,10 +10862,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public int getOthersCount() {
         if (othersBuilder_ == null) {
@@ -10783,10 +10876,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public soc.proto.Data.ResourceSet.OtherResource getOthers(int index) {
         if (othersBuilder_ == null) {
@@ -10797,10 +10890,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public Builder setOthers(
           int index, soc.proto.Data.ResourceSet.OtherResource value) {
@@ -10818,10 +10911,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public Builder setOthers(
           int index, soc.proto.Data.ResourceSet.OtherResource.Builder builderForValue) {
@@ -10836,10 +10929,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public Builder addOthers(soc.proto.Data.ResourceSet.OtherResource value) {
         if (othersBuilder_ == null) {
@@ -10856,10 +10949,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public Builder addOthers(
           int index, soc.proto.Data.ResourceSet.OtherResource value) {
@@ -10877,10 +10970,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public Builder addOthers(
           soc.proto.Data.ResourceSet.OtherResource.Builder builderForValue) {
@@ -10895,10 +10988,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public Builder addOthers(
           int index, soc.proto.Data.ResourceSet.OtherResource.Builder builderForValue) {
@@ -10913,10 +11006,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public Builder addAllOthers(
           java.lang.Iterable<? extends soc.proto.Data.ResourceSet.OtherResource> values) {
@@ -10932,10 +11025,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public Builder clearOthers() {
         if (othersBuilder_ == null) {
@@ -10949,10 +11042,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public Builder removeOthers(int index) {
         if (othersBuilder_ == null) {
@@ -10966,10 +11059,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public soc.proto.Data.ResourceSet.OtherResource.Builder getOthersBuilder(
           int index) {
@@ -10977,10 +11070,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public soc.proto.Data.ResourceSet.OtherResourceOrBuilder getOthersOrBuilder(
           int index) {
@@ -10991,10 +11084,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public java.util.List<? extends soc.proto.Data.ResourceSet.OtherResourceOrBuilder> 
            getOthersOrBuilderList() {
@@ -11006,10 +11099,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public soc.proto.Data.ResourceSet.OtherResource.Builder addOthersBuilder() {
         return getOthersFieldBuilder().addBuilder(
@@ -11017,10 +11110,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public soc.proto.Data.ResourceSet.OtherResource.Builder addOthersBuilder(
           int index) {
@@ -11029,10 +11122,10 @@ public final class Data {
       }
       /**
        * <pre>
-       * Optional field to include any other resource type(s) 
+       * Optional field to include any nonstandard resource type(s) 
        * </pre>
        *
-       * <code>repeated .ResourceSet.OtherResource others = 6;</code>
+       * <code>repeated .ResourceSet.OtherResource others = 7;</code>
        */
       public java.util.List<soc.proto.Data.ResourceSet.OtherResource.Builder> 
            getOthersBuilderList() {
@@ -11186,47 +11279,47 @@ public final class Data {
       "\010_HexList\022\026\n\003hex\030\001 \003(\0132\t.HexCoord\"%\n\t_No" +
       "deList\022\030\n\004node\030\001 \003(\0132\n.NodeCoord\"-\n\017_Boa" +
       "rdCoordList\022\032\n\005coord\030\001 \003(\0132\013.BoardCoord\"" +
-      "\302\001\n\013ResourceSet\022\014\n\004clay\030\001 \001(\005\022\013\n\003ore\030\002 \001" +
+      "\323\001\n\013ResourceSet\022\014\n\004clay\030\001 \001(\005\022\013\n\003ore\030\002 \001" +
       "(\005\022\r\n\005sheep\030\003 \001(\005\022\r\n\005wheat\030\004 \001(\005\022\014\n\004wood" +
-      "\030\005 \001(\005\022*\n\006others\030\006 \003(\0132\032.ResourceSet.Oth" +
-      "erResource\032@\n\rOtherResource\022\037\n\010res_type\030" +
-      "\001 \001(\0162\r.ResourceType\022\016\n\006amount\030\002 \001(\005*\212\001\n" +
-      "\007HexType\022\r\n\tWATER_HEX\020\000\022\014\n\010CLAY_HEX\020\001\022\013\n" +
-      "\007ORE_HEX\020\002\022\r\n\tSHEEP_HEX\020\003\022\r\n\tWHEAT_HEX\020\004" +
-      "\022\014\n\010WOOD_HEX\020\005\022\016\n\nDESERT_HEX\020\006\022\014\n\010GOLD_H" +
-      "EX\020\007\022\013\n\007FOG_HEX\020\010*a\n\014ResourceType\022\021\n\r_NO" +
-      "T_YET_USED\020\000\022\010\n\004CLAY\020\001\022\007\n\003ORE\020\002\022\t\n\005SHEEP" +
-      "\020\003\022\t\n\005WHEAT\020\004\022\010\n\004WOOD\020\005\022\013\n\007UNKNOWN\020\006*T\n\t" +
-      "PieceType\022\010\n\004ROAD\020\000\022\016\n\nSETTLEMENT\020\001\022\010\n\004C" +
-      "ITY\020\002\022\010\n\004SHIP\020\003\022\014\n\010FORTRESS\020\004\022\013\n\007VILLAGE" +
-      "\020\005*I\n\021OtherPlayableItem\022\030\n\024_UNSENT_DEFAU" +
-      "LT_ITEM\020\000\022\014\n\010DEV_CARD\020\002\022\014\n\010INV_ITEM\020\003*\333\001" +
-      "\n\014DevCardValue\022 \n\034_UNSENT_DEFAULT_DEVCAR" +
-      "DVALUE\020\000\022\024\n\020UNKNOWN_DEV_CARD\020\001\022\n\n\006KNIGHT" +
-      "\020\002\022\014\n\010MONOPOLY\020\003\022\021\n\rROAD_BUILDING\020\004\022\022\n\016Y" +
-      "EAR_OF_PLENTY\020\005\022\r\n\tVP_CHAPEL\0202\022\021\n\rVP_GRE" +
-      "AT_HALL\0203\022\016\n\nVP_LIBRARY\0204\022\r\n\tVP_MARKET\0205" +
-      "\022\021\n\rVP_UNIVERSITY\0206*\312\005\n\tGameState\022\007\n\003NEW" +
-      "\020\000\022\t\n\005READY\020\001\022\"\n\036READY_RESET_WAIT_ROBOT_" +
-      "DISMISS\020\004\022\013\n\007START1A\020\005\022\013\n\007START1B\020\006\022\013\n\007S" +
-      "TART2A\020\n\022)\n%STARTS_WAITING_FOR_PICK_GOLD" +
-      "_RESOURCE\020\016\022\013\n\007START2B\020\013\022\013\n\007START3A\020\014\022\013\n" +
-      "\007START3B\020\r\022\020\n\014ROLL_OR_CARD\020\017\022\t\n\005PLAY1\020\024\022" +
-      "\020\n\014PLACING_ROAD\020\036\022\026\n\022PLACING_SETTLEMENT\020" +
-      "\037\022\020\n\014PLACING_CITY\020 \022\022\n\016PLACING_ROBBER\020!\022" +
-      "\022\n\016PLACING_PIRATE\020\"\022\020\n\014PLACING_SHIP\020#\022\026\n" +
-      "\022PLACING_FREE_ROAD1\020(\022\026\n\022PLACING_FREE_RO" +
-      "AD2\020)\022\024\n\020PLACING_INV_ITEM\020*\022\030\n\024WAITING_F" +
-      "OR_DISCARDS\0202\022!\n\035WAITING_FOR_ROB_CHOOSE_" +
-      "PLAYER\0203\022\031\n\025WAITING_FOR_DISCOVERY\0204\022\030\n\024W" +
-      "AITING_FOR_MONOPOLY\0205\022 \n\034WAITING_FOR_ROB" +
-      "BER_OR_PIRATE\0206\022%\n!WAITING_FOR_ROB_CLOTH" +
-      "_OR_RESOURCE\0207\022\"\n\036WAITING_FOR_PICK_GOLD_" +
-      "RESOURCE\0208\022\024\n\020SPECIAL_BUILDING\020d\022\014\n\007LOAD" +
-      "ING\020\336\007\022\025\n\020LOADING_RESUMING\020\340\007\022\t\n\004OVER\020\350\007" +
-      "\022\016\n\tRESET_OLD\020\351\007*=\n\rSeatLockState\022\014\n\010UNL" +
-      "OCKED\020\000\022\n\n\006LOCKED\020\001\022\022\n\016CLEAR_ON_RESET\020\002B" +
-      "\r\n\tsoc.protoH\001b\006proto3"
+      "\030\005 \001(\005\022\017\n\007unknown\030\006 \001(\005\022*\n\006others\030\007 \003(\0132" +
+      "\032.ResourceSet.OtherResource\032@\n\rOtherReso" +
+      "urce\022\037\n\010res_type\030\001 \001(\0162\r.ResourceType\022\016\n" +
+      "\006amount\030\002 \001(\005*\212\001\n\007HexType\022\r\n\tWATER_HEX\020\000" +
+      "\022\014\n\010CLAY_HEX\020\001\022\013\n\007ORE_HEX\020\002\022\r\n\tSHEEP_HEX" +
+      "\020\003\022\r\n\tWHEAT_HEX\020\004\022\014\n\010WOOD_HEX\020\005\022\016\n\nDESER" +
+      "T_HEX\020\006\022\014\n\010GOLD_HEX\020\007\022\013\n\007FOG_HEX\020\010*a\n\014Re" +
+      "sourceType\022\021\n\r_NOT_YET_USED\020\000\022\010\n\004CLAY\020\001\022" +
+      "\007\n\003ORE\020\002\022\t\n\005SHEEP\020\003\022\t\n\005WHEAT\020\004\022\010\n\004WOOD\020\005" +
+      "\022\013\n\007UNKNOWN\020\006*T\n\tPieceType\022\010\n\004ROAD\020\000\022\016\n\n" +
+      "SETTLEMENT\020\001\022\010\n\004CITY\020\002\022\010\n\004SHIP\020\003\022\014\n\010FORT" +
+      "RESS\020\004\022\013\n\007VILLAGE\020\005*I\n\021OtherPlayableItem" +
+      "\022\030\n\024_UNSENT_DEFAULT_ITEM\020\000\022\014\n\010DEV_CARD\020\002" +
+      "\022\014\n\010INV_ITEM\020\003*\333\001\n\014DevCardValue\022 \n\034_UNSE" +
+      "NT_DEFAULT_DEVCARDVALUE\020\000\022\024\n\020UNKNOWN_DEV" +
+      "_CARD\020\001\022\n\n\006KNIGHT\020\002\022\014\n\010MONOPOLY\020\003\022\021\n\rROA" +
+      "D_BUILDING\020\004\022\022\n\016YEAR_OF_PLENTY\020\005\022\r\n\tVP_C" +
+      "HAPEL\0202\022\021\n\rVP_GREAT_HALL\0203\022\016\n\nVP_LIBRARY" +
+      "\0204\022\r\n\tVP_MARKET\0205\022\021\n\rVP_UNIVERSITY\0206*\312\005\n" +
+      "\tGameState\022\007\n\003NEW\020\000\022\t\n\005READY\020\001\022\"\n\036READY_" +
+      "RESET_WAIT_ROBOT_DISMISS\020\004\022\013\n\007START1A\020\005\022" +
+      "\013\n\007START1B\020\006\022\013\n\007START2A\020\n\022)\n%STARTS_WAIT" +
+      "ING_FOR_PICK_GOLD_RESOURCE\020\016\022\013\n\007START2B\020" +
+      "\013\022\013\n\007START3A\020\014\022\013\n\007START3B\020\r\022\020\n\014ROLL_OR_C" +
+      "ARD\020\017\022\t\n\005PLAY1\020\024\022\020\n\014PLACING_ROAD\020\036\022\026\n\022PL" +
+      "ACING_SETTLEMENT\020\037\022\020\n\014PLACING_CITY\020 \022\022\n\016" +
+      "PLACING_ROBBER\020!\022\022\n\016PLACING_PIRATE\020\"\022\020\n\014" +
+      "PLACING_SHIP\020#\022\026\n\022PLACING_FREE_ROAD1\020(\022\026" +
+      "\n\022PLACING_FREE_ROAD2\020)\022\024\n\020PLACING_INV_IT" +
+      "EM\020*\022\030\n\024WAITING_FOR_DISCARDS\0202\022!\n\035WAITIN" +
+      "G_FOR_ROB_CHOOSE_PLAYER\0203\022\031\n\025WAITING_FOR" +
+      "_DISCOVERY\0204\022\030\n\024WAITING_FOR_MONOPOLY\0205\022 " +
+      "\n\034WAITING_FOR_ROBBER_OR_PIRATE\0206\022%\n!WAIT" +
+      "ING_FOR_ROB_CLOTH_OR_RESOURCE\0207\022\"\n\036WAITI" +
+      "NG_FOR_PICK_GOLD_RESOURCE\0208\022\024\n\020SPECIAL_B" +
+      "UILDING\020d\022\014\n\007LOADING\020\336\007\022\025\n\020LOADING_RESUM" +
+      "ING\020\340\007\022\t\n\004OVER\020\350\007\022\016\n\tRESET_OLD\020\351\007*=\n\rSea" +
+      "tLockState\022\014\n\010UNLOCKED\020\000\022\n\n\006LOCKED\020\001\022\022\n\016" +
+      "CLEAR_ON_RESET\020\002B\r\n\tsoc.protoH\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -11297,7 +11390,7 @@ public final class Data {
     internal_static_ResourceSet_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_ResourceSet_descriptor,
-        new java.lang.String[] { "Clay", "Ore", "Sheep", "Wheat", "Wood", "Others", });
+        new java.lang.String[] { "Clay", "Ore", "Sheep", "Wheat", "Wood", "Unknown", "Others", });
     internal_static_ResourceSet_OtherResource_descriptor =
       internal_static_ResourceSet_descriptor.getNestedTypes().get(0);
     internal_static_ResourceSet_OtherResource_fieldAccessorTable = new
