@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2010,2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2010,2014,2017-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ import java.util.StringTokenizer;
  * From client: A request to make or update a trade offer to 1 or more other players. <BR>
  * From server: A validated offer announced to the game. Will be followed immediately by
  * a {@link SOCClearTradeMsg} to clear responses from any previous offer.
- *<BR>
+ *<P>
  * If this trade offer is disallowed, server replies with a {@link SOCRejectOffer}
  * with reason {@link SOCRejectOffer#REASON_CANNOT_MAKE_OFFER}.
  * Clients and servers older than v2.5.00 ({@link SOCRejectOffer#VERSION_FOR_REPLY_REASONS})
@@ -65,6 +65,7 @@ public class SOCMakeOffer extends SOCMessage
      *    From server, this offer's {@link SOCTradeOffer#getFrom()} is the player number
      *    making the offer: See {@link #getOffer()}.
      *    From client, value of {@code of.getFrom()} is ignored at server.
+     *    Any unknown resources in {@code of} aren't sent over network, will always be 0 when received.
      */
     public SOCMakeOffer(String ga, SOCTradeOffer of)
     {
@@ -170,15 +171,12 @@ public class SOCMakeOffer extends SOCMessage
                 to[i] = (Boolean.valueOf(st.nextToken())).booleanValue();
             }
 
-            /**
-             * Note: this only works if SOCResourceConstants.CLAY == 1
-             */
-            for (int i = 1; i <= SOCResourceConstants.WOOD; i++)
+            for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; i++)
             {
                 give.setAmount(Integer.parseInt(st.nextToken()), i);
             }
 
-            for (int i = 1; i <= SOCResourceConstants.WOOD; i++)
+            for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; i++)
             {
                 get.setAmount(Integer.parseInt(st.nextToken()), i);
             }

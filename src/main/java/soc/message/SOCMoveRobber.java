@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2018,2020-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -39,8 +39,8 @@ import soc.game.SOCGame;  // for javadocs only
  * with {@link SOCDeclinePlayerRequest}, or to an older client with
  * {@link SOCGameServerText} and {@link SOCGameState}.
  *<P>
- * When sent from server, this message will be followed by other messages
- * about gaining/losing resources: {@link SOCRobberyResult} or {@link SOCPlayerElement}.
+ * When sent from server, this message may be followed by other messages
+ * about gaining/losing resources if there's a victim: {@link SOCRobberyResult} or {@link SOCPlayerElement}.
  * So for this message, the client should only call {@link soc.game.SOCBoard#setRobberHex(int, boolean)}
  * and not {@link soc.game.SOCGame#moveRobber(int, int)}.
  *<P>

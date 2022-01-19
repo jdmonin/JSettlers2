@@ -48,6 +48,8 @@ public class TestGame
     {
         assertTrue((SOCGame.ROLL_OR_CARD - 1) == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE);
         assertTrue((SOCGame.OVER - 10) == SOCGame.LOADING);
+        assertTrue(SOCGame.LOADING < SOCGame.LOADING_RESUMING);
+        assertTrue(SOCGame.LOADING_RESUMING < SOCGame.OVER);
     }
 
     /**

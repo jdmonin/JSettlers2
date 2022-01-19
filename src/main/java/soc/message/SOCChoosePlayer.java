@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2012,2014,2016-2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2012,2014,2016-2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,7 +41,8 @@ import soc.game.SOCGame;
  *     it says whether the player wants to move the robber
  *     or the pirate ship. (v2.0.00+)
  *<LI> In response to a server's {@link SOCChoosePlayer} message, it says whether the player wants to
- *     rob cloth or rob a resource from the victim. (v2.0.00+)
+ *     rob cloth or rob a resource from the victim in state
+ *     {@link SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE WAITING_FOR_ROB_CLOTH_OR_RESOURCE}. (v2.0.00+)
  *</UL>
  * {@link #getChoice()} gets the client's choice.
  *<P>

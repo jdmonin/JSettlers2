@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012,2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012,2014,2016-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -98,6 +98,8 @@ public class SOCDiscard extends SOCMessage
      * @param wh  the amount of wheat being discarded
      * @param wo  the amount of wood being discarded
      * @param uk  the amount of unknown resources being discarded
+     * @see #SOCDiscard(String, int, int, int, int, int, int, int)
+     * @see #SOCDiscard(String, int, ResourceSet)
      */
     public SOCDiscard(String ga, int cl, int or, int sh, int wh, int wo, int uk)
     {
@@ -116,6 +118,8 @@ public class SOCDiscard extends SOCMessage
      * @param wh  the amount of wheat being discarded
      * @param wo  the amount of wood being discarded
      * @param uk  the amount of unknown resources being discarded
+     * @see #SOCDiscard(String, int, int, int, int, int, int)
+     * @see #SOCDiscard(String, int, ResourceSet)
      * @since 2.5.00
      */
     public SOCDiscard(String ga, int pn, int cl, int or, int sh, int wh, int wo, int uk)
@@ -133,6 +137,8 @@ public class SOCDiscard extends SOCMessage
      * @param pn  Player number, or -1 if none; player number requires v2.5 or newer client/server
      *     ({@link #VERSION_FOR_OMIT_PLAYERELEMENTS_ALWAYS_GAMESTATE})
      * @param rs  the resources being discarded
+     * @see #SOCDiscard(String, int, int, int, int, int, int)
+     * @see #SOCDiscard(String, int, int, int, int, int, int, int)
      */
     public SOCDiscard(String ga, int pn, ResourceSet rs)
     {

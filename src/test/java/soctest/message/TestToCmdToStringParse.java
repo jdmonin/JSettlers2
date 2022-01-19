@@ -907,6 +907,7 @@ public class TestToCmdToStringParse
         {new SOCPutPiece("ga", 3, 0, 1034), "1009|ga,3,0,1034", "SOCPutPiece:game=ga|playerNumber=3|pieceType=0|coord=40a"},
         {new SOCRejectConnection("reason msg"), "1059|reason msg", "SOCRejectConnection:reason msg"},
         {new SOCRejectOffer("ga", 2), "1037|ga,2", "SOCRejectOffer:game=ga|playerNumber=2"},
+        {new SOCRejectOffer("ga", 2, SOCRejectOffer.REASON_CANNOT_MAKE_OFFER), "1037|ga,2,3", "SOCRejectOffer:game=ga|playerNumber=2|reasonCode=3"},
         {new SOCRejectOffer("ga", 2, -5), "1037|ga,2,-5", "SOCRejectOffer:game=ga|playerNumber=2|reasonCode=-5"},
         {new SOCRemovePiece("ga", 2, SOCPlayingPiece.SHIP, 0xe04), "1094|ga,2,3,3588", "SOCRemovePiece:game=ga|pn=2|pieceType=3|coord=3588"},
         {new SOCResetBoardAuth("ga", 3, 2), "1074|ga,3,2", "SOCResetBoardAuth:game=ga|rejoinPN=3|requestingPN=2"},
