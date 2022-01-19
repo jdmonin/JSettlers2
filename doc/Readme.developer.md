@@ -511,6 +511,7 @@ Here are some brief notes:
 
 - Not all message types have protobuf added yet. Messages which do have
   protobuf override methods toProtoFromClient and/or toProtoFromServer.
+- Clients connecting to v3 server must be v2.5 or higher, to simplify testing and message sequences.
 - Development and the JSettlers build require `protobuf-java-3.17.3.jar`,
   `protobuf-java-util-3.17.3.jar`, and other JARs.
   Running `gradle test` can download them for you, or see section

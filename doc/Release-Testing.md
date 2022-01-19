@@ -80,10 +80,6 @@ When preparing to release a new version, testing should include:
       - View Game Info of each; should be a mix of 4- and 6-player, classic and sea board
 - New features in previous 2 versions from [Versions.md](Versions.md)
 - Each available Game Option
-    - For house rule game opt "6-player board: Can Special Build only if 5 or 6 players in game",  
-      also test latest server version against client v2.2.00 or older:
-        - Client can create a game with this option, 4 players, on 6-player board
-        - When client clicks Special Building button, server sends text explaining the house rule is active
 - Basic rules and game play
     - Can build pieces by right-clicking board or with the Build Panel
     - Can trade with ports by right-clicking board or using Trade Offer Bank/Port button
@@ -151,8 +147,6 @@ When preparing to release a new version, testing should include:
     - Take Longest Route by building a coastal settlement to connect roads to ships
         - Copy src/test/resources/resources/savegame/reletest-longest-joinships.game.json to your server's configured savegame directory
         - Run `*LOADGAME* reletest-longest-joinships` debug command in any other game window
-        - Optional: Use client 2.4.00 or older as players or observers
-            - Those versions don't recalculate longest route in this situation, but server 2.5.00 and newer should tell them it's changed
         - Build a coastal settlement
         - Should take Longest Route from other player
     - Can win by gaining Longest Road/Route
@@ -430,16 +424,14 @@ When preparing to release a new version, testing should include:
          - Again have each client player note the current legals/potentials, leave and reconnect
            during the other's turn, and compare legals/potentials using the above process
 - Version compatibility testing
-    - Server and client versions to test v3 against: **2.0.00** (oldest client that can connect to v3 server);
+    - Server and client versions to test v3 against: **2.5.00** (oldest client that can connect to v3 server);
       latest **2.x.xx** (v2.x doesn't use SOCBoardLarge for classic boards)
-    - More server versions to test v3 client against: **1.1.06** (before Game Options); **1.1.11** (has client bugfixes, 6-player board);
+    - More server versions to test v3 client against:
       **1.2.01** (newest 1.x, before Scenarios/sea boards); **2.0.00** (many message format changes, i18n);
       **2.5.00** (many message sequence changes)
     - New client, old server
-        - If server is >= 1.1.09 but older than 1.1.19, add property at end of command line: `-Djsettlers.startrobots=5`
-        - If server >= 1.1.14, also add at end of command line: `-Djsettlers.allow.debug=Y`
-        - If server older than 1.1.15, also add at end of command line: `8880 99 dbu pw`
     - New server, old client
+    - Always add property at end of server command line: `-Djsettlers.allow.debug=Y`
     - Test these specific things for each version:
         - Server config:
             - When testing a 2.3 or newer server, start it with prop `jsettlers.admin.welcome=hi,customized`  
@@ -488,48 +480,6 @@ When preparing to release a new version, testing should include:
         - When testing a 3.x client and 1.x server: In any game, test robot seat-lock button
             - Click its lock button multiple times: Should only show Locked or Unlocked, never Marked
             - Lock a bot seat and reset the game: Seat should be empty in new game
-        - When testing new server with client 2.5.00 or newer, and older client in same game:
-            - All clients in game (players and observers) should see expected results in player hand panels and game text area for:
-                - Bank trade and Undo trade
-                    - Total resource counts should be accurate before and after
-                    - Gain/lose resources to build a piece type; should update Build Panel buttons
-                    - Clients older than v2.5.00 are sent `SOCPlayerElement`s before `SOCBankTrade` message
-                - Trade between players
-                    - Do a trade where a player gives 1, receives 2; total resource counts should be accurate before and after
-                    - Gain/lose resources to build a piece type; should update Build Panel buttons
-                    - Clients older than v2.5.00 are sent `SOCPlayerElement`s before `SOCAcceptOffer` message
-                - Discard
-                    - Total resource counts should be accurate before and after
-                - Soldier dev card
-                    - Give Soldier cards to client players:  
-                      `dev: 9 #2` etc
-                    - Test robbery, with each client as victim, robber, observer
-                    - Clients v2.5.00 or newer are sent `SOCRobberyResult` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
-                - Discovery/Year of Plenty dev card
-                    - Give Discovery cards to client players:  
-                      `dev: 2 #2` etc
-                    - Play Discovery, with each client as player, observer
-                    - Clients v2.5.00 or newer are sent `SOCPickResources` messages; older clients are sent `SOCPlayerElement` and `SOCGameServerText` instead
-                - Gold Hex resource pick
-                    - Make a new game with New Shores scenario
-                    - Reset the board until island's gold hex dice number is reasonably frequent
-                    - During initial placement, put two players near gold hex
-                    - For two players, build ships and a settlement on that gold hex by using debug command `*FREEPLACE* 1`
-                    - When gold hex dice number is rolled, pick free resources
-                    - Test once: Have observers (client 2.0.00 and current) join while waiting for the pick;
-                      should see "Picking Resources" text in player's hand panel
-                    - Clients are sent same message sequence as for Discovery/Year of Plenty detailed above
-            - Optionally: Test as observer, as current player/affected player, as uninvolved player:
-                - Classic board: (client 1.1.18 and 2.0.00)
-                    - Roll 7, no discards, prompt move robber
-                    - Roll 7, prompt for discards
-                    - Not 7, gain resources
-                - Sea game scenarios: (client 2.0.00)
-                    - Roll 7, no discards, ask move robber or pirate
-                    - New Shores: Roll, gain from gold hex (for self, for others)
-                    - Cloth Trade: Roll, distribute cloth; game ends at roll because distributed/depleted half of villages' cloth
-                    - Pirate Islands: Roll, fleet battle lost (discard), won (pick free resource);
-                      if 7, battle results should be shown at client by the time they're asked to discard or choose a player to rob
 - Server robustness: Bot disconnect/reconnect during game start
     - Start server with vm properties: `-Djsettlers.bots.test.quit_at_joinreq=30` `-Djsettlers.debug.traffic=Y`
     - Connect and start a 6-player game
@@ -539,7 +489,7 @@ When preparing to release a new version, testing should include:
       `srv.leaveConnection('robot 3') found waiting ga: 'g' (3)`  
       If not, start another game and try again
 - StatusMessage "status value" fallback at older versions
-    - Skip for now: Currently no in-game status values are unknown to v2.0.00, the oldest client that connects to v3.x servers
+    - Skip for now: Currently no in-game status values are unknown to v2.5.00, the oldest client that connects to v3.x servers
 - Game Option and Scenario info sync/negotiation when server and client are different versions/locales
     - For these tests, use these JVM parameters when launching clients:  
       `-Djsettlers.debug.traffic=Y -Djsettlers.locale=en_US`  

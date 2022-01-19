@@ -100,6 +100,8 @@ Then download JSettlers-full.jar from either
 https://github.com/jdmonin/JSettlers2/releases or https://nand.net/jsettlers/
 and run it.
 
+To connect to the version 3 server, minimum JSettlers client version is 2.5.
+
 To host a non-HTML5 traditional JSettlers server, use any server OS and
 hosting provider you like. To also provide a download for the full Jar,
 you will need any web server

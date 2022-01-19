@@ -10,8 +10,8 @@ JARs for recent JSettlers versions can be downloaded from
 ## `3.0.00` (build JX202xxxxx)
 - Experimental branch `v3`, not currently the main line of development
 - Experimental features: html5 client, jetty/tomcat servlet; protobuf option for bots
-- Major refactoring: SOCBoard types combined, removing 'classic' v1.x.xx coordinate system:
-  Connecting clients or servers must now be v2.0.00 or higher.
+- Clients connecting to v3 server must be v2.5 or higher, to simplify testing and message sequences
+- Major refactoring: SOCBoard types combined, removing "classic" v1.x coordinate system
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 

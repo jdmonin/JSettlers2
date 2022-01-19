@@ -708,14 +708,16 @@ public class SOCServer extends Server
     private static final String SERVERNAME_LC = SERVERNAME.toLowerCase(Locale.US);  // "server"
 
     /**
-     * Minimum required client version (v2.0.00) to connect and play a game.
+     * Minimum required client version (v2.5.00) to connect and play a game.
      * Same format as {@link soc.util.Version#versionNumber()}.
+     * Having v2.5 as minimum simplifies testing and the possible message sequences for protobuf.
+     *<P>
      * Before v3.0.00 there was no enforced minimum.
      * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
      * @see #CLI_VERSION_MAX_REPORT
      * @since 1.1.00
      */
-    public static final int CLI_VERSION_MIN = 2000;
+    public static final int CLI_VERSION_MIN = 2500;
 
     /**
      * If client never tells us their version, assume they are version 1.0.0 (1000).
