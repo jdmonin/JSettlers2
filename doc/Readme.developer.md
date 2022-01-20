@@ -484,14 +484,14 @@ To run the web app, see [Readme](../Readme.md) section "Server Web App Deploymen
 To run JSettlersServer under Jetty or Tomcat to use protobuf as JSON over websockets,
 you will need to build `socweb.war` and `socserver.war` and copy related runtime JARs.
 
-#### Details for Jetty 9.2:
+#### Details for Jetty 9.4:
 
 - Run `gradle war` to build socserver.war, which includes JSettlersServer.jar
   but not its runtime-dependency JARs, and socweb.war the HTML5 client.
 - Copy `build/libs/socserver.war` and `socweb.war` to $JETTY_HOME/webapps/
-- Copy the runtime JARs to $JETTY_HOME/lib/ext/  
-  gson-2.8.6.jar, guava-30.1.1-android.jar, protobuf-java-3.17.3.jar, protobuf-java-util-3.17.3.jar
-- To run with those libs, start jetty with a command like: `java -jar $JETTY_HOME/start.jar --module=ext`
+- Copy the runtime JARs to $JETTY_HOME/lib/ext/
+    - gson-2.8.6.jar, guava-30.1.1-android.jar, protobuf-java-3.17.3.jar, protobuf-java-util-3.17.3.jar
+- Start jetty with a command like: `java -jar $JETTY_HOME/start.jar`
 - The server listens on endpoint path `/socserver/apisock` for JSON over websockets,
   port `4000` for Protobuf, and port `8880` for the classic SOCMessage protocol
 - At startup the server prints its random robot cookie to the Jetty log, for bot development and testing
