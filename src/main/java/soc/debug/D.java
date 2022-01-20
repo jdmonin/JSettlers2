@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2012,2014,2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2012,2014,2020-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ public class D
     public static final int FATAL = 3;
 
     /**
-     * The debug level one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}
+     * The debug level one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}.
      * Default set to INFO.
      * @since 2.5.00
      */
@@ -66,9 +66,9 @@ public class D
     static private boolean enabled = true;
 
     /**
-     * Set the debug level to one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}
-     * The default is INFO.
-     * @throws IllegalArgumentException if level not in range {@code INFO} - {@code FATAL}
+     * Set the debug level to one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}.
+     * The default is {@code INFO}.
+     * @throws IllegalArgumentException if level not in range {@link #INFO} - {@link #FATAL}
      * @since 2.5.00
      */
     public static void setLevel(int l)
@@ -81,8 +81,8 @@ public class D
     }
 
     /**
-     * Get the current debug level (one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL})
-     * The default is WARNING.
+     * Get the current debug level (one of: {@link #INFO}, {@link #WARNING}, {@link #ERROR}, {@link #FATAL}).
+     * The default is {@code INFO}.
      * @return the current debug level
      * @since 2.5.00
      */
