@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -195,6 +195,7 @@ public class SOCRobotBrain extends Thread
      * for this many seconds before accepting an offer to give humans a chance
      * to compete against fast bot decisions.
      *
+     * @see #TRADE_RESPONSE_TIMEOUT_SEC_HUMANS
      * @since 2.5.00
      */
     public static int BOTS_PAUSE_FOR_HUMAN_TRADE = 8;
@@ -209,6 +210,7 @@ public class SOCRobotBrain extends Thread
      * Before v2.3.00 this was 100 seconds, which felt glacially slow
      * compared to the quick pace of most bot activity.
      *
+     * @see #BOTS_PAUSE_FOR_HUMAN_TRADE
      * @since 2.0.00
      */
     protected static final int TRADE_RESPONSE_TIMEOUT_SEC_HUMANS = 30;
@@ -692,6 +694,7 @@ public class SOCRobotBrain extends Thread
      * Non-{@code null} if we're waiting for server response to picking
      * a {@link SOCSpecialItem}, for certain scenarios; contains the {@code typeKey}
      * of the special item we're waiting on.
+     * @since 2.0.00
      */
     protected String waitingForPickSpecialItem;
 
@@ -699,6 +702,7 @@ public class SOCRobotBrain extends Thread
      * True if we're in a {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} game
      * and waiting for server response to a {@link SOCSimpleRequest}
      * to attack a pirate fortress.
+     * @since 2.0.00
      */
     protected boolean waitingForSC_PIRI_FortressRequest;
 
@@ -3652,7 +3656,23 @@ public class SOCRobotBrain extends Thread
         {
             delayLength *= 2;  // pre-scale, since pauses are usually shortened in 6-player
         }
+        if (ourResponseToOffer == SOCRobotNegotiator.ACCEPT_OFFER)
+        {
+            // Pause a bit longer if this was offered to at least one human player
+
+            final boolean[] offeredTo = offer.getTo();
+            for (int i = 0; i < offeredTo.length; i++)
+            {
+                if (offeredTo[i] && ! game.getPlayer(i).isRobot())
+                {
+                    delayLength += ((BOTS_PAUSE_FOR_HUMAN_TRADE - 3) * 1000);  // delayLength already includes 3 seconds
+                    break;
+                }
+            }
+        }
         pause(delayLength);
+            // TODO: figure out how to interrupt this pause once all humans have responded
+            //  to the trade offer if that happens faster than the delay time.
 
         // See if trade conditions still apply after pause;
         // reconsider if needed
@@ -3678,23 +3698,6 @@ public class SOCRobotBrain extends Thread
         case SOCRobotNegotiator.ACCEPT_OFFER:
             {
                 // since response is ACCEPT_OFFER, offer validity has already been checked
-
-                boolean[] offeredTo = offer.getTo();
-
-                // pause a bit if this was offered to at least one human player.
-                for (int i = 0; i < offeredTo.length; i++)
-                {
-                    if (offeredTo[i] && ! game.getPlayer(i).isRobot())
-                    {
-                        // offered to at least one human player; wait for the human brain to catch up
-                        // TODO: figure out how to interrupt the Thread.sleep once all humans have responded
-                        //  to the trade offer if it's faster than the pause time.
-
-                        pause((BOTS_PAUSE_FOR_HUMAN_TRADE - 3) * 1000);
-                            // already waited 3 seconds: see delayLength above
-                        break;      // one wait for all humans is enough
-                    }
-                }
 
                 client.acceptOffer(game, fromPN);
 
