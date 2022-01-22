@@ -9753,27 +9753,76 @@ public class SOCServer extends Server
      * Should be called before {@link #recordGameEvent(String, SOCMessage)} or similar methods.
      * Later at end of game, caller should call {@link #endLog(SOCGame)}.
      *<P>
-     * May open files, set up queues, etc, depending on implementation. This stub does nothing.
-     * If overriding, should record a {@link SOCVersion} message as game's first log entry to help parsing later,
-     * including {@link #getFeaturesList()} field.
+     * Implementations of {@link #startEmptyLog(SOCGame, boolean)} may open files, set up queues, etc.
      *<P>
      * If a previous game with the same name had unsaved logs in memory,
-     * discard them before setting up the new game's logs.
+     * will discard them before setting up the new game's logs.
      *<P>
-     * If {@code isReset}, the reset game's log must still begin with {@link SOCVersion}
-     * and {@link SOCNewGame} or {@link SOCNewGameWithOptions}.
+     * To help parsing later, the game's log will begin with {@link SOCVersion}
+     * including {@link #getFeaturesList()} field, and {@link SOCNewGame} or {@link SOCNewGameWithOptions},
+     * even if {@code isReset}.
      *
      * @param game  Game to start logging for; not {@code null}
      * @param isReset  True if instead of a new game, this is a board reset of an existing game
      * @throws IllegalArgumentException if game {@code null}
-     * @throws IOException if the implementation must create a file or does other I/O, and a problem occurs
+     * @throws IOException if the implementation must create a file or do other I/O, and a problem occurs
      * @since 2.5.00
      */
-    public void startLog(final SOCGame game, final boolean isReset)
+    public final void startLog(final SOCGame game, final boolean isReset)
         throws IllegalArgumentException, IOException
     {
         if (game == null)
             throw new IllegalArgumentException("game");
+
+        if (! isRecordGameEventsActive())
+            return;
+
+        startEmptyLog(game, isReset);
+
+        final String gameName = game.getName();
+        recordGameEvent(gameName, new SOCVersion
+            (Version.versionNumber(), Version.version(), Version.buildnum(), getFeaturesList(), null));
+
+        if (isReset)
+        {
+            // server won't send SOCNewGame announcement for a reset, so put one in the log here
+            final SOCGame ga = getGame(gameName);
+            if (ga == null)
+                return;  // shouldn't ever be null for a reset
+            final SOCGameOptionSet gameOpts = ga.getGameOptions();
+            recordGameEvent(gameName,
+                ((gameOpts == null)
+                 ? new SOCNewGame(gameName)
+                 : new SOCNewGameWithOptions
+                     (gameName, gameOpts, SOCVersionedItem.itemsMinimumVersion(gameOpts.getAll()), -2)));
+        }
+    }
+
+    /**
+     * If {@link #isRecordGameEventsActive()}, set up logging for the specified game
+     * or reset the log after a board reset, discarding any previous log for that game name.
+     * Called by {@link #startLog(SOCGame, boolean)}; see that method for details.
+     *<P>
+     * After calling this method, {@code startLog(..)} will begin the log with
+     * {@link SOCVersion} and {@link SOCNewGame} or {@link SOCNewGameWithOptions}
+     * by calling {@link #recordGameEvent(String, SOCMessage)}.
+     *<P>
+     * This stub can be overridden.
+     * If {@link #isRecordGameEventsActive()} is false, you can assume this method is a stub.
+     *<P>
+     * Sample implementation {@link soc.extra.server.RecordingSOCServer#startEmptyLog(SOCGame, boolean)}
+     * is tested by {@link soctest.server.TestRecorder#testNewGameFirstLogEntries()}.
+     * If overriding this method, also copy and modify that test.
+     *
+     * @param game  Game to start logging for; not {@code null}
+     * @param isReset  True if instead of a new game, this is a board reset of an existing game
+     * @throws IllegalArgumentException if game {@code null}
+     * @throws IOException if the implementation must create a file or do other I/O, and a problem occurs
+     * @since 2.6.00
+     */
+    protected void startEmptyLog(final SOCGame game, final boolean isReset)
+        throws IllegalArgumentException, IOException
+    {
     }
 
     /**

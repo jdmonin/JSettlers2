@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,12 +29,8 @@ import java.util.NoSuchElementException;
 import java.util.Properties;
 
 import soc.game.SOCGame;
-import soc.game.SOCGameOptionSet;
-import soc.game.SOCVersionedItem;
 import soc.message.SOCMessage;
 import soc.message.SOCMessageForGame;
-import soc.message.SOCNewGame;
-import soc.message.SOCNewGameWithOptions;
 import soc.message.SOCServerPing;
 import soc.message.SOCVersion;
 import soc.server.SOCChannelList;
@@ -42,7 +38,6 @@ import soc.server.SOCGameListAtServer;
 import soc.server.SOCServer;
 import soc.server.SOCServerMessageHandler;
 import soc.server.genericServer.Connection;
-import soc.util.Version;
 
 /**
  * SOCServer which records game events into {@link #records}
@@ -178,7 +173,7 @@ public class RecordingSOCServer
     }
 
     @Override
-    public void startLog(final SOCGame game, final boolean isReset)
+    public void startEmptyLog(final SOCGame game, final boolean isReset)
         throws IllegalArgumentException
     {
         if (game == null)
@@ -195,24 +190,9 @@ public class RecordingSOCServer
                 records.put(gameName, log);
             }
         }
+
         if (! log.entries.isEmpty())
             log.clear();
-
-        recordGameEvent(gameName, new SOCVersion
-            (Version.versionNumber(), Version.version(), Version.buildnum(), getFeaturesList(), null));
-        if (isReset)
-        {
-            // server won't send SOCNewGame announcement for a reset, so put one in the log here
-            final SOCGame ga = getGame(gameName);
-            if (ga == null)
-                return;  // shouldn't happen for a reset
-            final SOCGameOptionSet gameOpts = ga.getGameOptions();
-            recordGameEvent(gameName,
-                ((gameOpts == null)
-                 ? new SOCNewGame(gameName)
-                 : new SOCNewGameWithOptions
-                     (gameName, gameOpts, SOCVersionedItem.itemsMinimumVersion(gameOpts.getAll()), -2)));
-        }
     }
 
     /**

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -456,6 +456,8 @@ public class TestRecorder
     /**
      * Test that a new game's log always starts with {@link SOCVersion}
      * followed by {@link SOCNewGame} or {@link SOCNewGameWithOptions}.
+     *<P>
+     * Tests {@link SOCServer#startLog(SOCGame, boolean)} and {@link SOCServer#startEmptyLog(SOCGame, boolean)}.
      *
      * @see TestGameEventLog
      */
@@ -726,6 +728,7 @@ public class TestRecorder
      */
     @Test
     public void testMakeElapsedMS()
+        throws IllegalArgumentException, IOException
     {
         final String GAME_NAME = "testMakeElapsedMS";
 
