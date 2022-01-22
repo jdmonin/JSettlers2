@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -171,11 +171,13 @@ public interface MainDisplay
      * to a server or practice, and {@code canPractice} is true, shows that panel instead of the
      * simpler practice-only message panel.
      *
-     * @param err  Error message to show
+     * @param err  Error message to show; not {@code null}. Can be multi-line by including {@code \n}.
      * @param canPractice  In current state of client, can we start a practice game?
+     * @throws NullPointerException if {@code err} is {@code null}
      * @since 1.1.16
      */
-    void showErrorPanel(String err, boolean canPractice);
+    void showErrorPanel(String err, boolean canPractice)
+        throws NullPointerException;
 
     void enableOptions();
 

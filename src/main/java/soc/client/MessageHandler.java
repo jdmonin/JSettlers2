@@ -51,7 +51,6 @@ import soc.game.SOCVillage;
 import soc.message.*;
 import soc.message.SOCGameElements.GEType;
 import soc.message.SOCPlayerElement.PEType;
-
 import soc.util.SOCFeatureSet;
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;
@@ -2512,7 +2511,16 @@ public class MessageHandler
     {
         client.getNet().disconnect();
 
-        client.getMainDisplay().showErrorPanel(mes.getText(), (client.getNet().ex_P == null));
+        String txt = mes.getText();
+        if (client.sVersion > 0)
+        {
+            StringBuilder sb = new StringBuilder
+                (client.strings.get("pcli.error.server.disconnected_by_version", Version.version(client.sVersion)));
+                    // "Disconnected by server version {0}:"
+            sb.append('\n').append(txt);
+            txt = sb.toString();
+        }
+        client.getMainDisplay().showErrorPanel(txt, (client.getNet().ex_P == null));
     }
 
     /**

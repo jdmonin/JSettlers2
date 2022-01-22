@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2008-2009,2012-2013,2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2009,2012-2013,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -526,7 +526,8 @@ import soc.util.Version;
      * We were connected to a TCP server (remote, or the one we started) but something broke the connection.
      * Show an error message and the initial 3 buttons, as if we've just started the client up.
      *
-     * @param errText  Error message to show
+     * @param errText  Error message to show. Can be multi-line by using sanitized html with {@code <BR>} tag
+     *     and starting with {@code <HTML>} tag, as done when using a {@link JLabel}.
      * @since 2.5.00
      */
     public void lostServerConnection(final String errText)
@@ -543,7 +544,8 @@ import soc.util.Version;
 
     /**
      * Set the line of text displayed at the top of the panel.
-     * @param newText  New text to display
+     * @param newText  New text to display. Can be multi-line by using sanitized html with {@code <BR>} tag
+     *     and starting with {@code <HTML>} tag, as done when using a {@link JLabel}.
      * @since 1.1.16
      */
     public void setTopText(final String newText)

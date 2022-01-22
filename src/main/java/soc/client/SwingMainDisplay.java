@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2022 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -108,6 +108,9 @@ import soc.util.Version;
  * and channels use {@link ChannelFrame}.
  *<P>
  * Should be added directly to a {@link JFrame} or other {@link Frame}, not a subcontainer.
+ *<P>
+ * Also holds some GUI utility methods like {@link #checkDisplayScaleFactor(Component)}
+ * and {@link #isOSColorHighContrast()}.
  *<P>
  * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
  * Also converted from AWT to Swing in v2.0.00.
@@ -2081,14 +2084,19 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * {@code canPractice} is true, shows that panel instead of the simpler
      * practice-only message panel.
      *
-     * @param err  Error message to show
+     * @param err  Error message to show; not {@code null}. Can be multi-line by including {@code \n}.
      * @param canPractice  In current state of client, can we start a practice game?
+     * @throws NullPointerException if {@code err} is {@code null}
      * @since 1.1.16
      */
-    public void showErrorPanel(final String err, final boolean canPractice)
+    public void showErrorPanel(String err, final boolean canPractice)
+        throws NullPointerException
     {
         // In case was WAIT_CURSOR while connecting
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+
+        if (err.indexOf('\n') != -1)
+            err = DataOutputUtils.newlinesToHTML(err);
 
         if (canPractice)
         {
