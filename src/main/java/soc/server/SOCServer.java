@@ -7191,12 +7191,10 @@ public class SOCServer extends Server
 
         if (cvers < CLI_VERSION_MIN)
         {
-            if (cvers > 0)
-                rejectMsg = "Sorry, your client version number " + cvers + " is too old, version ";
-            else
-                rejectMsg = "Sorry, your client version is too old, version number ";
-            rejectMsg += Integer.toString(CLI_VERSION_MIN)
-                + " (" + Version.version(CLI_VERSION_MIN) + ") or above is required.";
+            final String cversStr = (cvers > 0) ? Version.version(cvers) : "?";
+            rejectMsg = c.getLocalized
+                ("connect.reject.client_version", cversStr, Version.version(CLI_VERSION_MIN), CLI_VERSION_MIN);
+                    // "Sorry, your client version {0} is too old: Version {1} ({2}) or above is required."
             rejectLogMsg = "Rejected client: Version " + cvers + " too old";
         }
         if (wasKnown && isKnown && (cvers != prevVers))
@@ -9812,7 +9810,7 @@ public class SOCServer extends Server
      *<P>
      * Sample implementation {@link soc.extra.server.RecordingSOCServer#startEmptyLog(SOCGame, boolean)}
      * is tested by {@link soctest.server.TestRecorder#testNewGameFirstLogEntries()}.
-     * If overriding this method, also copy and modify that test.
+     * If overriding this method, if possible also copy and/or modify that test class to use your server.
      *
      * @param game  Game to start logging for; not {@code null}
      * @param isReset  True if instead of a new game, this is a board reset of an existing game
