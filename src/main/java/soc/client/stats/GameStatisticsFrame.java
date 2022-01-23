@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2012-2014,2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2014,2017,2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -208,11 +208,13 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             if (stats == null)
                 return;
 
+            StringBuilder sb = new StringBuilder("<html>");
             for (int i = 2; i < rollPanel.values.length; ++i)
             {
                 int r = 0;
-                StringBuilder sb = new StringBuilder();
 
+                if (i > 2)
+                    sb.delete(6, sb.length());
                 sb.append(strings.get("dialog.stats.dice_rolls.ttip_roll", i));  // "Roll: {0}<br/>"
                 final SOCGame ga = pi.getGame();
                 for (SOCPlayer p : ga.getPlayers())
@@ -230,17 +232,10 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
                     sb.append(getPlayerName(p)).append(": ").append(v).append("<br/>");
                     r += v;
                 }
-
-                String str = null;
-                if (sb.length() > 0)
-                {
-                    sb.insert(0, "<html>");
-                    sb.append("</html>");
-                    str = sb.toString();
-                }
+                sb.append("</html>");
 
                 rollPanel.values[i] = r;
-                rollPanel.displays[i].setToolTipText(str);
+                rollPanel.displays[i].setToolTipText(sb.toString());
             }
 
             rollPanel.repaint();
