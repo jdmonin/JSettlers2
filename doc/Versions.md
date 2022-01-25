@@ -16,6 +16,8 @@ JARs for recent JSettlers versions can be downloaded from
 ## `2.6.00` (build JM2022xxxx)
 - Currently being developed
 - Client:
+	- Game window:
+	    - Moving robber: If hex is desert, don't ask "are you sure" when you have an adjacent settlement/city
 	- If rejected while connecting to server, show server's version as part of error text
 - Game options:
 	- Client removes unused options before sending new game request

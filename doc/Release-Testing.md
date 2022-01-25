@@ -109,6 +109,18 @@ When preparing to release a new version, testing should include:
           - Move pirate to a hex with 2 players' ships, choose 1 who has only resources not cloth;
             shouldn't be asked whether to steal cloth or resources
         - Make sure another player has Largest Army, then play enough Soldier cards to take it from them
+        - Move robber next to your settlement/city
+          - Give your player 4 Soldier cards
+          - Build a settlement at a desert hex
+          - Roll 7 or use Soldier to move robber to that desert
+          - Shouldn't be asked "Are you sure you want to move the robber to your own hex?"
+          - Roll 7 or use Soldier to move robber next to another of your settlements
+          - Should be asked "Are you sure"
+          - Upgrade another settlement to a city (not at desert)
+          - Roll 7 or use Soldier to move robber next to that city
+          - Should be asked "Are you sure"
+          - Roll 7 or use Soldier to move robber next to another player's settlement/city
+          - Shouldn't be asked "Are you sure"
     - Road Building dev card
         - In a 2-player game, give debug player 4 Road Building cards and a Year of Plenty card:  
           `dev: 1 debug` (4 times)  
@@ -162,9 +174,10 @@ When preparing to release a new version, testing should include:
     - Can win by gaining Largest Army
         - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces until you have 8 VP,
           `dev: 9 debug` to get 2 soldier cards, play them
-        - With 8 VP and playing 3rd Soldier card, test each item in "Move robber/steal resources" list above.
-          When card is played, game might immediately award Largest Army and Hand Panel might show 10 VP.
-          Card should fully play out (choose player, etc) before server announces game is over.
+        - With 8 VP and playing 3rd Soldier card, test each item in "Move robber/steal resources" list above,
+          except "Move robber next to your settlement/city"
+            - When card is played, game might immediately award Largest Army and Hand Panel might show 10 VP
+            - Card should fully play out (choose player, etc) before server announces game is over
 - Scenarios and Victory Points to Win
     - New Game dialog: VP to Win vs scenarios
         - Start server which doesn't specify opts VP or \_VP\_ALL
