@@ -2,8 +2,8 @@ README.txt - Notes and current status for the nand.net i18n translator's editor
 
 
 This internationalization editor is used by the JSettlers project, so its "home" is here:
-	download:    http://nand.net/jsettlers/devel/i18n/PTE-1.1.0.jar
-	webpage:     http://nand.net/jsettlers/devel/i18n/
+	download:    https://nand.net/jsettlers/devel/i18n/PTE-1.2.0.jar
+	webpage:     https://nand.net/jsettlers/devel/i18n/
 	bug-tracker: https://github.com/jdmonin/JSettlers2/issues
 	source:      https://github.com/jdmonin/JSettlers2/tree/main/src/main/java/net/nand/util/i18n
 in the net.nand.util.i18n and net.nand.util.i18n.gui packages.
@@ -77,7 +77,7 @@ Version history
 - Current beta version being developed.
 - Recognizes marker _nolocaliz anywhere in key name, not only as prefix
 
-1.2.0
+1.2.0 (2021-07-14 756eb20)
 - Add project website to About dialog
 - For testing translations of the editor UI itself, can specify a different locale with JVM parameter -Dpte.locale=es_MX
 
