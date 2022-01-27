@@ -27,8 +27,8 @@
 
 ### Project layout
 
-This project uses gradle 5.6 or 6.x (or IDEs) to build. For developer familiarity,
-the project uses the directory structure/layout of a maven/gradle project.
+This project uses gradle 5.6 or 6.x (or IDEs) to build, and
+follows the directory structure/layout of a maven/gradle project.
 
 Also see the "Build Setup and Results" section.
 
@@ -336,12 +336,12 @@ file-based local database.
 This project is designed to build with gradle 5.6 or 6.x, or from within an IDE
 like eclipse. Gradle builds output to `build/libs/`.
 
-To quickly run the client and server, in the Package Explorer pane:
+To quickly run the server and client: In the Package Explorer pane:
 
 - Expand package soc.server, find `SOCServer`, right-click, run as Java Application
 - Expand soc.client, find `SOCPlayerClient`, right-click, run as Java Application
 - Click "Connect to a Server", take defaults, click Connect
-- Enter a nickname, click New Game, enter a new game, create the game
+- Enter a nickname, click New Game, enter a game name, create the game
 - Should be able to sit down and start the game
 
 If not using an IDE like eclipse, check the `build.gradle` file. There may be
