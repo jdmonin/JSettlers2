@@ -523,6 +523,7 @@ ideas.
     by calling SOCServer.createAndJoinReloadedGame or a method like TestRecorder.connectLoadJoinResumeGame
 - Possibly: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
+- Client i18n: Add language selector to main window (suggested in issue #99 by kotc)
 - Refactor: TestRecorder: Add method for common setup code from testBasics_Loadgame, testBasics_SendToClientWithLocale, testRecordClientMessage
 - Refactor: `SOCResourceSet`: Use something like AtomicIntegerArray for thread-safe writes/reads
 - Refactor: Combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
@@ -786,7 +787,7 @@ Before running PTEMain for the first time, you might need to run the gradle task
 `i18neditorJar` (using gradle on the command line or from your IDE) so that the
 PTEMain editor's own externalized strings will be available.
 
-When starting the editor this message is harmless, because preferences are stored per-user:
+While starting the editor this message is harmless, because preferences are stored per-user:
 
     Dec 6, 2013 3:59:16 PM java.util.prefs.WindowsPreferences <init>
     WARNING: Could not open/create prefs root node Software\JavaSoft\Prefs at root 0x80000002. Windows RegCreateKeyEx(...) returned error code 5.
