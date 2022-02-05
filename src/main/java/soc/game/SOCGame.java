@@ -969,6 +969,10 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * All Known Options, for {@link #opts} validation and adding options from scenario if present.
      * Not null unless {@link #opts} is null.
+     *<P>
+     * At client, practice games use a different set of Known Options than games being played on a server
+     * (whose options may vary by version and server config).
+     *
      * @since 2.5.00
      */
     private final SOCGameOptionSet knownOpts;
