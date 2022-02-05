@@ -105,7 +105,7 @@ public class DiscardStrategy
         if (! buildingPlan.empty())
         {
             SOCPossiblePiece targetPiece = buildingPlan.getPlannedPiece(0);
-            brain.negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
+            brain.negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), buildingPlan);
 
             //log.debug("targetPiece="+targetPiece);
 

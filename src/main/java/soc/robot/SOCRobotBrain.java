@@ -3174,7 +3174,7 @@ public class SOCRobotBrain extends Thread
         //D.ebugPrintln("^^^ targetPiece = "+targetPiece);
         //D.ebugPrintln("^^^ ourResources = "+ourPlayerData.getResources());
 
-        negotiator.setTargetPiece(ourPlayerNumber, targetPiece);
+        negotiator.setTargetPiece(ourPlayerNumber, buildingPlan);
 
         ///
         /// if we have a 2 free resources card and we need
@@ -4101,7 +4101,7 @@ public class SOCRobotBrain extends Thread
         if (! buildingPlan.empty())
         {
             lastTarget = buildingPlan.getPlannedPiece(0);
-            negotiator.setTargetPiece(ourPlayerNumber, lastTarget);
+            negotiator.setTargetPiece(ourPlayerNumber, buildingPlan);
         }
     }
 

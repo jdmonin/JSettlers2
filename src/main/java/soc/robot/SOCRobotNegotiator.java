@@ -155,6 +155,14 @@ public class SOCRobotNegotiator
      * set a target piece for a player
      *
      * @param pn  the player number
+     * @param buildPlan  the current build plan
+     */
+    public abstract void setTargetPiece(int pn, BP buildPlan); //SOCPossiblePiece piece)
+
+    /**
+     * set a target piece for a player
+     *
+     * @param pn  the player number
      * @param piece  the piece that they want to build next
      */
     public void setTargetPiece(int pn, SOCPossiblePiece piece)
