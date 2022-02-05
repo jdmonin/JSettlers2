@@ -5919,7 +5919,9 @@ import javax.swing.JComponent;
 
         moveShip_fromEdge = 0;
 
-        setSuperimposedTopText(topText);  // usually null
+        setSuperimposedTopText(topText);
+            // has side effect of always calling repaint() for us
+            // topText usually null
         updateHoverTipToMode();
     }
 

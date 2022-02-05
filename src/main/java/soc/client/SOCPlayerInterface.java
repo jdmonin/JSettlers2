@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, type parameterization, GUI API updates, etc
  *
@@ -3350,8 +3350,18 @@ public class SOCPlayerInterface extends Frame
             }
         }
 
-        boardPanel.updateMode();
+        // Update our interface at start of first turn;
+        // some server versions don't send non-bot clients a TURN message after the
+        // final road/ship is placed (state START2 -> ROLL_OR_CARD).
+        if (gameIsStarting && (gs >= SOCGame.ROLL_OR_CARD))
+        {
+            gameIsStarting = false;
+            if (clientHand != null)
+                clientHand.updateAtTurn();
+        }
+
         buildingPanel.updateButtonStatus();
+        boardPanel.updateMode();
         boardPanel.repaint();
 
         // Check for placement states (board panel popup, build via right-click)
@@ -3368,17 +3378,6 @@ public class SOCPlayerInterface extends Frame
             printKeyed("game.invitem.sc_ftri.prompt");
                 // "You have received this trade port as a gift."
                 // "You must now place it next to your coastal settlement which is not adjacent to any existing port."
-        }
-
-        // Update our interface at start of first turn;
-        // server doesn't send non-bot clients a TURN message after the
-        // final road/ship is placed (state START2 -> ROLL_OR_CARD).
-        if (gameIsStarting && (gs >= SOCGame.ROLL_OR_CARD))
-        {
-            gameIsStarting = false;
-            if (clientHand != null)
-                clientHand.updateAtTurn();
-            boardPanel.updateMode();
         }
 
         // React if waiting for players to discard,
