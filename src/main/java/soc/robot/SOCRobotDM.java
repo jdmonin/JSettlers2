@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -1165,7 +1165,7 @@ public class SOCRobotDM
 
         SOCPlayerTracker.undoTryPutPiece(tmpRS, game);
 
-        if (! buildingPlan.empty())
+        if (! buildingPlan.isEmpty())
         {
           SOCPossiblePiece planPeek = buildingPlan.peek();
           if ((planPeek == null) ||
@@ -3314,7 +3314,7 @@ public class SOCRobotDM
                   if (buildingItem == 1)
                   {
                       // validate direction of stack growth for buildingPlan
-                      stackTopIs0 = (0 == buildingPlan.indexOf(buildingPlan.getPlannedPiece(0)));
+                      stackTopIs0 = (0 == buildingPlan.indexOf(buildingPlan.getFirstPiece()));
                   }
 
                   int i = (stackTopIs0) ? buildingItem : (bpSize - buildingItem) - 1;

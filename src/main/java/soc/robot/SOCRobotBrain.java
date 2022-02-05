@@ -435,7 +435,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * The data and code that determines how we negotiate.
-     * {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
+     * {@link SOCRobotNegotiator#setTargetPiece(int, SOCBuildPlan)}
      * is set when {@link #buildingPlan} is updated.
      * @see #tradeWithBank(SOCBuildPlan)
      * @see #makeOffer(SOCBuildPlan)
@@ -1834,7 +1834,7 @@ public class SOCRobotBrain extends Thread
                              * and if we haven't given up building attempts this turn.
                              */
 
-                            if (buildingPlan.empty()
+                            if (buildingPlan.isEmpty()
                                 && (ourPlayerData.getResources().getTotal() > 1)
                                 && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN)
                                 && ! (game.isGameOptionSet("PLP") && (game.getPlayerCount() < 5)))
@@ -1847,18 +1847,18 @@ public class SOCRobotBrain extends Thread
                                      *
                                     decisionMaker.planStuff(robotParameters.getStrategyType());
 
-                                    if (! buildingPlan.empty())
+                                    if (! buildingPlan.isEmpty())
                                     {
                                         lastTarget = (SOCPossiblePiece) buildingPlan.peek();
                                         negotiator.setTargetPiece(ourPlayerNumber, buildingPlan.peek());
                                     }
                                      */
 
-                                if ( ! buildingPlan.empty())
+                                if ( ! buildingPlan.isEmpty())
                                 {
                                     // If we have the resources right now, ask to Special Build
 
-                                    final SOCPossiblePiece targetPiece = buildingPlan.getPlannedPiece(0);
+                                    final SOCPossiblePiece targetPiece = buildingPlan.getFirstPiece();
                                     final SOCResourceSet targetResources = targetPiece.getResourcesToBuild();
                                         // may be null
 
@@ -2539,7 +2539,7 @@ public class SOCRobotBrain extends Thread
                  *
                 decisionMaker.planStuff(robotParameters.getStrategyType());
 
-                if (! buildingPlan.empty())
+                if (! buildingPlan.isEmpty())
                 {
                     lastTarget = (SOCPossiblePiece) buildingPlan.peek();
                     negotiator.setTargetPiece(ourPlayerNumber, buildingPlan.peek());
@@ -3168,7 +3168,7 @@ public class SOCRobotBrain extends Thread
         ///
         /// figure out what resources we need
         ///
-        SOCPossiblePiece targetPiece = buildingPlan.getPlannedPiece(0);
+        SOCPossiblePiece targetPiece = buildingPlan.getFirstPiece();
         SOCResourceSet targetResources = targetPiece.getResourcesToBuild();  // may be null
 
         //D.ebugPrintln("^^^ targetPiece = "+targetPiece);
@@ -3705,7 +3705,7 @@ public class SOCRobotBrain extends Thread
                 /// clear our building plan, so that we replan
                 ///
                 resetBuildingPlan();
-                negotiator.setTargetPiece(ourPlayerNumber, null);
+                negotiator.setTargetPiece(ourPlayerNumber, (SOCBuildPlan) null);
             }
             break;
 
@@ -4080,7 +4080,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Plan the next building plan and target.
      * Should be called from {@link #run()} under these conditions: <BR>
-     * ( !expectPLACING_ROBBER && buildingPlan.empty() && (ourPlayerData.getResources().getTotal() > 1)
+     * ( !expectPLACING_ROBBER && buildingPlan.isEmpty() && (ourPlayerData.getResources().getTotal() > 1)
      * && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
      *<P>
      * Sets these fields and makes these calls:
@@ -4089,7 +4089,7 @@ public class SOCRobotBrain extends Thread
      *      ({@link SOCRobotDM#FAST_STRATEGY FAST_STRATEGY} or {@link SOCRobotDM#SMART_STRATEGY SMART_STRATEGY})
      * <LI> {@link #buildingPlan}
      * <LI> {@link #lastTarget}
-     * <LI> {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
+     * <LI> {@link SOCRobotNegotiator#setTargetPiece(int, SOCBuildPlan)}
      *</UL>
      *
      * @since 1.1.08
@@ -4098,9 +4098,9 @@ public class SOCRobotBrain extends Thread
     {
         decisionMaker.planStuff(robotParameters.getStrategyType());
 
-        if (! buildingPlan.empty())
+        if (! buildingPlan.isEmpty())
         {
-            lastTarget = buildingPlan.getPlannedPiece(0);
+            lastTarget = buildingPlan.getFirstPiece();
             negotiator.setTargetPiece(ourPlayerNumber, buildingPlan);
         }
     }
@@ -4336,7 +4336,7 @@ public class SOCRobotBrain extends Thread
             && (action != SOCPlayerElement.GAIN)
             && ! buildingPlan.isEmpty())
         {
-            final SOCPossiblePiece targetPiece = buildingPlan.getPlannedPiece(0);
+            final SOCPossiblePiece targetPiece = buildingPlan.getFirstPiece();
             final SOCResourceSet targetResources = targetPiece.getResourcesToBuild();  // may be null
 
             if (! ourPlayerData.getResources().contains(targetResources))

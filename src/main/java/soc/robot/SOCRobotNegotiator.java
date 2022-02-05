@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -152,18 +152,26 @@ public class SOCRobotNegotiator
     }
 
     /**
-     * set a target piece for a player
+     * set a target piece for a player based on info from their build plan.
+     * This implementation uses only {@link SOCBuildPlan#getFirstPiece()},
+     * but a third-party bot could override to use more pieces if the plan has them.
      *
      * @param pn  the player number
-     * @param buildPlan  the current build plan
+     * @param buildPlan  the build plan; can be empty or null
+     * @see #setTargetPiece(int, SOCPossiblePiece)
+     * @since 2.6.00
      */
-    public abstract void setTargetPiece(int pn, BP buildPlan); //SOCPossiblePiece piece)
+    public void setTargetPiece(int pn, SOCBuildPlan buildPlan)
+    {
+        setTargetPiece(pn, ((buildPlan != null) && ! buildPlan.isEmpty()) ? buildPlan.getFirstPiece() : null);
+    }
 
     /**
      * set a target piece for a player
      *
      * @param pn  the player number
-     * @param piece  the piece that they want to build next
+     * @param piece  the piece that they want to build next, or null if none
+     * @see #setTargetPiece(int, SOCBuildPlan)
      */
     public void setTargetPiece(int pn, SOCPossiblePiece piece)
     {
@@ -1037,12 +1045,12 @@ public class SOCRobotNegotiator
                 simulator.planStuff(strategyType);
             }
 
-            if (receiverBuildingPlan.empty())
+            if (receiverBuildingPlan.isEmpty())
             {
                 return response;
             }
 
-            receiverTargetPiece = receiverBuildingPlan.getPlannedPiece(0);
+            receiverTargetPiece = receiverBuildingPlan.getFirstPiece();
             targetPieces[receiverNum] = receiverTargetPiece;
         }
 
@@ -1070,12 +1078,12 @@ public class SOCRobotNegotiator
                 simulator.planStuff(strategyType);
             }
 
-            if (senderBuildingPlan.empty())
+            if (senderBuildingPlan.isEmpty())
             {
                 return response;
             }
 
-            senderTargetPiece = senderBuildingPlan.getPlannedPiece(0);
+            senderTargetPiece = senderBuildingPlan.getFirstPiece();
             targetPieces[senderNum] = senderTargetPiece;
         }
 
@@ -1255,7 +1263,7 @@ public class SOCRobotNegotiator
        SOCRobotDM simulator;
 
        Stack ourBuildingPlan = buildingPlan;
-       if (ourBuildingPlan.empty()) {
+       if (ourBuildingPlan.isEmpty()) {
        D.ebugPrintlnINFO("**** our building plan is empty ****");
        simulator = new SOCRobotDM(brain.getRobotParameters(),
        playerTrackers,
@@ -1265,7 +1273,7 @@ public class SOCRobotNegotiator
        simulator.planStuff();
        }
 
-       if (ourBuildingPlan.empty()) {
+       if (ourBuildingPlan.isEmpty()) {
        return response;
        }
        SOCPossiblePiece targetPiece = (SOCPossiblePiece)ourBuildingPlan.peek();
@@ -1577,7 +1585,7 @@ public class SOCRobotNegotiator
         {
             SOCBuildPlanStack ourBuildingPlan = buildingPlan;
 
-            if (ourBuildingPlan.empty())
+            if (ourBuildingPlan.isEmpty())
             {
                 SOCRobotDM simulator;
                 D.ebugPrintlnINFO("**** our building plan is empty ****");
@@ -1587,12 +1595,12 @@ public class SOCRobotNegotiator
                 simulator.planStuff(strategyType);
             }
 
-            if (ourBuildingPlan.empty())
+            if (ourBuildingPlan.isEmpty())
             {
                 return counterOffer;
             }
 
-            targetPiece = ourBuildingPlan.getPlannedPiece(0);
+            targetPiece = ourBuildingPlan.getFirstPiece();
             targetPieces[ourPlayerNumber] = targetPiece;
         }
 

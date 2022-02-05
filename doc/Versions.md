@@ -27,6 +27,7 @@ JARs for recent JSettlers versions can be downloaded from
 	  Client will now use that info to update options used in New Game dialog.
 - For developers:
 	- Client: Added DataOutputUtils for html conversion and escapes
+	- Robots: SOCRobotNegotiator +setTargetPiece(pn, SOCBuildPlan) to supply more plan info (upstreamed from STAC Project)
 	- SOCForceEndTurnThread: Name thread to identify in server thread dumps
 
 

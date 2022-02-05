@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
- * Portions of this file copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -49,6 +49,12 @@ public class SOCBuildPlanStack extends Stack<SOCPossiblePiece>
     {
         return super.get(elementCount - 1 - pieceNum);
             // throws subclass ArrayIndexOutOfBoundsException
+    }
+
+    public SOCPossiblePiece getFirstPiece()
+        throws IndexOutOfBoundsException
+    {
+        return getPlannedPiece(0);
     }
 
     public int getPlanDepth()

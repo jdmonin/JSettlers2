@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
- * Portions of this file copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -47,8 +47,9 @@ public interface SOCBuildPlan
     public boolean isEmpty();
 
     /**
-     * Get the <em>i</em>th planned build item, without removing it from the plan.
-     * This is typically called with an index of 0 (the first piece, equivalent to a peek),
+     * Get a planned build item, without removing it from the plan.
+     * This is typically called with an index of 0 (same as {@link #getFirstPiece()}
+     * or a {@link java.util.Stack#peek()},
      * however it is called with an index of 1 during the play of a Road Building card.
      *<P>
      * Note: This may be unsafe - assumes an appropriate size of build plan.  Could easily add a check for size in the
@@ -63,9 +64,22 @@ public interface SOCBuildPlan
      *     Range is 0 to {@link #getPlanDepth()} - 1.
      * @return  Piece within plan
      * @throws IndexOutOfBoundsException if {@code pieceNum} is out of range
+     * @see #getFirstPiece()
      * @see #advancePlan()
      */
     public SOCPossiblePiece getPlannedPiece(int pieceNum)
+        throws IndexOutOfBoundsException;
+
+    /**
+     * If not {@link #isEmpty()}, get the piece in this building plan that would be built first.
+     * Same as calling {@link #getPlannedPiece(int) getPlannedPiece(0)}.
+     * @return the first piece in this building plan
+     * @throws IndexOutOfBoundsException if {@link #isEmpty()}.
+     *     Same exception type as {@link #getPlannedPiece(int)} for consistency.
+     * @see #getFirstPieceResources()
+     * @since 2.6.00
+     */
+    public SOCPossiblePiece getFirstPiece()
         throws IndexOutOfBoundsException;
 
     /**
@@ -86,8 +100,9 @@ public interface SOCBuildPlan
 
     /**
      * Get the resources needed to build the first piece in this plan.
-     * @return {@link #getPlannedPiece(int) getPlannedPiece(0)}{@link SOCPossiblePiece#getResourcesToBuild() .getResourcesToBuild()},
+     * @return {@link #getFirstPiece()}{@link SOCPossiblePiece#getResourcesToBuild() .getResourcesToBuild()},
      *     or {@link SOCResourceSet#EMPTY_SET} if that's null or if {@link #isEmpty()}
+     * @see #getFirstPiece()
      */
     public SOCResourceSet getFirstPieceResources();
 
