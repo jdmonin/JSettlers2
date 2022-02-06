@@ -718,7 +718,7 @@ import soc.util.Version;
             Collection<SOCScenario> scens = allSc.values();
             if (! readOnly)
             {
-                // Sort by description.
+                // Sort by rank and description.
                 // Don't sort if readOnly and thus dropdown not enabled, probably not browsable.
 
                 ArrayList<SOCScenario> sl = new ArrayList<SOCScenario>(scens);
@@ -728,6 +728,12 @@ import soc.util.Version;
 
                     public int compare(SOCScenario a, SOCScenario b)
                     {
+                        final int rankA = a.getSortRank(), rankB = b.getSortRank();
+                        if (rankA < rankB)
+                            return -1;
+                        else if (rankA > rankB)
+                            return 1;
+
                         return a.getDesc().compareTo(b.getDesc());
                     }
                 });

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -71,6 +71,10 @@ import soc.message.SOCMessage;
  * in {@code server/strings/toClient_*.properties} to be sent to clients if needed.
  * At the client, scenario's text can be localized with {@link #setDesc(String, String)}.
  * See unit test {@link soctest.TestI18NGameoptScenStrings}.
+ *<P>
+ * To help with localizations, names can optionally start with a numeric "sort ranking".
+ * If found, that prefix is parsed and removed in v2.6.00 and newer.
+ * See {@link SOCVersionedItem#setDesc(String)} for details.
  *<P>
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -466,14 +470,19 @@ public class SOCScenario
      * @param desc    Descriptive brief text, to appear in the scenarios dialog.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     *            <BR>
+     *             To help with localizations, can optionally start with a numeric "sort ranking".
+     *             If found, that prefix is parsed and removed in v2.6.00 and newer.
+     *             Older clients will keep that prefix visible and use it to help sort alphabetically.
+     *             See {@link SOCVersionedItem#setDesc(String)} for details.
      * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
      *             from {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
      *             Never "" or {@code null}.
      * @throws IllegalArgumentException if key length is > 8 or not alphanumeric,
      *        or if opts is {@code null} or the empty string "",
-     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
-     *        or fail their described requirements,
+     *        or if desc or longDesc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     *        or fail their described requirements (including optional "sort ranking" prefix format),
      *        or if minVers or lastModVers is under 2000 but not -1
      */
     public SOCScenario
@@ -871,11 +880,15 @@ public class SOCScenario
      * @param desc    Descriptive brief text, to appear in the scenarios dialog. Not null.
      *     Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *     and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     *    <BR>
+     *     To help with localizations, can optionally start with a numeric "sort ranking".
+     *     If found, that prefix is parsed and removed in v2.6.00 and newer.
+     *     Older clients will keep that prefix visible and use it to help sort alphabetically.
+     *     See {@link SOCVersionedItem#setDesc(String)} for details.
      * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
      *     If null, keeps scenario's current (probably hardcoded unlocalized) longDesc.
      * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or desc or longDesc fails {@link SOCMessage#isSingleLineAndSafe(String, boolean)}
-     * @see SOCVersionedItem#setDesc(String)
      */
     public void setDesc(final String desc, final String longDesc)
         throws IllegalArgumentException

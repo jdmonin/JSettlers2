@@ -17,6 +17,7 @@ JARs for recent JSettlers versions can be downloaded from
 - Currently being developed
 - I18N:
 	- Added Polish translation (thank you KotCzarny)
+	- Game option and scenario names can optionally start with a numeric "sort ranking" which is parsed and hidden
 - Client:
 	- Game window:
 	    - Moving robber: If hex is desert, don't ask "are you sure" when you have an adjacent settlement/city

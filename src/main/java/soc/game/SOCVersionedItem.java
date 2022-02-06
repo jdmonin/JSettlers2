@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015,2017,2019-2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file from SOCGameOption.java Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -88,10 +88,21 @@ public abstract class SOCVersionedItem implements Cloneable
     /**
      * Descriptive text for the item. Must not contain the network delimiter
      * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
-     * See {@link #getDesc()} for more info about this field.
+     * See {@link #getDesc()} for more info about this field,
+     * including the optional "sort ranking" prefix added in v2.6.00
+     * that sets {@link #sortRank}.
+     *<P>
+     * Is {@code protected} for convenience, but call {@link #setDesc(String)} instead of directly changing its value.
      */
     protected String desc;  // OTYPE_* - if a new SOCGameOption type is added, update this field's javadoc
         // and getDesc() javadoc.
+
+    /**
+     * Item's optional sorting rank for localization, or default of {@link Integer#MAX_VALUE};
+     * see {@link #getSortRank()} for details.
+     * @since 2.6.00
+     */
+    private int sortRank = Integer.MAX_VALUE;
 
     /**
      * Create a new unknown item ({@link #isKnown == false}).
@@ -122,6 +133,8 @@ public abstract class SOCVersionedItem implements Cloneable
      * @param desc Descriptive brief text, to appear in the user interface.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     *             See {@link #setDesc(String)} for format of optional sort ranking prefix,
+     *             which is parsed and removed in v2.6.00 and newer.
      * @throws IllegalArgumentException if key is not alphanumeric,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
@@ -143,7 +156,7 @@ public abstract class SOCVersionedItem implements Cloneable
         minVersion = minVers;
         lastModVersion = lastModVers;
         this.isKnown = isKnown;
-        this.desc = desc;
+        setDesc(desc);  // use setter, because might also need to parse sort ranking prefix or reset rank to default
     }
 
     /**
@@ -160,6 +173,7 @@ public abstract class SOCVersionedItem implements Cloneable
      * change the field contents, so {@code getDesc()} and {@link #setDesc(String)} were added.
      *
      * @return  the description; never null
+     * @see #getSortRank()
      * @since 2.0.00
      */
     public final String getDesc()
@@ -170,7 +184,16 @@ public abstract class SOCVersionedItem implements Cloneable
     }
 
     /**
-     * Update this item's description text.  See {@link #getDesc()} for formatting rules and info.
+     * Update this item's description text and optional sort rank.
+     * See {@link #getDesc()} for formatting rules and info.
+     *<P>
+     * To help with localizations, {@code newDesc} can optionally start with a numeric "sort ranking",
+     * to set {@link #getSortRank()}. If found, that prefix is parsed and removed (in v2.6.00 and newer)
+     * and won't be returned as part of {@link #getDesc()}'s value. Older clients will keep that desc string prefix
+     * visible and use it to help sort alphabetically.
+     *<BR>
+     * Its format is either {@code "[n] "} or {@code "n - "},
+     * where {@code n} is 1 or more digit characters per {@link Character#isDigit(char)}.
      *<P>
      * Before v2.0.00, {@code desc} was a public final field. This gave easy access without allowing changes to the
      * description which might violate the formatting rules. For i18n, v2.0.00 needed to be able to change the
@@ -179,16 +202,76 @@ public abstract class SOCVersionedItem implements Cloneable
      * @param newDesc Descriptive brief text, to appear in the user interface. Not null.
      *             Must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *     or starts but doesn't finish a sort ranking prefix: Missing space after {@code "[n]"} or {@code "n -"}
+     *     or non-digit within brackets after {@code "[n"}
      * @since 2.0.00
      */
-    public void setDesc(final String newDesc)
+    public void setDesc(String newDesc)
         throws IllegalArgumentException
     {
         if (! SOCMessage.isSingleLineAndSafe(newDesc))
             throw new IllegalArgumentException("desc fails isSingleLineAndSafe");
 
+        final int L = newDesc.length();
+        final int ch0 = (L > 0) ? newDesc.charAt(0) : '?';
+        if ((L >= 2)
+            && (Character.isDigit(ch0)
+                || ((ch0 == '[') && Character.isDigit(newDesc.charAt(1)))))
+        {
+            // At least 1 digit found.
+            // So try to parse and remove "n - " or "[n] " prefix:
+
+            final int startPos = (ch0 == '[') ? 1 : 0;
+            int pos = startPos;
+            char ch = newDesc.charAt(pos);
+            for (;
+                Character.isDigit(ch) && (pos < (L - 2));
+                ++pos, ch = newDesc.charAt(pos))
+                ;
+            if (ch0 == '[')
+            {
+                if ((pos == startPos) || (pos >= (L - 2))
+                    || (ch != ']') || (newDesc.charAt(pos + 1) != ' '))
+                    throw new IllegalArgumentException("failed to parse rank prefix: " + newDesc);
+            }
+
+            if ((ch0 == '[')
+                || ((ch == ' ') && (pos < (L - 1)) && (newDesc.charAt(pos + 1) == '-')))
+            {
+                try
+                {
+                    sortRank = Integer.parseInt(newDesc.substring(startPos, pos));
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("failed to parse rank prefix: " + newDesc, e);
+                }
+
+                pos += (ch0 == '[') ? 2 : 3;  // skip past "] " or " - "
+                if ((pos >= L) || (newDesc.charAt(pos - 1) != ' '))
+                    throw new IllegalArgumentException("failed to parse rank prefix: " + newDesc);
+                newDesc = newDesc.substring(pos);
+            } else {
+                sortRank = Integer.MAX_VALUE;
+            }
+        } else {
+            sortRank = Integer.MAX_VALUE;
+        }
+
         desc = newDesc;
+    }
+
+    /**
+     * Get this item's sort rank, used by some localizations which want a specific sorting order.
+     * Updated by {@link #setDesc(String)} based on optional numeric prefix text.
+     * All items without a sort ranking prefix are placed together at the end and sorted alphabetically.
+     * @return rank parsed from description (lower values are sorted ahead of higher values),
+     *     or default of {@link Integer#MAX_VALUE}
+     * @see #getDesc()
+     * @since 2.6.00
+     */
+    public int getSortRank()
+    {
+        return sortRank;
     }
 
     /**

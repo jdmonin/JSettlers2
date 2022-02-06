@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -149,7 +149,12 @@ import soc.util.Version;
  *
  * Game option descriptions are also stored as {@code gameopt.*} in
  * {@code server/strings/toClient_*.properties} to be sent to clients if needed
- * during version negotiation. At the client, option's text can be localized with {@link #setDesc(String)}.
+ * during version negotiation.
+ *<P>
+ * At the client, option's text can be localized with {@link #setDesc(String)}.
+ * To help with localizations, that can optionally start with a numeric "sort ranking" which is parsed and removed
+ * in v2.6.00 and newer.
+ *<P>
  * See unit test {@link soctest.TestI18NGameoptScenStrings} and
  * {@link soc.server.SOCServerMessageHandler#handleGAMEOPTIONGETINFOS(soc.server.genericServer.Connection, soc.message.SOCGameOptionGetInfos) SOCServerMessageHandler.handleGAMEOPTIONGETINFOS(..)}.
  *<P>
@@ -449,10 +454,17 @@ public class SOCGameOption
      * @param defaultValue Default value (true if set, false if not set)
      * @param flags   Option flags such as {@link #FLAG_DROP_IF_UNUSED}, or 0;
      *                Remember that older clients won't recognize some gameoption flags.
-     * @param desc    Descriptive brief text, to appear in the options dialog
+     * @param desc    Descriptive brief text, to appear in the options dialog.
+     *               <BR>
+     *                To help with localizations, can optionally start with a numeric "sort ranking".
+     *                If found, that prefix is parsed and removed in v2.6.00 and newer.
+     *                Older clients will keep that prefix visible and use it to help sort alphabetically.
+     *                See {@link SOCVersionedItem#setDesc(String)} for details.
+     *
      * @throws IllegalArgumentException if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
-     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
@@ -485,10 +497,16 @@ public class SOCGameOption
      *             contain a placeholder character '#' where the int value goes.
      *             If no placeholder is found, the value text field appears at left,
      *             like boolean options.
+     *            <BR>
+     *             To help with localizations, can optionally start with a numeric "sort ranking".
+     *             If found, that prefix is parsed and removed in v2.6.00 and newer.
+     *             Older clients will keep that prefix visible and use it to help sort alphabetically.
+     *             See {@link SOCVersionedItem#setDesc(String)} for details.
      * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue,
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
-     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
@@ -518,10 +536,16 @@ public class SOCGameOption
      *                Remember that older clients won't recognize some gameoption flags.
      * @param desc Descriptive brief text, to appear in the options dialog; should
      *             contain a placeholder character '#' where the int value goes.
+     *            <BR>
+     *             To help with localizations, can optionally start with a numeric "sort ranking".
+     *             If found, that prefix is parsed and removed in v2.6.00 and newer.
+     *             Older clients will keep that prefix visible and use it to help sort alphabetically.
+     *             See {@link SOCVersionedItem#setDesc(String)} for details.
      * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue,
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
-     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
@@ -557,10 +581,16 @@ public class SOCGameOption
      *             contain a placeholder character '#' where the enum's popup-menu goes.
      *             If no placeholder is found, the value field appears at left,
      *             like boolean options.
+     *            <BR>
+     *             To help with localizations, can optionally start with a numeric "sort ranking".
+     *             If found, that prefix is parsed and removed in v2.6.00 and newer.
+     *             Older clients will keep that prefix visible and use it to help sort alphabetically.
+     *             See {@link SOCVersionedItem#setDesc(String)} for details.
      * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue,
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
-     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
@@ -591,10 +621,16 @@ public class SOCGameOption
      *             contain a placeholder character '#' where the enum's popup-menu goes.
      *             If no placeholder is found, the value field appears at left,
      *             like boolean options.
+     *            <BR>
+     *             To help with localizations, can optionally start with a numeric "sort ranking".
+     *             If found, that prefix is parsed and removed in v2.6.00 and newer.
+     *             Older clients will keep that prefix visible and use it to help sort alphabetically.
+     *             See {@link SOCVersionedItem#setDesc(String)} for details.
      * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue,
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
-     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
@@ -625,10 +661,16 @@ public class SOCGameOption
      *             contain a placeholder character '#' where the text value goes.
      *             If no placeholder is found, the value text field appears at left,
      *             like boolean options.
+     *            <BR>
+     *             To help with localizations, can optionally start with a numeric "sort ranking".
+     *             If found, that prefix is parsed and removed in v2.6.00 and newer.
+     *             Older clients will keep that prefix visible and use it to help sort alphabetically.
+     *             See {@link SOCVersionedItem#setDesc(String)} for details.
      * @throws IllegalArgumentException if maxLength > {@link #TEXT_OPTION_MAX_LENGTH},
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
-     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
@@ -674,10 +716,16 @@ public class SOCGameOption
      *             contain a placeholder character '#' where the int value goes.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     *            <BR>
+     *             To help with localizations, can optionally start with a numeric "sort ranking".
+     *             If found, that prefix is parsed and removed in v2.6.00 and newer.
+     *             Older clients will keep that prefix visible and use it to help sort alphabetically.
+     *             See {@link SOCVersionedItem#setDesc(String)} for details.
      * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue,
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
-     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
@@ -1770,7 +1818,7 @@ public class SOCGameOption
     /**
      * Compare two options, for display purposes. ({@link Comparable} interface)
      * Two gameoptions are considered equal if they have the same {@link SOCVersionedItem#key key}.
-     * Greater/lesser is determined by
+     * Greater/lesser is determined from {@link SOCVersionedItem#getSortRank()} and if that's equal,
      * {@link SOCVersionedItem#getDesc() desc}.{@link String#toLowerCase() toLowercase()}.{@link String#compareTo(String) compareTo(otherDesc.toLowercase())}.
      * @param other A SOCGameOption to compare, or another object;  if other isn't a
      *              gameoption, the {@link #hashCode()}s are compared.
@@ -1783,6 +1831,13 @@ public class SOCGameOption
             SOCGameOption oopt = (SOCGameOption) other;
             if (key.equals(oopt.key))
                 return 0;
+
+            final int rankA = this.getSortRank(), rankB = oopt.getSortRank();
+            if (rankA < rankB)
+                return -1;
+            else if (rankA > rankB)
+                return 1;
+
             return desc.toLowerCase().compareTo(oopt.desc.toLowerCase());
         } else {
             return hashCode() - other.hashCode();
