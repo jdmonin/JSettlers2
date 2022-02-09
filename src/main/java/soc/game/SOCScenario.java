@@ -495,29 +495,11 @@ public class SOCScenario
 
     /**
      * Create a new game scenario - common constructor.
+     * See {@link #SOCScenario(String, int, int, String, String, String)} for most parameters' descriptions.
      * @param isKnown True if scenario is known here ({@link SOCVersionedItem#isKnown isKnown} true)
-     * @param key     Alphanumeric uppercase code for this scenario;
-     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
-     *                Keys can be up to 8 characters long.
-     * @param minVers Minimum client version supporting this scenario, or -1.
-     *                Same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
-     *                If not -1, {@code minVers} must be at least 2000 ({@link #VERSION_FOR_SCENARIOS}).
-     *                To calculate the minimum version of a set of game options which might include a scenario,
-     *                use {@link SOCVersionedItem#itemsMinimumVersion(Map) SOCVersionedItem.itemsMinimumVersion(opts)}.
-     *                That calculation won't be done automatically by this constructor.
-     * @param lastModVers Last-modified version for this scenario, or version which added it.
-     *             This is the last change to the scenario itself as declared in {@link #getAllKnownScenarios()}:
-     *             Ignore changes to {@code opts} last-modified versions, because changed option info
-     *             is sent separately and automatically when the client connects.
-     * @param desc Descriptive brief text, to appear in the scenarios dialog.
-     *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
-     * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
-     *             from {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
-     *             Never "" or {@code null}.
      * @throws IllegalArgumentException  if key is not alphanumeric or length is > 8,
-     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or if desc or longDesc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     *        or fail their described requirements (including optional "sort ranking" prefix format),
      *        or if opts is {@code null} or the empty string "",
      *        or if minVers or lastModVers is under 2000 but not -1
      */
