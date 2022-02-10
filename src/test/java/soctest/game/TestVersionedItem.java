@@ -103,8 +103,8 @@ public class TestVersionedItem
 
         final String[] badFmts =
             {
-                "[3", "[3]", "[3 ",
-                "[3 ] extra space after digit", "[2 no closing bracket",
+                "[3]",
+                "[3 ] extra space after digit",
                 "[3x] non-digit before bracket",
                 "[33]no space after bracket",
                 "1 -x", "1 -",

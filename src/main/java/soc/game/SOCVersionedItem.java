@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import soc.message.SOCMessage;
 
@@ -47,6 +49,29 @@ import soc.message.SOCMessage;
  */
 public abstract class SOCVersionedItem implements Cloneable
 {
+    /**
+     * For reference, the string that compiles into {@link #REGEX_SORT_RANK_PREFIX}.
+     * @since 2.6.00
+     */
+    public static final String REGEX_SORT_RANK_PREFIX_STRING = "^(\\p{Nd}+) -|\\[(\\p{Nd}[^\\]]*)\\]";
+        /*
+         * "n -" is ^(\p{Nd}+) -
+         * "[n]" is ^\[(\p{Nd}[^\]]*)\]
+         */
+
+    /**
+     * Regex for the optional sort rank prefix recognized by {@link #setDesc(String)}.
+     * Matches and groups for the initial {@code "n -"} or {@code "[n]"}.
+     *<P>
+     * Groups:
+     *<OL>
+     * <LI> {@code "n"} from dashed non-bracketed version, if present
+     * <LI> {@code "n"} from bracketed version, if present
+     *</OL>
+     * @see #REGEX_SORT_RANK_PREFIX_STRING
+     * @since 2.6.00
+     */
+    public static final Pattern REGEX_SORT_RANK_PREFIX = Pattern.compile(REGEX_SORT_RANK_PREFIX_STRING);
 
     /**
      * Item key name: Short alphanumeric name (uppercase, starting with a letter, '_' permitted)
@@ -194,6 +219,7 @@ public abstract class SOCVersionedItem implements Cloneable
      *<BR>
      * Its format is either {@code "[n] "} or {@code "n - "},
      * where {@code n} is 1 or more digit characters per {@link Character#isDigit(char)}.
+     * Uses {@link #REGEX_SORT_RANK_PREFIX}.
      *<P>
      * Before v2.0.00, {@code desc} was a public final field. This gave easy access without allowing changes to the
      * description which might violate the formatting rules. For i18n, v2.0.00 needed to be able to change the
@@ -213,46 +239,29 @@ public abstract class SOCVersionedItem implements Cloneable
         if (! SOCMessage.isSingleLineAndSafe(newDesc))
             throw new IllegalArgumentException("desc fails isSingleLineAndSafe");
 
-        final int L = newDesc.length();
-        final int ch0 = (L > 0) ? newDesc.charAt(0) : '?';
-        if ((L >= 2)
-            && (Character.isDigit(ch0)
-                || ((ch0 == '[') && Character.isDigit(newDesc.charAt(1)))))
+        Matcher m = REGEX_SORT_RANK_PREFIX.matcher(newDesc);
+        if (m.find())
         {
-            // At least 1 digit found.
-            // So try to parse and remove "n - " or "[n] " prefix:
+            String rankValue = m.group(1);  // from "n -"
+            if (rankValue == null)
+                rankValue = m.group(2);  // from "[n]"
 
-            final int startPos = (ch0 == '[') ? 1 : 0;
-            int pos = startPos;
-            char ch = newDesc.charAt(pos);
-            for (;
-                Character.isDigit(ch) && (pos < (L - 2));
-                ++pos, ch = newDesc.charAt(pos))
-                ;
-            if (ch0 == '[')
+            // check for required space before changing sortRank field, not after
+            final int L = newDesc.length();
+            int idxAfter = m.end();
+            if (idxAfter >= L)
+                throw new IllegalArgumentException("failed to parse rank prefix: nothing after prefix: " + newDesc);
+            if (newDesc.charAt(idxAfter) != ' ')
+                throw new IllegalArgumentException("failed to parse rank prefix: trailing space required: " + newDesc);
+
+            try
             {
-                if ((pos == startPos) || (pos >= (L - 2))
-                    || (ch != ']') || (newDesc.charAt(pos + 1) != ' '))
-                    throw new IllegalArgumentException("failed to parse rank prefix: " + newDesc);
+                sortRank = Integer.parseInt(rankValue);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("failed to parse rank prefix: " + newDesc, e);
             }
 
-            if ((ch0 == '[')
-                || ((ch == ' ') && (pos < (L - 1)) && (newDesc.charAt(pos + 1) == '-')))
-            {
-                try
-                {
-                    sortRank = Integer.parseInt(newDesc.substring(startPos, pos));
-                } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException("failed to parse rank prefix: " + newDesc, e);
-                }
-
-                pos += (ch0 == '[') ? 2 : 3;  // skip past "] " or " - "
-                if ((pos >= L) || (newDesc.charAt(pos - 1) != ' '))
-                    throw new IllegalArgumentException("failed to parse rank prefix: " + newDesc);
-                newDesc = newDesc.substring(pos);
-            } else {
-                sortRank = Integer.MAX_VALUE;
-            }
+            newDesc = newDesc.substring(idxAfter + 1);
         } else {
             sortRank = Integer.MAX_VALUE;
         }

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019-2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -37,6 +38,7 @@ import static org.junit.Assert.*;
 import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
 import soc.game.SOCScenario;
+import soc.game.SOCVersionedItem;
 import soc.message.SOCLocalizedStrings;
 import soc.message.SOCMessage;
 import soc.server.genericServer.Connection;
@@ -183,6 +185,35 @@ public class TestI18NGameoptScenStrings
     }
 
     /**
+     * For {@link #testDescriptionsFile(File)}, test a gameopt or scenario's desc
+     * vs {@link SOCVersionedItem#getSortRank()}. Uses {@link SOCVersionedItem#REGEX_SORT_RANK_PREFIX}.
+     * @param item  item being tested; will call {@link SOCVersionedItem#setDesc(String) item.setDesc(smDesc)}
+     * @param smDesc  description from props file
+     * @since 2.6.00
+     */
+    private void checkDescForSortRank(SOCVersionedItem item, String smDesc)
+    {
+        final String test = item.getClass().getSimpleName() + " " + item.key + ": \"" + smDesc + "\"",
+            origDesc = item.getDesc();
+
+        Matcher m = SOCVersionedItem.REGEX_SORT_RANK_PREFIX.matcher(smDesc);
+        boolean expectRankValue = m.find();
+        try {
+            item.setDesc(smDesc);
+            if (expectRankValue)
+                assertNotEquals
+                    ("setDesc expected getSortRank != MAX_VALUE: " + test, Integer.MAX_VALUE, item.getSortRank());
+            else
+                assertEquals
+                    ("setDesc expected getSortRank == MAX_VALUE: " + test, Integer.MAX_VALUE, item.getSortRank());
+        } catch (IllegalArgumentException e) {
+            fail("setDesc failed: " + test);
+        }
+
+        item.setDesc(origDesc);
+    }
+
+    /**
      * For {@link #testDescriptionsForNet()}, test one string props file's description strings.
      * @param pfile Full filename to open and test
      * @return True if OK, or prints failed strings and return false
@@ -213,7 +244,9 @@ public class TestI18NGameoptScenStrings
                 if (smDesc != null)
                 {
                     optsStr.add(smDesc);
-                    if (! SOCMessage.isSingleLineAndSafe(smDesc))
+                    if (SOCMessage.isSingleLineAndSafe(smDesc))
+                        checkDescForSortRank(opt, smDesc);
+                    else
                         optBadChar.add(opt.key);
                 }
             } catch (MissingResourceException e) {}
@@ -228,7 +261,9 @@ public class TestI18NGameoptScenStrings
                 if (smDesc != null)
                 {
                     scenStr.add(smDesc);
-                    if (! SOCMessage.isSingleLineAndSafe(smDesc))
+                    if (SOCMessage.isSingleLineAndSafe(smDesc))
+                        checkDescForSortRank(sc, smDesc);
+                    else
                         scenBadChar.add(strKey);
                 }
             } catch (MissingResourceException e) {}
