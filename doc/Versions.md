@@ -21,6 +21,7 @@ JARs for recent JSettlers versions can be downloaded from
 - Client:
 	- Game window:
 	    - Moving robber: If hex is desert, don't ask "are you sure" when you have an adjacent settlement/city
+	    - Less flicker while resizing window
 	- If rejected while connecting to server, show server's version as part of error text
 - Game options:
 	- Client removes unused options before sending new game request
@@ -30,6 +31,8 @@ JARs for recent JSettlers versions can be downloaded from
 	- Client: Added DataOutputUtils for html conversion and escapes
 	- Robots: SOCRobotNegotiator +setTargetPiece(pn, SOCBuildPlan) to supply more plan info (upstreamed from STAC Project)
 	- SOCForceEndTurnThread: Name thread to identify in server thread dumps
+- Code internals:
+	- Convert SOCPlayerInterface from AWT to Swing JFrame
 
 
 ## `2.5.00` (build JM20211230)

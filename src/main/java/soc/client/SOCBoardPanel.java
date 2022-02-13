@@ -126,7 +126,7 @@ import javax.swing.JComponent;
  * {@link #scaleFromActual(int[])}, {@link #scaleToActual(int[])}.
  *<P>
  * The panel can in some cases be stretched wider than the board requires, with a built-in x-margin:
- * {@link SOCPlayerInterface#doLayout()} checks for the necessary conditions.
+ * {@link SOCPlayerInterface}'s custom LayoutManager checks for the necessary conditions.
  *
  *<H3>Sequence for loading, rendering, and drawing images:</H3>
  *<UL>
@@ -2601,7 +2601,7 @@ import javax.swing.JComponent;
 
     /**
      * Set the board to a new location and size, rescale graphics and repaint if needed.
-     * Called from {@link SOCPlayerInterface#doLayout()}.
+     * Called from {@link SOCPlayerInterface}'s custom layout manager.
      *
      * @param x  New location's x-coordinate
      * @param y  new location's y-coordinate

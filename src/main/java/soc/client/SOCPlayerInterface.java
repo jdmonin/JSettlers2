@@ -58,6 +58,8 @@ import soc.message.SOCTurn;  // for server version check
 import soc.util.SOCStringManager;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dialog;
 import java.awt.Dimension;
@@ -65,9 +67,8 @@ import java.awt.DisplayMode;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Frame;
 import java.awt.Graphics;
-import java.awt.Insets;
+import java.awt.LayoutManager;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.TextArea;
@@ -110,6 +111,7 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
@@ -122,8 +124,8 @@ import javax.swing.event.DocumentListener;
  * chat interface, game message window, and the {@link SOCBuildingPanel building/buying panel}.
  *<P>
  * Players' {@link SOCHandPanel hands} start with player 0 at top-left, and go clockwise;
- * see {@link #doLayout()} for details. Component sizes including {@link SOCBoardPanel}
- * are recalculated by {@link #doLayout()} when the frame is resized.
+ * see {@link PILayoutManager} for details. Component sizes including {@link SOCBoardPanel}
+ * are recalculated when the frame is resized.
  *<P>
  * When we join a game, the client will update visible game state by calling methods here like
  * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
@@ -162,7 +164,7 @@ import javax.swing.event.DocumentListener;
  * @author Robert S. Thomas
  */
 @SuppressWarnings("serial")
-public class SOCPlayerInterface extends Frame
+public class SOCPlayerInterface extends JFrame
     implements ActionListener, MouseListener, SOCGameEventListener,
         PlayerClientListener.NonBlockingDialogDismissListener
 {
@@ -298,7 +300,7 @@ public class SOCPlayerInterface extends Frame
      * True if we've already shown {@link #game}'s scenario's
      * descriptive text in a popup window when the client joined,
      * or if the game has no scenario.
-     * Checked in {@link #doLayout()}.
+     * Checked in {@link PILayoutManager}.
      * Shown just once, not shown again at {@link #resetBoard(SOCGame, int, int)}.
      * @since 2.0.00
      */
@@ -440,7 +442,7 @@ public class SOCPlayerInterface extends Frame
     private boolean textDisplaysLargerTemp;
 
     /**
-     * When set, must return text display field sizes to normal in {@link #doLayout()}
+     * When set, must return text display field sizes to normal in {@link PILayoutManager}
      * after a previous {@link #textDisplaysLargerTemp} flag set.
      * @since 1.1.08
      */
@@ -642,7 +644,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Size of our window from {@link #getSize()}, not excluding insets.
-     * Determined in {@link #doLayout()}, or null.
+     * Determined in {@link PILayoutManager}, or null.
      * @since 1.1.11
      */
     private Dimension prevSize;
@@ -817,7 +819,7 @@ public class SOCPlayerInterface extends Frame
               + (ga.isPractice ? "" : " [" + md.getClient().getNickname(false) + "]"));
             // "Settlers of Catan Game: {0}"
 
-        layoutNotReadyYet = true;  // will set to false at end of doLayout
+        layoutNotReadyYet = true;  // will set to false at end of layoutContainer
         setResizable(true);
         setLocationByPlatform(true);  // cascade, not all same hard-coded position as in v1.1.xx
 
@@ -891,8 +893,8 @@ public class SOCPlayerInterface extends Frame
         if (! SwingMainDisplay.isOSColorHighContrast())
         {
             highContrastBorderColor = null;
-            setBackground(Color.BLACK);
-            setForeground(Color.WHITE);
+            getContentPane().setBackground(Color.BLACK);
+            getContentPane().setForeground(Color.WHITE);
         } else {
             final Color[] sysColors = SwingMainDisplay.getForegroundBackgroundColors(false, true);
             highContrastBorderColor = sysColors[0];
@@ -900,7 +902,7 @@ public class SOCPlayerInterface extends Frame
         setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
         /** we're doing our own layout management */
-        setLayout(null);
+        setLayout(new PILayoutManager());
 
         initUIElements(true);
 
@@ -991,7 +993,7 @@ public class SOCPlayerInterface extends Frame
         heightOrig = piHeight;
         wasResized = false;
         setSize(piWidth, piHeight);
-        validate();
+        invalidate();
         repaint();
 
         addComponentListener(new ComponentAdapter()
@@ -1054,7 +1056,7 @@ public class SOCPlayerInterface extends Frame
             });
 
         /**
-         * init is almost complete - when window appears and doLayout() is called,
+         * init is almost complete - when window appears and PILayoutManager.layoutContainer(..) is called,
          * it will reset mouse cursor from WAIT_CURSOR to normal (WAIT_CURSOR is
          * set in SOCPlayerClient.startPracticeGame or SwingMainDisplay.guardedActionPerform).
          * Then, if the game has any scenario description, it will be shown once in a popup
@@ -1359,112 +1361,6 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * Overriden so the peer isn't painted, which clears background. Don't call
-     * this directly, use {@link #repaint()} instead.
-     * For performance and display-bug avoidance, checks {@link #layoutNotReadyYet} flag.
-     */
-    @Override
-    public void update(Graphics g)
-    {
-        if (! layoutNotReadyYet)
-        {
-            paint(g);
-        } else {
-            g.clearRect(0, 0, getWidth(), getHeight());
-        }
-    }
-
-    /**
-     * Paint each component, after clearing possible stray pixels
-     * from the borders between the components.
-     * @since 1.1.11
-     */
-    @Override
-    public void paint(Graphics g)
-    {
-        paintBorders(g);
-
-        super.paint(g);
-    }
-
-    /**
-     * Paint the borders after a resize to clear stray pixels.
-     * {@link #prevSize} must be set before calling.
-     * @param g  Graphics as passed to <tt>update()</tt>
-     * @since 1.1.11
-     */
-    private void paintBorders(final Graphics g)
-    {
-        if (prevSize == null)
-            return;
-
-        if (is6player)
-        {
-            paintBordersHandColumn(g, hands[5]);
-            paintBordersHandColumn(g, hands[2]);
-        } else {
-            paintBordersHandColumn(g, hands[0]);
-            paintBordersHandColumn(g, hands[1]);
-        }
-        int bw = 4 * displayScale;
-        g.clearRect(boardPanel.getX(), boardPanel.getY() - bw, boardPanel.getWidth(), bw);
-    }
-
-    /**
-     * Paint the borders of one column of handpanels.
-     * @param g  Graphics as passed to <tt>update()</tt>
-     * @param middlePanel  The middle (6-player) or the bottom (4-player) handpanel in this column
-     * @since 1.1.11
-     */
-    private final void paintBordersHandColumn(Graphics g, SOCHandPanel middlePanel)
-    {
-        if (middlePanel == null)
-            return;  // if called during board reset
-
-        final int w = middlePanel.getWidth();  // handpanel's width
-        final int winH = getHeight();
-        final int bw = 4 * displayScale;  // border width
-
-        final boolean isHighContrast;
-        if (highContrastBorderColor != null)
-        {
-            g.setColor(highContrastBorderColor);
-            isHighContrast = true;
-        } else {
-            isHighContrast = false;
-        }
-
-        // left side, entire height
-        int x = middlePanel.getX();
-        if (isHighContrast)
-            g.fillRect(x - bw, 0, bw, winH);
-        else
-            g.clearRect(x - bw, 0, bw, winH);
-
-        // right side, entire height
-        x += w;
-        if (isHighContrast)
-            g.fillRect(x, 0, bw, winH);
-        else
-            g.clearRect(x, 0, bw, winH);
-
-        // above middle panel
-        x = middlePanel.getX();
-        int y = middlePanel.getY();
-        if (isHighContrast)
-            g.fillRect(x, y - bw, w, bw);
-        else
-            g.clearRect(x, y - bw, w, bw);
-
-        // below middle panel
-        y += middlePanel.getHeight();
-        if (isHighContrast)
-            g.fillRect(x, y, w, bw);
-        else
-            g.clearRect(x, y, w, bw);
-    }
-
-    /**
      * @return the client that spawned us
      */
     public SOCPlayerClient getClient()
@@ -1610,7 +1506,7 @@ public class SOCPlayerInterface extends Frame
      *<P>
      * Call only if {@link #isVisible()} and ! {@link #layoutNotReadyYet}.
      *<P>
-     * This method also gets called once after constructor and initial doLayout,
+     * This method also gets called once after constructor and initial PILayoutManager.layoutContainer,
      * even though the user hasn't manually resized the window.
      *
      * @since 1.2.00
@@ -2784,6 +2680,7 @@ public class SOCPlayerInterface extends Frame
                 // handpanel sizes change when client leaves in a 6-player game
                 invalidate();
                 doLayout();
+                repaint();
             }
         }
     }
@@ -3899,338 +3796,6 @@ public class SOCPlayerInterface extends Frame
             outB = (outB + 255) / 2;
         }
         return new Color (outR, outG, outB);
-    }
-
-    /**
-     * Arrange the custom layout at creation or frame resize.
-     * Stretches {@link SOCBoardPanel}, {@link SOCHandPanel}s, etc to fit.
-     *<P>
-     * If a player sits down in a 6-player game, will need to
-     * {@link #invalidate()} and call this again, because {@link SOCHandPanel} sizes will change.
-     *<P>
-     * Also, on first call, resets mouse cursor to normal, in case it was WAIT_CURSOR.
-     * On first call, if the game options have a {@link SOCScenario} with any long description,
-     * it will be shown in a popup via {@link #showScenarioInfoDialog()}.
-     */
-    @Override
-    public void doLayout()
-    {
-        Insets i = getInsets();
-        Dimension dim = getSize();
-        boolean needRepaintBorders = (prevSize != null)
-            && ((dim.width != prevSize.width) || (dim.height != prevSize.height));
-        prevSize = dim;
-        dim.width -= (i.left + i.right);
-        dim.height -= (i.top + i.bottom);
-
-        /**
-         * Classic Sizing
-         * (board size was fixed, cannot scale)
-         *
-        int bw = SOCBoardPanel.PANELX;
-        int bh = SOCBoardPanel.PANELY;
-        int hw = (dim.width - bw - 16) / 2;
-        int hh = (dim.height - 12) / 2;
-        int kw = bw;
-        int kh = buildingPanel.getSize().height;
-        int tfh = textInput.getSize().height;
-        int tah = dim.height - bh - kh - tfh - 16;
-         */
-
-        /**
-         * "Stretch" Scaleable-board Sizing:
-         *
-         * Make board as wide as possible without violating minimum handpanel width.
-         * Boardpanel will center or scale up board hexes if needed to fill the larger space.
-         *
-         * Handpanel height:
-         * - If 4-player, 1/2 of window height
-         * - If 6-player, 1/3 of window height, until client sits down.
-         *   (Column of 3 on left side, 3 on right side, of this frame)
-         *   Once sits down, that column's handpanel heights are
-         *   1/2 of window height for the player's hand, and 1/4 for others.
-         *
-         * Since this is the minimum, is not multiplied by displayScale:
-         * Don't need displayScale here because we already used it when
-         * setting width_base and height_base. Just use overall PI size
-         * to drive boardpanel size.
-         */
-        final int bMinW, bMinH;
-        {
-            Dimension bpMinSz = boardPanel.getMinimumSize();
-            bMinW = bpMinSz.width;
-            bMinH = bpMinSz.height;
-        }
-        final int buildph = buildingPanel.getHeight();
-        final int tfh = textInput.getHeight();
-        final int pix4 = 4 * displayScale, pix8 = 8 * displayScale,
-                  pix12 = 12 * displayScale, pix16 = 16 * displayScale;
-        int hpMinW = SOCHandPanel.WIDTH_MIN * displayScale;
-        if (hpMinW < (dim.width / 10))
-            hpMinW = dim.width / 10;  // at least 10% of window width
-        int bw = dim.width - (2 * hpMinW) - pix16;  // As wide as possible
-        int bh = (int) ((bw * (long) bMinH) / bMinW);
-
-        if (bh > (dim.height - buildph - pix16 - (int)(5.5f * tfh)))
-        {
-            // Window is wide: board would become taller than fits in window.
-            // Re-calc board max height, then board width.
-            bh = dim.height - buildph - pix16 - (int)(5.5f * tfh);  // As tall as possible
-            bw = (int) ((bh * (long) bMinW) / bMinH);
-        }
-
-        boolean canStretchBoard = (bw >= bMinW) && (bh >= bMinH);
-
-        if (bw > bMinW)
-        {
-            // Make board wider if possible
-            int spareW = dim.width - (hpMinW * 2) - bw - pix16;
-            if (spareW > 0)
-                bw += (4 * spareW / 5);  // give 4/5 to boardpanel width, the rest to hw
-        }
-
-        int hw = (dim.width - bw - pix16) / 2;  // each handpanel's width; height is hh
-        int tah = 0;  // textareas' height (not including tfh): calculated soon
-
-        if (canStretchBoard)
-        {
-            // Now that we have minimum board height/width,
-            // make it taller if possible
-            int spareH = (dim.height - buildph - pix16 - (int)(5.5f * tfh)) - bh;
-            if (spareH > 0)
-                bh += (2 * spareH / 3);  // give 2/3 to boardpanel height, the rest to tah
-
-            tah = dim.height - bh - buildph - tfh - pix16;
-
-            // Scale it
-            try
-            {
-                boardPanel.setBounds(i.left + hw + pix8, i.top + tfh + tah + pix8, bw, bh);
-            }
-            catch (IllegalArgumentException e)
-            {
-                canStretchBoard = false;
-            }
-        }
-
-        if (! canStretchBoard)
-        {
-            bh = bMinH;
-            tah = dim.height - bh - buildph - tfh - pix16;
-            try
-            {
-                boardPanel.setBounds(i.left + hw + pix8, i.top + tfh + tah + pix8, bw, bh);
-            }
-            catch (IllegalArgumentException ee)
-            {
-                // fall back to safe sizes
-
-                bw = boardPanel.getWidth();
-                bh = boardPanel.getHeight();
-                hw = (dim.width - bw - pix16) / 2;
-                if ((hw < hpMinW) && (bw > bMinW))
-                {
-                    // prevent gradually-widening boardpanel.getWidth() from squeezing handpanels too narrow
-                    int widthAvail = dim.width - bMinW - (2 * hpMinW) - pix16;
-                    if (widthAvail > 0)
-                    {
-                        int boardAvail = widthAvail / 5;
-                        bw = bMinW + boardAvail;
-                        hw = hpMinW + (widthAvail - boardAvail);
-
-                        boardPanel.setSize(bw, bh, true);  // won't throw yet another exception
-
-                        // because setSize may have ignored bw or bh:
-                        bw = boardPanel.getWidth();
-                        bh = boardPanel.getHeight();
-                        hw = (dim.width - bw - pix16) / 2;
-                    }
-                }
-
-                tah = dim.height - bh - buildph - tfh - pix16;
-                boardPanel.setLocation(i.left + hw + pix8, i.top + tfh + tah + pix8);
-            }
-        }
-
-        final int halfplayers = (is6player) ? 3 : 2;
-        final int hh = (dim.height - pix12) / halfplayers;  // handpanel height
-        final int kw = bw;
-
-        buildingPanel.setBounds(i.left + hw + pix8, i.top + tah + tfh + bh + pix12, kw, buildph);
-
-        // Hands start at top-left, go clockwise;
-        // hp.setBounds also sets its blankStandIn's bounds.
-        // Note that any hands[] could be null, due to async adds, calls, invalidations.
-
-        try
-        {
-            if (! is6player)
-            {
-                hands[0].setBounds(i.left + pix4, i.top + pix4, hw, hh);
-                if (game.maxPlayers > 1)
-                {
-                    hands[1].setBounds(i.left + hw + bw + pix12, i.top + pix4, hw, hh);
-                    hands[2].setBounds(i.left + hw + bw + pix12, i.top + hh + pix8, hw, hh);
-                    hands[3].setBounds(i.left + pix4, i.top + hh + pix8, hw, hh);
-                }
-            }
-            else
-            {
-                // 6-player layout:
-                // If client player isn't sitting yet, all handpanels are 1/3 height of window.
-                // Otherwise, they're 1/3 height in the column of 3 which doesn't contain the
-                // client. and roughly 1/4 or 1/2 height in the client's column.
-
-                if ((clientHandPlayerNum == -1) ||
-                    ((clientHandPlayerNum >= 1) && (clientHandPlayerNum <= 3)))
-                {
-                    hands[0].setBounds(i.left + pix4, i.top + pix4, hw, hh);
-                    hands[4].setBounds(i.left + pix4, i.top + 2 * hh + pix12, hw, hh);
-                    hands[5].setBounds(i.left + pix4, i.top + hh + pix8, hw, hh);
-                }
-                if ((clientHandPlayerNum < 1) || (clientHandPlayerNum > 3))
-                {
-                    hands[1].setBounds(i.left + hw + bw + pix12, i.top + pix4, hw, hh);
-                    hands[2].setBounds(i.left + hw + bw + pix12, i.top + hh + pix8, hw, hh);
-                    hands[3].setBounds(i.left + hw + bw + pix12, i.top + 2 * hh + pix12, hw, hh);
-                }
-                if (clientHandPlayerNum != -1)
-                {
-                    // Lay out the column we're sitting in.
-                    final boolean isRight;
-                    final int[] hp_idx;
-                    final int hp_x;
-                    isRight = ((clientHandPlayerNum >= 1) && (clientHandPlayerNum <= 3));
-                    if (isRight)
-                    {
-                        final int[] idx_right = {1, 2, 3};
-                        hp_idx = idx_right;
-                        hp_x = i.left + hw + bw + pix12;
-                    } else {
-                        final int[] idx_left = {0, 5, 4};
-                        hp_idx = idx_left;
-                        hp_x = i.left + pix4;
-                    }
-                    for (int ihp = 0, hp_y = i.top + pix4; ihp < 3; ++ihp)
-                    {
-                        SOCHandPanel hp = hands[hp_idx[ihp]];
-                        int hp_height;
-                        if (hp_idx[ihp] == clientHandPlayerNum)
-                            hp_height = (dim.height - pix12) / 2 - (2 * ColorSquare.HEIGHT * displayScale);
-                        else
-                            hp_height = (dim.height - pix12) / 4 + (ColorSquare.HEIGHT * displayScale);
-                        hp.setBounds(hp_x, hp_y, hw, hp_height);
-                        hp.invalidate();
-                        hp.doLayout();
-                        hp_y += (hp_height + pix4);
-                    }
-                }
-            }
-        }
-        catch (NullPointerException e) {}
-
-        int tdh, cdh;
-        if (game.isPractice)
-        {
-            // Game textarea larger than chat textarea
-            cdh = (int) (2.2f * tfh);
-            tdh = tah - cdh;
-            if (tdh < cdh)
-            {
-                tdh = cdh;
-                cdh = tah - cdh;
-            }
-        }
-        else
-        {
-            // Equal-sized text, chat textareas
-            tdh = tah / 2;
-            cdh = tah - tdh;
-        }
-        if (textDisplaysLargerTemp_needsLayout && textDisplaysLargerTemp)
-        {
-            // expanded size (temporary)
-            final int x = i.left + (hw / 2);
-            final int w = dim.width - 2 * (hw - x);
-            int h = 5 * tfh;  // initial guess of height
-            if (h < boardPanel.getY() - tfh)
-                h = boardPanel.getY() - tfh;
-
-            // look for a better height;
-            // Use height of shortest handpanel as reference.
-            {
-                int hf = hands[0].getHeight();
-                int h1 = hands[1].getHeight();
-                if (h1 < hf)
-                    hf = h1;
-                hf = hf - cdh - tfh - (15 * displayScale);
-                if (hf > h)
-                    h = hf;
-            }
-
-            textDisplay.setBounds(x, i.top + pix4, w, h);
-            if (! game.isPractice)
-                cdh += (20 * displayScale);
-            chatDisplay.setBounds(x, i.top + pix4 + h, w, cdh);
-            h += cdh;
-            textInput.setBounds(x, i.top + pix4 + h, w, tfh);
-
-            needRepaintBorders = true;
-
-            // focus here for easier chat typing
-            textInput.requestFocusInWindow();
-        } else {
-            // standard size
-            final int prevTextY = textInput.getBounds().y;
-            textDisplay.setBounds(i.left + hw + pix8, i.top + pix4, bw, tdh);
-            chatDisplay.setBounds(i.left + hw + pix8, i.top + pix4 + tdh, bw, cdh);
-            textInput.setBounds(i.left + hw + pix8, i.top + pix4 + tah, bw, tfh);
-
-            // scroll to bottom of textDisplay, chatDisplay after resize from expanded
-            EventQueue.invokeLater(new Runnable()
-            {
-                public void run()
-                {
-                    chatDisplay.setCaretPosition(chatDisplay.getText().length());
-                    textDisplay.setCaretPosition(textDisplay.getText().length());
-                }
-            });
-
-            if (textDisplaysLargerTemp_needsLayout || (prevTextY != textInput.getBounds().y))
-                needRepaintBorders = true;
-        }
-        textDisplaysLargerTemp_needsLayout = false;
-        if (needRepaintBorders)
-            repaint();  // clear borders of handpanels near chatDisplay, textDisplay
-
-        npix = textDisplay.getPreferredSize().width;
-        ncols = (int) (((bw) * 100.0f) / (npix)) - 2; // use float division for closer approximation
-
-        //FontMetrics fm = this.getFontMetrics(textDisplay.getFont());
-        //int nrows = (tdh / fm.getHeight()) - 1;
-
-        //textDisplay.setMaximumLines(nrows);
-        //nrows = (cdh / fm.getHeight()) - 1;
-
-        //chatDisplay.setMaximumLines(nrows);
-        boardPanel.doLayout();
-
-        /**
-         * Reset mouse cursor from WAIT_CURSOR to normal
-         * (set in SOCPlayerClient.startPracticeGame or SwingMainDisplay.guardedActionPerform).
-         */
-        if (layoutNotReadyYet)
-        {
-            mainDisplay.clearWaitingStatus(false);
-            layoutNotReadyYet = false;
-            repaint();
-        }
-
-        if (! didGameScenarioPopupCheck)
-        {
-            showScenarioInfoDialog();
-            didGameScenarioPopupCheck = true;
-        }
     }
 
     /**
@@ -5505,6 +5070,363 @@ public class SOCPlayerInterface extends Frame
     }  // nested class ResetBoardConfirmDialog
 
     /**
+     * This PI's custom layout manager. Sizes and stretches its board panels, hand panels, etc.
+     *<P>
+     * Before v2.6.00, this class was {@code SOCPlayerInterface.doLayout()}.
+     *
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 2.6.00
+     */
+    private class PILayoutManager implements LayoutManager
+    {
+        public void addLayoutComponent(String name, Component comp) {}
+
+        public void removeLayoutComponent(Component comp) {}
+
+        /** More or less unused, since PI initialization calls setSize instead of pack */
+        public Dimension preferredLayoutSize(final Container pi)
+        {
+            return new Dimension(widthOrig, heightOrig);
+        }
+
+        /** More or less unused, since PI initialization calls setSize instead of pack */
+        public Dimension minimumLayoutSize(final Container pi)
+        {
+            return new Dimension(WIDTH_MIN_4PL, HEIGHT_MIN_4PL);
+        }
+
+        /**
+         * Arrange the custom layout at creation or frame resize.
+         * Stretches {@link SOCBoardPanel}, {@link SOCHandPanel}s, etc to fit.
+         *<P>
+         * If a player sits down in a 6-player game, will need to
+         * {@link #invalidate()} and call this again, because {@link SOCHandPanel} sizes will change.
+         *<P>
+         * Also, on first call, resets mouse cursor to normal, in case it was WAIT_CURSOR.
+         * On first call, if the game options have a {@link SOCScenario} with any long description,
+         * it will be shown in a popup via {@link #showScenarioInfoDialog()}.
+         *<P>
+         * Before v2.6.00, this method was {@code SOCPlayerInterface.doLayout()}.
+         */
+        public void layoutContainer(final Container pane)
+        {
+            final Dimension dim = pane.getSize();
+            boolean needRepaintBorders = (prevSize != null)
+                && ((dim.width != prevSize.width) || (dim.height != prevSize.height));
+            prevSize = dim;
+
+            /**
+             * Classic Sizing
+             * (board size was fixed, cannot scale)
+             *
+            int bw = SOCBoardPanel.PANELX;
+            int bh = SOCBoardPanel.PANELY;
+            int hw = (dim.width - bw - 16) / 2;
+            int hh = (dim.height - 12) / 2;
+            int kw = bw;
+            int kh = buildingPanel.getSize().height;
+            int tfh = textInput.getSize().height;
+            int tah = dim.height - bh - kh - tfh - 16;
+             */
+
+            /**
+             * "Stretch" Scaleable-board Sizing:
+             *
+             * Make board as wide as possible without violating minimum handpanel width.
+             * Boardpanel will center or scale up board hexes if needed to fill the larger space.
+             *
+             * Handpanel height:
+             * - If 4-player, 1/2 of window height
+             * - If 6-player, 1/3 of window height, until client sits down.
+             *   (Column of 3 on left side, 3 on right side, of this frame)
+             *   Once sits down, that column's handpanel heights are
+             *   1/2 of window height for the player's hand, and 1/4 for others.
+             *
+             * Since this is the minimum, is not multiplied by displayScale:
+             * Don't need displayScale here because we already used it when
+             * setting width_base and height_base. Just use overall PI size
+             * to drive boardpanel size.
+             */
+            final int bMinW, bMinH;
+            {
+                Dimension bpMinSz = boardPanel.getMinimumSize();
+                bMinW = bpMinSz.width;
+                bMinH = bpMinSz.height;
+            }
+            final int buildph = buildingPanel.getHeight();
+            final int tfh = textInput.getHeight();
+            final int pix4 = 4 * displayScale, pix8 = 8 * displayScale,
+                      pix12 = 12 * displayScale, pix16 = 16 * displayScale;
+            int hpMinW = SOCHandPanel.WIDTH_MIN * displayScale;
+            if (hpMinW < (dim.width / 10))
+                hpMinW = dim.width / 10;  // at least 10% of window width
+            int bw = dim.width - (2 * hpMinW) - pix16;  // As wide as possible
+            int bh = (int) ((bw * (long) bMinH) / bMinW);
+
+            if (bh > (dim.height - buildph - pix16 - (int)(5.5f * tfh)))
+            {
+                // Window is wide: board would become taller than fits in window.
+                // Re-calc board max height, then board width.
+                bh = dim.height - buildph - pix16 - (int)(5.5f * tfh);  // As tall as possible
+                bw = (int) ((bh * (long) bMinW) / bMinH);
+            }
+
+            boolean canStretchBoard = (bw >= bMinW) && (bh >= bMinH);
+
+            if (bw > bMinW)
+            {
+                // Make board wider if possible
+                int spareW = dim.width - (hpMinW * 2) - bw - pix16;
+                if (spareW > 0)
+                    bw += (4 * spareW / 5);  // give 4/5 to boardpanel width, the rest to hw
+            }
+
+            int hw = (dim.width - bw - pix16) / 2;  // each handpanel's width; height is hh
+            int tah = 0;  // textareas' height (not including tfh): calculated soon
+
+            if (canStretchBoard)
+            {
+                // Now that we have minimum board height/width,
+                // make it taller if possible
+                int spareH = (dim.height - buildph - pix16 - (int)(5.5f * tfh)) - bh;
+                if (spareH > 0)
+                    bh += (2 * spareH / 3);  // give 2/3 to boardpanel height, the rest to tah
+
+                tah = dim.height - bh - buildph - tfh - pix16;
+
+                // Scale it
+                try
+                {
+                    boardPanel.setBounds(hw + pix8, tfh + tah + pix8, bw, bh);
+                }
+                catch (IllegalArgumentException e)
+                {
+                    canStretchBoard = false;
+                }
+            }
+
+            if (! canStretchBoard)
+            {
+                bh = bMinH;
+                tah = dim.height - bh - buildph - tfh - pix16;
+                try
+                {
+                    boardPanel.setBounds(hw + pix8, tfh + tah + pix8, bw, bh);
+                }
+                catch (IllegalArgumentException ee)
+                {
+                    // fall back to safe sizes
+
+                    bw = boardPanel.getWidth();
+                    bh = boardPanel.getHeight();
+                    hw = (dim.width - bw - pix16) / 2;
+                    if ((hw < hpMinW) && (bw > bMinW))
+                    {
+                        // prevent gradually-widening boardpanel.getWidth() from squeezing handpanels too narrow
+                        int widthAvail = dim.width - bMinW - (2 * hpMinW) - pix16;
+                        if (widthAvail > 0)
+                        {
+                            int boardAvail = widthAvail / 5;
+                            bw = bMinW + boardAvail;
+                            hw = hpMinW + (widthAvail - boardAvail);
+
+                            boardPanel.setSize(bw, bh, true);  // won't throw yet another exception
+
+                            // because setSize may have ignored bw or bh:
+                            bw = boardPanel.getWidth();
+                            bh = boardPanel.getHeight();
+                            hw = (dim.width - bw - pix16) / 2;
+                        }
+                    }
+
+                    tah = dim.height - bh - buildph - tfh - pix16;
+                    boardPanel.setLocation(hw + pix8, tfh + tah + pix8);
+                }
+            }
+
+            final int halfplayers = (is6player) ? 3 : 2;
+            final int hh = (dim.height - pix12) / halfplayers;  // handpanel height
+            final int kw = bw;
+
+            buildingPanel.setBounds(hw + pix8, tah + tfh + bh + pix12, kw, buildph);
+
+            // Hands start at top-left, go clockwise;
+            // hp.setBounds also sets its blankStandIn's bounds.
+            // Note that any hands[] could be null, due to async adds, calls, invalidations.
+
+            try
+            {
+                if (! is6player)
+                {
+                    hands[0].setBounds(pix4, pix4, hw, hh);
+                    if (game.maxPlayers > 1)
+                    {
+                        hands[1].setBounds(hw + bw + pix12, pix4, hw, hh);
+                        hands[2].setBounds(hw + bw + pix12, hh + pix8, hw, hh);
+                        hands[3].setBounds(pix4, hh + pix8, hw, hh);
+                    }
+                }
+                else
+                {
+                    // 6-player layout:
+                    // If client player isn't sitting yet, all handpanels are 1/3 height of window.
+                    // Otherwise, they're 1/3 height in the column of 3 which doesn't contain the
+                    // client. and roughly 1/4 or 1/2 height in the client's column.
+
+                    if ((clientHandPlayerNum == -1) ||
+                        ((clientHandPlayerNum >= 1) && (clientHandPlayerNum <= 3)))
+                    {
+                        hands[0].setBounds(pix4, pix4, hw, hh);
+                        hands[4].setBounds(pix4, 2 * hh + pix12, hw, hh);
+                        hands[5].setBounds(pix4, hh + pix8, hw, hh);
+                    }
+                    if ((clientHandPlayerNum < 1) || (clientHandPlayerNum > 3))
+                    {
+                        hands[1].setBounds(hw + bw + pix12, pix4, hw, hh);
+                        hands[2].setBounds(hw + bw + pix12, hh + pix8, hw, hh);
+                        hands[3].setBounds(hw + bw + pix12, 2 * hh + pix12, hw, hh);
+                    }
+                    if (clientHandPlayerNum != -1)
+                    {
+                        // Lay out the column we're sitting in.
+                        final boolean isRight;
+                        final int[] hp_idx;
+                        final int hp_x;
+                        isRight = ((clientHandPlayerNum >= 1) && (clientHandPlayerNum <= 3));
+                        if (isRight)
+                        {
+                            final int[] idx_right = {1, 2, 3};
+                            hp_idx = idx_right;
+                            hp_x = hw + bw + pix12;
+                        } else {
+                            final int[] idx_left = {0, 5, 4};
+                            hp_idx = idx_left;
+                            hp_x = pix4;
+                        }
+                        for (int ihp = 0, hp_y = pix4; ihp < 3; ++ihp)
+                        {
+                            SOCHandPanel hp = hands[hp_idx[ihp]];
+                            int hp_height;
+                            if (hp_idx[ihp] == clientHandPlayerNum)
+                                hp_height = (dim.height - pix12) / 2 - (2 * ColorSquare.HEIGHT * displayScale);
+                            else
+                                hp_height = (dim.height - pix12) / 4 + (ColorSquare.HEIGHT * displayScale);
+                            hp.setBounds(hp_x, hp_y, hw, hp_height);
+                            hp.invalidate();
+                            hp.doLayout();
+                            hp_y += (hp_height + pix4);
+                        }
+                    }
+                }
+            }
+            catch (NullPointerException e) {}
+
+            int tdh, cdh;
+            if (game.isPractice)
+            {
+                // Game textarea larger than chat textarea
+                cdh = (int) (2.2f * tfh);
+                tdh = tah - cdh;
+                if (tdh < cdh)
+                {
+                    tdh = cdh;
+                    cdh = tah - cdh;
+                }
+            }
+            else
+            {
+                // Equal-sized text, chat textareas
+                tdh = tah / 2;
+                cdh = tah - tdh;
+            }
+            if (textDisplaysLargerTemp_needsLayout && textDisplaysLargerTemp)
+            {
+                // expanded size (temporary)
+                final int x = hw / 2;
+                final int w = dim.width - 2 * (hw - x);
+                int h = 5 * tfh;  // initial guess of height
+                if (h < boardPanel.getY() - tfh)
+                    h = boardPanel.getY() - tfh;
+
+                // look for a better height;
+                // Use height of shortest handpanel as reference.
+                {
+                    int hf = hands[0].getHeight();
+                    int h1 = hands[1].getHeight();
+                    if (h1 < hf)
+                        hf = h1;
+                    hf = hf - cdh - tfh - (15 * displayScale);
+                    if (hf > h)
+                        h = hf;
+                }
+
+                textDisplay.setBounds(x, pix4, w, h);
+                if (! game.isPractice)
+                    cdh += (20 * displayScale);
+                chatDisplay.setBounds(x, pix4 + h, w, cdh);
+                h += cdh;
+                textInput.setBounds(x, pix4 + h, w, tfh);
+
+                needRepaintBorders = true;
+
+                // focus here for easier chat typing
+                textInput.requestFocusInWindow();
+            } else {
+                // standard size
+                final int prevTextY = textInput.getBounds().y;
+                textDisplay.setBounds(hw + pix8, pix4, bw, tdh);
+                chatDisplay.setBounds(hw + pix8, pix4 + tdh, bw, cdh);
+                textInput.setBounds(hw + pix8, pix4 + tah, bw, tfh);
+
+                // scroll to bottom of textDisplay, chatDisplay after resize from expanded
+                EventQueue.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        chatDisplay.setCaretPosition(chatDisplay.getText().length());
+                        textDisplay.setCaretPosition(textDisplay.getText().length());
+                    }
+                });
+
+                if (textDisplaysLargerTemp_needsLayout || (prevTextY != textInput.getBounds().y))
+                    needRepaintBorders = true;
+            }
+            textDisplaysLargerTemp_needsLayout = false;
+            if (needRepaintBorders)
+                repaint();  // clear borders of handpanels near chatDisplay, textDisplay
+
+            npix = textDisplay.getPreferredSize().width;
+            ncols = (int) (((bw) * 100.0f) / (npix)) - 2; // use float division for closer approximation
+
+            //FontMetrics fm = this.getFontMetrics(textDisplay.getFont());
+            //int nrows = (tdh / fm.getHeight()) - 1;
+
+            //textDisplay.setMaximumLines(nrows);
+            //nrows = (cdh / fm.getHeight()) - 1;
+
+            //chatDisplay.setMaximumLines(nrows);
+            boardPanel.doLayout();
+
+            /**
+             * Reset mouse cursor from WAIT_CURSOR to normal
+             * (set in SOCPlayerClient.startPracticeGame or SwingMainDisplay.guardedActionPerform).
+             */
+            if (layoutNotReadyYet)
+            {
+                mainDisplay.clearWaitingStatus(false);
+                layoutNotReadyYet = false;
+                repaint();
+            }
+
+            if (! didGameScenarioPopupCheck)
+            {
+                showScenarioInfoDialog();
+                didGameScenarioPopupCheck = true;
+            }
+        }
+    }
+
+    /**
      * React to window closing or losing focus (deactivation).
      * @author jdmonin
      * @since 1.1.00
@@ -5550,6 +5472,7 @@ public class SOCPlayerInterface extends Frame
             pi.textDisplaysLargerTemp_needsLayout = true;
             pi.invalidate();
             pi.validate();  // call pi.doLayout()
+            pi.repaint();
         }
 
         /**
@@ -5911,6 +5834,7 @@ public class SOCPlayerInterface extends Frame
                     textDisplaysLargerWhen = System.currentTimeMillis();
                 invalidate();
                 validate();
+                repaint();
             }
         }
 
