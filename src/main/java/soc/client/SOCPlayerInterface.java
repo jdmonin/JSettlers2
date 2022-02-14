@@ -540,7 +540,7 @@ public class SOCPlayerInterface extends JFrame
      * When {@code null}, uses {@link Graphics#clearRect(int, int, int, int)} to clear to background color instead.
      * @since 2.0.00
      */
-    private final Color highContrastBorderColor;
+    /* package */ final Color highContrastBorderColor;
 
     /**
      * the client main display that spawned us
