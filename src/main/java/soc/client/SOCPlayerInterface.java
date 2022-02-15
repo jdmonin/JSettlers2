@@ -429,7 +429,7 @@ public class SOCPlayerInterface extends JFrame
      * to the input text box.
      * @since 1.1.13
      */
-    private long textDisplaysLargerWhen;
+    private volatile long textDisplaysLargerWhen;
 
     /**
      * In the {@link #is6player 6-player} layout, the text display fields
@@ -439,14 +439,14 @@ public class SOCPlayerInterface extends JFrame
      * @see #textDisplaysLargerWhen
      * @since 1.1.08
      */
-    private boolean textDisplaysLargerTemp;
+    private volatile boolean textDisplaysLargerTemp;
 
     /**
      * When set, must return text display field sizes to normal in {@link PILayoutManager}
      * after a previous {@link #textDisplaysLargerTemp} flag set.
      * @since 1.1.08
      */
-    private boolean textDisplaysLargerTemp_needsLayout;
+    private volatile boolean textDisplaysLargerTemp_needsLayout;
 
     /**
      * Mouse hover flags, for use on 6-player board with {@link #textDisplaysLargerTemp}.
@@ -455,7 +455,7 @@ public class SOCPlayerInterface extends JFrame
      * @see SOCPITextDisplaysLargerTask
      * @since 1.1.08
      */
-    private boolean textInputHasMouse, textDisplayHasMouse, chatDisplayHasMouse;
+    private volatile boolean textInputHasMouse, textDisplayHasMouse, chatDisplayHasMouse;
 
     /**
      * In 6-player games, text areas temporarily zoom when the mouse is over them.
@@ -466,7 +466,7 @@ public class SOCPlayerInterface extends JFrame
      * @see #textDisplaysLargerTemp
      * @see #sbFixBHasMouse
      */
-    private boolean sbFixNeeded;
+    private volatile boolean sbFixNeeded;
 
     /**
      * Mouse hover flags, for use on 6-player board with {@link #textDisplaysLargerTemp}
@@ -477,7 +477,7 @@ public class SOCPlayerInterface extends JFrame
      * @see SOCPITextDisplaysLargerTask
      * @since 1.1.08
      */
-    private boolean sbFixLHasMouse, sbFixRHasMouse, sbFixBHasMouse;
+    private volatile boolean sbFixLHasMouse, sbFixRHasMouse, sbFixBHasMouse;
 
     //========================================================
     /**
@@ -993,7 +993,7 @@ public class SOCPlayerInterface extends JFrame
         heightOrig = piHeight;
         wasResized = false;
         setSize(piWidth, piHeight);
-        invalidate();
+        revalidate();
         repaint();
 
         addComponentListener(new ComponentAdapter()
@@ -2598,8 +2598,7 @@ public class SOCPlayerInterface extends JFrame
             {
                 // handpanel sizes change when client sits
                 // in a 6-player game.
-                invalidate();
-                doLayout();
+                getContentPane().revalidate();
                 repaint(hands[pn].getX(), 0, hands[pn].getWidth(), getHeight());
                     // must repaint entire column's handpanels and wide borders
             }
@@ -2678,8 +2677,7 @@ public class SOCPlayerInterface extends JFrame
             if (clientHand == null)
             {
                 // handpanel sizes change when client leaves in a 6-player game
-                invalidate();
-                doLayout();
+                getContentPane().revalidate();
                 repaint();
             }
         }
@@ -3686,7 +3684,7 @@ public class SOCPlayerInterface extends JFrame
                 // "Settlers of Catan Game: {0}"
         boardPanel.debugShowPotentials = boardDebugShow;
 
-        validate();
+        getContentPane().revalidate();
         repaint();
 
         chatDisplay.append(prevChatText);
@@ -5100,7 +5098,8 @@ public class SOCPlayerInterface extends JFrame
          * Stretches {@link SOCBoardPanel}, {@link SOCHandPanel}s, etc to fit.
          *<P>
          * If a player sits down in a 6-player game, will need to
-         * {@link #invalidate()} and call this again, because {@link SOCHandPanel} sizes will change.
+         * {@link Container#revalidate() getContentPane().revalidate()} and call this again,
+         * because {@link SOCHandPanel} sizes will change.
          *<P>
          * Also, on first call, resets mouse cursor to normal, in case it was WAIT_CURSOR.
          * On first call, if the game options have a {@link SOCScenario} with any long description,
@@ -5470,8 +5469,7 @@ public class SOCPlayerInterface extends JFrame
             pi.textInputHasMouse = false;
             pi.textDisplaysLargerTemp = false;
             pi.textDisplaysLargerTemp_needsLayout = true;
-            pi.invalidate();
-            pi.validate();  // call pi.doLayout()
+            pi.revalidate();  // calls pi.doLayout()
             pi.repaint();
         }
 
@@ -5832,8 +5830,7 @@ public class SOCPlayerInterface extends JFrame
                     textDisplaysLargerWhen = 0L;
                 else
                     textDisplaysLargerWhen = System.currentTimeMillis();
-                invalidate();
-                validate();
+                getContentPane().revalidate();
                 repaint();
             }
         }
