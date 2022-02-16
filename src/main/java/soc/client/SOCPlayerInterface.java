@@ -540,7 +540,16 @@ public class SOCPlayerInterface extends JFrame
      * When {@code null}, uses {@link Graphics#clearRect(int, int, int, int)} to clear to background color instead.
      * @since 2.0.00
      */
-    /* package */ final Color highContrastBorderColor;
+    private final Color highContrastBorderColor;
+
+    /**
+     * For high-contrast mode, thick borders between handpanels and other panels; null otherwise.
+     * Positioned by {@link PILayoutManager}.
+     *<P>
+     * Before v2.6.00 converted PI to Swing, those borders were instead drawn by overriding AWT's paint/update methods.
+     * @since 2.6.00
+     */
+    private final ColorSquare[] highContrastBorders;
 
     /**
      * the client main display that spawned us
@@ -895,9 +904,11 @@ public class SOCPlayerInterface extends JFrame
             highContrastBorderColor = null;
             getContentPane().setBackground(Color.BLACK);
             getContentPane().setForeground(Color.WHITE);
+            highContrastBorders = null;
         } else {
             final Color[] sysColors = SwingMainDisplay.getForegroundBackgroundColors(false, true);
             highContrastBorderColor = sysColors[0];
+            highContrastBorders = new ColorSquare[game.maxPlayers];
         }
         setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
@@ -1238,6 +1249,19 @@ public class SOCPlayerInterface extends JFrame
                 boardPanel.addMouseListener(this);
                 // Note not just on firstCall,
                 // because hands[] is initialized above.
+            }
+        }
+
+        if (highContrastBorders != null)
+        {
+            final Dimension dim4x4 = new Dimension(4, 4);
+            for (int i = 0; i < game.maxPlayers; ++i)
+            {
+                ColorSquare sq = new ColorSquare(highContrastBorderColor);
+                sq.setBorderColor(highContrastBorderColor);
+                sq.setMinimumSize(dim4x4);
+                highContrastBorders[i] = sq;
+                add(sq);
             }
         }
 
@@ -3675,7 +3699,7 @@ public class SOCPlayerInterface extends JFrame
                             // we'll then set clientHand to a new SOCHandPanel
         clientHandPlayerNum = -1;
 
-        removeAll();  // old sub-components
+        getContentPane().removeAll();  // old sub-components
         initUIElements(false);  // new sub-components
 
         // Clear from possible "game over" titlebar
@@ -5242,6 +5266,12 @@ public class SOCPlayerInterface extends JFrame
                     boardPanel.setLocation(hw + pix8, tfh + tah + pix8);
                 }
             }
+            if (highContrastBorders != null)
+            {
+                // [0] left, [1] right of boardPanel
+                highContrastBorders[0].setBounds(hw + pix4, 0, pix4, dim.height);
+                highContrastBorders[1].setBounds(hw + bw + pix8, 0, pix4, dim.height);
+            }
 
             final int halfplayers = (is6player) ? 3 : 2;
             final int hh = (dim.height - pix12) / halfplayers;  // handpanel height
@@ -5263,6 +5293,13 @@ public class SOCPlayerInterface extends JFrame
                         hands[1].setBounds(hw + bw + pix12, pix4, hw, hh);
                         hands[2].setBounds(hw + bw + pix12, hh + pix8, hw, hh);
                         hands[3].setBounds(pix4, hh + pix8, hw, hh);
+
+                        if (highContrastBorders != null)
+                        {
+                            // [2] between left hpans, [3] between right
+                            highContrastBorders[2].setBounds(0, hh + pix4, hw + pix8, pix4);
+                            highContrastBorders[3].setBounds(hw + bw + pix8, hh + pix4, hw + pix8, pix4);
+                        }
                     }
                 }
                 else
@@ -5278,12 +5315,24 @@ public class SOCPlayerInterface extends JFrame
                         hands[0].setBounds(pix4, pix4, hw, hh);
                         hands[4].setBounds(pix4, 2 * hh + pix12, hw, hh);
                         hands[5].setBounds(pix4, hh + pix8, hw, hh);
+                        if (highContrastBorders != null)
+                        {
+                            // [2], [3] between left hpans
+                            highContrastBorders[2].setBounds(0, hh + pix4, hw + pix8, pix4);
+                            highContrastBorders[3].setBounds(0, 2 * hh + pix8, hw + pix8, pix4);
+                        }
                     }
                     if ((clientHandPlayerNum < 1) || (clientHandPlayerNum > 3))
                     {
                         hands[1].setBounds(hw + bw + pix12, pix4, hw, hh);
                         hands[2].setBounds(hw + bw + pix12, hh + pix8, hw, hh);
                         hands[3].setBounds(hw + bw + pix12, 2 * hh + pix12, hw, hh);
+                        if (highContrastBorders != null)
+                        {
+                            // [4], [5] between right hpans
+                            highContrastBorders[4].setBounds(hw + bw + pix12, hh + pix4, hw + pix8, pix4);
+                            highContrastBorders[5].setBounds(hw + bw + pix12, 2 * hh + pix8, hw + pix8, pix4);
+                        }
                     }
                     if (clientHandPlayerNum != -1)
                     {
@@ -5314,6 +5363,9 @@ public class SOCPlayerInterface extends JFrame
                             hp.invalidate();
                             hp.doLayout();
                             hp_y += (hp_height + pix4);
+                            if ((highContrastBorders != null) && (ihp <= 1))
+                                highContrastBorders[ihp + (isRight ? 4 : 2)].setBounds
+                                    (hp_x - pix4, hp_y - pix4, hw + pix8, pix4);
                         }
                     }
                 }

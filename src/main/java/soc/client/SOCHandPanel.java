@@ -60,7 +60,6 @@ import java.util.TimerTask;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
-import javax.swing.BorderFactory;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.DefaultListModel;
@@ -90,6 +89,9 @@ import javax.swing.UIManager;
  * Custom layout: see {@link #doLayout()}.
  * To set this panel's position or size, please use {@link #setBounds(int, int, int, int)},
  * because it is overridden to also update {@link #getBlankStandIn()}.
+ *<P>
+ * The border/margin between panels in high-contrast mode is managed by
+ * {@link SOCPlayerInterface}, not {@code SOCHandPanel}.
  */
 @SuppressWarnings("serial")
 /*package*/ class SOCHandPanel extends JPanel
@@ -777,8 +779,6 @@ import javax.swing.UIManager;
             setBackground(pcolor);
             setForeground(COLOR_FOREGROUND);
             setOpaque(true);
-        } else if (pi.highContrastBorderColor != null) {
-            setBorder(BorderFactory.createLineBorder(pi.highContrastBorderColor, displayScale));
         }
         setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
 
