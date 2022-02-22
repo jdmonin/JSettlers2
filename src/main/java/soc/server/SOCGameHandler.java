@@ -4239,14 +4239,14 @@ public class SOCGameHandler extends GameHandler
     {
         final String gaName = game.getName();
         StringTokenizer st = new StringTokenizer(mes.substring(6));
-        int[] resources = new int[SOCResourceConstants.WOOD + 1];
-        int resourceType = SOCResourceConstants.CLAY;
+        int[] resources = new int[SOCResourceConstants.WOOD];
+        int resourceTypeIdx = 0;
         String name = "";
         boolean parseError = false;
 
         while (st.hasMoreTokens())
         {
-            if (resourceType <= SOCResourceConstants.WOOD)
+            if (resourceTypeIdx < SOCResourceConstants.WOOD)
             {
                 String token = st.nextToken();
                 try
@@ -4254,8 +4254,8 @@ public class SOCGameHandler extends GameHandler
                     int amt = Integer.parseInt(token);
                     if (amt < 0)
                         parseError = true;
-                    resources[resourceType] = amt;
-                    resourceType++;
+                    resources[resourceTypeIdx] = amt;
+                    ++resourceTypeIdx;
                 }
                 catch (NumberFormatException e)
                 {
@@ -4289,21 +4289,11 @@ public class SOCGameHandler extends GameHandler
             return;  // <--- early return ---
         }
 
-        SOCResourceSet rset = new SOCResourceSet();
-        StringBuilder outTxt = new StringBuilder("### " + pl.getName() + " gets");  // I18N OK: debug only
-
-        for (resourceType = SOCResourceConstants.CLAY;
-             resourceType <= SOCResourceConstants.WOOD; ++resourceType)
-        {
-            final int amt = resources[resourceType];
-            outTxt.append(' ').append(amt);
-            if (amt != 0)
-                rset.add(amt, resourceType);
-        }
-
+        ResourceSet rset = new SOCResourceSet(resources);
         pl.getResources().add(rset);
         reportRsrcGainLoss(game, rset, false, false, pl.getPlayerNumber(), -1, null);
-        srv.messageToGame(gaName, true, outTxt.toString());
+        srv.messageToGameKeyedSpecial
+            (game, true, true, "game.playername.gets.resources.common", pl.getName(), rset);  // "Lily gets 3 wheat and 1 stone."
     }
 
     /** this is a debugging command that gives a dev card to a player.

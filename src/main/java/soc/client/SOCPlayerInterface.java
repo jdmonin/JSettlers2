@@ -4033,7 +4033,8 @@ public class SOCPlayerInterface extends JFrame
                     sb.append(" ");
 
                 sb.append
-                    (SOCPlayerInterface.strings.getSpecial(ga, "game.roll.gets.resources", pl.getName(), rsrc.get(p)));
+                    (SOCPlayerInterface.strings.getSpecial
+                        (ga, "game.playername.gets.resources.common", pl.getName(), rsrc.get(p)));
                     // "{0} gets {1,rsrcs}."
             }
 
