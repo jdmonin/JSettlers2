@@ -22,6 +22,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- Game window:
 	    - Moving robber: If hex is desert, don't ask "are you sure" when you have an adjacent settlement/city
 	    - Less flicker while resizing window
+	- Use higher-level sound API to improve sound quality on Windows 10
 	- If rejected while connecting to server, show server's version as part of error text
 - Game options:
 	- Client removes unused options before sending new game request
