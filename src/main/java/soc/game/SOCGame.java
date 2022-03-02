@@ -7496,7 +7496,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * perform a trade between two players.
      * the trade performed is described in the offering player's
-     * current offer.
+     * {@link SOCPlayer#getCurrentOffer()}.
+     * Calls the two players' {@link SOCPlayer#makeTrade(ResourceSet, ResourceSet)}.
      *<P>
      * Assumes {@link #canMakeTrade(int, int)} already was called.
      * If game option "NT" is set, players can trade only
@@ -7512,14 +7513,11 @@ public class SOCGame implements Serializable, Cloneable
         if (isGameOptionSet("NT"))
             return;
 
-        SOCResourceSet offeringPlayerResources = players[offering].getResources();
-        SOCResourceSet acceptingPlayerResources = players[accepting].getResources();
         SOCTradeOffer offer = players[offering].getCurrentOffer();
+        final ResourceSet offeredToGive = offer.getGiveSet(), offeredToGet = offer.getGetSet();
 
-        offeringPlayerResources.subtract(offer.getGiveSet());
-        acceptingPlayerResources.subtract(offer.getGetSet());
-        offeringPlayerResources.add(offer.getGetSet());
-        acceptingPlayerResources.add(offer.getGiveSet());
+        players[offering].makeTrade(offeredToGive, offeredToGet);
+        players[accepting].makeTrade(offeredToGet, offeredToGive);
 
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
@@ -7550,6 +7548,11 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Can current player make this bank/port trade?
+     * Checks {@link SOCPlayer#getPortFlags()}.
+     * Can trade multiple resource types at once,
+     * as long as player has the appropriate ports if trying 3:1 or 2:1.
+     *
      * @return true if the current player can make a
      *         particular bank/port trade
      *
@@ -7697,7 +7700,6 @@ public class SOCGame implements Serializable, Cloneable
     public void makeBankTrade(SOCResourceSet give, SOCResourceSet get)
     {
         final SOCPlayer currPlayer = players[currentPlayerNumber];
-        SOCResourceSet playerResources = currPlayer.getResources();
 
         if (lastActionWasBankTrade
             && (currPlayer.lastActionBankTrade_get != null)
@@ -7714,8 +7716,7 @@ public class SOCGame implements Serializable, Cloneable
             currPlayer.lastActionBankTrade_get = get;
         }
 
-        playerResources.subtract(give);
-        playerResources.add(get);
+        currPlayer.makeBankTrade(give, get);
         lastActionTime = System.currentTimeMillis();
     }
 

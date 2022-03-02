@@ -113,6 +113,59 @@ public class TestResourceSet
     }
 
     /**
+     * Tests for {@link SOCResourceSet#subtract(int)}.
+     * @since 2.6.00
+     */
+    @Test
+    public void testSubtractAmount()
+    {
+        SOCResourceSet rs = onePerType();
+        assertEquals(5, rs.getTotal());
+
+        try
+        {
+            rs.subtract(-1);
+            fail("subtract(< 0) should throw exception");
+        } catch (IllegalArgumentException e) {}
+
+        try
+        {
+            rs.subtract(6);
+            fail("subtract(too many) should throw exception");
+        } catch (IllegalArgumentException e) {}
+
+        SOCResourceSet subbed = rs.subtract(0);
+        assertEquals(0, subbed.getTotal());  // also checks subtract(0) != null
+        assertEquals(5, rs.getTotal());
+
+        subbed = rs.subtract(5);
+        assertEquals(5, subbed.getTotal());
+        assertEquals(0, rs.getTotal());
+        assertEquals(onePerType(), subbed);
+
+        rs = new SOCResourceSet(0, 3, 0, 3, 0, 2);
+        subbed = rs.subtract(1);
+        assertEquals(1, subbed.getTotal());
+        assertArrayEquals(new int[]{0, 0, 0, 0, 0, 1}, subbed.getAmounts(true));
+        assertArrayEquals("subtract from unknown first", new int[]{0, 3, 0, 3, 0, 1}, rs.getAmounts(true));
+
+        subbed = rs.subtract(2);
+        assertEquals(2, subbed.getTotal());
+        assertArrayEquals(new int[]{0, 1, 0, 0, 0, 1}, subbed.getAmounts(true));
+        assertArrayEquals("subtract from unknown first, then left to right", new int[]{0, 2, 0, 3, 0, 0}, rs.getAmounts(true));
+
+        subbed = rs.subtract(1);
+        assertEquals(1, subbed.getTotal());
+        assertArrayEquals(new int[]{0, 1, 0, 0, 0, 0}, subbed.getAmounts(true));
+        assertArrayEquals("subtract left to right", new int[]{0, 1, 0, 3, 0, 0}, rs.getAmounts(true));
+
+        subbed = rs.subtract(3);
+        assertEquals(3, subbed.getTotal());
+        assertArrayEquals(new int[]{0, 1, 0, 2, 0, 0}, subbed.getAmounts(true));
+        assertArrayEquals("subtract left to right", new int[]{0, 0, 0, 1, 0, 0}, rs.getAmounts(true));
+    }
+
+    /**
      * Test that {@link SOCResourceSet#subtract(int, int, boolean)} converts the entire set to unknown
      * when unknown resources are removed, and {@link SOCResourceSet#getKnownTotal()} ignores unknowns.
      * @see #removeTooMany_ConvertToUnknown()

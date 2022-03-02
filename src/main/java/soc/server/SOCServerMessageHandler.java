@@ -1484,12 +1484,19 @@ public class SOCServerMessageHandler
             "stats.game.rounds", gameData.getRoundCount());  // Rounds played: 20
 
         // player's stats
-        if (c.getVersion() >= SOCPlayerStats.VERSION_FOR_RES_ROLL)
+        final int cliVers = c.getVersion();
+        if (cliVers >= SOCPlayerStats.VERSION_FOR_RES_ROLL)
         {
             SOCPlayer cp = gameData.getPlayer(c.getData());
             if (cp != null)
-                srv.messageToPlayer(c, gaName, cp.getPlayerNumber(),
+            {
+                final int pn = cp.getPlayerNumber();
+                srv.messageToPlayer(c, gaName, pn,
                     new SOCPlayerStats(cp, SOCPlayerStats.STYPE_RES_ROLL));
+                if (cliVers >= SOCPlayerStats.VERSION_FOR_TRADES)
+                    srv.messageToPlayer(c, gaName, pn,
+                        new SOCPlayerStats(cp, SOCPlayerStats.STYPE_TRADES));
+            }
         }
 
         // time

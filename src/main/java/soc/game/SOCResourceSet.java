@@ -301,6 +301,8 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      *     or {@link SOCResourceConstants#UNKNOWN}
      * @param amt   the amount; unlike in {@link #add(int, int)}, any amount that
      *              takes the resource below 0 is treated specially.
+     * @see #subtract(ResourceSet)
+     * @see #subtract(int)
      */
     public void subtract(int amt, int rtype)
     {
@@ -326,6 +328,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @param asUnknown  If true and subtracting {@link SOCResourceConstants#UNKNOWN},
      *     calls {@link #convertToUnknown()} first
      * @since 2.5.00
+     * @see #subtract(int)
      */
     public void subtract(final int amt, final int rtype, final boolean asUnknown)
     {
@@ -373,6 +376,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * call {@link #subtract(ResourceSet, boolean)}.
      *
      * @param toSubtract  the resource set to subtract
+     * @see #subtract(int)
      */
     public void subtract(ResourceSet toSubtract)
     {
@@ -397,6 +401,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @param asUnknown  If true: Removes excess amounts from this set's {@link SOCResourceConstants#UNKNOWN}
      *     field instead of clipping to 0; if subtracting {@code UNKNOWN},
      *     calls {@link #convertToUnknown() this.convertToUnknown()} first
+     * @see #subtract(int)
      * @since 2.5.00
      */
     public void subtract(final ResourceSet toSubtract, final boolean asUnknown)
@@ -424,6 +429,54 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
         {
             resources[SOCResourceConstants.UNKNOWN] = 0;
         }
+    }
+
+    /**
+     * Subtract a certain amount of resources and return what was subtracted.
+     * @param subAmount  Amount to subtract: 0 &lt;= {@code subAmount} &lt;= {@link #getTotal()}.
+     * @return  The resources actually subtracted, or an empty set if {@code subAmount} == 0; never {@code null}
+     * @throws IllegalArgumentException  if {@code subAmount} &lt; 0 or &gt; {@link #getTotal()}
+     * @see #subtract(ResourceSet)
+     * @see #subtract(int, int)
+     * @since 2.6.00
+     */
+    public SOCResourceSet subtract(int subAmount)
+        throws IllegalArgumentException
+    {
+        if (subAmount < 0)
+            throw new IllegalArgumentException("< 0");
+        {
+            final int T = getTotal();
+            if (subAmount > T)
+                throw new IllegalArgumentException("subAmount " + subAmount + " > total " + T);
+        }
+
+        final SOCResourceSet subbed = new SOCResourceSet();
+
+        int resAmt = resources[SOCResourceConstants.UNKNOWN];
+        if ((subAmount > 0) && (resAmt > 0))
+        {
+            final int nSub = (subAmount < resAmt) ? subAmount : resAmt;
+            resources[SOCResourceConstants.UNKNOWN] -= nSub;
+            subbed.add(nSub, SOCResourceConstants.UNKNOWN);
+            subAmount -= nSub;
+        }
+
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+        {
+            if (subAmount == 0)
+                break;
+            resAmt = resources[rtype];
+            if (resAmt == 0)
+                continue;
+
+            final int nSub = (subAmount < resAmt) ? subAmount : resAmt;
+            resources[rtype] -= nSub;
+            subbed.add(nSub, rtype);
+            subAmount -= nSub;
+        }
+
+        return subbed;
     }
 
     /**

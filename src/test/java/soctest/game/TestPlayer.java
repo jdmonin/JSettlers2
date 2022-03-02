@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -104,7 +104,7 @@ public class TestPlayer
     @Test
     public void testDiscardRoundDown()
     {
-        SOCPlayer pl = new SOCPlayer(2, new SOCGame("test"));
+        SOCPlayer pl = new SOCGame("test").getPlayer(2);
         pl.addRolledResources(new SOCResourceSet(1, 2, 2, 2, 1, 0));
         assertEquals(8, pl.getResources().getTotal());  // SOCResourceSet is mostly tested elsewhere
         assertEquals("discard should be half", 4, pl.getCountToDiscard());
@@ -115,7 +115,7 @@ public class TestPlayer
     @Test
     public void testInventoryDevCardsVP()
     {
-        SOCPlayer pl = new SOCPlayer(2, new SOCGame("test"));
+        SOCPlayer pl = new SOCGame("test").getPlayer(2);
         assertEquals(0, pl.getTotalVP());
         SOCInventory i = pl.getInventory();
         assertFalse(pl.hasUnplayedDevCards());
@@ -138,7 +138,7 @@ public class TestPlayer
     @Test
     public void testDevCardStats()
     {
-        SOCPlayer pl = new SOCPlayer(2, new SOCGame("test"));
+        SOCPlayer pl = new SOCGame("test").getPlayer(2);
         assertEquals(0, pl.numDISCCards);
         assertEquals(0, pl.numMONOCards);
         assertEquals(0, pl.numRBCards);
@@ -198,6 +198,169 @@ public class TestPlayer
         assertEquals(1, pclone.numMONOCards);
         assertEquals(0, pclone.numRBCards);
         assertEquals(expectedCards, pclone.getDevCardsPlayed());
+    }
+
+    /**
+     * Test {@link SOCPlayer#makeTrade(soc.game.ResourceSet, soc.game.ResourceSet)},
+     * {@link SOCPlayer#makeBankTrade(soc.game.ResourceSet, soc.game.ResourceSet)},
+     * and {@link SOCPlayer#getTradeStats()}.
+     * @since 2.6.00
+     */
+    @Test
+    public void testTradeAndStats()
+    {
+        assertEquals(6, SOCPlayer.TRADE_STATS_INDEX_BANK);
+        assertEquals(7, SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL);
+        assertEquals(8, SOCPlayer.TRADE_STATS_ARRAY_LEN);
+
+        final SOCGame ga = new SOCGame("test");
+        final SOCPlayer pl = ga.getPlayer(2);
+        final SOCResourceSet plRes = pl.getResources();
+
+        // initial setup and checks
+        int[][][] plExpectedStats = new int[SOCPlayer.TRADE_STATS_ARRAY_LEN][2][5];  // [trType][give/get][resType]
+        {
+            SOCResourceSet[][] plStats = pl.getTradeStats();  // [give/get][trType]
+            assertEquals(2, plStats.length);
+            assertEquals(SOCPlayer.TRADE_STATS_ARRAY_LEN, plStats[0].length);
+        }
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        final SOCResourceSet ORE_1 = new SOCResourceSet(0, 1, 0, 0, 0, 0);
+
+        // player trades
+        {
+            final SOCPlayer plTrade = ga.getPlayer(3);
+            int[][][] plTradeExpectedStats = new int[SOCPlayer.TRADE_STATS_ARRAY_LEN][2][5];
+            assertTradeStatsEqual(plTradeExpectedStats, plTrade);
+
+            final SOCResourceSet SHEEP_WOOD_1 = new SOCResourceSet(0, 0, 1, 0, 1, 0);
+            plRes.add(SHEEP_WOOD_1);
+            plTrade.getResources().add(ORE_1);
+            pl.makeTrade(SHEEP_WOOD_1, ORE_1);
+            plTrade.makeTrade(ORE_1, SHEEP_WOOD_1);
+            {
+                plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][0] = new int[]{0, 0, 1, 0, 1};  // sheep, wood
+                plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][1] = new int[]{0, 1, 0, 0, 0};  // ore
+                plTradeExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][0] = new int[]{0, 1, 0, 0, 0};
+                plTradeExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][1] = new int[]{0, 0, 1, 0, 1};
+                assertTradeStatsEqual(plExpectedStats, pl);
+                assertTradeStatsEqual(plTradeExpectedStats, plTrade);
+            }
+
+            // second trade; stats should include both
+            final SOCResourceSet CLAY_1 = new SOCResourceSet(1, 0, 0, 0, 0, 0),
+                WHEAT_1 = new SOCResourceSet(0, 0, 0, 1, 0, 0);
+            plRes.add(CLAY_1);
+            plTrade.getResources().add(WHEAT_1);
+            pl.makeTrade(CLAY_1, WHEAT_1);
+            plTrade.makeTrade(WHEAT_1, CLAY_1);
+            plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][0][0]++;  // CLAY
+            plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][1][3]++;  // WHEAT
+            plTradeExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][1][0]++;
+            plTradeExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][0][3]++;
+            assertTradeStatsEqual(plExpectedStats, pl);
+            assertTradeStatsEqual(plTradeExpectedStats, plTrade);
+        }
+
+        // basic 4:1 bank trade
+        final SOCResourceSet SHEEP_4 = new SOCResourceSet(0, 0, 4, 0, 0, 0);
+        plRes.add(SHEEP_4);
+        pl.makeBankTrade(SHEEP_4, ORE_1);
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][0][2] += 4;  // SHEEP
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][1][1]++;  // ORE
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        // undo bank trade
+        pl.makeBankTrade(ORE_1, SHEEP_4);
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][0][2] -= 4;  // SHEEP
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][1][1]--;  // ORE
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        // set and use 3:1
+        pl.setPortFlag(SOCBoard.MISC_PORT, true);
+        final SOCResourceSet WOOD_3 = new SOCResourceSet(0, 0, 0, 0, 3, 0);
+        plRes.add(WOOD_3);
+        pl.makeBankTrade(WOOD_3, ORE_1);
+        plExpectedStats[SOCBoard.MISC_PORT][0][4] += 3;  // WOOD
+        plExpectedStats[SOCBoard.MISC_PORT][1][1]++;  // ORE
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        // undo
+        pl.makeBankTrade(ORE_1, WOOD_3);
+        plExpectedStats[SOCBoard.MISC_PORT][0][4] -= 3;  // WOOD
+        plExpectedStats[SOCBoard.MISC_PORT][1][1]--;  // ORE
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        // set and use 2:1
+        pl.setPortFlag(SOCBoard.CLAY_PORT, true);
+        final SOCResourceSet CLAY_2 = new SOCResourceSet(2, 0, 0, 0, 0, 0);
+        plRes.add(CLAY_2);
+        pl.makeBankTrade(CLAY_2, ORE_1);
+        plExpectedStats[SOCBoard.CLAY_PORT][0][0] += 2;  // CLAY
+        plExpectedStats[SOCBoard.CLAY_PORT][1][1]++;  // ORE
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        // undo
+        pl.makeBankTrade(ORE_1, CLAY_2);
+        plExpectedStats[SOCBoard.CLAY_PORT][0][0] -= 2;  // CLAY
+        plExpectedStats[SOCBoard.CLAY_PORT][1][1]--;  // ORE
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        // multiple port types: clay 2:1 and 3:1
+        final SOCResourceSet CLAY_2_WOOD_3 = new SOCResourceSet(2, 0, 0, 0, 3, 0),
+            ORE_2 = new SOCResourceSet(0, 2, 0, 0, 0, 0);
+        plRes.add(CLAY_2_WOOD_3);
+        pl.makeBankTrade(CLAY_2_WOOD_3, ORE_2);
+        plExpectedStats[SOCBoard.CLAY_PORT][0][0] += 2;  // CLAY
+        plExpectedStats[SOCBoard.CLAY_PORT][1][1]++;  // ORE
+        plExpectedStats[SOCBoard.MISC_PORT][0][4] += 3;  // WOOD
+        plExpectedStats[SOCBoard.MISC_PORT][1][1]++;  // ORE
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        // undo multiple: clay 2:1 and 3:1
+        pl.makeBankTrade(ORE_2, CLAY_2_WOOD_3);
+        plExpectedStats[SOCBoard.CLAY_PORT][0][0] -= 2;  // CLAY
+        plExpectedStats[SOCBoard.CLAY_PORT][1][1]--;  // ORE
+        plExpectedStats[SOCBoard.MISC_PORT][0][4] -= 3;  // WOOD
+        plExpectedStats[SOCBoard.MISC_PORT][1][1]--;  // ORE
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        // multiple port types: clay 2:1 but not 3:1
+        pl.setPortFlag(SOCBoard.MISC_PORT, false);
+        final SOCResourceSet CLAY_2_SHEEP_4 = new SOCResourceSet(2, 0, 4, 0, 0, 0);
+        plRes.add(CLAY_2_SHEEP_4);
+        pl.makeBankTrade(CLAY_2_SHEEP_4, ORE_2);
+        plExpectedStats[SOCBoard.CLAY_PORT][0][0] += 2;  // CLAY
+        plExpectedStats[SOCBoard.CLAY_PORT][1][1]++;  // ORE
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][0][2] += 4;  // SHEEP
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][1][1]++;  // ORE
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        // undo more complicated: clay 2:1 but not 3:1
+        pl.makeBankTrade(ORE_2, CLAY_2_SHEEP_4);
+        plExpectedStats[SOCBoard.CLAY_PORT][0][0] -= 2;  // CLAY
+        plExpectedStats[SOCBoard.CLAY_PORT][1][1]--;  // ORE
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][0][2] -= 4;  // SHEEP
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][1][1]--;  // ORE
+        assertTradeStatsEqual(plExpectedStats, pl);
+    }
+
+    /**
+     * Check player's trade stats at a point in time for {@link #testTradeAndStats()}.
+     * Assumes {@code plExpectedStats} was created there with correct lengths.
+     * @param plExpectedStats  Stats arrays for resource trades: [trType 0..7][give=0/get=1][resType clay=0..wood=4]
+     * @param pl  Will call {@link SOCPlayer#getTradeStats() pl.getTradeStats()}
+     * @since 2.6.00
+     */
+    private static void assertTradeStatsEqual(final int[][][] plExpectedStats, final SOCPlayer pl)
+    {
+        final SOCResourceSet[][] plStats = pl.getTradeStats();
+        for (int i = 0; i < plStats[0].length; ++i)
+        {
+            assertArrayEquals("for tradeType " + i, plExpectedStats[i][0], plStats[0][i].getAmounts(false));
+            assertArrayEquals("for tradeType " + i, plExpectedStats[i][1], plStats[1][i].getAmounts(false));
+        }
     }
 
 }

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -132,6 +132,25 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public static int STUBBORN_ROBOT_FORCE_END_TURN_THRESHOLD = 2;
 
     /**
+     * Number of trade types tracked for stats; is also length of trade stats
+     * subarrays returned by {@link #getTradeStats()}: currently 8.
+     * @since 2.6.00
+     */
+    public static final int TRADE_STATS_ARRAY_LEN = 8;
+
+    /**
+     * Index within {@link #getTradeStats()} for 4:1 bank trades.
+     * @since 2.6.00
+     */
+    public static final int TRADE_STATS_INDEX_BANK = 6;
+
+    /**
+     * Index within {@link #getTradeStats()} for total of all player trades.
+     * @since 2.6.00
+     */
+    public static final int TRADE_STATS_INDEX_PLAYER_ALL = 7;
+
+    /**
      * the name of the player
      */
     private String name;
@@ -239,6 +258,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * how many of each resource this player has
+     * @see #resourceStats
+     * @see #tradeStatsGive
      */
     private SOCResourceSet resources;
 
@@ -275,9 +296,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * The used indexes are {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD},
      * and also (in v2.0.00+) {@link SOCResourceConstants#GOLD_LOCAL}.
      * See {@link #getResourceRollStats()} for details.
+     * @see #tradeStatsGive
      * @since 1.1.09
      */
     private int[] resourceStats;
+
+    /**
+     * Stats for resources {@link #tradeStatsGive given} and {@link #tradeStatsGet received} in trades this game.
+     * Tracked at server only. See {@link #getTradeStats()} for details.
+     * @see #resourceStats
+     * @since 2.6.00
+     */
+    private SOCResourceSet[] tradeStatsGive, tradeStatsGet;
 
     /**
      * The {@link SOCDevCard development card}s this player holds,
@@ -696,7 +726,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (player.game == null)
             throw new IllegalArgumentException("game");
 
-        int i;
         game = player.game;
         name = (newName != null) ? newName : player.name;
         playerNumber = player.playerNumber;
@@ -719,7 +748,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 final int L = old.size();
                 try
                 {
-                    for (i = 0; i < L; ++i)
+                    for (int i = 0; i < L; ++i)
                     {
                         SOCSpecialItem itm = old.get(i);
                         anew.add((itm != null) ? itm.clone() : null);
@@ -736,6 +765,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         resources = player.resources.copy();
         resourceStats = new int[player.resourceStats.length];
         System.arraycopy(player.resourceStats, 0, resourceStats, 0, player.resourceStats.length);
+        tradeStatsGive = new SOCResourceSet[player.tradeStatsGive.length];
+        tradeStatsGet = new SOCResourceSet[player.tradeStatsGive.length];
+        for (int i = 0; i < player.tradeStatsGive.length; ++i)
+        {
+            tradeStatsGive[i] = new SOCResourceSet(player.tradeStatsGive[i]);
+            tradeStatsGet[i] = new SOCResourceSet(player.tradeStatsGet[i]);
+        }
         rolledResources = player.rolledResources.copy();
         try
         {
@@ -766,7 +802,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         ourNumbers = new SOCPlayerNumbers(player.ourNumbers);
         ports = new boolean[SOCBoard.WOOD_PORT + 1];
 
-        for (i = SOCBoard.MISC_PORT; i <= SOCBoard.WOOD_PORT; i++)
+        for (int i = SOCBoard.MISC_PORT; i <= SOCBoard.WOOD_PORT; i++)
         {
             ports[i] = player.ports[i];
         }
@@ -854,6 +890,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         lrPaths = new Vector<SOCLRPathData>();
         resources = new SOCResourceSet();
         resourceStats = new int[1 + SOCResourceConstants.GOLD_LOCAL];
+        tradeStatsGive = new SOCResourceSet[TRADE_STATS_ARRAY_LEN];
+        tradeStatsGet = new SOCResourceSet[TRADE_STATS_ARRAY_LEN];
+        for (int i = 0; i < TRADE_STATS_ARRAY_LEN; ++i)
+        {
+            tradeStatsGive[i] = new SOCResourceSet();
+            tradeStatsGet[i] = new SOCResourceSet();
+        }
         rolledResources = new SOCResourceSet();
         inventory = new SOCInventory();
         numKnights = 0;
@@ -2279,6 +2322,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Get the resources held in the player's hand.
      * @return reference to the player's resource set; not a read-only copy
      * @see #getRolledResources()
+     * @see #getTradeStats()
      */
     public SOCResourceSet getResources()
     {
@@ -2302,6 +2346,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *   resource picks the player has received from gold hexes.
      * @see #getRolledResources()
      * @see #addRolledResources(SOCResourceSet)
+     * @see #getTradeStats()
      * @since 1.1.09
      */
     public int[] getResourceRollStats()
@@ -2370,11 +2415,42 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *     current turn's {@link SOCGame#rollDice()}.
      * @see #addRolledResources(SOCResourceSet)
      * @see #getResources()
+     * @see #getResourceRollStats()
      * @since 2.0.00
      */
     public SOCResourceSet getRolledResources()
     {
         return rolledResources;
+    }
+
+    /**
+     * Get stats for resource totals given and received in trades this game.
+     * Tracked at server only.
+     * Updated by {@link #makeTrade(ResourceSet, ResourceSet)}
+     * and {@link #makeBankTrade(ResourceSet, ResourceSet)}.
+     *<P>
+     * The stats are returned as an array indexed as {@code [give=0/get=1][trType]},
+     * where the {@code trType} subarray indexes are:
+     *<UL>
+     * <LI> 0: 3:1 port: {@link SOCBoard#MISC_PORT}
+     * <LI> 1: 2:1 port from {@link SOCResourceConstants#CLAY}: {@link SOCBoard#CLAY_PORT}
+     * <LI> 2: 2:1 port from {@link SOCResourceConstants#ORE}
+     * <LI> 3: 2:1 port from {@link SOCResourceConstants#SHEEP
+     * <LI> 4: 2:1 port from {@link SOCResourceConstants#WHEAT}
+     * <LI> 5: 2:1 port from {@link SOCResourceConstants#WOOD}: {@link SOCBoard#WOOD_PORT}
+     * <LI> 6: 4:1 (bank trades): {@link #TRADE_STATS_INDEX_BANK}
+     * <LI> 7: Total of all player trades: {@link #TRADE_STATS_INDEX_PLAYER_ALL}
+     *</UL>
+     * (Highest index is {@link #TRADE_STATS_ARRAY_LEN} - 1).
+     * If player hasn't traded anything, the returned resource sets will be empty (not null).
+     *
+     * @return the resources given/received by this player during all trades in the game
+     * @see #getResourceRollStats()
+     * @since 2.6.00
+     */
+    public SOCResourceSet[][] getTradeStats()
+    {
+        return new SOCResourceSet[][]{ tradeStatsGive, tradeStatsGet };
     }
 
     /**
@@ -2762,6 +2838,93 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public long getCurrentOfferTime()
     {
         return currentOfferTimeMillis;
+    }
+
+    /**
+     * Update this player's data when completing a trade with another player.
+     * Assumes trade is valid.
+     *<P>
+     * Called by {@link SOCGame#makeTrade(int, int)}.
+     * @param give  Resources given by this player to the other player; not {@code null}
+     * @param get  Reosurces received by this player from the other player; not {@code null}
+     * @since 2.6.00
+     */
+    public void makeTrade(final ResourceSet give, final ResourceSet get)
+    {
+        resources.add(get);
+        resources.subtract(give);
+
+        tradeStatsGive[TRADE_STATS_INDEX_PLAYER_ALL].add(give);
+        tradeStatsGet[TRADE_STATS_INDEX_PLAYER_ALL].add(get);
+    }
+
+    /**
+     * Update this player's data when performing a bank trade, or undoing the last bank trade.
+     * Assumes trade is valid.
+     *<P>
+     * Called by {@link SOCGame#makeBankTrade(SOCResourceSet, SOCResourceSet)}.
+     * @param  give  What the player will give to the bank; not {@code null}
+     * @param  get   What the player wants from the bank; not {@code null}
+     * @since 2.6.00
+     */
+    public void makeBankTrade(final ResourceSet give, final ResourceSet get)
+    {
+        resources.subtract(give);
+        resources.add(get);
+
+        /*
+         * Determine trade type & update player's bank/port trade stats.
+         * If get > give, is undo: Swap give/get, subtract instead of add.
+         * Look for ports first; remember that 2 sheep, 2 wheat -> 1 clay, 1 wood is a valid trade
+         * if player has the sheep port & wheat port, and should get credited in stats to both of those ports.
+         */
+        final boolean notUndo = (give.getTotal() > get.getTotal());
+        final SOCResourceSet gaveCopy = new SOCResourceSet(notUndo ? give : get),
+            gotCopy = new SOCResourceSet(notUndo ? get : give);
+        final boolean has_3_1_port = ports[SOCBoard.MISC_PORT];
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+        {
+            int amt = gaveCopy.getAmount(rtype);
+            if (amt == 0)
+                continue;
+
+            final int statIndex, gotAmt;
+            if (ports[rtype])
+            {
+                // 2:1
+                statIndex = rtype;
+                gotAmt = amt / 2;
+            } else if (has_3_1_port) {
+                // 3:1
+                statIndex = SOCBoard.MISC_PORT;
+                gotAmt = amt / 3;
+            } else {
+                continue;
+            }
+            gaveCopy.subtract(amt);
+            ResourceSet gotForType = gotCopy.subtract(gotAmt);
+            if (notUndo)
+            {
+                tradeStatsGive[statIndex].add(amt, rtype);
+                tradeStatsGet[statIndex].add(gotForType);
+            } else {
+                tradeStatsGive[statIndex].subtract(amt, rtype);
+                tradeStatsGet[statIndex].subtract(gotForType);
+            }
+        }
+
+        if (gaveCopy.getTotal() > 0)
+        {
+            // 4:1
+            if (notUndo)
+            {
+                tradeStatsGive[TRADE_STATS_INDEX_BANK].add(gaveCopy);
+                tradeStatsGet[TRADE_STATS_INDEX_BANK].add(gotCopy);
+            } else {
+                tradeStatsGive[TRADE_STATS_INDEX_BANK].subtract(gaveCopy);
+                tradeStatsGet[TRADE_STATS_INDEX_BANK].subtract(gotCopy);
+            }
+        }
     }
 
     /**
@@ -5367,6 +5530,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         fortress = null;
         resources = null;
         resourceStats = null;
+        tradeStatsGive = null;
+        tradeStatsGet = null;
         inventory = null;
         ourNumbers = null;
         ports = null;

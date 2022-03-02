@@ -52,6 +52,7 @@ import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCDeclinePlayerRequest;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCPickResources;  // for reason code constants
+import soc.message.SOCPlayerStats;   // for trade type constants
 import soc.message.SOCSimpleAction;  // for action type constants
 import soc.message.SOCSimpleRequest;  // for request type constants
 import soc.message.SOCTurn;  // for server version check
@@ -4351,6 +4352,50 @@ public class SOCPlayerInterface extends JFrame
             Integer gp = stats.get(PlayerClientListener.UpdateType.GoldGains);
             if (gp != null)
                 pi.printKeyed("stats.gold_gains", gp);  // "Resources gained from gold hexes: {0}"
+        }
+
+        public void playerStats(final int statsType, final int[] stats)
+        {
+            if (statsType != SOCPlayerStats.STYPE_TRADES)
+                return;  // unrecognized type
+
+            pi.printKeyed("game.trade.stats.heading");
+                // "Your trade stats: Give (clay, ore, sheep, wheat, wood) -> Get (clay, ore, sheep, wheat, wood):"
+            final String[] statLabels =
+                {
+                    "game.port.three",  // "3:1 Port"
+                    "game.port.clay", "game.port.ore", "game.port.sheep", // "2:1 Clay port", Ore, Sheep,
+                    "game.port.wheat",  "game.port.wood",  // Wheat, "2:1 Wood port"
+                    "game.trade.stats.bank",  // "4:1 Bank"
+                    "game.trade.stats.with_players"  // "All trades with players"
+                };
+            final int subLen = stats[1];
+            int numTypes = (stats.length - 2) / subLen;
+            if (numTypes > statLabels.length)
+                numTypes = statLabels.length;  // just in case; shouldn't occur
+            int si = 2;  // index just after subLen
+            StringBuilder sb = new StringBuilder();
+            for (int ttype = 0; ttype < numTypes; ++ttype)
+            {
+                sb.append("* ").append(strings.get(statLabels[ttype])).append(": (");
+                for (int res = 0; res < 5; ++res, ++si)
+                {
+                    if (res > 0)
+                        sb.append(", ");
+                    sb.append(stats[si]);
+                }
+                sb.append(") -> (");
+                for (int res = 0; res < 5; ++res, ++si)
+                {
+                    if (res > 0)
+                        sb.append(", ");
+                    sb.append(stats[si]);
+                }
+                sb.append(')');
+
+                pi.print(sb.toString());
+                sb.delete(0, sb.length());
+            }
         }
 
         public void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew)

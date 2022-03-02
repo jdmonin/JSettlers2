@@ -24,6 +24,8 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Less flicker while resizing window
 	- Use higher-level sound API to improve sound quality on Windows 10
 	- If rejected while connecting to server, show server's version as part of error text
+- Game `*STATS*`: Show player's resource totals given/received with ports, bank, other players
+  if client and server are v2.6.00 or newer
 - Game options:
 	- Client removes unused options before sending new game request
 	- If client requests a new game with unknown game option(s), server replies once with SOCGameOptionInfo messages to mark them as unknown.

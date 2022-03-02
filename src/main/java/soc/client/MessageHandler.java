@@ -2874,25 +2874,36 @@ public class MessageHandler
             return;  // Not one of our games
 
         final int stype = mes.getStatType();
-        if (stype != SOCPlayerStats.STYPE_RES_ROLL)
-            return;  // not recognized in this version
-
-        final int[] rstat = mes.getParams();
-
-        EnumMap<PlayerClientListener.UpdateType, Integer> stats
-            = new EnumMap<PlayerClientListener.UpdateType, Integer>(PlayerClientListener.UpdateType.class);
-        stats.put(PlayerClientListener.UpdateType.Clay, Integer.valueOf(rstat[SOCResourceConstants.CLAY]));
-        stats.put(PlayerClientListener.UpdateType.Ore, Integer.valueOf(rstat[SOCResourceConstants.ORE]));
-        stats.put(PlayerClientListener.UpdateType.Sheep, Integer.valueOf(rstat[SOCResourceConstants.SHEEP]));
-        stats.put(PlayerClientListener.UpdateType.Wheat, Integer.valueOf(rstat[SOCResourceConstants.WHEAT]));
-        stats.put(PlayerClientListener.UpdateType.Wood, Integer.valueOf(rstat[SOCResourceConstants.WOOD]));
-        if (rstat.length > SOCResourceConstants.GOLD_LOCAL)
+        switch (stype)
         {
-            final int n = rstat[SOCResourceConstants.GOLD_LOCAL];
-            if (n != 0)
-                stats.put(PlayerClientListener.UpdateType.GoldGains, Integer.valueOf(n));
+        case SOCPlayerStats.STYPE_RES_ROLL:
+            {
+                final int[] rstat = mes.getParams();
+
+                EnumMap<PlayerClientListener.UpdateType, Integer> stats
+                    = new EnumMap<PlayerClientListener.UpdateType, Integer>(PlayerClientListener.UpdateType.class);
+                stats.put(PlayerClientListener.UpdateType.Clay, Integer.valueOf(rstat[SOCResourceConstants.CLAY]));
+                stats.put(PlayerClientListener.UpdateType.Ore, Integer.valueOf(rstat[SOCResourceConstants.ORE]));
+                stats.put(PlayerClientListener.UpdateType.Sheep, Integer.valueOf(rstat[SOCResourceConstants.SHEEP]));
+                stats.put(PlayerClientListener.UpdateType.Wheat, Integer.valueOf(rstat[SOCResourceConstants.WHEAT]));
+                stats.put(PlayerClientListener.UpdateType.Wood, Integer.valueOf(rstat[SOCResourceConstants.WOOD]));
+                if (rstat.length > SOCResourceConstants.GOLD_LOCAL)
+                {
+                    final int n = rstat[SOCResourceConstants.GOLD_LOCAL];
+                    if (n != 0)
+                        stats.put(PlayerClientListener.UpdateType.GoldGains, Integer.valueOf(n));
+                }
+                pcl.playerStats(stats);
+            }
+            break;
+
+        case SOCPlayerStats.STYPE_TRADES:
+            pcl.playerStats(stype, mes.getParams());
+            break;
+
+        default:
+            System.err.println("handlePLAYERSTATS: unrecognized player stat type " + stype);
         }
-        pcl.playerStats(stats);
     }
 
     /**

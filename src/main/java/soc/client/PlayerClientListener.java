@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2013-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,6 +40,7 @@ import soc.game.SOCSpecialItem;
 import soc.message.SOCDeclinePlayerRequest;
 import soc.message.SOCPickResources;  // for reason codes in javadocs
 import soc.message.SOCPlayerElement.PEType;
+import soc.message.SOCPlayerStats;
 
 /**
  * A listener on the {@link SOCPlayerClient} to decouple the presentation from the networking.
@@ -241,11 +242,24 @@ public interface PlayerClientListener
     void playerPickedResources(SOCPlayer player, SOCResourceSet resSet, int reasonCode);
 
     /**
-     * A player's game stats, such as resource totals received from dice rolls, should be displayed.
-     * Called at end of game, or when the player uses the *STATS* command.
+     * A player's game stats of type {@link SOCPlayerStats#STYPE_RES_ROLL},
+     * such as resource totals received from dice rolls, should be displayed.
+     * Called at end of game or when the player uses the *STATS* command.
      * @param stats  Player statistic details
+     * @see #playerStats(int, int[])
      */
     void playerStats(EnumMap<PlayerClientListener.UpdateType, Integer> stats);
+
+    /**
+     * Display one type of a player's stats, such as resource trades.
+     * Called at end of game or when the player uses the *STATS* command.
+     * @param statsType  Type of statistics, such as {@link SOCPlayerStats#STYPE_TRADES}.
+     *     If type is unrecognized, do nothing.
+     * @param stats  Player statistic details for {@code statsType}
+     * @see #playerStats(EnumMap)
+     * @since 2.6.00
+     */
+    void playerStats(int statsType, int[] stats);
 
     /**
      * The game requests that the client player discard a particular number of resource cards.
