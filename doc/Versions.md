@@ -31,6 +31,10 @@ JARs for recent JSettlers versions can be downloaded from
 	- If client requests a new game with unknown game option(s), server replies once with SOCGameOptionInfo messages to mark them as unknown.
 	  Client will now use that info to update options used in New Game dialog.
 - For developers:
+	- Save/load games:
+	    - SavedGameModel:
+	        - PlayerInfo: Add field for new resource trade stats; omit resRollStats if seat's VP == 0
+	        - MODEL_VERSION still 2400; earlier server versions will ignore that added field while loading a savegame
 	- Client: Added DataOutputUtils for html conversion and escapes
 	- Robots: SOCRobotNegotiator +setTargetPiece(pn, SOCBuildPlan) to supply more plan info (upstreamed from STAC Project)
 	- SOCForceEndTurnThread: Name thread to identify in server thread dumps

@@ -2360,6 +2360,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *     If longer than required length, extra elements are ignored.
      * @throws IllegalArgumentException if {@code stats} is null,
      *     or length &lt; 1 + {@link SOCResourceConstants#GOLD_LOCAL}
+     * @see #setResourceTradeStats(ResourceSet[][])
      * @since 2.3.00
      */
     public void setResourceRollStats(final int[] stats)
@@ -2442,15 +2443,60 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * <LI> 7: Total of all player trades: {@link #TRADE_STATS_INDEX_PLAYER_ALL}
      *</UL>
      * (Highest index is {@link #TRADE_STATS_ARRAY_LEN} - 1).
+     * Please treat the returned array as read-only or make a copy;
+     * it's by-reference and contents will change with future trades.
      * If player hasn't traded anything, the returned resource sets will be empty (not null).
      *
      * @return the resources given/received by this player during all trades in the game
      * @see #getResourceRollStats()
+     * @see #setResourceTradeStats(ResourceSet[][])
      * @since 2.6.00
      */
     public SOCResourceSet[][] getTradeStats()
     {
         return new SOCResourceSet[][]{ tradeStatsGive, tradeStatsGet };
+    }
+
+    /**
+     * On server, set this player's {@link #getTradeStats()}. Useful for reloading a saved game snapshot.
+     * Copies contents of {@code stats} into player's stats, instead of copying a reference.
+     * @param stats Stats to copy into player's data; see {@link #getTradeStats()} for format; not null.
+     *     Elements in can be null; will treat as {@link SOCResourceSet#EMPTY_SET}.
+     *     If subarrays' length is shorter than {@link #TRADE_STATS_ARRAY_LEN}, will pad with empty resource sets.
+     *     If longer, extra elements are ignored.
+     * @throws IllegalArgumentException if {@code stats} is null or {@code stats.length} != 2
+     * @see #setResourceRollStats(int[])
+     * @since 2.6.00
+     */
+    public void setResourceTradeStats(ResourceSet[][] stats)
+    {
+        if ((stats == null) || (stats.length != 2))
+            throw new IllegalArgumentException("stats");
+
+        int n = stats[0].length;
+        if (n > TRADE_STATS_ARRAY_LEN)
+            n = TRADE_STATS_ARRAY_LEN;
+        else if (n < TRADE_STATS_ARRAY_LEN)
+        {
+            for (int ttype = n; ttype < TRADE_STATS_ARRAY_LEN; ++ttype)
+            {
+                tradeStatsGive[ttype].clear();
+                tradeStatsGet[ttype].clear();
+            }
+        }
+
+        for (int ttype = 0; ttype < n; ++ttype)
+        {
+            ResourceSet gave = stats[0][ttype], got = stats[1][ttype];
+            if (gave != null)
+                tradeStatsGive[ttype].setAmounts(gave);
+            else
+                tradeStatsGive[ttype].clear();
+            if (got != null)
+                tradeStatsGet[ttype].setAmounts(got);
+            else
+                tradeStatsGet[ttype].clear();
+        }
     }
 
     /**

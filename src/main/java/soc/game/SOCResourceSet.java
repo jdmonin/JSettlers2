@@ -702,9 +702,13 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      *
      * @param set  the set to copy from
      */
-    public void setAmounts(SOCResourceSet set)
+    public void setAmounts(ResourceSet set)
     {
-        System.arraycopy(set.resources, 0, resources, 0, resources.length);
+        if (set instanceof SOCResourceSet)
+            System.arraycopy(((SOCResourceSet) set).resources, 0, resources, 0, resources.length);
+        else
+            for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.UNKNOWN; ++rtype)
+                resources[rtype] = set.getAmount(rtype);
     }
 
 }

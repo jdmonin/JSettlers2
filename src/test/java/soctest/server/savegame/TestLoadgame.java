@@ -815,6 +815,73 @@ public class TestLoadgame
         assertNull("player(3) trade offer", ga.getPlayer(3).getCurrentOffer());
     }
 
+    /**
+     * Test loading a game whose players have {@link SavedGameModel.PlayerInfo#resTradeStats}:
+     * {@code tradestats.game.json}.
+     * @since 2.6.00
+     */
+    @Test
+    public void testLoadResTradeStats()
+        throws IOException
+    {
+        final SavedGameModel sgm = load("tradestats.game.json", srv);
+        final SOCGame ga = sgm.getGame();
+
+        assertEquals("game name", "ts", sgm.gameName);
+        assertEquals(4, sgm.playerSeats.length);
+
+        final int[] PLAYER_VP = {0, 2, 3, 4};
+        final int[][][][] PLAYER_TRADE_STATS =
+            {
+                {
+                    {null, null}, {null, null}, {null, null}, {null, null},
+                    {null, null}, {null, null}, {null, null}, {null, null}
+                },
+                {
+                    {{0, 0, 6, 0, 0}, {1, 1, 0, 0, 0}}, {null, null}, {null, null}, {null, null},
+                    {null, null}, {null, null}, {null, null}, {null, null}
+                },
+                {
+                    {null, null}, {null, null}, {null, null}, {null, null},
+                    {null, null}, {null, null}, {null, null}, {{1, 0, 1, 0, 0}, {0, 1, 0, 1, 0}}
+                },
+                {
+                    {{0, 0, 3, 3, 0}, {1, 0, 0, 0, 1}}, {null, null},
+                    {{0, 2, 0, 0, 0}, {0, 0, 1, 0, 0}}, {null, null},
+                    {null, null}, {null, null},
+                    {{0, 0, 4, 0, 0}, {0, 0, 0, 1, 0}},
+                    {{0, 1, 0, 1, 0}, {1, 0, 1, 0, 0}}
+                }
+            };
+        for (int pn = 0; pn < 4; ++pn)
+        {
+            final SOCPlayer pl = ga.getPlayer(pn);
+            final String desc = "player(" + pn + ")";
+
+            final boolean expectVacant = (PLAYER_VP[pn] == 0);
+            assertEquals(desc, expectVacant, ga.isSeatVacant(pn));
+            assertEquals(desc, PLAYER_VP[pn], pl.getTotalVP());
+
+            final SOCResourceSet[][] plStats = pl.getTradeStats();
+            for (int trType = 0; trType < PLAYER_TRADE_STATS[0].length; ++trType)
+            {
+                final String trDesc = desc + "(type=" + trType + ")";
+
+                int[] expectGive = PLAYER_TRADE_STATS[pn][trType][0],
+                    expectReceive = PLAYER_TRADE_STATS[pn][trType][1];
+                if (expectGive == null)
+                    assertTrue(trDesc + " give", plStats[0][trType].isEmpty());
+                else
+                    assertArrayEquals(trDesc + " give", expectGive, plStats[0][trType].getAmounts(false));
+
+                if (expectReceive == null)
+                    assertTrue(trDesc + " receive", plStats[1][trType].isEmpty());
+                else
+                    assertArrayEquals(trDesc + " receive", expectReceive, plStats[1][trType].getAmounts(false));
+            }
+        }
+    }
+
     /** Test loading and resuming a simple scenario, including SVP for {@code _SC_SEAC}. */
     @Test
     public void testLoadScenSimple4ISL()

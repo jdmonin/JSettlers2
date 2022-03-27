@@ -33,6 +33,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
 import soc.game.SOCSettlement;
+import soc.server.savegame.SavedGameModel;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -204,14 +205,20 @@ public class TestPlayer
      * Test {@link SOCPlayer#makeTrade(soc.game.ResourceSet, soc.game.ResourceSet)},
      * {@link SOCPlayer#makeBankTrade(soc.game.ResourceSet, soc.game.ResourceSet)},
      * and {@link SOCPlayer#getTradeStats()}.
+     * @see #testSetResourceTradeStats()
      * @since 2.6.00
      */
     @Test
     public void testTradeAndStats()
     {
+        assertEquals(0, SOCBoard.MISC_PORT);
+        assertEquals(1, SOCBoard.CLAY_PORT);
+        assertEquals(5, SOCBoard.WOOD_PORT);
         assertEquals(6, SOCPlayer.TRADE_STATS_INDEX_BANK);
         assertEquals(7, SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL);
         assertEquals(8, SOCPlayer.TRADE_STATS_ARRAY_LEN);
+
+        assertEquals(SOCPlayer.TRADE_STATS_ARRAY_LEN, SavedGameModel.TradeTypeStat.TYPE_DESCRIPTIONS.length);
 
         final SOCGame ga = new SOCGame("test");
         final SOCPlayer pl = ga.getPlayer(2);
@@ -347,19 +354,121 @@ public class TestPlayer
     }
 
     /**
-     * Check player's trade stats at a point in time for {@link #testTradeAndStats()}.
+     * Test {@link SOCPlayer#setResourceTradeStats(soc.game.ResourceSet[][])}.
+     * @see #testTradeAndStats()
+     * @since 2.6.00
+     */
+    @Test
+    public void testSetResourceTradeStats()
+    {
+        final SOCGame ga = new SOCGame("test");
+        final SOCPlayer pl = ga.getPlayer(2);
+
+        // initial setup and checks
+        int[][][] plExpectedStats = new int[SOCPlayer.TRADE_STATS_ARRAY_LEN][2][5];  // [trType][give/get][resType]
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        // usual call with expected length; test subelement nulls
+        SOCResourceSet[][] statsSet = new SOCResourceSet[][]
+            {{
+                new SOCResourceSet(3, 0, 0, 3, 0, 0), // 3:1
+                null,
+                null,
+                new SOCResourceSet(0, 0, 0, 4, 2, 0), // 2:1 sheep
+                null,
+                null,
+                new SOCResourceSet(4, 4, 0, 0, 0, 0), // 4:1 bank
+                new SOCResourceSet(0, 1, 1, 0, 0, 0), // player trades
+            }, {
+                new SOCResourceSet(0, 0, 0, 0, 2, 0), // 3:1
+                null,
+                null,
+                new SOCResourceSet(0, 0, 3, 0, 0, 0), // 2:1 sheep
+                null,
+                null,
+                new SOCResourceSet(0, 0, 0, 2, 0, 0), // 4:1 bank
+                new SOCResourceSet(1, 0, 0, 0, 1, 0), // player trades
+            }};
+        assertEquals(SOCPlayer.TRADE_STATS_ARRAY_LEN, statsSet[0].length);
+        pl.setResourceTradeStats(statsSet);
+        plExpectedStats[0][0] = new int[]{3, 0, 0, 3, 0};
+        plExpectedStats[3][0] = new int[]{0, 0, 0, 4, 2};
+        plExpectedStats[6][0] = new int[]{4, 4, 0, 0, 0};
+        plExpectedStats[7][0] = new int[]{0, 1, 1, 0, 0};
+        plExpectedStats[0][1] = new int[]{0, 0, 0, 0, 2};
+        plExpectedStats[3][1] = new int[]{0, 0, 3, 0, 0};
+        plExpectedStats[6][1] = new int[]{0, 0, 0, 2, 0};
+        plExpectedStats[7][1] = new int[]{1, 0, 0, 0, 1};
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        // too many elements: should ignore extra
+        statsSet = new SOCResourceSet[][]
+            {{
+                new SOCResourceSet(3, 0, 0, 3, 0, 0), // 3:1
+                null,
+                null,
+                new SOCResourceSet(0, 0, 0, 4, 2, 0), // 2:1 sheep
+                null,
+                null,
+                new SOCResourceSet(4, 4, 0, 0, 0, 0), // 4:1 bank
+                new SOCResourceSet(0, 1, 1, 0, 0, 0), // player trades
+                new SOCResourceSet(1, 1, 1, 1, 1, 0), // beyond max expected stats length
+                new SOCResourceSet(1, 1, 1, 1, 1, 0)
+            }, {
+                new SOCResourceSet(0, 0, 0, 0, 2, 0), // 3:1
+                null,
+                null,
+                new SOCResourceSet(0, 0, 3, 0, 0, 0), // 2:1 sheep
+                null,
+                null,
+                new SOCResourceSet(0, 0, 0, 2, 0, 0), // 4:1 bank
+                new SOCResourceSet(1, 0, 0, 0, 1, 0), // player trades
+                new SOCResourceSet(1, 1, 1, 1, 1, 0), // beyond max expected stats length
+                new SOCResourceSet(1, 1, 1, 1, 1, 0)
+            }};
+        assertTrue(SOCPlayer.TRADE_STATS_ARRAY_LEN < statsSet[0].length);
+        pl.setResourceTradeStats(statsSet);
+        assertTradeStatsEqual(plExpectedStats, pl);
+
+        // too few elements: should pad with 0s
+        statsSet = new SOCResourceSet[][]
+            {{
+                new SOCResourceSet(3, 0, 0, 3, 0, 0), // 3:1
+                null,
+                null,
+                new SOCResourceSet(0, 0, 0, 4, 2, 0), // 2:1 sheep
+                null
+            }, {
+                new SOCResourceSet(0, 0, 0, 0, 2, 0), // 3:1
+                null,
+                null,
+                new SOCResourceSet(0, 0, 3, 0, 0, 0), // 2:1 sheep
+                null
+            }};
+        assertTrue(SOCPlayer.TRADE_STATS_ARRAY_LEN > statsSet[0].length);
+        pl.setResourceTradeStats(statsSet);
+        plExpectedStats[6][0] = new int[5];
+        plExpectedStats[7][0] = new int[5];
+        plExpectedStats[6][1] = new int[5];
+        plExpectedStats[7][1] = new int[5];
+        assertTradeStatsEqual(plExpectedStats, pl);
+    }
+
+    /**
+     * Check player's trade stats at a point in time
+     * for {@link #testTradeAndStats()} and {@link #testSetResourceTradeStats()}.
      * Assumes {@code plExpectedStats} was created there with correct lengths.
      * @param plExpectedStats  Stats arrays for resource trades: [trType 0..7][give=0/get=1][resType clay=0..wood=4]
      * @param pl  Will call {@link SOCPlayer#getTradeStats() pl.getTradeStats()}
      * @since 2.6.00
      */
-    private static void assertTradeStatsEqual(final int[][][] plExpectedStats, final SOCPlayer pl)
+    public static void assertTradeStatsEqual(final int[][][] plExpectedStats, final SOCPlayer pl)
     {
         final SOCResourceSet[][] plStats = pl.getTradeStats();
         for (int i = 0; i < plStats[0].length; ++i)
         {
-            assertArrayEquals("for tradeType " + i, plExpectedStats[i][0], plStats[0][i].getAmounts(false));
-            assertArrayEquals("for tradeType " + i, plExpectedStats[i][1], plStats[1][i].getAmounts(false));
+            assertArrayEquals("for give tradeType " + i, plExpectedStats[i][0], plStats[0][i].getAmounts(false));
+            assertArrayEquals("for get tradeType " + i, plExpectedStats[i][1], plStats[1][i].getAmounts(false));
         }
     }
 

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -890,8 +890,18 @@ public class SavedGameModel
          */
         public HashMap<PEType, Integer> elements = new HashMap<>();
 
-        /** Resource roll stats, from {@link SOCPlayer#getResourceRollStats()} */
+        /**
+         * Resource roll stats, from {@link SOCPlayer#getResourceRollStats()}.
+         * {@code null} if {@link #totalVP} == 0 when saved by server v2.6.00 or newer.
+         */
         public int[] resRollStats;
+
+        /**
+         * Optional resource trade stats, in same type order as {@link SOCPlayer#getTradeStats()}.
+         * {@code null} if {@link #totalVP} == 0.
+         * @since 2.6.00
+         */
+        public TradeTypeStat[] resTradeStats;
 
         /**
          * Standard dev card types in player's hand,
@@ -1050,7 +1060,18 @@ public class SavedGameModel
                     earlyElements = early;
             }
 
-            resRollStats = pl.getResourceRollStats();
+            if (totalVP > 0)
+            {
+                resRollStats = pl.getResourceRollStats();
+
+                final SOCResourceSet[][] tradeStats = pl.getTradeStats();
+                final int nTypes = tradeStats[0].length;
+                resTradeStats = new TradeTypeStat[nTypes];
+                for (int i = 0; i <= 1; ++i)
+                    for (int ttype = 0; ttype < nTypes; ++ttype)
+                        resTradeStats[ttype] = new TradeTypeStat
+                            (tradeStats[0][ttype], tradeStats[1][ttype], TradeTypeStat.TYPE_DESCRIPTIONS[ttype]);
+            }
 
             final SOCInventory cardsInv = pl.getInventory();
             for (SOCInventoryItem item : cardsInv.getByState(SOCInventory.NEW))
@@ -1091,6 +1112,22 @@ public class SavedGameModel
 
             if ((resRollStats != null) && (resRollStats.length > 0))
                 pl.setResourceRollStats(resRollStats);
+            if ((resTradeStats != null) && (resTradeStats.length > 0))
+            {
+                int n = resTradeStats.length;
+                if (n > SOCPlayer.TRADE_STATS_ARRAY_LEN)
+                    n = SOCPlayer.TRADE_STATS_ARRAY_LEN;  // might be loading a game written by a newer version
+
+                SOCResourceSet[][] tradeStats = new SOCResourceSet[2][n];
+                for (int ttype = 0; ttype < n; ++ttype)
+                {
+                    KnownResourceSet gave = resTradeStats[ttype].gave,
+                        received = resTradeStats[ttype].received;
+                    tradeStats[0][ttype] = (gave != null) ? gave.toResourceSet() : SOCResourceSet.EMPTY_SET;
+                    tradeStats[1][ttype] = (received != null) ? received.toResourceSet() : SOCResourceSet.EMPTY_SET;
+                }
+                pl.setResourceTradeStats(tradeStats);
+            }
 
             {
                 final SOCInventory inv = pl.getInventory();
@@ -1396,6 +1433,38 @@ public class SavedGameModel
             return new SOCTradeOffer
                 (fromPlayer.getGame().getName(), fromPlayer.getPlayerNumber(),
                  offeredTo, give.toResourceSet(), receive.toResourceSet());
+        }
+    }
+
+    /**
+     * A player's stats for one type of trading, for {@link PlayerInfo#resTradeStats}.
+     * @since 2.6.00
+     */
+    public static class TradeTypeStat
+    {
+        /**
+         * Trade type descriptions for {@link #tradeType}, in same order as {@link SOCPlayer#getTradeStats()}.
+         * Not localized; the SGM json file is written by server which isn't currently i18n'd.
+         */
+        public static final String[] TYPE_DESCRIPTIONS =
+        {
+            "3:1 Port", "2:1 Clay port", "2:1 Ore port","2:1 Sheep port","2:1 Wheat port","2:1 Wood port", "4:1 Bank",
+            "All trades with players"  // i18n OK: see javadoc
+        };
+
+        /** Optional trade type human-readable description, probably from {@link #TYPE_DESCRIPTIONS}, or {@code null} */
+        public String tradeType;
+
+        /** Resource totals given and received, or {@code null} if none/empty for this stat type */
+        public KnownResourceSet gave, received;
+
+        public TradeTypeStat (final SOCResourceSet gave, final SOCResourceSet received, final String tradeType)
+        {
+            this.tradeType = tradeType;
+            if ((gave != null) && ! gave.isEmpty())
+                this.gave = new KnownResourceSet(gave);
+            if ((received != null) && ! received.isEmpty())
+                this.received = new KnownResourceSet(received);
         }
     }
 
