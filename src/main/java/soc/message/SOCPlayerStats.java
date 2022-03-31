@@ -91,7 +91,7 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
 
     /**
      * Stats type 2: Resource Trade stats.
-     * Same format as {@link SOCPlayer#getTradeStats()},
+     * Same format as {@link SOCPlayer#getResourceTradeStats()},
      * but with each {@link SOCResourceSet} changed to an array of 5 ints.
      * So, length is (5 * 2 * {@link SOCPlayer#TRADE_STATS_ARRAY_LEN}) + 2.
      *<P>
@@ -153,7 +153,7 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
             {
                 pa[1] = 5 * 2;  // length of each "subarray"
                 int pi = 2;
-                final SOCResourceSet[][] tradesGiveGet = pl.getTradeStats();
+                final SOCResourceSet[][] tradesGiveGet = pl.getResourceTradeStats();
                 for (int tradeType = 0; tradeType < SOCPlayer.TRADE_STATS_ARRAY_LEN; ++tradeType)
                     for (int giveGet = 0; giveGet < 2; ++giveGet)
                     {

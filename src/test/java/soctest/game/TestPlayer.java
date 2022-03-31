@@ -204,7 +204,7 @@ public class TestPlayer
     /**
      * Test {@link SOCPlayer#makeTrade(soc.game.ResourceSet, soc.game.ResourceSet)},
      * {@link SOCPlayer#makeBankTrade(soc.game.ResourceSet, soc.game.ResourceSet)},
-     * and {@link SOCPlayer#getTradeStats()}.
+     * and {@link SOCPlayer#getResourceTradeStats()}.
      * @see #testSetResourceTradeStats()
      * @since 2.6.00
      */
@@ -227,7 +227,7 @@ public class TestPlayer
         // initial setup and checks
         int[][][] plExpectedStats = new int[SOCPlayer.TRADE_STATS_ARRAY_LEN][2][5];  // [trType][give/get][resType]
         {
-            SOCResourceSet[][] plStats = pl.getTradeStats();  // [give/get][trType]
+            SOCResourceSet[][] plStats = pl.getResourceTradeStats();  // [give/get][trType]
             assertEquals(2, plStats.length);
             assertEquals(SOCPlayer.TRADE_STATS_ARRAY_LEN, plStats[0].length);
         }
@@ -459,12 +459,12 @@ public class TestPlayer
      * for {@link #testTradeAndStats()} and {@link #testSetResourceTradeStats()}.
      * Assumes {@code plExpectedStats} was created there with correct lengths.
      * @param plExpectedStats  Stats arrays for resource trades: [trType 0..7][give=0/get=1][resType clay=0..wood=4]
-     * @param pl  Will call {@link SOCPlayer#getTradeStats() pl.getTradeStats()}
+     * @param pl  Will call {@link SOCPlayer#getResourceTradeStats() pl.getResourceTradeStats()}
      * @since 2.6.00
      */
     public static void assertTradeStatsEqual(final int[][][] plExpectedStats, final SOCPlayer pl)
     {
-        final SOCResourceSet[][] plStats = pl.getTradeStats();
+        final SOCResourceSet[][] plStats = pl.getResourceTradeStats();
         for (int i = 0; i < plStats[0].length; ++i)
         {
             assertArrayEquals("for give tradeType " + i, plExpectedStats[i][0], plStats[0][i].getAmounts(false));

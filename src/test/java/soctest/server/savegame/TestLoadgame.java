@@ -862,7 +862,7 @@ public class TestLoadgame
             assertEquals(desc, expectVacant, ga.isSeatVacant(pn));
             assertEquals(desc, PLAYER_VP[pn], pl.getTotalVP());
 
-            final SOCResourceSet[][] plStats = pl.getTradeStats();
+            final SOCResourceSet[][] plStats = pl.getResourceTradeStats();
             for (int trType = 0; trType < PLAYER_TRADE_STATS[0].length; ++trType)
             {
                 final String trDesc = desc + "(type=" + trType + ")";

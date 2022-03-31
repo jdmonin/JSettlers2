@@ -897,7 +897,7 @@ public class SavedGameModel
         public int[] resRollStats;
 
         /**
-         * Optional resource trade stats, in same type order as {@link SOCPlayer#getTradeStats()}.
+         * Optional resource trade stats, in same type order as {@link SOCPlayer#getResourceTradeStats()}.
          * {@code null} if {@link #totalVP} == 0.
          * @since 2.6.00
          */
@@ -1064,7 +1064,7 @@ public class SavedGameModel
             {
                 resRollStats = pl.getResourceRollStats();
 
-                final SOCResourceSet[][] tradeStats = pl.getTradeStats();
+                final SOCResourceSet[][] tradeStats = pl.getResourceTradeStats();
                 final int nTypes = tradeStats[0].length;
                 resTradeStats = new TradeTypeStat[nTypes];
                 for (int i = 0; i <= 1; ++i)
@@ -1443,7 +1443,7 @@ public class SavedGameModel
     public static class TradeTypeStat
     {
         /**
-         * Trade type descriptions for {@link #tradeType}, in same order as {@link SOCPlayer#getTradeStats()}.
+         * Trade type descriptions for {@link #tradeType}, in same order as {@link SOCPlayer#getResourceTradeStats()}.
          * Not localized; the SGM json file is written by server which isn't currently i18n'd.
          */
         public static final String[] TYPE_DESCRIPTIONS =

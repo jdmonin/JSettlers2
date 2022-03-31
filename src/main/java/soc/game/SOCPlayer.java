@@ -133,19 +133,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Number of trade types tracked for stats; is also length of trade stats
-     * subarrays returned by {@link #getTradeStats()}: currently 8.
+     * subarrays returned by {@link #getResourceTradeStats()}: currently 8.
      * @since 2.6.00
      */
     public static final int TRADE_STATS_ARRAY_LEN = 8;
 
     /**
-     * Index within {@link #getTradeStats()} for 4:1 bank trades.
+     * Index within {@link #getResourceTradeStats()} for 4:1 bank trades.
      * @since 2.6.00
      */
     public static final int TRADE_STATS_INDEX_BANK = 6;
 
     /**
-     * Index within {@link #getTradeStats()} for total of all player trades.
+     * Index within {@link #getResourceTradeStats()} for total of all player trades.
      * @since 2.6.00
      */
     public static final int TRADE_STATS_INDEX_PLAYER_ALL = 7;
@@ -303,7 +303,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Stats for resources {@link #tradeStatsGive given} and {@link #tradeStatsGet received} in trades this game.
-     * Tracked at server only. See {@link #getTradeStats()} for details.
+     * Tracked at server only. See {@link #getResourceTradeStats()} for details.
      * @see #resourceStats
      * @since 2.6.00
      */
@@ -2322,7 +2322,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Get the resources held in the player's hand.
      * @return reference to the player's resource set; not a read-only copy
      * @see #getRolledResources()
-     * @see #getTradeStats()
+     * @see #getResourceTradeStats()
      */
     public SOCResourceSet getResources()
     {
@@ -2346,7 +2346,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *   resource picks the player has received from gold hexes.
      * @see #getRolledResources()
      * @see #addRolledResources(SOCResourceSet)
-     * @see #getTradeStats()
+     * @see #getResourceTradeStats()
      * @since 1.1.09
      */
     public int[] getResourceRollStats()
@@ -2452,15 +2452,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @see #setResourceTradeStats(ResourceSet[][])
      * @since 2.6.00
      */
-    public SOCResourceSet[][] getTradeStats()
+    public SOCResourceSet[][] getResourceTradeStats()
     {
         return new SOCResourceSet[][]{ tradeStatsGive, tradeStatsGet };
     }
 
     /**
-     * On server, set this player's {@link #getTradeStats()}. Useful for reloading a saved game snapshot.
+     * On server, set this player's {@link #getResourceTradeStats()}. Useful for reloading a saved game snapshot.
      * Copies contents of {@code stats} into player's stats, instead of copying a reference.
-     * @param stats Stats to copy into player's data; see {@link #getTradeStats()} for format; not null.
+     * @param stats Stats to copy into player's data; see {@link #getResourceTradeStats()} for format; not null.
      *     Elements in can be null; will treat as {@link SOCResourceSet#EMPTY_SET}.
      *     If subarrays' length is shorter than {@link #TRADE_STATS_ARRAY_LEN}, will pad with empty resource sets.
      *     If longer, extra elements are ignored.
