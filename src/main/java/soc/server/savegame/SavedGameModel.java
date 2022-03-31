@@ -1360,8 +1360,11 @@ public class SavedGameModel
     /**
      * Set of the 5 known resource types, to use in saved game
      * instead of raw 7-element int array from {@link SOCResourceSet}.
+     *<P>
+     * Also implements {@link ResourceSet} to help with unit tests in v2.6.00 and newer.
      */
-    static class KnownResourceSet
+    public static class KnownResourceSet
+        implements ResourceSet
     {
         public int clay, ore, sheep, wheat, wood;
 
@@ -1387,6 +1390,49 @@ public class SavedGameModel
         public SOCResourceSet toResourceSet()
         {
             return new SOCResourceSet(clay, ore, sheep, wheat, wood, 0);
+        }
+
+        public boolean isEmpty()
+        {
+            return (clay == 0) && (ore == 0) && (sheep == 0) && (wheat == 0) && (wood == 0);
+        }
+
+        public int getAmount(int resourceType)
+        {
+            switch (resourceType)
+            {
+            case SOCResourceConstants.CLAY:  return clay;
+            case SOCResourceConstants.ORE:   return ore;
+            case SOCResourceConstants.SHEEP: return sheep;
+            case SOCResourceConstants.WHEAT: return wheat;
+            case SOCResourceConstants.WOOD:  return wood;
+            default:  return 0;
+            }
+        }
+
+        public boolean contains(int resourceType)
+        {
+            return (getAmount(resourceType) > 0);
+        }
+
+        public boolean contains(ResourceSet rs)
+        {
+            for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+                if (getAmount(rtype) < rs.getAmount(rtype))
+                    return false;
+
+            return true;
+        }
+
+        public int getResourceTypeCount()
+        {
+            return ((clay > 0) ? 1 : 0) + ((ore > 0) ? 1 : 0) + ((sheep > 0) ? 1 : 0)
+                + ((wheat > 0) ? 1 : 0) + ((wood > 0) ? 1 : 0);
+        }
+
+        public int getTotal()
+        {
+            return clay + ore + sheep + wheat + wood;
         }
     }
 

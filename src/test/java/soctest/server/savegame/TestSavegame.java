@@ -304,13 +304,15 @@ public class TestSavegame
 
         // no pieces placed, but can't save during initial placement
         gaSave.setGameState(SOCGame.ROLL_OR_CARD);
-        gaSave.getPlayer(0).getResources().add(new SOCResourceSet(1, 3, 0, 2, 0, 0));
+        gaSave.getPlayer(0).addRolledResources(new SOCResourceSet(1, 3, 0, 2, 0, 0));
 
         // workaround: give VP dev cards so players' VP != 0, so save/load code doesn't think they're vacant
         gaSave.getPlayer(0).getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.UNIV);
         gaSave.getPlayer(3).getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.CAP);
 
-        // TODO roll res stats
+        // resource roll stats
+        final int[][] RES_ROLLED = new int[][]
+            { {0, 3, 3, 5, 2, 4, 0}, null, null, {0, 0, 1, 0, 0, 0, 0} };
 
         // trade res stats
         int[][][] plExpectedStats = new int[SOCPlayer.TRADE_STATS_ARRAY_LEN][2][5],  // [trType][give/get][resType]
@@ -319,7 +321,6 @@ public class TestSavegame
             // simplified from TestPlayer.testTradeAndStats()
 
             final SOCPlayer pl = gaSave.getPlayer(0);
-            final SOCResourceSet plRes = pl.getResources();
             final SOCResourceSet ORE_1 = new SOCResourceSet(0, 1, 0, 0, 0, 0);
 
             // player trade
@@ -327,8 +328,8 @@ public class TestSavegame
                 final SOCPlayer plTrade = gaSave.getPlayer(3);
 
                 final SOCResourceSet SHEEP_WOOD_1 = new SOCResourceSet(0, 0, 1, 0, 1, 0);
-                plRes.add(SHEEP_WOOD_1);
-                plTrade.getResources().add(ORE_1);
+                pl.addRolledResources(SHEEP_WOOD_1);
+                plTrade.addRolledResources(ORE_1);
                 pl.makeTrade(SHEEP_WOOD_1, ORE_1);
                 plTrade.makeTrade(ORE_1, SHEEP_WOOD_1);
                 {
@@ -339,11 +340,12 @@ public class TestSavegame
                 }
                 TestPlayer.assertTradeStatsEqual(plExpectedStats, pl);
                 TestPlayer.assertTradeStatsEqual(plTradeExpectedStats, plTrade);
+                assertArrayEquals(RES_ROLLED[3], plTrade.getResourceRollStats());
             }
 
             // basic 4:1 bank trade
             final SOCResourceSet SHEEP_4 = new SOCResourceSet(0, 0, 4, 0, 0, 0);
-            plRes.add(SHEEP_4);
+            pl.addRolledResources(SHEEP_4);
             pl.makeBankTrade(SHEEP_4, ORE_1);
             plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][0][2] += 4;  // SHEEP
             plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][1][1]++;  // ORE
@@ -351,7 +353,7 @@ public class TestSavegame
             // set and use 3:1
             pl.setPortFlag(SOCBoard.MISC_PORT, true);
             final SOCResourceSet WOOD_3 = new SOCResourceSet(0, 0, 0, 0, 3, 0);
-            plRes.add(WOOD_3);
+            pl.addRolledResources(WOOD_3);
             pl.makeBankTrade(WOOD_3, ORE_1);
             plExpectedStats[SOCBoard.MISC_PORT][0][4] += 3;  // WOOD
             plExpectedStats[SOCBoard.MISC_PORT][1][1]++;  // ORE
@@ -359,12 +361,13 @@ public class TestSavegame
             // set and use 2:1
             pl.setPortFlag(SOCBoard.CLAY_PORT, true);
             final SOCResourceSet CLAY_2 = new SOCResourceSet(2, 0, 0, 0, 0, 0);
-            plRes.add(CLAY_2);
+            pl.addRolledResources(CLAY_2);
             pl.makeBankTrade(CLAY_2, ORE_1);
             plExpectedStats[SOCBoard.CLAY_PORT][0][0] += 2;  // CLAY
             plExpectedStats[SOCBoard.CLAY_PORT][1][1]++;  // ORE
 
             TestPlayer.assertTradeStatsEqual(plExpectedStats, pl);
+            assertArrayEquals(RES_ROLLED[0], pl.getResourceRollStats());
         }
 
         File saveFile = testTmpFolder.newFile("stats.game.json");
@@ -390,10 +393,12 @@ public class TestSavegame
         final int[][] PIECE_COUNTS = {PIECES_ALL, PIECES_ALL, PIECES_ALL, PIECES_ALL};
         TestLoadgame.checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
         // check player stats
-        final SOCPlayer plLoaded = ga.getPlayer(0);
+        final SOCPlayer plLoaded = ga.getPlayer(0), plTradeLoaded = ga.getPlayer(3);
         assertEquals(1, plLoaded.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.UNIV));
         TestPlayer.assertTradeStatsEqual(plExpectedStats, plLoaded);
-        TestPlayer.assertTradeStatsEqual(plTradeExpectedStats, ga.getPlayer(3));
+        TestPlayer.assertTradeStatsEqual(plTradeExpectedStats, plTradeLoaded);
+        assertArrayEquals(RES_ROLLED[0], plLoaded.getResourceRollStats());
+        assertArrayEquals(RES_ROLLED[3], plTradeLoaded.getResourceRollStats());
     }
 
     /**

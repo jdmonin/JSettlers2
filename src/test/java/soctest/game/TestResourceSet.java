@@ -25,6 +25,8 @@ import java.util.Arrays;
 
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.server.savegame.SavedGameModel;
+
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -441,6 +443,23 @@ public class TestResourceSet
         rs =  new SOCResourceSet(counts);  // constuctor: array with unknowns
         assertArrayEquals(counts, rs.getAmounts(true));
         assertArrayEquals(new int[]{2, 1, 2, 3, 4}, rs.getAmounts(false));
+    }
+
+    /**
+     * Test {@link SOCResourceSet#setAmounts(soc.game.ResourceSet)}.
+     * @since 2.6.00
+     */
+    @Test
+    public void testSetAmounts()
+    {
+        SOCResourceSet rs = new SOCResourceSet(1, 0, 2, 0, 3, 1);
+        assertArrayEquals(new int[]{1, 0, 2, 0, 3, 1}, rs.getAmounts(true));
+
+        rs.setAmounts(onePerType());
+        assertArrayEquals("from SOCResourceSet", new int[]{1, 1, 1, 1, 1, 0}, rs.getAmounts(true));
+
+        rs.setAmounts(new SavedGameModel.KnownResourceSet(new SOCResourceSet(1, 0, 2, 0, 3, 0)));
+        assertArrayEquals("from other ResourceSet impl", new int[]{1, 0, 2, 0, 3, 0}, rs.getAmounts(true));
     }
 
     /**
