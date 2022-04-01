@@ -474,3 +474,6 @@ licensed CC-BY-SA 3.0, and were retrieved 2019-08-17 from
 https://github.com/qubodup/pastel-tiles (rendered with that repo's `hex.sh` script).
 
 doc/graf/Logo.svg was created and contributed by Ruud Poutsma, (C) 2017.
+
+![SourceForge Community Choice Award badge](doc/graf/sourceforge-oss-community-choice.gif)
+This project is a SourceForge Community Choice Award winner (March 2022).
