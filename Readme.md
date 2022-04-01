@@ -330,8 +330,8 @@ a debug user.)
   (file-based sqlite is another lightweight DB option)
 - Copy and edit `jsserver.properties` (optional)
 - Start JSettlers Server
-- Start http server (optional)
-- Copy `JSettlers.jar` client JAR and `src/site/*.html` to an http-served directory (optional)
+- Start web server (optional)
+- Copy `JSettlers.jar` client JAR and `src/site/*.html` to a web-served directory (optional)
 
 #### Details:
 

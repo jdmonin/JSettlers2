@@ -4,7 +4,7 @@ Project home and source history are at [https://github.com/jdmonin/JSettlers2](h
 Source history for version `1.1.06` and earlier is at [https://github.com/jdmonin/JSettlers1](https://github.com/jdmonin/JSettlers1).
 
 JARs for recent JSettlers versions can be downloaded from
-[https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases) .
+[https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases).
 
 
 ## `3.0.00` (build JX202xxxxx)
@@ -22,7 +22,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- Game window:
 	    - Moving robber: If hex is desert, don't ask "are you sure" when you have an adjacent settlement/city
 	    - Less flicker while resizing window
-	- Use higher-level sound API to improve sound quality on Windows 10
+	- More consistent sound quality on Windows 10
 	- If rejected while connecting to server, show server's version as part of error text
 - Game `*STATS*`: Show player's resource totals given/received with ports, bank, other players
   if client and server are v2.6.00 or newer

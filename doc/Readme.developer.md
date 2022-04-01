@@ -331,7 +331,7 @@ Other scripts like `bin/sql/template/render.py` use python 3, or 2.6 or later.
 
 If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
-file-based local database.
+file-based local database: See "Database Setup" in [Database.md](Database.md).
 
 This project is designed to build with gradle 5.6 or 6.x, or from within an IDE
 like eclipse. Gradle builds output to `build/libs/`.
