@@ -132,7 +132,7 @@ INSERT INTO db_version(from_vers, to_vers, ddl_done, bg_tasks_done)
 
 -- This file is part of the JSettlers project.
 --
---  This file Copyright (C) 2012,2014-2017,2019-2021 Jeremy D Monin (jeremy@nand.net)
+--  This file Copyright (C) 2012,2014-2017,2019-2022 Jeremy D Monin (jeremy@nand.net)
 --  Portions of this file Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
 --
 --  This program is free software: you can redistribute it and/or modify

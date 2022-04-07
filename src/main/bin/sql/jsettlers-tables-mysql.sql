@@ -120,7 +120,7 @@ CREATE TABLE games2_players (
 CREATE TABLE robotparams (
 	robotname VARCHAR(20) not null,
 	maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT,
-	strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag SMALLINT,
+	strategytype INT, starttime TIMESTAMP NULL DEFAULT null, endtime TIMESTAMP NULL DEFAULT null, gameswon INT, gameslost INT, tradeFlag SMALLINT,
 	PRIMARY KEY (robotname)
 	);
 
@@ -132,7 +132,7 @@ INSERT INTO db_version(from_vers, to_vers, ddl_done, bg_tasks_done)
 
 -- This file is part of the JSettlers project.
 --
---  This file Copyright (C) 2012,2014-2017,2019-2021 Jeremy D Monin (jeremy@nand.net)
+--  This file Copyright (C) 2012,2014-2017,2019-2022 Jeremy D Monin (jeremy@nand.net)
 --  Portions of this file Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
 --
 --  This program is free software: you can redistribute it and/or modify

@@ -30,6 +30,10 @@ JARs for recent JSettlers versions can be downloaded from
 	- Client removes unused options before sending new game request
 	- If client requests a new game with unknown game option(s), server replies once with SOCGameOptionInfo messages to mark them as unknown.
 	  Client will now use that info to update options used in New Game dialog.
+- Database:
+	- Setup scripts: mysql:
+	    - Allow SOC user to connect from anywhere (useful for containers)
+	    - Fix `robotparams` table syntax error when server in strict date mode
 - For developers:
 	- Save/load games:
 	    - SavedGameModel:
