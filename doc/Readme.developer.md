@@ -270,7 +270,7 @@ parameters (before, not after, `-jar` or the SOCPlayerClient class name):
 
 ## Setup instructions for JSettlers as an Eclipse project
 
-Written for Eclipse 4.6 and Buildship 3.1, should be applicable to other versions
+Written for Eclipse 4.23 and Buildship 3.1, should be applicable to other versions
 with minor changes. These instructions can be adapted to import JSettlers and
 its `build.gradle` into other IDEs.
 
@@ -294,6 +294,11 @@ its `build.gradle` into other IDEs.
 - Browse to the jsettlers git checkout's top-level directory (containing `build.gradle`)
 - Hit Finish
 - Eclipse should import the project and do an initial build
+    - If you see the error `Unsupported class file major version 61`,
+      your default JDK is too new for that gradle version ([details here](https://docs.gradle.org/current/userguide/compatibility.html)).
+        - Install JDK 8 (JSettlers' current preferred version)
+        - In Eclipse preferences -> Gradle, point it to that JDK's java home
+        - Remove the imported project in Eclipse and import again
 - Project -> Properties
     - Resource:
         - Text file encoding: UTF-8
@@ -1113,10 +1118,10 @@ You will also want this to have this, which disables auto-reindenting:
             Array init: Next line indented
             [X] Keep empty array initializer on one line
 
-            (Control Statements)
-            [X] New line before else in if
-            [X] New line before catch in try
-            [X] New line before finally in try
+            (New Lines) -> In Control Statements
+            [X] Before else in if
+            [X] Before catch in try
+            [X] Before finally in try
             [ ] New line before while in do
             [X] Keep 'else if' on one line
             [ ] (all other options)
@@ -1125,7 +1130,7 @@ You will also want this to have this, which disables auto-reindenting:
             Maximum line width: 120
             [x] Never join already-wrapped lines
 
-            (All other tabs)
+            (All other sections)
             Take defaults
         }
 
