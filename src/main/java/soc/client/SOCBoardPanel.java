@@ -3345,14 +3345,21 @@ import javax.swing.JComponent;
             // being modified as we're drawing them.
             // Happens with foreach loop iteration; wasn't an issue
             // in v1.x.xx with older-java piece enumerations.
-            try
+            for (int tries = 1; tries <= 3; ++tries)
             {
-                Graphics2D graf2D = ibuf.createGraphics();
-                drawBoard(graf2D);  // Do the actual drawing
-                graf2D.dispose();
-            } catch (ConcurrentModificationException cme) {
-                repaint();  // try again soon
-                return;
+                final Graphics2D graf2D = ibuf.createGraphics();
+                    // done within loop to have a known starting state (no transforms, etc)
+                try
+                {
+                    drawBoard(graf2D);  // Do the actual drawing
+                    break;
+                } catch (ConcurrentModificationException cme) {
+                    if (tries == 3)
+                        repaint();  // try again soon
+                          // Meanwhile we'll paint whatever succeeded, to avoid an entire-window blank flash
+                } finally {
+                    graf2D.dispose();
+                }
             }
 
             if (hoverTip.isVisible())
