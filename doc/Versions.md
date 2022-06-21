@@ -13,8 +13,7 @@ JARs for recent JSettlers versions can be downloaded from
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
-## `2.6.00` (build JM2022xxxx)
-- Currently being developed
+## `2.6.00` (build JM20220612)
 - I18N:
 	- Added Polish translation (thank you KotCzarny)
 	- Game option and scenario names can optionally start with a numeric "sort ranking" which is parsed and hidden
