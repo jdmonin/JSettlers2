@@ -15,6 +15,7 @@ JARs for recent JSettlers versions can be downloaded from
 
 ## `2.7.00` (build JM2022xxxx)
 - Currently being developed
+- Game `*STATS*`: Player resource trade stats: If hasn't made trades of a type, show "None" instead of all 0s
 
 
 ## `2.6.00` (build JM20220612)

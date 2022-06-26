@@ -4377,21 +4377,37 @@ public class SOCPlayerInterface extends JFrame
             StringBuilder sb = new StringBuilder();
             for (int ttype = 0; ttype < numTypes; ++ttype)
             {
-                sb.append("* ").append(strings.get(statLabels[ttype])).append(": (");
-                for (int res = 0; res < 5; ++res, ++si)
+                boolean none = true;
+                for (int i = si; i < (si + (2 * 5)); ++i)
+                    if (stats[i] != 0)
+                    {
+                        none = false;
+                        break;
+                    }
+
+                sb.append("* ").append(strings.get(statLabels[ttype]));
+                if (none)
                 {
-                    if (res > 0)
-                        sb.append(", ");
-                    sb.append(stats[si]);
+                    sb.append(": ");
+                    sb.append(strings.get("base.none"));
+                    si += (2 * 5);
+                } else {
+                    sb.append(": (");
+                    for (int res = 0; res < 5; ++res, ++si)
+                    {
+                        if (res > 0)
+                            sb.append(", ");
+                        sb.append(stats[si]);
+                    }
+                    sb.append(") -> (");
+                    for (int res = 0; res < 5; ++res, ++si)
+                    {
+                        if (res > 0)
+                            sb.append(", ");
+                        sb.append(stats[si]);
+                    }
+                    sb.append(')');
                 }
-                sb.append(") -> (");
-                for (int res = 0; res < 5; ++res, ++si)
-                {
-                    if (res > 0)
-                        sb.append(", ");
-                    sb.append(stats[si]);
-                }
-                sb.append(')');
 
                 pi.print(sb.toString());
                 sb.delete(0, sb.length());
