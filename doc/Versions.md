@@ -13,6 +13,9 @@ JARs for recent JSettlers versions can be downloaded from
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
+## `2.6.10` (build JM20220xxx)
+
+
 ## `2.6.00` (build JM20220612)
 - I18N:
 	- Added Polish translation (thank you KotCzarny)
