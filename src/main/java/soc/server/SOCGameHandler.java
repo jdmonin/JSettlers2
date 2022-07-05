@@ -2982,7 +2982,7 @@ public class SOCGameHandler extends GameHandler
 
             /**
              * Update each player's win-loss count for this session.
-             * Tell each player their resource roll totals.
+             * Tell each player their resource roll totals and trade stats.
              * Tell each player how long they've been connected.
              * (Robot players aren't told this, it's not necessary.)
              */
@@ -3012,10 +3012,14 @@ public class SOCGameHandler extends GameHandler
 
                 if (plConn != null)
                 {
-                    if (plConn.getVersion() >= SOCPlayerStats.VERSION_FOR_RES_ROLL)
+                    final int cliVers = plConn.getVersion();
+                    if (cliVers >= SOCPlayerStats.VERSION_FOR_RES_ROLL)
                     {
-                        // Send total resources rolled
+                        // Send player's stats; see also *STATS* command SSMH.processDebugCommand_gameStats
                         srv.messageToPlayer(plConn, gname, pn, new SOCPlayerStats(pl, SOCPlayerStats.STYPE_RES_ROLL));
+                        if (cliVers >= SOCPlayerStats.VERSION_FOR_TRADES)
+                            srv.messageToPlayer(plConn, gname, pn,
+                                new SOCPlayerStats(pl, SOCPlayerStats.STYPE_TRADES));
                     }
 
                     // Send client how long they've been connected

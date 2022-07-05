@@ -14,6 +14,8 @@ JARs for recent JSettlers versions can be downloaded from
 
 
 ## `2.6.10` (build JM20220xxx)
+- Server:
+	- At end of game, also show players their resource trade `*STATS*` if client is v2.6.00 or newer
 
 
 ## `2.6.00` (build JM20220612)
@@ -26,7 +28,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Less flicker while resizing window
 	- More consistent sound quality on Windows 10
 	- If rejected while connecting to server, show server's version as part of error text
-- Game `*STATS*`: Show player's resource totals given/received with ports, bank, other players
+- Game `*STATS*`: Show player's resource trade totals given/received with ports, bank, other players
   if client and server are v2.6.00 or newer
 - Game options:
 	- Client removes unused options before sending new game request
