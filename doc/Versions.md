@@ -15,7 +15,11 @@ JARs for recent JSettlers versions can be downloaded from
 
 ## `2.7.00` (build JM2022xxxx)
 - Currently being developed
-- Game `*STATS*`: Player resource trade stats: If hasn't made trades of a type, show "None" instead of all 0s
+- Client:
+	- Game window:
+	    - `*STATS*`: De-clutter player resource trade stats output
+	        - If hasn't made trades of a type, show "None" instead of all 0s
+	        - 2:1 ports: Show as `4 -> (0, 0, 0, 1, 1)` instead of `(0, 0, 4, 0, 0) -> ...`
 
 
 ## `2.6.00` (build JM20220612)

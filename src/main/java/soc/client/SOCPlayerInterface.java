@@ -4392,14 +4392,21 @@ public class SOCPlayerInterface extends JFrame
                     sb.append(strings.get("base.none"));
                     si += (2 * 5);
                 } else {
-                    sb.append(": (");
-                    for (int res = 0; res < 5; ++res, ++si)
-                    {
-                        if (res > 0)
-                            sb.append(", ");
-                        sb.append(stats[si]);
+                    sb.append(": ");
+                    if ((ttype >= 1) && (ttype <= 5)) {
+                        sb.append(stats[si + ttype - 1]);  // 2:1 port; assume only that element != 0
+                        si += 5;
+                    } else {
+                        sb.append('(');
+                        for (int res = 0; res < 5; ++res, ++si)
+                        {
+                            if (res > 0)
+                                sb.append(", ");
+                            sb.append(stats[si]);
+                        }
+                        sb.append(')');
                     }
-                    sb.append(") -> (");
+                    sb.append(" -> (");
                     for (int res = 0; res < 5; ++res, ++si)
                     {
                         if (res > 0)
