@@ -13,7 +13,7 @@ JARs for recent JSettlers versions can be downloaded from
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
-## `2.6.10` (build JM20220xxx)
+## `2.6.10` (build JM20220705)
 - Server:
 	- At end of game, also show players their resource trade `*STATS*` if client is v2.6.00 or newer
 
