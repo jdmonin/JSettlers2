@@ -6,7 +6,7 @@ When preparing to release a new version, testing should include:
 
 - Before building the JARs to be tested, `git status` should have no untracked or uncommitted changes
     - Run `gradle distCheckSrcDirty` to check that and list any files with such changes
-- `gradle clean test` runs without failures, under gradle 5.6 and also gradle 6.9.x
+- `gradle clean test` runs without failures, under gradle 6.9.x
 - These should print the expected version and build number:
     - `java -jar build/libs/JSettlers-2.*.jar --version`
     - `java -jar build/libs/JSettlersServer-2.*.jar --version`
@@ -1209,7 +1209,7 @@ Start with a recently-created database with latest schema/setup scripts.
 - Board layout generator stability:
     - See `TestBoardLayoutsRounds` in "extraTest" section
 - Build contents and built artifacts:
-    - `gradle dist` runs without errors or unusual warnings, under gradle 5.6 and also gradle 6.9.x
+    - `gradle dist` runs without errors or unusual warnings, under gradle 6.9.x
     - Full jar and server jar manifests should include correct JSettlers version and git commit id:
         - `unzip -q -c build/libs/JSettlers-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`
         - `unzip -q -c build/libs/JSettlersServer-*.jar META-INF/MANIFEST.MF | grep 'Build-Revision\|Implementation-Version'`
