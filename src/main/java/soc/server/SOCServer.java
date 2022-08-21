@@ -733,12 +733,12 @@ public class SOCServer extends Server
     /**
      * If client is newer than this version which is several major versions into the future,
      * treat it as if reporting this version. Helps control range of values for {@link Connection#getVersion()}.
-     * Currently 5999 (v5.0.00 + highest minor and patchlevel: v5.9.99).
+     * Currently 6999 (v6.0.00 + highest minor and patchlevel: v6.9.99).
      * @see #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)
      * @see #CLI_VERSION_MIN
      * @since 2.5.00
      */
-    public static final int CLI_VERSION_MAX_REPORT = 5000 + 999;
+    public static final int CLI_VERSION_MAX_REPORT = 6000 + 999;
 
     /**
      * If game will expire in this or fewer minutes, warn the players. Default is 15.
