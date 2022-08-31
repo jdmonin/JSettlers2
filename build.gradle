@@ -1,4 +1,4 @@
-// JSettlers build script for gradle 5.6 or higher
+// JSettlers build script for gradle 6 or 7
 // See bottom of file for copyright and license information (GPLv3).
 
 apply plugin: 'java'
@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.13.1'
+    testImplementation 'junit:junit:4.13.1'
     implementation 'com.google.code.gson:gson:2.8.6'  // optional at runtime, for savegame feature
         // If version changes, update Readme.developer.md and jsserver.properties.sample
         // Same version is used by v3 branch (dependency of protobuf-java-util)
@@ -48,8 +48,8 @@ sourceSets {
 }
 
 configurations {
-    extraTestCompile.extendsFrom testCompile
-    extraTestRuntime.extendsFrom testRuntime
+    extraTestImplementation.extendsFrom testImplementation
+    extraTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 tasks.withType(JavaCompile) {
@@ -129,8 +129,8 @@ distZip.enabled = false   // dist builds distFullZip
 distTar.enabled = false   // dist builds distSrcTar, distFullTar
 
 task serverJar(type: Jar) {
-    baseName = 'JSettlersServer'
-    version = project.version
+    archiveBaseName = 'JSettlersServer'
+    archiveVersion = project.version
     manifest {
         attributes(
             'Main-Class': 'soc.server.SOCServer',
@@ -157,8 +157,8 @@ task serverJar(type: Jar) {
 }
 
 task fullJar(type: Jar) {
-    baseName = 'JSettlers'
-    version = project.version
+    archiveBaseName = 'JSettlers'
+    archiveVersion = project.version
     manifest {
         attributes(
             'Main-Class': 'soc.client.SOCPlayerClient',
@@ -186,8 +186,8 @@ task fullJar(type: Jar) {
 
 // PropertiesTranslatorEditor utility; not built by default
 task i18neditorJar(type: Jar) {
-    baseName = 'PTE'
-    version = project.i18neditor_version
+    archiveBaseName = 'PTE'
+    archiveVersion = project.i18neditor_version
     manifest {
         attributes(
             'Main-Class': 'net.nand.util.i18n.gui.PTEMain',
@@ -208,7 +208,7 @@ task i18neditorJar(type: Jar) {
 
 // distribution tgzs and zip
 
-ant.defaultexcludes remove: "**/.gitignore"
+//   these include **/.gitignore files (see settings.gradle)
 
 task cleanRemovePyc(type: Delete) {
     outputs.upToDateWhen { false }  // never skip if asked for
@@ -221,15 +221,15 @@ task cleanRemovePyc(type: Delete) {
 // Includes target/lib/ to prevent eclipse ant import error
 FileTree srcTree = fileTree(dir: '.', includes: ['src/**', 'doc/**', 'build.*', 'Readme.*', '*.txt', '.gitignore', 'target/lib/.gitignore'])
 
-// Naming reminder: [baseName]-[appendix]-[version]-[classifier].[extension]
+// Naming reminder: [archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]
 
 // jsettlers-2.x.xx-src.tar.gz
 task distSrcTar(type: Tar) {
     dependsOn cleanRemovePyc
-    baseName = 'jsettlers'
-    classifier = 'src'
+    archiveBaseName = 'jsettlers'
+    archiveClassifier = 'src'
     compression = Compression.GZIP
-    extension = 'tar.gz'
+    archiveExtension = 'tar.gz'
     from srcTree
     into 'jsettlers-' + project.version + '-src/'
 }
@@ -237,10 +237,10 @@ task distSrcTar(type: Tar) {
 // jsettlers-2.x.xx-full.tar.gz
 task distFullTar(type: Tar) {
     dependsOn cleanRemovePyc
-    baseName = 'jsettlers'
-    classifier = 'full'
+    archiveBaseName = 'jsettlers'
+    archiveClassifier = 'full'
     compression = Compression.GZIP
-    extension = 'tar.gz'
+    archiveExtension = 'tar.gz'
     from srcTree, fullJar.outputs.files, serverJar.outputs.files
     into 'jsettlers-' + project.version + '/'
 }
@@ -248,8 +248,8 @@ task distFullTar(type: Tar) {
 // jsettlers-2.x.xx-full.zip
 task distFullZip(type: Zip) {
     dependsOn cleanRemovePyc
-    baseName = 'jsettlers'
-    classifier = 'full'
+    archiveBaseName = 'jsettlers'
+    archiveClassifier = 'full'
     from srcTree, fullJar.outputs.files, serverJar.outputs.files
     into 'jsettlers-' + project.version + '/'
 }
@@ -289,7 +289,7 @@ task distCheckSrcDirty {
 task dist {
     dependsOn distCheckSrcDirty, distSrcTar, distFullTar, distFullZip
     doLast {
-        println "Built for distribution in " + project.distsDir + ":"
+        println "Built for distribution in ${project.buildDir.getName()}/${project.distsDirName}:"
         [distSrcTar, distFullTar, distFullZip].each { dtask -> dtask.outputs.files.each { File file ->
             println file.name
     }}}
