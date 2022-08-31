@@ -260,6 +260,7 @@ parameters (before, not after, `-jar` or the SOCPlayerClient class name):
 
 - `-Djsettlers.locale=es_MX` - Use a different locale
 - `-Djsettlers.debug.traffic=Y` - Print network traffic; see above for details
+- `-Djsettlers.allow.debug=Y` - If client starts a server, allow debug mode user to connect
 - `-Djsettlers.debug.clear_prefs=PI_width,PI_height` - Remove these persistent
   preferences at startup. See SOCPlayerClient PREF_* fields for all name keys.
 - `-Djsettlers.debug.client.features=;6pl;sb;` - Pretend to not support some
@@ -408,7 +409,7 @@ In my IDE's JSettlers project, I've created these debug/run configurations:
 
     Java applications:
         cli-noargs: soc.client.SOCPlayerClient
-            vm arguments: -Djsettlers.debug.traffic=Y
+            vm arguments: -Djsettlers.debug.traffic=Y -Djsettlers.allow.debug=Y
 
         socserver: soc.server.SOCServer
             program arguments: -o N7=t7 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
