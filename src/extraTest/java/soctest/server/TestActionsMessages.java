@@ -2079,8 +2079,11 @@ public class TestActionsMessages
                    + ((clientAsRobot) ? "|true" : "|false") },
                 {"all:SOCGameServerText:", "|text=This game was 2 rounds, and took "},
                 ((othersAsRobot) ? null : new String[]{"p1:SOCPlayerStats:", "|p=1|p=1|p=1|p=1|p=2|p=0"}),
+                ((othersAsRobot) ? null : new String[]{"p1:SOCPlayerStats:", "|p=2|p=10|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0"}),
                 ((othersAsRobot) ? null : new String[]{"p2:SOCPlayerStats:", "|p=1|p=1|p=1|p=1|p=0|p=0"}),
-                ((clientAsRobot) ? null : new String[]{"p3:SOCPlayerStats:", "|p=1|p=1|p=0|p=0|p=2|p=2"})
+                ((othersAsRobot) ? null : new String[]{"p2:SOCPlayerStats:", "|p=2|p=10|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0"}),
+                ((clientAsRobot) ? null : new String[]{"p3:SOCPlayerStats:", "|p=1|p=1|p=0|p=0|p=2|p=2"}),
+                ((clientAsRobot) ? null : new String[]{"p3:SOCPlayerStats:", "|p=2|p=10|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0|p=0"})
             }, false);
 
         /* leave game, check results */
