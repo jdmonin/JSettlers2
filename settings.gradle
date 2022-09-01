@@ -2,6 +2,7 @@
 // See bottom of file for copyright and license information (GPLv3).
 
 org.apache.tools.ant.DirectoryScanner.removeDefaultExclude("**/.gitignore")
+org.apache.tools.ant.DirectoryScanner.addDefaultExclude("**/__pycache__")
 
 
 /*
