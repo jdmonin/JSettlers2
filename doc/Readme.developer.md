@@ -27,7 +27,7 @@
 
 ### Project layout
 
-This project uses gradle 6.x (or IDEs) to build, and
+This project uses gradle 6.x or 7.x (or IDEs) to build, and
 follows the directory structure/layout of a maven/gradle project.
 
 Also see the "Build Setup and Results" section.
@@ -90,8 +90,8 @@ Same coordinates as 4-player classic. Trading ports' hexes are off the edge of t
 ### Development
 
 Coding is done in Java 8 for client compatibility, but should compile cleanly
-in newer JDKs. The build system is gradle 6.x;
-the newest tested version is gradle 6.9.2. Use any IDE you want, including vi.
+in newer JDKs. The build system is gradle 6.x or 7.x;
+the newest tested versions are gradle 6.9.2 and 7.5.1. Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the
 current code (see "Coding Style" below for more details.).
 
@@ -290,7 +290,7 @@ its `build.gradle` into other IDEs.
         - Buildship 3.x runs on JDK 8 or newer, eclipse 4.3 or newer
     - Install
     - If prompted to restart Eclipse, do so
-- Eclipse preferences -> Gradle -> Gradle distribution: Specific gradle version: 6.x (6.4, 6.9.2 are tested)
+- Eclipse preferences -> Gradle -> Gradle distribution: Specific gradle version: 6.x or 7.x (6.9.2, 7.5.1 are tested)
 - Choose File -> Import -> Gradle -> Existing Gradle Project
 - Browse to the jsettlers git checkout's top-level directory (containing `build.gradle`)
 - Hit Finish
@@ -339,7 +339,7 @@ If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
 file-based local database: See "Database Setup" in [Database.md](Database.md).
 
-This project is designed to build with gradle 6.x, or from within an IDE
+This project is designed to build with gradle 6.x or 7.x, or from within an IDE
 like eclipse. Gradle builds output to `build/libs/`.
 
 To quickly run the server and client: In the Package Explorer pane:

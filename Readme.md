@@ -93,7 +93,7 @@ The JSettlers-full.jar file can also run locally as a server, without needing a
 web server. If you're running a LAN game for friends, that Jar is all you need.
 
 To build JSettlers from source, you will need Java JDK 8 or higher, and either
-gradle 6.4 or higher, or an IDE such as Eclipse which understands gradle's format.
+gradle 6.9.x or 7.x, or an IDE such as Eclipse which understands gradle's format.
 See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
 
