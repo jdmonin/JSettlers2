@@ -347,6 +347,13 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      */
     public NewGameOptionsFrame newGameOptsFrame = null;
 
+    /**
+     * Currently showing {@link NewGameOptionsFrame NGOF}s from user clicking "Game Info" button.
+     * Uses Hashtable for thread-safety, in case a non-UI thread might want to update info in such a window.
+     * @since 2.7.00
+     */
+    private final Hashtable<String, NewGameOptionsFrame> gameInfoFrames = new Hashtable<>();
+
     // MainPanel GUI elements:
 
     /**
@@ -1536,8 +1543,13 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             }
 
             // don't overwrite newGameOptsFrame field; this popup is to show an existing game.
-            NewGameOptionsFrame.createAndShow
-                (playerInterfaces.get(gm), this, gm, opts, false, true);
+            final NewGameOptionsFrame ngof = gameInfoFrames.get(gm);
+            if (ngof != null)
+                ngof.toFront();
+            else
+                gameInfoFrames.put(gm, NewGameOptionsFrame.createAndShow
+                    (playerInterfaces.get(gm), this, gm, opts, false, true));
+
             return true;
         }
 
@@ -2385,6 +2397,10 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     {
         if (ngof == newGameOptsFrame)
             newGameOptsFrame = null;
+
+        final String gaName = ngof.getExistingGameName();
+        if (gaName != null)
+            gameInfoFrames.remove(gaName);
     }
 
     public void leaveGame(SOCGame game)

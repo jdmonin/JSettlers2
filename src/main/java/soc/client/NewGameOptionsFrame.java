@@ -157,10 +157,17 @@ import soc.util.Version;
 
     /**
      * Is this NGOF used to set options for a new game, not to show them for an existing one?
-     * If true, {@link #pi} == {@code null}.
+     * If true, {@link #pi} == {@code null} and {@link #existingGameName} == {@code null}.
      * @since 2.0.00
      */
     private final boolean forNewGame;
+
+    /**
+     * Name of existing game, or {@code null} if {@link #forNewGame}.
+     * @see #opts
+     * @since 2.7.00
+     */
+    private final String existingGameName;
 
     /**
      * Is this for display only (shown for an existing game)? If false, dialog is to create a new game.
@@ -182,6 +189,7 @@ import soc.util.Version;
      *
      * @see #readOptsValuesFromControls(boolean)
      * @see #knownOpts
+     * @see #existingGameName
      */
     private final SOCGameOptionSet opts;
 
@@ -301,6 +309,7 @@ import soc.util.Version;
         this.mainDisplay = md;
         SOCPlayerClient cli = md.getClient();
         forNewGame = (gaName == null);
+        existingGameName = gaName;
         this.opts = opts;
         knownOpts = ((forPractice) ? cli.practiceServGameOpts : cli.tcpServGameOpts).knownOpts;
         localPrefs = new HashMap<String, Object>();
@@ -2349,6 +2358,16 @@ import soc.util.Version;
 
         final String scenStr = sb.toString();
         NotifyDialog.createAndShow(md, parent, scenStr, null, true);
+    }
+
+    /**
+     * Get the name of this NGOF's existing game, if purpose isn't to create a new game.
+     * @return existing game's name, or {@code null} if new game
+     * @since 2.7.00
+     */
+    public String getExistingGameName()
+    {
+        return existingGameName;
     }
 
 
