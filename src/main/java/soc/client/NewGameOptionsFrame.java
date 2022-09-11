@@ -27,6 +27,7 @@ import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,6 +47,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -253,7 +255,28 @@ import soc.util.Version;
     /** Cancel button; text is "OK" if {@link #readOnly} */
     private JButton cancel;
     private JTextField gameName;
-    /** msgText is null if readOnly */
+
+    /**
+     * Game info if {@link #pi} != {@code null}, or {@code null} otherwise (including when {@link #readOnly}).
+     * Call {@link #updateGameInfo()} to update contents.
+     * @see #gameInfoUpdateTimer
+     * @see #msgText
+     * @since 2.7.00
+     */
+    private JLabel gameInfo;
+
+    /**
+     * Once per minute, calls {@link #updateGameInfo()}.
+     * Null if {@link #gameInfo} null or if this NGOF was {@link #dispose()}d.
+     * @since 2.7.00
+     */
+    private TimerTask gameInfoUpdateTimer;
+
+    /**
+     * For new games, message/prompt text at top of dialog.
+     * msgText is null if {@link #readOnly}.
+     * @see #gameInfo
+     */
     private JTextField msgText;
 
     // // TODO refactor; these are from connectorprac panel
@@ -457,6 +480,56 @@ import soc.util.Version;
         gbc.weightx = 1;
         gbl.setConstraints(gameName, gbc);
         bp.add(gameName);
+
+        /**
+         * Game Info row for current game, if any
+         */
+        if (pi != null)
+        {
+            final int px2 = 2 * displayScale;
+            gbc.ipadx = px2;
+
+            L = new JLabel(strings.get("pcli.main.game.info") + ":", SwingConstants.LEFT);  // "Game Info:"
+            gbc.gridwidth = 2;
+            gbc.weightx = 0;
+            gbl.setConstraints(L, gbc);
+            bp.add(L);
+
+            final Insets prevIns = gbc.insets;
+            gameInfo = new JLabel();
+            updateGameInfo();
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            gbc.weightx = 1;
+            gbc.insets = new Insets(px2, px2, px2, px2);
+            gbl.setConstraints(gameInfo, gbc);
+            bp.add(gameInfo);
+
+            gbc.ipadx = 0;
+            gbc.insets = prevIns;
+
+            // thin <HR>-type spacer between info and game options
+            JSeparator spacer = new JSeparator();
+            if (! SwingMainDisplay.isOSColorHighContrast())
+                spacer.setBackground(HEADER_LABEL_BG);
+            gbl.setConstraints(spacer, gbc);
+            bp.add(spacer);
+
+            gameInfoUpdateTimer = new TimerTask()
+            {
+                public void run()
+                {
+                    EventQueue.invokeLater(new Runnable()
+                    {
+                        public void run()
+                        {
+                            updateGameInfo();
+                        }
+                    });
+                }
+            };
+            pi.getEventTimer().scheduleAtFixedRate(gameInfoUpdateTimer, 60100, 60100);
+                // just over 60 seconds, to avoid being wrong for 59 of 60 seconds if timing is slightly off
+        }
 
         /**
          * Interface setup: Game Options, user's client preferences, per-game local preferences
@@ -1626,6 +1699,15 @@ import soc.util.Version;
     public void dispose()
     {
         mainDisplay.dialogClosed(this);
+
+        if (gameInfoUpdateTimer != null)
+            try
+            {
+                gameInfoUpdateTimer.cancel();
+                gameInfoUpdateTimer = null;
+            }
+            catch (Throwable th) {}
+
         super.dispose();
     }
 
@@ -2368,6 +2450,32 @@ import soc.util.Version;
     public String getExistingGameName()
     {
         return existingGameName;
+    }
+
+    /**
+     * Use current game data to update the info shown in the "Game Info" row, if shown.
+     * Does nothing if new game or if game data unavailable.
+     * @since 2.7.00
+     */
+    public void updateGameInfo()
+    {
+        if ((gameInfo == null) || (pi == null))
+            return;
+
+        String txt;
+        final SOCGame ga = pi.getGame();
+        final int gaState = ga.getGameState();
+        if (gaState < SOCGame.START1A)
+        {
+            txt = strings.get("game.options.not_started_yet");  // "Not started yet"
+        } else {
+            final int durMinutes =  (ga.getDurationSeconds() + 30) / 60;
+            if (gaState < SOCGame.OVER)
+                txt = strings.get("game.options.started_minutes_ago", durMinutes);  // "Started {0} minutes ago"
+            else
+                txt = strings.get("game.options.finished_minutes", durMinutes);  // "Finished after playing {0} minutes"
+        }
+        gameInfo.setText(txt);
     }
 
 
