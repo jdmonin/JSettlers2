@@ -1376,13 +1376,20 @@ public class MessageHandler
      */
     protected void handleGAMESTATS(SOCGameStats mes)
     {
-        String ga = mes.getGame();
-        int[] scores = mes.getScores();
+        final String gaName = mes.getGame();
+        final int stype = mes.getStatType();
+        final int[] stats = mes.getScores();
+
+        SOCGame ga = client.games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+        SOCDisplaylessPlayerClient.handleGAMESTATS(mes, ga);
 
         // If we're playing in a game, update the scores. (SOCPlayerInterface)
         // This is used to show the true scores, including hidden
         // victory-point cards, at the game's end.
-        client.updateGameEndStats(ga, scores);
+        if (stype == SOCGameStats.TYPE_PLAYERS)
+            client.updateGameEndStats(gaName, stats);
     }
 
     /**

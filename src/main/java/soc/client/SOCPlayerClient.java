@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -422,10 +422,11 @@ public class SOCPlayerClient
 
     /**
      * All the games we're currently playing. Includes networked or hosted games and those on practice server.
-     * Accessed from GUI thread and network {@link MessageHandler} thread.
+     * Accessed from GUI thread and network {@link MessageHandler} thread,
+     * which sometimes directly calls {@code client.games.get(..)}.
      * @see #serverGames
      */
-    protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
+    protected final Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
     /**
      * all announced game names on the remote server, including games which we can't

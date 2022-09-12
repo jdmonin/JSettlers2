@@ -1681,6 +1681,22 @@ public class SOCGameHandler extends GameHandler
             }
         }
 
+        /**
+         * game timing info
+         */
+        if (cliVers >= SOCGameStats.VERSION_FOR_TYPE_TIMING)
+        {
+            // TODO y2038: use long for seconds here & SOCGameStats
+            final int createTime = (int) (gameData.getStartTime().getTime() / 1000);
+            final int finishTime = (gameState >= SOCGame.OVER)
+                ? (createTime + gameData.getDurationSeconds())
+                : 0;
+            final int[] stats =
+                {createTime, (gameState >= SOCGame.START1A) ? 1 : 0, finishTime};
+            srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
+                new SOCGameStats(gameName, SOCGameStats.TYPE_TIMING, stats));
+        }
+
         if ((! gameData.isBoardReset()) || (gameData.getGameState() >= SOCGame.START1A) || (cliVers < 1118))
         {
             /**

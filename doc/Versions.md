@@ -21,6 +21,9 @@ JARs for recent JSettlers versions can be downloaded from
 	        - If hasn't made trades of a type, show "None" instead of all 0s
 	        - 2:1 ports: Show as `4 -> (0, 0, 0, 1, 1)` instead of `(0, 0, 4, 0, 0) -> ...`
 	- Game Info/Options popup: Show game duration and status (not started yet, started, finished)
+- Network/Message traffic:
+	- When client joining game is this version or newer, server sends `SOCGameStats(TYPE_TIMING)`
+	  with info on game duration
 - Code internals:
 	- Gradle 7 compatibility
 

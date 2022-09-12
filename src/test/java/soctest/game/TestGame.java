@@ -151,4 +151,72 @@ public class TestGame
             fail("should have thrown IllegalStateException");
     }
 
+    /**
+     * Test {@link SOCGame#getDurationSeconds()}, {@link SOCGame#setTimeSinceCreated(int)},
+     * and {@link SOCGame#setDurationSecondsFinished(int)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testTimeDurations()
+    {
+        SOCGame ga = new SOCGame("test");
+        assertEquals(SOCGame.NEW, ga.getGameState());
+
+        int duration = ga.getDurationSeconds();
+        assertTrue("getDurationSeconds() < 2", (duration < 2));
+
+        try
+        {
+            ga.setTimeSinceCreated(-1);
+            fail("setTimeSinceCreated(-1) should have thrown IllegalArgumentException");
+        } catch (IllegalArgumentException e) {}
+
+        ga.setTimeSinceCreated(7);
+        assertEquals(7, ga.getDurationSeconds());
+
+        // can setDurationSecondsFinished in gameState OVER or 0, but not earlier states:
+
+        assertEquals(SOCGame.NEW, ga.getGameState());
+        try
+        {
+            ga.setDurationSecondsFinished(-1);
+            fail("setDurationSecondsFinished(..) should have thrown IllegalArgumentException");
+        } catch (IllegalArgumentException e) {}
+        try
+        {
+            ga.setDurationSecondsFinished(0);
+            fail("setDurationSecondsFinished(..) should have thrown IllegalArgumentException");
+        } catch (IllegalArgumentException e) {}
+
+        ga.setDurationSecondsFinished(42);
+        assertEquals(7, ga.getDurationSeconds());
+        ga.setGameState(SOCGame.OVER);
+        assertEquals(42, ga.getDurationSeconds());
+
+        ga = new SOCGame("test2");
+        ga.setGameState(SOCGame.PLAY1);
+
+        ga.setTimeSinceCreated(7);
+        assertEquals(7, ga.getDurationSeconds());
+
+        try
+        {
+            ga.setDurationSecondsFinished(42);
+            fail("setDurationSecondsFinished(..) should have thrown IllegalStateException");
+        } catch (IllegalStateException e) {}
+
+        ga.setGameState(SOCGame.OVER);
+
+        ga.setTimeSinceCreated(11);
+        assertEquals("can still call setTimeSinceCreated at OVER", 11, ga.getDurationSeconds());
+
+        ga.setDurationSecondsFinished(42);
+        assertEquals(42, ga.getDurationSeconds());
+
+        assertTrue(SOCGame.RESET_OLD > SOCGame.OVER);
+        ga.setGameState(SOCGame.RESET_OLD);
+        ga.setDurationSecondsFinished(55);
+        assertEquals(55, ga.getDurationSeconds());
+    }
+
 }

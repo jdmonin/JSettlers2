@@ -2471,9 +2471,9 @@ import soc.util.Version;
         } else {
             final int durMinutes =  (ga.getDurationSeconds() + 30) / 60;
             if (gaState < SOCGame.OVER)
-                txt = strings.get("game.options.started_minutes_ago", durMinutes);  // "Started {0} minutes ago"
+                txt = strings.get("game.options.in_progress_created_minutes", durMinutes);  // "In progress; created {0} minutes ago"
             else
-                txt = strings.get("game.options.finished_minutes", durMinutes);  // "Finished after playing {0} minutes"
+                txt = strings.get("game.options.finished_minutes", durMinutes);  // "Finished after {0} minutes"
         }
         gameInfo.setText(txt);
     }

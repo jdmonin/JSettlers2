@@ -5382,7 +5382,8 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Inform the brain of the final game result at end of game.
+     * Inform the brain of game stats while joining, or the final game result at end of game
+     * (sent as {@link SOCGameStats#TYPE_PLAYERS}).
      * Third-party bots can override this stub to do any work needed.
      * @param message Game stats info message
      * @since 2.5.00

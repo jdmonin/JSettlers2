@@ -1708,6 +1708,7 @@ public class SOCGame implements Serializable, Cloneable
      * Otherwise, its duration at game-over time.
      * @return  Game duration, rounded to the nearest second, or 0 if {@link #getStartTime()} is {@code null}
      * @see #setTimeSinceCreated(int)
+     * @see #setDurationSecondsFinished(int)
      * @since 2.3.00
      */
     public int getDurationSeconds()
@@ -1724,6 +1725,10 @@ public class SOCGame implements Serializable, Cloneable
      * Set how long this game has existed.
      * Overwrites and replaces the times returned by {@link #getStartTime()}
      * and {@link #getDurationSeconds()}.
+     *<P>
+     * If game state &gt;= {@link #OVER}, also sets {@code finalDurationSeconds} field so the age won't increase.
+     * If that field should have a different value, call {@link #setDurationSecondsFinished(int)} afterwards.
+     *
      * @param ageSeconds Game's new age in seconds; can be 0 but not negative
      * @throws IllegalArgumentException if {@code ageSeconds} &lt; 0
      * @since 2.3.00
@@ -1741,6 +1746,28 @@ public class SOCGame implements Serializable, Cloneable
             startTime.setTime(t);
 
         finalDurationSeconds = (gameState >= SOCGame.OVER) ? ageSeconds : 0;
+    }
+
+    /**
+     * For a finished game, update the time returned by {@link #getDurationSeconds()}.
+     * Useful when client joins a game which has already finished.
+     *
+     * @param durSeconds Final duration to set; must be &gt; 0
+     * @throws IllegalStateException if {@link #getGameState()} &lt; {@link #OVER}, but isn't {@link #NEW}
+     *     which is used in a newly created {@code SOCGame} at a joining client.
+     * @throws IllegalArgumentException if {@code durSeconds} &lt;= 0
+     * @see #setTimeSinceCreated(int)
+     * @since 2.7.00
+     */
+    public void setDurationSecondsFinished(final int durSeconds)
+        throws IllegalStateException
+    {
+        if (durSeconds <= 0)
+            throw new IllegalArgumentException("durSeconds");
+        if ((gameState < SOCGame.OVER) && (gameState != NEW))
+            throw new IllegalStateException("Not over: state " + gameState);
+
+        finalDurationSeconds = durSeconds;
     }
 
     /**

@@ -1228,11 +1228,41 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleGAMEMEMBERS(SOCGameMembers mes) {}
 
     /**
-     * handle the "game stats" message; stub.
+     * handle the "game stats" message. Looks up the game and calls
+     * {@link #handleGAMESTATS(SOCGameStats, SOCGame)}.
+     *<P>
      * Instead of overriding this method, {@link SOCRobotClient#treat(SOCMessage)} bypasses it
      * and processes stats in {@link SOCRobotBrain#handleGAMESTATS(SOCGameStats)}.
      */
-    protected void handleGAMESTATS(SOCGameStats mes) {}
+    protected void handleGAMESTATS(SOCGameStats mes)
+    {
+        handleGAMESTATS(mes, games.get(mes.getGame()));
+    }
+
+    /**
+     * Handle the "game stats" message: static version to share with SOCPlayerClient.
+     * Updates timing fields for {@link SOCGameStats#TYPE_TIMING}, otherwise does nothing.
+     * @param mes  Message data
+     * @param ga  Game to update; does nothing if {@code null}
+     * @since 2.7.00
+     */
+    public static final void handleGAMESTATS(final SOCGameStats mes, final SOCGame ga)
+    {
+        if (ga == null)
+            return;
+        if (mes.getStatType() != SOCGameStats.TYPE_TIMING)
+            return;
+
+        final int[] stats = mes.getScores();
+        final int timeStart = stats[0], timeFinish = stats[2],
+            timeNow = (int) (System.currentTimeMillis() / 1000);
+        if (timeStart > timeNow)
+            return;
+
+        ga.setTimeSinceCreated(timeNow - timeStart);
+        if (timeFinish > timeStart)
+            ga.setDurationSecondsFinished(timeFinish - timeStart);
+    }
 
     /**
      * handle the "game text message" message; stub.
