@@ -112,6 +112,7 @@ public class SOCGameStats extends SOCMessage
      * <LI> Finish time (or 0 if not over) in same format as start time
      *</UL>
      * Added in v2.7.00 ({@link #VERSION_FOR_TYPE_TIMING}).
+     * The stats array {@link #getScores()} stores these seconds as long, not int, to avoid y2038 problems.
      *
      * @see #TYPE_PLAYERS
      * @since 2.7.00
@@ -132,8 +133,7 @@ public class SOCGameStats extends SOCMessage
     /**
      * Player scores or other statistic values; see {@link #getScores()}.
      */
-    private final int[] scores;  // TODO y2038: use long to hold TYPE_TIMING seconds
-        // Network interop is OK because it's sent as a string
+    private final long[] scores;
 
     /**
      * For {@link #TYPE_PLAYERS}, where robots are sitting; indexed same as scores. {@code null} for other types.
@@ -148,14 +148,17 @@ public class SOCGameStats extends SOCMessage
      *   {@link soc.game.SOCGame#maxPlayers} - 1,
      *   regardless of number of players in the game
      * @param rb  where robots are sitting; indexed same as scores
-     * @see #SOCGameStats(String, int, int[])
+     * @see #SOCGameStats(String, int, long[])
      */
     public SOCGameStats(String ga, int[] sc, boolean[] rb)
     {
         messageType = GAMESTATS;
         game = ga;
         statType = TYPE_PLAYERS;
-        scores = sc;
+        final long[] sco = new long[sc.length];
+        for (int i = 0; i < sc.length; ++i)
+            sco[i] = sc[i];
+        scores = sco;
         robots = rb;
     }
 
@@ -171,7 +174,7 @@ public class SOCGameStats extends SOCMessage
      * @see #SOCGameStats(String, int[], boolean[])
      * @since 2.7.00
      */
-    public SOCGameStats(String ga, int stype, int[] vals)
+    public SOCGameStats(String ga, int stype, long[] vals)
     {
         if ((stype == TYPE_PLAYERS) || (stype <= 0))
             throw new IllegalArgumentException("stype");
@@ -213,9 +216,13 @@ public class SOCGameStats extends SOCMessage
      *   Vacant seats have a score of 0.
      * <LI> For other stat types like {@link #TYPE_TIMING}, see type javadocs for structure.
      *</UL>
+     * In v2.7.00 and newer, return type is {@code long[]} to hold {@link #TYPE_TIMING}'s seconds (unix time epoch)
+     * without y2038 problems, and to leave room for large values in possible future stat types.
+     * Network interop is OK because the values are sent as strings.
+     *
      * @return the stat values
      */
-    public int[] getScores()
+    public long[] getScores()
     {
         return scores;
     }
@@ -261,8 +268,6 @@ public class SOCGameStats extends SOCMessage
     public static SOCGameStats parseDataStr(String s)
     {
         String ga; // the game name
-        int[] sc; // the scores
-        boolean[] rb; // where robots are sitting, or null if stats type != TYPE_PLAYERS
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -274,6 +279,8 @@ public class SOCGameStats extends SOCMessage
             char ch = tok.charAt(0);
             if (ch == 't')
             {
+                long[] sv;
+
                 ch = tok.charAt(1);
                 if ((ch < '0') || (ch > '9'))
                     return null;
@@ -282,16 +289,18 @@ public class SOCGameStats extends SOCMessage
                     return null;
 
                 final int n = st.countTokens();
-                sc = new int[n];
+                sv = new long[n];
 
                 for (int i = 0; i < n; i++)
-                    sc[i] = Integer.parseInt(st.nextToken());
+                    sv[i] = Long.parseLong(st.nextToken());
 
-                return new SOCGameStats(ga, stype, sc);
+                return new SOCGameStats(ga, stype, sv);
             }
             else if ((ch >= '0') && (ch <= '9'))
             {
                 // stype = TYPE_PLAYERS
+                int[] sc; // the scores
+                boolean[] rb; // where robots are sitting
 
                 final int maxPlayers = (st.countTokens() + 1) / 2;
                 sc = new int[maxPlayers];

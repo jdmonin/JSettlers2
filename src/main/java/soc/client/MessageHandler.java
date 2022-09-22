@@ -1378,7 +1378,6 @@ public class MessageHandler
     {
         final String gaName = mes.getGame();
         final int stype = mes.getStatType();
-        final int[] stats = mes.getScores();
 
         SOCGame ga = client.games.get(gaName);
         if (ga == null)
@@ -1389,7 +1388,7 @@ public class MessageHandler
         // This is used to show the true scores, including hidden
         // victory-point cards, at the game's end.
         if (stype == SOCGameStats.TYPE_PLAYERS)
-            client.updateGameEndStats(gaName, stats);
+            client.updateGameEndStats(gaName, mes.getScores());
     }
 
     /**

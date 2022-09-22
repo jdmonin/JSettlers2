@@ -1253,15 +1253,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (mes.getStatType() != SOCGameStats.TYPE_TIMING)
             return;
 
-        final int[] stats = mes.getScores();
-        final int timeStart = stats[0], timeFinish = stats[2],
-            timeNow = (int) (System.currentTimeMillis() / 1000);
+        final long[] stats = mes.getScores();
+        final long timeStart = stats[0], timeFinish = stats[2],
+            timeNow = System.currentTimeMillis() / 1000;
         if (timeStart > timeNow)
             return;
 
-        ga.setTimeSinceCreated(timeNow - timeStart);
+        ga.setTimeSinceCreated((int) (timeNow - timeStart));
         if (timeFinish > timeStart)
-            ga.setDurationSecondsFinished(timeFinish - timeStart);
+            ga.setDurationSecondsFinished((int) (timeFinish - timeStart));
     }
 
     /**

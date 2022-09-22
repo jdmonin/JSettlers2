@@ -247,6 +247,12 @@ public class TestToCmdToStringParse
                             res.append
                                 (" field " + fName + ": expected " + str(valueExpected) + ", got " + str(valueActual));
                     }
+                    else if ((valueExpected instanceof long[]) && (valueActual instanceof long[]))
+                    {
+                        if (! Arrays.equals((long[]) valueExpected, (long[]) valueActual))
+                            res.append
+                                (" field " + fName + ": expected " + str(valueExpected) + ", got " + str(valueActual));
+                    }
                     else if ((valueExpected instanceof boolean[]) && (valueActual instanceof boolean[]))
                     {
                         if (! Arrays.equals((boolean[]) valueExpected, (boolean[]) valueActual))
@@ -653,7 +659,7 @@ public class TestToCmdToStringParse
         },
         {new SOCGameState("ga", 20), "1025|ga,20", "SOCGameState:game=ga|state=20"},
         {new SOCGameStats("ga", new int[]{10,  4, 3, 2}, new boolean[]{false, true, true, true}), "1061|ga,10,4,3,2,false,true,true,true", "SOCGameStats:game=ga|10|4|3|2|false|true|true|true"},
-        {new SOCGameStats("ga", SOCGameStats.TYPE_TIMING, new int[]{7, 8, 9}), "1061|ga,t2,7,8,9", "SOCGameStats:game=ga|stype=2|7|8|9"},
+        {new SOCGameStats("ga", SOCGameStats.TYPE_TIMING, new long[]{7, 8, 9}), "1061|ga,t2,7,8,9", "SOCGameStats:game=ga|stype=2|7|8|9"},
         // TODO? SOCGamesWithOptions
         {
             new SOCGameTextMsg("ga", SOCGameTextMsg.SERVERNAME, "testp3 built a road, text,may=contain,delimiters"),

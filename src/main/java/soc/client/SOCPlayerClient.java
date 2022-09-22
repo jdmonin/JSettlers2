@@ -854,9 +854,12 @@ public class SOCPlayerClient
      * If we're playing in or observing a game that's just finished, update the scores.
      * This is used to show the true scores, including hidden
      * victory-point cards, at the game's end.
+     * @param game  Game name
+     * @param scores  Each player number's final VP score.
+     *   This is {@code long[]} because of the message format sent from server.
      * @since 1.1.00
      */
-    public void updateGameEndStats(String game, final int[] scores)
+    public void updateGameEndStats(String game, final long[] scores)
     {
         SOCGame ga = games.get(game);
         if (ga == null)
@@ -874,7 +877,7 @@ public class SOCPlayerClient
 
         Map<SOCPlayer, Integer> scoresMap = new HashMap<SOCPlayer, Integer>();
         for (int i=0; i<scores.length; ++i)
-            scoresMap.put(ga.getPlayer(i), Integer.valueOf(scores[i]));
+            scoresMap.put(ga.getPlayer(i), Integer.valueOf((int) scores[i]));
 
         pcl.gameEnded(scoresMap);
     }
