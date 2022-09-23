@@ -106,6 +106,7 @@ public interface MainDisplay
      * let the user know what to change.
      * @return true if OK, false if blank or not ready
      * @see #askStartGameWithOptions(String, boolean, SOCGameOptionSet, Map)
+     * @see SOCPlayerClient#gotPassword
      */
     boolean readValidNicknameAndPassword();
 
@@ -283,6 +284,21 @@ public interface MainDisplay
      * @see PlayerClientListener#messageReceived(String, String)
      */
     void chatMessageReceived(String channelName, String nickname, String message);
+
+    /**
+     * Callback for when a game's timing stats are received from the server.
+     * If a {@link NewGameOptionsFrame} is showing Game Info for a current game,
+     * can update the game info shown there.
+     *
+     * @param gameName  Game name
+     * @param creationTimeSeconds  Time game was created, in same format as {@link System#currentTimeMillis()} / 1000
+     * @param isStarted  True if gameplay has begun
+     * @param durationFinishedSeconds  If game is over, duration in seconds from creation to end of game;
+     *     otherwise 0
+     * @since 2.7.00
+     */
+    void gameTimingStatsReceived
+        (String gameName, long creationTimeSeconds, boolean isStarted, int durationFinishedSeconds);
 
     /**
      * Callback for when a {@link NewGameOptionsFrame} is closed, to clear any reference to it here.

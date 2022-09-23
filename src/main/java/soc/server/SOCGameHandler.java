@@ -1686,14 +1686,7 @@ public class SOCGameHandler extends GameHandler
          */
         if (cliVers >= SOCGameStats.VERSION_FOR_TYPE_TIMING)
         {
-            final long createTime = (gameData.getStartTime().getTime() / 1000);
-            final long finishTime = (gameState >= SOCGame.OVER)
-                ? (createTime + gameData.getDurationSeconds())
-                : 0;
-            final long[] stats =
-                {createTime, (gameState >= SOCGame.START1A) ? 1 : 0, finishTime};
-            srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
-                new SOCGameStats(gameName, SOCGameStats.TYPE_TIMING, stats));
+            sendGameStatsTiming(c, gameData);
         }
 
         if ((! gameData.isBoardReset()) || (gameData.getGameState() >= SOCGame.START1A) || (cliVers < 1118))
@@ -1973,6 +1966,30 @@ public class SOCGameHandler extends GameHandler
                     (c, gaName, SOCServer.PN_OBSERVER,
                      new SOCSimpleAction(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edge, seType));
         }
+    }
+
+    /**
+     * Send a client {@link SOCGameStats}({@link SOCGameStats#TYPE_TIMING TYPE_TIMING}) info about a game.
+     * Assumes client version &gt;= {@link SOCGameStats#VERSION_FOR_TYPE_TIMING}.
+     *
+     * @param c  Client to send to
+     * @param gameData  Game to send timing stats for
+     * @since 2.7.00
+     */
+    /* package */ void sendGameStatsTiming(final Connection c, final SOCGame gameData)
+    {
+        final String gameName = gameData.getName();
+        final int gameState = gameData.getGameState();
+
+        final long timeCreated = (gameData.getStartTime().getTime() / 1000);
+        final long timeFinished = (gameState >= SOCGame.OVER)
+            ? (timeCreated + gameData.getDurationSeconds())
+            : 0;
+        final long[] stats =
+            {timeCreated, (gameState >= SOCGame.START1A) ? 1 : 0, timeFinished};
+
+        srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
+            new SOCGameStats(gameName, SOCGameStats.TYPE_TIMING, stats));
     }
 
     // javadoc inherited from GameHandler

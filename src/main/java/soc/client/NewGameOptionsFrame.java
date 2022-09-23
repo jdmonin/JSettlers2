@@ -79,6 +79,7 @@ import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
+import soc.message.SOCGameStats;
 import soc.message.SOCMessage;
 import soc.util.DataUtils;
 import soc.util.SOCGameList;
@@ -134,6 +135,11 @@ import soc.util.Version;
     /**
      * Game's interface if known, or {@code null} for a new game.
      * Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
+     * Can use {@link SOCPlayerInterface#getGame()} to get info about the game.
+     *<P>
+     * For an alternate source of some limited game info when {@code pi == null},
+     * see {@link #existingGameName} and {@link #gameCreationTimeSeconds}.
+     *
      * @see #localPrefs
      * @see #forNewGame
      * @since 1.2.00
@@ -148,6 +154,13 @@ import soc.util.Version;
 
     /** should this be sent to the remote tcp server, or local practice server? */
     private final boolean forPractice;
+
+    /**
+     * The game's effective server version:
+     * Our own version for practice games, otherwise {@link SOCPlayerClient#sVersion}.
+     * @since 2.7.00
+     */
+    private final int gameVersion;
 
     /**
      * Map of local client preferences for a new or current game.
@@ -170,6 +183,32 @@ import soc.util.Version;
      * @since 2.7.00
      */
     private final String existingGameName;
+
+    /**
+     * For showing Game Info in {@link SwingMainDisplay} about a game we may not be a member of,
+     * its creation time (same format as {@link System#currentTimeMillis()} / 1000).
+     * 0 otherwise.
+     *<P>
+     * Related timing fields: {@link #gameIsStarted}, {@link #gameDurationFinishedSeconds}.
+     * @see #gameTimingStatsReceived(long, boolean, int)
+     * @since 2.7.00
+     */
+    private long gameCreationTimeSeconds;
+
+    /**
+     * For showing Game Info when {@link #gameCreationTimeSeconds} != 0, true if that game has started.
+     * False/unused otherwise.
+     * @see #gameDurationFinishedSeconds
+     * @since 2.7.00
+     */
+    private boolean gameIsStarted;
+
+    /**
+     * For showing Game Info when {@link #gameCreationTimeSeconds} != 0, and that game has finished,
+     * its duration in seconds. 0 otherwise.
+     * @since 2.7.00
+     */
+    private int gameDurationFinishedSeconds;
 
     /**
      * Is this for display only (shown for an existing game)? If false, dialog is to create a new game.
@@ -296,6 +335,10 @@ import soc.util.Version;
      *<P>
      * See also convenience method
      * {@link #createAndShow(SOCPlayerInterface, MainDisplay, String, SOCGameOptionSet, boolean, boolean)}.
+     *<P>
+     * If showing info for a current game but {@code pi == null},
+     * may call {@link MainDisplay#readValidNicknameAndPassword()}
+     * because client must auth before sending {@link SOCGameStats} request.
      *
      * @param pi  Interface of existing game, or {@code null} for a new game.
      *     Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
@@ -338,6 +381,8 @@ import soc.util.Version;
         localPrefs = new HashMap<String, Object>();
         this.forPractice = forPractice;
         this.readOnly = readOnly;
+        gameVersion = (forPractice) ? Version.versionNumber() : cli.sVersion;
+
         if ((opts != null) && (opts == knownOpts))
             throw new IllegalArgumentException("opts == knownOpts");
 
@@ -387,6 +432,11 @@ import soc.util.Version;
      * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
      * See {@link #NewGameOptionsFrame(SOCPlayerInterface, MainDisplay, String, SOCGameOptionSet, boolean, boolean) constructor}
      * for notes about <tt>opts</tt> and other parameters.
+     *<P>
+     * If showing info for a current game but {@code pi == null},
+     * may call {@link MainDisplay#readValidNicknameAndPassword()}
+     * because client must auth before sending {@link SOCGameStats} request.
+     *
      * @param pi  Interface of existing game, or {@code null} for a new game; see constructor
      * @param gaName  Name of existing game, or {@code null} to show options for a new game;
      *     see constructor for details
@@ -484,51 +534,49 @@ import soc.util.Version;
         /**
          * Game Info row for current game, if any
          */
-        if (pi != null)
+        if (! forNewGame)
         {
-            final int px2 = 2 * displayScale;
-            gbc.ipadx = px2;
-
-            L = new JLabel(strings.get("pcli.main.game.info") + ":", SwingConstants.LEFT);  // "Game Info:"
-            gbc.gridwidth = 2;
-            gbc.weightx = 0;
-            gbl.setConstraints(L, gbc);
-            bp.add(L);
-
-            final Insets prevIns = gbc.insets;
-            gameInfo = new JLabel();
-            updateGameInfo();
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
-            gbc.weightx = 1;
-            gbc.insets = new Insets(px2, px2, px2, px2);
-            gbl.setConstraints(gameInfo, gbc);
-            bp.add(gameInfo);
-
-            gbc.ipadx = 0;
-            gbc.insets = prevIns;
-
-            // thin <HR>-type spacer between info and game options
-            JSeparator spacer = new JSeparator();
-            if (! SwingMainDisplay.isOSColorHighContrast())
-                spacer.setBackground(HEADER_LABEL_BG);
-            gbl.setConstraints(spacer, gbc);
-            bp.add(spacer);
-
-            gameInfoUpdateTimer = new TimerTask()
+            final SOCPlayerClient pcli = mainDisplay.getClient();
+            final boolean hasGameInfoAlready = (pi != null);
+            if (hasGameInfoAlready || (pcli.sVersion >= SOCGameStats.VERSION_FOR_TYPE_TIMING))
             {
-                public void run()
-                {
-                    EventQueue.invokeLater(new Runnable()
-                    {
-                        public void run()
-                        {
-                            updateGameInfo();
-                        }
-                    });
-                }
-            };
-            pi.getEventTimer().scheduleAtFixedRate(gameInfoUpdateTimer, 60100, 60100);
-                // just over 60 seconds, to avoid being wrong for 59 of 60 seconds if timing is slightly off
+                final int px2 = 2 * displayScale;
+                gbc.ipadx = px2;
+
+                L = new JLabel(strings.get("pcli.main.game.info") + ":", SwingConstants.LEFT);  // "Game Info:"
+                gbc.gridwidth = 2;
+                gbc.weightx = 0;
+                gbl.setConstraints(L, gbc);
+                bp.add(L);
+
+                final Insets prevIns = gbc.insets;
+                gameInfo = new JLabel();
+                if (hasGameInfoAlready)
+                    updateGameInfo();
+                else if (! (pcli.gotPassword || mainDisplay.readValidNicknameAndPassword()))
+                    gameInfo.setText(strings.get("game.options.must_enter_nickname_to_check"));  // "Must enter a nickname to check status"
+                gbc.gridwidth = GridBagConstraints.REMAINDER;
+                gbc.weightx = 1;
+                gbc.insets = new Insets(px2, px2, px2, px2);
+                gbl.setConstraints(gameInfo, gbc);
+                bp.add(gameInfo);
+
+                gbc.ipadx = 0;
+                gbc.insets = prevIns;
+
+                // thin <HR>-type spacer between info and game options
+                JSeparator spacer = new JSeparator();
+                if (! SwingMainDisplay.isOSColorHighContrast())
+                    spacer.setBackground(HEADER_LABEL_BG);
+                gbl.setConstraints(spacer, gbc);
+                bp.add(spacer);
+
+                if (hasGameInfoAlready)
+                    initGameInfoUpdateTimer(true);
+                // else
+                    // SwingMainDisplay has asked server for game info on our behalf,
+                    // and will soon call gameTimingStatsReceived(..)
+            }
         }
 
         /**
@@ -598,6 +646,35 @@ import soc.util.Version;
         // Final assembly setup
         bp.validate();
         add(bp, BorderLayout.CENTER);
+    }
+
+    /**
+     * Start a timer to show the game's increasing age once per minute.
+     * If that timer's already started, does nothing.
+     * @param initialDelayMinute  If true, wait 1 minute before the first call to {@link #updateGameInfo()}.
+     * @since 2.7.00
+     */
+    private void initGameInfoUpdateTimer(final boolean initialDelayMinute)
+    {
+        if (gameInfoUpdateTimer != null)
+            return;
+
+        gameInfoUpdateTimer = new TimerTask()
+        {
+            public void run()
+            {
+                EventQueue.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        updateGameInfo();
+                    }
+                });
+            }
+        };
+
+        mainDisplay.getEventTimer().scheduleAtFixedRate(gameInfoUpdateTimer, initialDelayMinute ? 60100 : 0, 60100);
+            // just over 60 seconds, to avoid being wrong for 59 of 60 seconds if timing is slightly off
     }
 
     /**
@@ -2453,28 +2530,71 @@ import soc.util.Version;
     }
 
     /**
+     * Callback for when a game's timing stats are received from the server.
+     * Shows that info and, if {@code isStarted} but game not over, starts a timer to
+     * show the game's increasing age once per minute.
+     *
+     * @param creationTimeSeconds  Time game was created,
+     *     in same format as {@link System#currentTimeMillis()} / 1000; not 0
+     * @param isStarted  True if gameplay has began
+     * @param durationFinishedSeconds  If game is over, duration in seconds from creation to end of game;
+     *     otherwise 0
+     * @since 2.7.00
+     */
+    public void gameTimingStatsReceived
+        (final long creationTimeSeconds, final boolean isStarted, final int durationFinishedSeconds)
+    {
+        gameCreationTimeSeconds = creationTimeSeconds;
+        gameIsStarted = isStarted;
+        gameDurationFinishedSeconds = durationFinishedSeconds;
+
+        if (isStarted && (durationFinishedSeconds == 0))
+            initGameInfoUpdateTimer(false);
+        else
+            updateGameInfo();
+    }
+
+    /**
      * Use current game data to update the info shown in the "Game Info" row, if shown.
      * Does nothing if new game or if game data unavailable.
      * @since 2.7.00
      */
     public void updateGameInfo()
     {
-        if ((gameInfo == null) || (pi == null))
+        if ((gameInfo == null) || ((pi == null) && (gameCreationTimeSeconds == 0)))
             return;
 
         String txt;
-        final SOCGame ga = pi.getGame();
-        final int gaState = ga.getGameState();
-        if (gaState < SOCGame.START1A)
+        final SOCGame ga = (gameCreationTimeSeconds == 0) ? pi.getGame() : null;
+        final int gaState = (ga != null) ? ga.getGameState() : 0;
+        if ((gaState < SOCGame.START1A) && ! gameIsStarted)
         {
             txt = strings.get("game.options.not_started_yet");  // "Not started yet"
         } else {
-            final int durMinutes =  (ga.getDurationSeconds() + 30) / 60;
-            if (gaState < SOCGame.OVER)
-                txt = strings.get("game.options.in_progress_created_minutes", durMinutes);  // "In progress; created {0} minutes ago"
-            else
-                txt = strings.get("game.options.finished_minutes", durMinutes);  // "Finished after {0} minutes"
+            final boolean serverSendsTiming = (gameVersion >= SOCGameStats.VERSION_FOR_TYPE_TIMING);
+            final boolean isGameOver = (ga != null)
+                ? (gaState >= SOCGame.OVER)
+                : (gameDurationFinishedSeconds != 0);
+            if (isGameOver)
+            {
+                final int durSeconds = (ga != null) ? ga.getDurationSeconds() : gameDurationFinishedSeconds,
+                    durMinutes = (durSeconds + 30) / 60;
+                txt = (serverSendsTiming)
+                    ? strings.get("game.options.finished_minutes", durMinutes)  // "Finished after {0} minutes"
+                    : strings.get("game.options.finished");  // "Finished"
+            } else {
+                final int durSeconds = (ga != null)
+                    ? ga.getDurationSeconds()
+                    : (int) ((System.currentTimeMillis() / 1000) - gameCreationTimeSeconds),
+                durMinutes = (durSeconds + 30) / 60;
+                txt = strings.get
+                    ((serverSendsTiming)
+                        ? "game.options.in_progress_created_minutes"  // "In progress; created {0} minutes ago"
+                        : "game.options.in_progress_joined_minutes"   // "In progress; joined {0} minutes ago"
+                     , durMinutes);
+            }
         }
+
         gameInfo.setText(txt);
     }
 

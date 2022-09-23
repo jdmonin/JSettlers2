@@ -62,19 +62,13 @@ public class TestSOCGameStats
             fail("Constructor(-1) should have thrown IllegalArgumentException");
         } catch (IllegalArgumentException e) {}
 
-        try
-        {
-            @SuppressWarnings("unused")
-            SOCGameStats msg = new SOCGameStats("ga", SOCGameStats.TYPE_TIMING, null);
-            fail("Constructor(null) should have thrown IllegalArgumentException");
-        } catch (IllegalArgumentException e) {}
+        final SOCGameStats msgNull = new SOCGameStats("ga", SOCGameStats.TYPE_TIMING, null);
+        assertEquals(SOCGameStats.TYPE_TIMING, msgNull.getStatType());
+        assertArrayEquals(new long[]{}, msgNull.getScores());
 
-        try
-        {
-            @SuppressWarnings("unused")
-            SOCGameStats msg = new SOCGameStats("ga", SOCGameStats.TYPE_TIMING, new long[]{});
-            fail("Constructor(empty[]) should have thrown IllegalArgumentException");
-        } catch (IllegalArgumentException e) {}
+        final SOCGameStats msgEmpty = new SOCGameStats("ga", SOCGameStats.TYPE_TIMING, new long[]{});
+        assertEquals(SOCGameStats.TYPE_TIMING, msgEmpty.getStatType());
+        assertArrayEquals(new long[]{}, msgEmpty.getScores());
 
         SOCGameStats msg = new SOCGameStats("ga", SOCGameStats.TYPE_TIMING, LONGS_123);
         assertEquals(SOCGameStats.TYPE_TIMING, msg.getStatType());

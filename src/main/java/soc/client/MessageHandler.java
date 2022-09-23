@@ -1235,7 +1235,8 @@ public class MessageHandler
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
         throws IllegalStateException
     {
-        client.gotPassword = true;
+        if (! isPractice)
+            client.gotPassword = true;
 
         final SOCGameOptionSet knownOpts =
             ((isPractice) ? client.practiceServGameOpts : client.tcpServGameOpts).knownOpts;
@@ -1380,15 +1381,36 @@ public class MessageHandler
         final int stype = mes.getStatType();
 
         SOCGame ga = client.games.get(gaName);
-        if (ga == null)
-            return;  // Not one of our games
-        SOCDisplaylessPlayerClient.handleGAMESTATS(mes, ga);
+        if (ga != null)
+            SOCDisplaylessPlayerClient.handleGAMESTATS(mes, ga);
 
-        // If we're playing in a game, update the scores. (SOCPlayerInterface)
-        // This is used to show the true scores, including hidden
-        // victory-point cards, at the game's end.
-        if (stype == SOCGameStats.TYPE_PLAYERS)
-            client.updateGameEndStats(gaName, mes.getScores());
+        switch (stype)
+        {
+        case SOCGameStats.TYPE_PLAYERS:
+            // If we're playing in a game, update the scores. (SOCPlayerInterface)
+            // This is used to show the true scores, including hidden
+            // victory-point cards, at the game's end.
+            if (ga != null)
+                client.updateGameEndStats(gaName, mes.getScores());
+            break;
+
+        case SOCGameStats.TYPE_TIMING:
+            {
+                // similar logic is in SOCDisplaylessPlayerClient.handleGAMESTATS
+
+                final long[] stats = mes.getScores();
+                final long timeCreated = stats[0], timeFinished = stats[2],
+                    timeNow = System.currentTimeMillis() / 1000;
+                if (timeCreated > timeNow)
+                    return;
+                final int durationFinishedSeconds =
+                    (timeFinished > timeCreated) ? ((int) (timeFinished - timeCreated)) : 0;
+
+                client.getMainDisplay().gameTimingStatsReceived
+                    (gaName, timeCreated, (stats[1] == 1), durationFinishedSeconds);
+                break;
+            }
+        }
     }
 
     /**

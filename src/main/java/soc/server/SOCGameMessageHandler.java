@@ -3,7 +3,7 @@
  * This file Copyright (C) 2016 Alessandro D'Ottavio
  * Some contents were formerly part of SOCServer.java and SOCGameHandler.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -356,6 +356,14 @@ public class SOCGameMessageHandler
          */
         case SOCMessage.SETSPECIALITEM:
             handleSETSPECIALITEM(game, connection, (SOCSetSpecialItem) message);
+            break;
+
+        /**
+         * Game stats request.
+         * Added 2022-09-22 for v2.7.00.
+         */
+        case SOCMessage.GAMESTATS:
+            handleGAMESTATS(game, connection, (SOCGameStats) message);
             break;
 
         /**
@@ -3698,6 +3706,25 @@ public class SOCGameMessageHandler
                 (c, gaName, (pn >= 0) ? pn : SOCServer.PN_REPLY_TO_UNDETERMINED,
                  new SOCSetSpecialItem
                      (gaName, SOCSetSpecialItem.OP_DECLINE, typeKey, gi, pi, mes.playerNumber));
+    }
+
+    /**
+     * Handle a game stats info request.
+     * Currently calls {@link SOCGameHandler#sendGameStatsTiming(Connection, SOCGame)}
+     * for {@link SOCGameStats#TYPE_TIMING}, ignores any other type.
+     *
+     * @param ga  Game data
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 2.7.00
+     */
+    private void handleGAMESTATS(final SOCGame ga, final Connection c, final SOCGameStats mes)
+    {
+        final int statType = mes.getStatType();
+        if (statType != SOCGameStats.TYPE_TIMING)
+            return;  // ignore if type unknown; known TYPE_PLAYERS is never sent from client
+
+        handler.sendGameStatsTiming(c, ga);
     }
 
 }

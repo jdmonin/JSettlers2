@@ -326,6 +326,7 @@ public class SOCPlayerClient
 
     /**
      *  Server version number for remote server, sent soon after connect, 0 if no server, or -1 if version unknown.
+     *  Use {@link #getServerVersion(SOCGame)} instead to check the effective version of a specific game.
      *  A local practice server's version is always {@link Version#versionNumber()}, not {@code sVersion},
      *  so always check {@link SOCGame#isPractice} before checking this field.
      * @since 1.1.00
@@ -389,7 +390,9 @@ public class SOCPlayerClient
     protected String password = null;
 
     /**
-     * true if we've stored the {@link #password} and the server's replied that it's correct.
+     * True if we've successfully authenticated: Stored the {@link #password} if any, and the server's replied that our
+     * auth request or join game request with nickname/password was correct.
+     * When true, no need to send the password again in later join game/join channel requests.
      * @see #isNGOFWaitingForAuthStatus
      */
     protected boolean gotPassword;

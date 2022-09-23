@@ -29,6 +29,7 @@ import soc.game.SOCPlayer;  // javadocs only
 /**
  * This message from server contains stats about a game; a few game stat types are defined here.
  * Or from client, a request to server for a specific type of stats about a game.
+ * If stat type is unknown or game doesn't exist, server ignores client's request.
  *
  *<H3>Message sequence for {@link #TYPE_PLAYERS}:</H3>
  *
@@ -66,7 +67,7 @@ import soc.game.SOCPlayer;  // javadocs only
  * Can be sent from server in response to client request, or when client is joining a game.
  *
  *<UL>
- *<LI> Optionally: Client sends <tt>SOCGameStats(gameName, {@link #TYPE_TIMING})</tt>
+ *<LI> Optionally: Client sends <tt>SOCGameStats(gameName, {@link #TYPE_TIMING}, {})</tt>
  *<LI> Server sends client <tt>SOCGameStats(gameName, {@link #TYPE_TIMING}, stats[])</tt><BR>
  *     When receiving this, client should use data in {@code stats[]}
  *     (see {@link #TYPE_TIMING} javadoc) to call {@link SOCGame#setTimeSinceCreated(int)}
@@ -168,9 +169,9 @@ public class SOCGameStats extends SOCMessage
      * @param ga  the name of the game
      * @param stype  the stat type, such as {@link #TYPE_TIMING};
      *     not {@link #TYPE_PLAYERS} which uses a different constructor
-     * @param vals  the stat values; length varies by type
-     * @throws IllegalArgumentException if {@code vals} is {@code null} or empty,
-     *     or if {@code stype} &lt;= 0 or is {@link #TYPE_PLAYERS}
+     * @param vals  the stat values; length varies by type. When sent from client, can be null or empty.
+     *     Constructor makes an empty array if {@code null}.
+     * @throws IllegalArgumentException if {@code stype} &lt;= 0 or is {@link #TYPE_PLAYERS}
      * @see #SOCGameStats(String, int[], boolean[])
      * @since 2.7.00
      */
@@ -178,8 +179,8 @@ public class SOCGameStats extends SOCMessage
     {
         if ((stype == TYPE_PLAYERS) || (stype <= 0))
             throw new IllegalArgumentException("stype");
-        if ((vals == null) || (vals.length == 0))
-            throw new IllegalArgumentException("vals");
+        if (vals == null)
+            vals = new long[0];
 
         messageType = GAMESTATS;
         game = ga;
@@ -209,6 +210,7 @@ public class SOCGameStats extends SOCMessage
 
     /**
      * Get the stat values.
+     * When set from client to server, might be empty (but not null).
      *<UL>
      * <LI> For {@link #TYPE_PLAYERS} these are the player scores,
      *   always indexed 0 to {@link soc.game.SOCGame#maxPlayers} - 1,
