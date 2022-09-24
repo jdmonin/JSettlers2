@@ -1912,8 +1912,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             // All done, present the options window frame
             if ((opts.newGameOpts == null) && (opts.knownOpts != null))
                 opts.newGameOpts = new SOCGameOptionSet(opts.knownOpts, true);
-            newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (null, this, null, opts.newGameOpts, forPracticeServer, false);
+            newGameOptsFrame = showGameOptions(null, opts.newGameOpts, forPracticeServer);
 
             return;  // <--- Early return: Show options to user ----
         }
@@ -1986,19 +1985,27 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     }
 
     /**
-     * Show Game Info {@link NewGameOptionsFrame} for an existing game and add it to {@link #gameInfoFrames}.
-     * Asks server for timing info/status by sending {@link SOCGameStats}, if we've auth'd and server is new enough.
+     * Create a blank "New Game" {@link NewGameOptionsFrame} to make a new game, or
+     * create a Game Info NGOF for an existing game and add it to {@link #gameInfoFrames}.
+     * Calls {@link NewGameOptionsFrame#createAndShow(SOCPlayerInterface, MainDisplay, String, SOCGameOptionSet, boolean, boolean)}.
+     * When called for an existing game, asks server for timing info/status by sending {@link SOCGameStats}
+     * if we've auth'd and server is new enough.
      *
-     * @param gaName  Name of existing game; not {@code null}
+     * @param gaName  Name of existing game, or {@code null} for a new game
      * @param gameOpts  Game's options, or {@code null} if server too old to support them
      * @param forPracticeServer  True if game is on {@link ClientNetwork#practiceServer}, not a TCP server
+     * @return the new NGOF
      * @since 2.7.00
      */
-    private void showGameOptions
+    private NewGameOptionsFrame showGameOptions
         (final String gaName, final SOCGameOptionSet gameOpts, final boolean forPracticeServer)
     {
+        final boolean isNew = (gaName == null);
         final NewGameOptionsFrame ngof = NewGameOptionsFrame.createAndShow
-            (playerInterfaces.get(gaName), this, gaName, gameOpts, forPracticeServer, true);
+            (isNew ? null : playerInterfaces.get(gaName), this, gaName, gameOpts, forPracticeServer, ! isNew);
+        if (isNew)
+            return ngof; // <--- Early return: No existing game ---
+
         gameInfoFrames.put(gaName, ngof);
 
         if ((! forPracticeServer)
@@ -2008,7 +2015,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             if (! client.gotPassword)
             {
                 if (! readValidNicknameAndPassword())
-                    return;  // <--- Early return: Can't auth, so can't send SOCGameStats ---
+                    return ngof;  // <--- Early return: Can't auth, so can't send SOCGameStats ---
 
                 net.putNet(new SOCAuthRequest
                     (SOCAuthRequest.ROLE_GAME_PLAYER, client.getNickname(false), client.password,
@@ -2020,6 +2027,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
             net.putNet(new SOCGameStats(gaName, SOCGameStats.TYPE_TIMING, null).toCmd());
         }
+
+        return ngof;
     }
 
     /**
@@ -2539,8 +2548,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
         if ((opts.newGameOpts == null) && (opts.knownOpts != null))
             opts.newGameOpts = new SOCGameOptionSet(opts.knownOpts, true);
-        newGameOptsFrame = NewGameOptionsFrame.createAndShow
-            (null, SwingMainDisplay.this, (String) null, opts.newGameOpts, isPractice, false);
+        newGameOptsFrame = showGameOptions(null, opts.newGameOpts, isPractice);
     }
 
     public void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow)
@@ -2567,7 +2575,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 final SOCGameOptionSet gameOpts = client.serverGames.parseGameOptions(gameInfoWaiting);
                 if (! isPractice)
                     client.checkGameoptsForUnknownScenario(gameOpts);
-                showGameOptions(gameInfoWaiting, gameOpts, isPractice);  // calls NewGameOptionsFrame.createAndShow
+                showGameOptions(gameInfoWaiting, gameOpts, isPractice);
             }
             else if (newGameWaiting)
             {
@@ -2577,8 +2585,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                     if ((opts.newGameOpts == null) && (opts.knownOpts != null))
                         opts.newGameOpts = new SOCGameOptionSet(opts.knownOpts, true);
                 }
-                newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (null, SwingMainDisplay.this, (String) null, opts.newGameOpts, isPractice, false);
+                newGameOptsFrame = showGameOptions(null, opts.newGameOpts, isPractice);
             }
         }
     }
