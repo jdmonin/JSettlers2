@@ -2580,7 +2580,7 @@ import soc.util.Version;
                 final int durSeconds = (ga != null) ? ga.getDurationSeconds() : gameDurationFinishedSeconds,
                     durMinutes = (durSeconds + 30) / 60;
                 txt = (serverSendsTiming)
-                    ? strings.get("game.options.finished_minutes", durMinutes)  // "Finished after {0} minutes"
+                    ? strings.get("game.options.finished_minutes", durMinutes)  // "Finished after playing {0} minutes"
                     : strings.get("game.options.finished");  // "Finished"
             } else {
                 final int durSeconds = (ga != null)
