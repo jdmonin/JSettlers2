@@ -154,6 +154,7 @@ public class TestGame
     /**
      * Test {@link SOCGame#getDurationSeconds()}, {@link SOCGame#setTimeSinceCreated(int)},
      * and {@link SOCGame#setDurationSecondsFinished(int)}.
+     * @see soctest.server.savegame.TestLoadgame#checkReloaded_ClassicBotturn(soc.server.savegame.SavedGameModel)
      * @since 2.7.00
      */
     @Test

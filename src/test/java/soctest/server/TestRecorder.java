@@ -54,6 +54,7 @@ import soc.game.SOCTradeOffer;
 import soc.message.SOCBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCGameServerText;
+import soc.message.SOCGameStats;  // for javadocs only
 import soc.message.SOCNewGame;
 import soc.message.SOCNewGameWithOptions;
 import soc.message.SOCVersion;
@@ -1083,6 +1084,8 @@ public class TestRecorder
      * <LI> Buy a dev card: Some messages sent to 1 player, or all but 1
      * <LI> Choose and move robber, steal: Some messages sent to all but 2 players
      *</UL>
+     * Also checks some basic info sent from server to client,
+     * like {@link SOCGameStats}({@link SOCGameStats#TYPE_TIMING TYPE_TIMING}).
      *<P>
      * Optionally saves all generated log records for further use.
      *
@@ -1094,6 +1097,7 @@ public class TestRecorder
      *     at end of test. If false, caller must do so using the returned {@link SOCGame#getName()}.
      * @return the game created, for convenience
      * @throws IOException if game artifact file can't be loaded
+     * @see soctest.server.savegame.TestLoadgame#checkReloaded_ClassicBotturn(SavedGameModel)
      */
     public static SOCGame testLoadAndBasicSequences
         (final RecordingSOCServer server, final String clientName,
@@ -1106,6 +1110,13 @@ public class TestRecorder
         final SOCGame ga = objs.gameAtServer;
         final SOCPlayer cliPl = objs.clientPlayer;
         final Vector<EventEntry> records = objs.records;
+
+        /* check SOCGameStats(TYPE_TIMING) sent from server to client */
+        int dur = ga.getDurationSeconds(), secondsFromExpected = Math.abs(dur - 1096);
+        assertTrue("server: ga.getDurationSeconds() is ~ 1096 (actual " + dur + ')', secondsFromExpected < 3);
+        dur = tcli.getGame(ga.getName()).getDurationSeconds();
+        secondsFromExpected = Math.abs(dur - 1096);
+        assertTrue("client: ga.getDurationSeconds() is ~ 1096 (actual " + dur + ')', secondsFromExpected < 3);
 
         /* sequence recording: build road */
 

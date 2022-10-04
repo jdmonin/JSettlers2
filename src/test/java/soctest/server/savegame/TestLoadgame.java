@@ -319,6 +319,7 @@ public class TestLoadgame
      * Check a loaded game model to see if it has same known data as savegame artifact {@code "classic-botturn.game.json"}.
      * @param sgm  Loaded game with contents of {@code "classic-botturn"}; not null
      * @see #checkReloaded_BadFieldContents(SavedGameModel, boolean)
+     * @see soctest.server.TestRecorder#testLoadAndBasicSequences(soc.extra.server.RecordingSOCServer, String, List, boolean)
      */
     static void checkReloaded_ClassicBotturn(final SavedGameModel sgm)
     {
@@ -333,6 +334,9 @@ public class TestLoadgame
         assertEquals(9, ga.getCurrentDice());
         assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
         assertEquals("gamestate", SOCGame.LOADING, ga.getGameState());
+        final int dur = ga.getDurationSeconds(), secondsFromExpected = Math.abs(dur - 49);
+        assertTrue("ga.getDurationSeconds() is ~ 49 (actual " + dur + ')', secondsFromExpected < 3);
+
         assertEquals("BC=t4,N7=t7,PL=4,RD=f", sgm.gameOptions);
         {
             final SOCGameOptionSet opts = ga.getGameOptions();
@@ -430,6 +434,8 @@ public class TestLoadgame
 
         assertEquals("game name", "classic", sgm.gameName);
         assertEquals("gamestate", SOCGame.OVER, sgm.gameState);
+        final int dur = ga.getDurationSeconds(), secondsFromExpected = Math.abs(dur - 471);
+        assertTrue("ga.getDurationSeconds() is ~ 471 (actual " + dur + ')', secondsFromExpected < 3);
 
         sgm.resumePlay(true);
         assertEquals("gamestate", SOCGame.OVER, ga.getGameState());
@@ -646,6 +652,8 @@ public class TestLoadgame
         assertEquals("game name", "devcard-stats", sgm.gameName);
         assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
         assertEquals(4, ga.maxPlayers);
+        final int dur = ga.getDurationSeconds(), secondsFromExpected = Math.abs(dur - 163);
+        assertTrue("ga.getDurationSeconds() is ~ 163 (actual " + dur + ')', secondsFromExpected < 3);
 
         final String[] NAMES = {null, "robot 4", "robot 3", "debug"};
         final int[] TOTAL_VP = {0, 3, 3, 3};
