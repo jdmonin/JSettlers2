@@ -390,7 +390,7 @@ public class TestLoadgame
         assertArrayEquals("devCardDeck",
             new int[]{ 8, 9, 6, 3, 9, 9, 9, 9, 9, 9, 9, 3, 4, 1, 9, 2, 7, 5, 9, 9, 9, 2, 1, 9, 9 },
             ga.getDevCardDeck());
-        assertFalse(sgm.warnDevCardDeckHasUnknownType);
+        assertEquals(-1, sgm.warnDevCardDeckUnknownTypeAtIndex);
 
         checkExpectedPlayerDevCards(ga);
     }
@@ -776,7 +776,7 @@ public class TestLoadgame
         assertEquals("devCardDeck[n-2]", SOCDevCardConstants.ROADS, sgm.devCardDeck.get(n-2).intValue());
         assertEquals("devCardDeck[n-1]", SOCDevCardConstants.UNKNOWN, sgm.devCardDeck.get(n-1).intValue());
         assertEquals("devCardDeck[n]", SOCDevCardConstants.KNIGHT, sgm.devCardDeck.get(n).intValue());
-        assertTrue(sgm.warnDevCardDeckHasUnknownType);
+        assertEquals(n-1, sgm.warnDevCardDeckUnknownTypeAtIndex);
 
         if (! doGameActions)
             return;

@@ -8017,10 +8017,12 @@ public class SOCServer extends Server
                          "admin.loadgame.ok.game_renamed", sgm.gameName);
                         // "Game was renamed: Original name {0} is already used."
 
-                if (sgm.warnDevCardDeckHasUnknownType)
+                if (sgm.warnDevCardDeckUnknownTypeAtIndex != -1)
                     messageToGameKeyed
-                        (ga, true, true, "admin.resumegame.warn.dev_card_deck_contains_unknown_card_type");
-                        // ">>> Warning: Dev card deck contains an unknown card type"
+                        (ga, true, true,
+                         "admin.resumegame.warn.dev_card_deck_contains_unknown_card_type",
+                          sgm.warnDevCardDeckUnknownTypeAtIndex);
+                        // ">>> Warning: Dev card deck contains unknown card type at index {0}"
                 if (sgm.warnHasHumanPlayerWithBotName)
                     messageToGameKeyed
                         (ga, true, true, "admin.resumegame.warn.human_with_bot_name");

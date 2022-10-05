@@ -204,15 +204,19 @@ public class SavedGameModel
     public transient boolean warnHasHumanPlayerWithBotName;
 
     /**
-     * To warn user while loading, this flag is set if {@link #devCardDeck}
+     * To warn user while loading, this field is {@code != -1} if {@link #devCardDeck}
      * contains any card type which is &lt;= {@link SOCDevCardConstants#UNKNOWN}
      * or &gt;= {@link SOCDevCardConstants#MAXPLUSONE}. If a dev card name string
      * isn't recognized, it's put into the deck or players' dev cards as {@code UNKNOWN}.
      * This flag is useful because unlike player inventories, the dev card deck is hidden.
+     *<P>
+     * If the deck has multiple cards with unknown types, only the first one sets this field.
+     *<P>
+     * From v2.4.00 through v2.6.xx, this was {@code boolean warnDevCardDeckHasUnknownType}.
      *
-     * @since 2.4.00
+     * @since 2.7.00
      */
-    public transient boolean warnDevCardDeckHasUnknownType;
+    public transient int warnDevCardDeckUnknownTypeAtIndex = -1;
 
     /* DATA FIELDS to be saved into file */
 
@@ -277,7 +281,7 @@ public class SavedGameModel
 
     /**
      * Remaining unplayed dev cards, from {@link SOCGame#getDevCardDeck()}.
-     * If any unknown card types are found while loading, sets {@link #warnDevCardDeckHasUnknownType}.
+     * If any unknown card types are found while loading, sets {@link #warnDevCardDeckUnknownTypeAtIndex}.
      *<P>
      * In model schema 2.3.00, these were written as array of ints for dev card type constants.
      * In 2.4.00 and higher, dev card types in each array are written as strings ({@code "ROADS"},
@@ -644,7 +648,7 @@ public class SavedGameModel
      * is better able to do so and can rename the loaded game if needed to avoid name collisions.
      *<P>
      * Examines game and player data. Might set {@link #warnHasHumanPlayerWithBotName},
-     * {@link #warnDevCardDeckHasUnknownType} flags.
+     * {@link #warnDevCardDeckUnknownTypeAtIndex} flags.
      *
      * @param srv  Server reference to check for bot name collisions; not {@code null}.
      *     Calls {@link SOCServer#getGameList() srv.getGameList()} and sets {@link #glas}.
@@ -693,12 +697,18 @@ public class SavedGameModel
             if (devCardDeck == null)
                 devCardDeck = new ArrayList<>();
             else
-                for (int ctype : devCardDeck)
+            {
+                final int n = devCardDeck.size();
+                for (int i = 0; i < n; ++i)
+                {
+                    final int ctype = devCardDeck.get(i);
                     if ((ctype <= SOCDevCardConstants.UNKNOWN) || (ctype >= SOCDevCardConstants.MAXPLUSONE))
                     {
-                        warnDevCardDeckHasUnknownType = true;
+                        warnDevCardDeckUnknownTypeAtIndex = i;
                         break;
                     }
+                }
+            }
             ga.setFieldsForLoad
                 (devCardDeck, oldGameState, shipsPlacedThisTurn,
                  placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn,

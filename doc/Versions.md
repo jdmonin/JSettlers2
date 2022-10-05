@@ -25,7 +25,9 @@ JARs for recent JSettlers versions can be downloaded from
 - Network/Message traffic:
 	- When client joining game is this version or newer, server sends `SOCGameStats(TYPE_TIMING)`
 	  with info on game duration
-- Code internals:
+- For developers:
+	- Save/load games:
+	    - `*LOADGAME*`: If SavedGameModel.devCardDeck has an unknown card type, give card's index in warning to user
 	- Gradle 7 compatibility
 
 
