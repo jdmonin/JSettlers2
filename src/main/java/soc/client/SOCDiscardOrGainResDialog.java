@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2011-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2011-2014,2017-2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -312,11 +312,15 @@ import javax.swing.SwingConstants;
             }
             else if ((target == pick[i]) && ((keep[i].getIntValue() > 0) || ! isDiscard))
             {
+                final int currPickI = pick[i].getIntValue();
+                if (currPickI >= numPickNeeded)
+                    return;  // <--- early return: already at overall max pickable amount ---
+
                 if ((numPickNeeded == 1) && (numChosen == 1))
                 {
                     // We only need 1 total, change our previous choice to the new one
 
-                    if (pick[i].getIntValue() == 1)
+                    if (currPickI == 1)
                         return;  // <--- early return: already set to 1 ---
                     else
                         // clear all to 0

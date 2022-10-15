@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2012,2018-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012,2018-2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -346,7 +346,8 @@ public class ColorSquare extends JComponent implements MouseListener
 
     /**
      * Creates a new ColorSquare of the specified kind and background
-     * color. Possibly interactive. For kind = NUMBER, upper=99, lower=0.
+     * color. Possibly interactive.
+     * For kind {@link #BOUNDED_INC} and {@link #BOUNDED_DEC}, sets {@code upper=99 lower=0}.
      *<P>
      * A tooltip with the resource name is created if {@code c} is one of the
      * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
@@ -366,6 +367,7 @@ public class ColorSquare extends JComponent implements MouseListener
     /**
      * Creates a new ColorSquare with specified kind, background color, and size;
      * calls {@link #ColorSquare(int, boolean, Color)}.
+     * For kind {@link #BOUNDED_INC} and {@link #BOUNDED_DEC}, sets {@code upper=99 lower=0}.
      *<P>
      * A tooltip with the resource name is created if {@code c} is one of the
      * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
@@ -387,7 +389,7 @@ public class ColorSquare extends JComponent implements MouseListener
     /**
      * Creates a new ColorSquare of the specified kind and background
      * color. Possibly interactive, with upper and lower bounds specified for
-     * NUMBER kinds.
+     * {@link #BOUNDED_INC} and {@link #BOUNDED_DEC} kinds.
      *<P>
      * A tooltip with the resource name is created if {@code c} is one of the
      * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
@@ -396,8 +398,8 @@ public class ColorSquare extends JComponent implements MouseListener
      * @param k Kind: NUMBER, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
      * @param in interactive flag allowing user interaction
      * @param c background color; creates resource-name tooltip if is a resource color
-     * @param upper upper bound if k == NUMBER
-     * @param lower lower bound if k == NUMBER
+     * @param upper upper bound if k is {@link #BOUNDED_INC} or {@link #BOUNDED_DEC}
+     * @param lower lower bound if k is {@link #BOUNDED_INC} or {@link #BOUNDED_DEC}
      */
     public ColorSquare(int k, boolean in, Color c, int upper, int lower)
     {
