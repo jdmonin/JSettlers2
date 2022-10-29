@@ -31,6 +31,8 @@ JARs for recent JSettlers versions can be downloaded from
 	- Save/load games:
 	    - `*LOADGAME*`: If SavedGameModel.devCardDeck has an unknown card type, give card's index in warning to user
 	- Gradle 7 compatibility
+- Code internals:
+	- Refactored soc.game.GameAction out of soc.extra.robot.GameActionLog.Action
 
 
 ## `2.6.10` (build JM20220705)

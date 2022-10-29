@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,9 +27,9 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import soc.extra.robot.GameActionLog.Action;
-import soc.extra.robot.GameActionLog.Action.ActionType;
 import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.EventEntry;
+import soc.game.GameAction.ActionType;
 import soc.game.ResourceSet;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
