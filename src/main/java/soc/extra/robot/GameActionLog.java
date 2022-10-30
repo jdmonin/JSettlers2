@@ -195,6 +195,8 @@ public class GameActionLog
         @Override
         public String toString()
         {
+            // if you update this format, consider also updating soc.game.GameAction.toString()
+
             StringBuilder sb = new StringBuilder("Action(");
             sb.append(actType.toString()).append(", endGState=");
             sb.append(endingGameState);
@@ -205,14 +207,14 @@ public class GameActionLog
                 {
                     sb.append(", p2=").append(param2);
                     if (param3 != 0)
-                        sb.append(", p3=").append(param2);
+                        sb.append(", p3=").append(param3);
                 }
             }
             if ((rset1 != null) || (rset2 != null))
             {
                 sb.append(", rs1=").append(rset1);
                 if (rset2 != null)
-                    sb.append(", rs2=").append(rset1);
+                    sb.append(", rs2=").append(rset2);
             }
             sb.append(", seq=").append(eventSequence).append(')');
 
