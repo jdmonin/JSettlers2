@@ -203,7 +203,9 @@ public class TestPlayer
 
     /**
      * Test {@link SOCPlayer#makeTrade(soc.game.ResourceSet, soc.game.ResourceSet)},
-     * {@link SOCPlayer#makeBankTrade(soc.game.ResourceSet, soc.game.ResourceSet)},
+     * {@link SOCPlayer#makeBankTrade(soc.game.ResourceSet, soc.game.ResourceSet)}
+     * through {@link SOCGame#makeBankTrade(SOCResourceSet, SOCResourceSet)},
+     * {@link SOCGame#canUndoBankTrade(soc.game.ResourceSet, soc.game.ResourceSet)},
      * and {@link SOCPlayer#getResourceTradeStats()}.
      * @see #testSetResourceTradeStats()
      * @since 2.6.00
@@ -273,13 +275,15 @@ public class TestPlayer
         // basic 4:1 bank trade
         final SOCResourceSet SHEEP_4 = new SOCResourceSet(0, 0, 4, 0, 0, 0);
         plRes.add(SHEEP_4);
-        pl.makeBankTrade(SHEEP_4, ORE_1);
+        ga.setCurrentPlayerNumber(2);
+        ga.makeBankTrade(SHEEP_4, ORE_1);
         plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][0][2] += 4;  // SHEEP
         plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][1][1]++;  // ORE
         assertTradeStatsEqual(plExpectedStats, pl);
 
         // undo bank trade
-        pl.makeBankTrade(ORE_1, SHEEP_4);
+        assertTrue(ga.canUndoBankTrade(SHEEP_4, ORE_1));
+        ga.makeBankTrade(ORE_1, SHEEP_4);
         plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][0][2] -= 4;  // SHEEP
         plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][1][1]--;  // ORE
         assertTradeStatsEqual(plExpectedStats, pl);
@@ -288,13 +292,14 @@ public class TestPlayer
         pl.setPortFlag(SOCBoard.MISC_PORT, true);
         final SOCResourceSet WOOD_3 = new SOCResourceSet(0, 0, 0, 0, 3, 0);
         plRes.add(WOOD_3);
-        pl.makeBankTrade(WOOD_3, ORE_1);
+        ga.makeBankTrade(WOOD_3, ORE_1);
         plExpectedStats[SOCBoard.MISC_PORT][0][4] += 3;  // WOOD
         plExpectedStats[SOCBoard.MISC_PORT][1][1]++;  // ORE
         assertTradeStatsEqual(plExpectedStats, pl);
 
         // undo
-        pl.makeBankTrade(ORE_1, WOOD_3);
+        assertTrue(ga.canUndoBankTrade(WOOD_3, ORE_1));
+        ga.makeBankTrade(ORE_1, WOOD_3);
         plExpectedStats[SOCBoard.MISC_PORT][0][4] -= 3;  // WOOD
         plExpectedStats[SOCBoard.MISC_PORT][1][1]--;  // ORE
         assertTradeStatsEqual(plExpectedStats, pl);
@@ -303,13 +308,14 @@ public class TestPlayer
         pl.setPortFlag(SOCBoard.CLAY_PORT, true);
         final SOCResourceSet CLAY_2 = new SOCResourceSet(2, 0, 0, 0, 0, 0);
         plRes.add(CLAY_2);
-        pl.makeBankTrade(CLAY_2, ORE_1);
+        ga.makeBankTrade(CLAY_2, ORE_1);
         plExpectedStats[SOCBoard.CLAY_PORT][0][0] += 2;  // CLAY
         plExpectedStats[SOCBoard.CLAY_PORT][1][1]++;  // ORE
         assertTradeStatsEqual(plExpectedStats, pl);
 
         // undo
-        pl.makeBankTrade(ORE_1, CLAY_2);
+        assertTrue(ga.canUndoBankTrade(CLAY_2, ORE_1));
+        ga.makeBankTrade(ORE_1, CLAY_2);
         plExpectedStats[SOCBoard.CLAY_PORT][0][0] -= 2;  // CLAY
         plExpectedStats[SOCBoard.CLAY_PORT][1][1]--;  // ORE
         assertTradeStatsEqual(plExpectedStats, pl);

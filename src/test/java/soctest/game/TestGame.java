@@ -29,6 +29,8 @@ import static org.junit.Assert.*;
 
 /**
  * A few tests for {@link SOCGame}.
+ *<P>
+ * Some SOCGame methods are tested elsewhere, like {@link TestPlayer#testTradeAndStats()}.
  *
  * @see TestBoard
  * @see TestPlayer
