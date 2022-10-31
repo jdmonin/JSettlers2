@@ -25,7 +25,7 @@
 package soc.game;
 
 import soc.disableDebug.D;
-
+import soc.game.GameAction.ActionType;
 import soc.message.SOCMessage;  // For static calls only; SOCGame does not interact with network messages
 import soc.server.SOCBoardAtServer;  // For calling server-only methods like distributeClothFromRoll
 import soc.util.DataUtils;
@@ -107,7 +107,7 @@ public class SOCGame implements Serializable, Cloneable
      * The main game class has a serialVersionUID; pieces and players don't.
      * To persist a game between versions, use {@link soc.server.savegame.SavedGameModel}.
      */
-    private static final long serialVersionUID = 2500L;  // last structural change v2.5.00
+    private static final long serialVersionUID = 2700L;  // last structural change v2.7.00
 
     /**
      * Game states.  {@link #NEW} is a brand-new game, not yet ready to start playing.
@@ -1298,6 +1298,17 @@ public class SOCGame implements Serializable, Cloneable
     public long lastActionTime;
 
     /**
+     * ... (TODO see lastActionWasBankTrade for jdoc adjs)
+     *
+     * For efficiency, this field is usually {@code null} unless the last action is undoable.
+     *<P>
+     * Before v2.7.00, this was {@link #lastActionWasBankTrade}.
+     *
+     * @since 2.7.00
+     */
+    private GameAction lastAction;
+
+    /**
      * Used at server; was the most recent player action a bank trade?
      * If true, allow the player to undo that trade.
      * Updated whenever {@link #lastActionTime} is updated.
@@ -1305,7 +1316,7 @@ public class SOCGame implements Serializable, Cloneable
      * TODO: Consider lastActionType instead, it's more general.
      * @since 1.1.13
      */
-    private boolean lastActionWasBankTrade;
+    //private boolean lastActionWasBankTrade;
 
     /**
      * Is the current robbery using the pirate ship, not the robber?
@@ -1527,7 +1538,6 @@ public class SOCGame implements Serializable, Cloneable
         askedSpecialBuildPhase = false;
         placingRobberForKnightCard = false;
         oldPlayerWithLongestRoad = new Stack<SOCOldLRStats>();
-        lastActionWasBankTrade = false;
         movedShipThisTurn = false;
         if (hasSeaBoard)
             shipsPlacedThisTurn = new Vector<Integer>();
@@ -3947,7 +3957,7 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         lastActionTime = System.currentTimeMillis();
-        lastActionWasBankTrade = false;
+        lastAction = null;
 
         /**
          * Remember ships placed this turn
@@ -5110,7 +5120,7 @@ public class SOCGame implements Serializable, Cloneable
         currPlayer.updateAtOurTurn();
         resetVoteClear();
         lastActionTime = System.currentTimeMillis();
-        lastActionWasBankTrade = false;
+        lastAction = null;
         if (hasSeaBoard)
         {
             movedShipThisTurn = false;
@@ -6440,7 +6450,7 @@ public class SOCGame implements Serializable, Cloneable
         board.setRobberHex(rh, true);  // if rh coord invalid, throws IllegalArgumentException
         robberyWithPirateNotRobber = false;
         lastActionTime = System.currentTimeMillis();
-        lastActionWasBankTrade = false;
+        lastAction = null;
 
         /**
          * do the robbing thing
@@ -6602,7 +6612,7 @@ public class SOCGame implements Serializable, Cloneable
         ((SOCBoardLarge) board).setPirateHex(ph, true);  // if ph invalid, throws IllegalArgumentException
         robberyWithPirateNotRobber = true;
         lastActionTime = System.currentTimeMillis();
-        lastActionWasBankTrade = false;
+        lastAction = null;
 
         /**
          * do the robbing thing
@@ -7547,7 +7557,7 @@ public class SOCGame implements Serializable, Cloneable
         players[accepting].makeTrade(offeredToGet, offeredToGive);
 
         lastActionTime = System.currentTimeMillis();
-        lastActionWasBankTrade = false;
+        lastAction = null;
     }
 
     /**
@@ -7565,13 +7575,12 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canUndoBankTrade(ResourceSet undo_gave, ResourceSet undo_got)
     {
-        if (! lastActionWasBankTrade)
+        if ((lastAction == null) || (lastAction.actType != ActionType.TRADE_BANK))
             return false;
 
-        final SOCPlayer currPlayer = players[currentPlayerNumber];
-        return ((currPlayer.lastActionBankTrade_get != null)
-                && currPlayer.lastActionBankTrade_get.equals(undo_got)
-                && currPlayer.lastActionBankTrade_give.equals(undo_gave));
+        return ((lastAction.rset2 != null)
+            && lastAction.rset2.equals(undo_got)
+            && lastAction.rset1.equals(undo_gave));
     }
 
     /**
@@ -7592,7 +7601,7 @@ public class SOCGame implements Serializable, Cloneable
         if (gameState != PLAY1)
             return false;
 
-        if (lastActionWasBankTrade && canUndoBankTrade(get, give))
+        if ((lastAction != null) && canUndoBankTrade(get, give))
             return true;
 
         final SOCPlayer currPlayer = players[currentPlayerNumber];
@@ -7728,19 +7737,12 @@ public class SOCGame implements Serializable, Cloneable
     {
         final SOCPlayer currPlayer = players[currentPlayerNumber];
 
-        if (lastActionWasBankTrade
-            && (currPlayer.lastActionBankTrade_get != null)
-            && currPlayer.lastActionBankTrade_get.equals(give)
-            && currPlayer.lastActionBankTrade_give.equals(get))
+        if ((lastAction != null) && canUndoBankTrade(get, give))
         {
             // trade is undo
-            lastActionWasBankTrade = false;
-            currPlayer.lastActionBankTrade_give = null;
-            currPlayer.lastActionBankTrade_get = null;
+            lastAction = null;
         } else {
-            lastActionWasBankTrade = true;
-            currPlayer.lastActionBankTrade_give = give;
-            currPlayer.lastActionBankTrade_get = get;
+            lastAction = new GameAction(ActionType.TRADE_BANK, give, get);
         }
 
         currPlayer.makeBankTrade(give, get);
@@ -8215,7 +8217,7 @@ public class SOCGame implements Serializable, Cloneable
             resources.subtract(1, SOCResourceConstants.WHEAT);
             players[currentPlayerNumber].getInventory().addDevCard(1, SOCInventory.NEW, card);
             lastActionTime = System.currentTimeMillis();
-            lastActionWasBankTrade = false;
+            lastAction = null;
 
             checkForWinner();
         }
@@ -8474,7 +8476,7 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer pl = players[currentPlayerNumber];
 
         lastActionTime = System.currentTimeMillis();
-        lastActionWasBankTrade = false;
+        lastAction = null;
         pl.setPlayedDevCard(true);
         pl.updateDevCardsPlayed(SOCDevCardConstants.KNIGHT, false);
         pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
@@ -8524,7 +8526,7 @@ public class SOCGame implements Serializable, Cloneable
     public void playRoadBuilding()
     {
         lastActionTime = System.currentTimeMillis();
-        lastActionWasBankTrade = false;
+        lastAction = null;
         final SOCPlayer player = players[currentPlayerNumber];
         player.setPlayedDevCard(true);
         player.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.ROADS);
@@ -8554,7 +8556,7 @@ public class SOCGame implements Serializable, Cloneable
     public void playDiscovery()
     {
         lastActionTime = System.currentTimeMillis();
-        lastActionWasBankTrade = false;
+        lastAction = null;
         final SOCPlayer pl = players[currentPlayerNumber];
         pl.setPlayedDevCard(true);
         pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.DISC);
@@ -8576,7 +8578,7 @@ public class SOCGame implements Serializable, Cloneable
     public void playMonopoly()
     {
         lastActionTime = System.currentTimeMillis();
-        lastActionWasBankTrade = false;
+        lastAction = null;
         final SOCPlayer pl = players[currentPlayerNumber];
         pl.setPlayedDevCard(true);
         pl.getInventory().removeDevCard(SOCInventory.OLD, SOCDevCardConstants.MONO);

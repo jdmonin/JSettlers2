@@ -25,6 +25,7 @@ package soc.game;
 import soc.disableDebug.D;
 
 import soc.message.SOCMessage;
+import soc.server.savegame.SavedGameModel;  // for javadocs only
 import soc.util.IntPair;
 import soc.util.NodeLenVis;
 
@@ -45,7 +46,8 @@ import java.util.Vector;
 
 /**
  * A class for holding and manipulating player data.
- * The player exists within one SOCGame, not persistent between games like SOCPlayerClient or SOCClientData.
+ * The player exists within one {@link SOCGame}, not persistent between games like SOCPlayerClient or SOCClientData.
+ * See {@link SavedGameModel.PlayerInfo} for the player data saved to {@code .game.json} savegame files.
  *<P>
  * At the start of each player's turn, {@link SOCGame#updateAtTurn()} will call {@link SOCPlayer#updateAtTurn()},
  * then call the current player's {@link #updateAtOurTurn()}.
@@ -85,8 +87,8 @@ import java.util.Vector;
  */
 public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 {
-    /** Last field change was v2.5.00 (2500) */
-    private static final long serialVersionUID = 2500L;
+    /** Last field change was v2.7.00 (2700) */
+    private static final long serialVersionUID = 2700L;
 
     /**
      * Number of {@link SOCRoad}s a player can build (15).
@@ -270,16 +272,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @since 2.0.00
      */
     private SOCResourceSet rolledResources;
-
-    /**
-     * For use at server by SOCGame, if the player's previous action this turn was a
-     * bank trade, the resources involved.  Used to decide if they can undo the trade.
-     *<P>
-     * Ignore unless {@link SOCGame#canUndoBankTrade(SOCResourceSet, SOCResourceSet)} is true.
-     *
-     * @since 1.1.13
-     */
-    SOCResourceSet lastActionBankTrade_give, lastActionBankTrade_get;
 
     /**
      * For use at server, this player's count of forced end turns this game.
@@ -1007,8 +999,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         inventory.newToOld();
         playedDevCard = false;
-        lastActionBankTrade_give = null;
-        lastActionBankTrade_get = null;
         if (needToPickGoldHexResources > 0)
             needToPickGoldHexResources = 0;
     }
