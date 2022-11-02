@@ -23,6 +23,7 @@ package soctest.game;
 import java.util.ArrayList;
 
 import soc.game.SOCGame;
+import soctest.server.savegame.TestLoadgame;  // for javadocs only
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -30,7 +31,8 @@ import static org.junit.Assert.*;
 /**
  * A few tests for {@link SOCGame}.
  *<P>
- * Some SOCGame methods are tested elsewhere, like {@link TestPlayer#testTradeAndStats()}.
+ * Some SOCGame methods are tested elsewhere, like {@link TestPlayer#testTradeAndStats()}
+ * and {@link TestLoadgame#testLoadSeaBoard()}.
  *
  * @see TestBoard
  * @see TestPlayer

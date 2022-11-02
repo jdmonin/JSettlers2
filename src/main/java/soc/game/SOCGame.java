@@ -1298,25 +1298,19 @@ public class SOCGame implements Serializable, Cloneable
     public long lastActionTime;
 
     /**
-     * ... (TODO see lastActionWasBankTrade for jdoc adjs)
-     *
-     * For efficiency, this field is usually {@code null} unless the last action is undoable.
+     * Most recent game action if recorded, {@code null} otherwise.
+     * Cleared or updated whenever {@link #lastActionTime} is updated.
+     * See {@link #getLastAction()} for details.
      *<P>
-     * Before v2.7.00, this was {@link #lastActionWasBankTrade}.
+     * From v1.1.13 through 2.6.x this was {@code lastActionWasBankTrade}, a private flag
+     * set at server if the most recent player action was a bank trade
+     * (now {@link GameAction.ActionType#TRADE_BANK}).
+     * If true, would allow the player to undo that trade
+     * by trading for their previous resources.
      *
      * @since 2.7.00
      */
     private GameAction lastAction;
-
-    /**
-     * Used at server; was the most recent player action a bank trade?
-     * If true, allow the player to undo that trade.
-     * Updated whenever {@link #lastActionTime} is updated.
-     *<P>
-     * TODO: Consider lastActionType instead, it's more general.
-     * @since 1.1.13
-     */
-    //private boolean lastActionWasBankTrade;
 
     /**
      * Is the current robbery using the pirate ship, not the robber?
@@ -3672,8 +3666,13 @@ public class SOCGame implements Serializable, Cloneable
      * Calls {@link SOCBoard#putPiece(SOCPlayingPiece)} and each player's
      * {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean) SOCPlayer.putPiece(pp, false)}.
      * Updates longest road if necessary.
+     * Updates {@link #getLastAction()} unless the piece is an "initial board setup" type
+     * like {@link SOCFortress) or {@link SOCVillage}.
      * Calls {@link #advanceTurnStateAfterPutPiece()}.
      * (player.putPiece may also score Special Victory Point(s), see below.)
+     *<P>
+     * Does not check player's current resources or deduct the cost of the piece;
+     * those things are done before entering typical placement states.
      *<P>
      * If the piece is a city, putPiece removes the settlement there.
      *<P>
@@ -3733,7 +3732,8 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pp  The piece to put on the board; coordinates are not checked for validity
      * @param isTempPiece  Is this a temporary piece?  If so, do not change current
-     *            player or gamestate, or call our {@link SOCGameEventListener}.
+     *            player or gamestate, call our {@link SOCGameEventListener},
+     *            or update {@link #lastAction}.
      * @since 1.1.14
      */
     private void putPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
@@ -3875,13 +3875,13 @@ public class SOCGame implements Serializable, Cloneable
             }
         }
 
+        final int placingPN = ppPlayer.getPlayerNumber();
+
         /**
          * update which player has longest road or trade route
          */
         if (pieceType != SOCPlayingPiece.CITY)
         {
-            final int placingPN = ppPlayer.getPlayerNumber();
-
             if (pp instanceof SOCRoutePiece)
             {
                 /**
@@ -3957,7 +3957,8 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         lastActionTime = System.currentTimeMillis();
-        lastAction = null;
+        lastAction = new GameAction(ActionType.BUILD_PIECE, pieceType, coord, placingPN);
+            // TODO set rs1 if revealed fog hexes? What else should we record about revealed fog hexes? coords, types
 
         /**
          * Remember ships placed this turn
@@ -4373,7 +4374,8 @@ public class SOCGame implements Serializable, Cloneable
      * Must be current player.  Game state must be {@link #PLAY1}.
      *<P>
      * Use this method to check a specific move-from location.
-     * Use {@link #canMoveShip(int, int, int)} to also check a specific move-to location.
+     * Use {@link #canMoveShip(int, int, int)} to also check a specific move-to location
+     * before calling {@link #moveShip(SOCShip, int)}.
      *<P>
      * Only the ship at the newer end of an open trade route can be moved.
      * So, to move a ship, one of its end nodes must be clear: No
@@ -4480,6 +4482,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Calls {@link #undoPutPieceCommon(SOCPlayingPiece, boolean, boolean) undoPutPieceCommon(sh, false, true)}
      * and {@link #putPiece(SOCPlayingPiece)}.
+     * Updates {@link #getLastAction()}.
      * Updates longest trade route.
      * Not for use with temporary pieces.
      *<P>
@@ -4506,9 +4509,13 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void moveShip(SOCShip sh, final int toEdge)
     {
+        final int fromEdge = sh.getCoordinates();
         undoPutPieceCommon(sh, false, true);
         putPiece(new SOCShip(sh.getPlayer(), toEdge, board));  // calls checkForWinner, etc
         movedShipThisTurn = true;
+        if (lastAction != null)
+            // change lastAction from BUILD_PIECE to MOVE_PIECE, but keep anything like revealed fog hex info
+            lastAction = new GameAction(lastAction, ActionType.MOVE_PIECE, sh.getType(), fromEdge, toEdge);
     }
 
     /**
@@ -7100,6 +7107,28 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         return null;
+    }
+
+    /**
+     * Get the most recent game action, if recorded.
+     * For efficiency, this is usually set only when the last action is undoable;
+     * the {@link GameAction} returned here holds the necessary info to do so.
+     *<P>
+     * Is also cleared at the start of each turn.
+     *<P>
+     * Currently recorded:
+     *<UL>
+     * <LI> {@link GameAction.ActionType#BUILD_PIECE}
+     * <LI> {@link GameAction.ActionType#MOVE_PIECE}
+     * <LI> {@link GameAction.ActionType#TRADE_BANK}
+     *</UL>
+     *
+     * @return  Most recent action if that action type is recorded, otherwise {@code null}
+     * @since 2.7.00
+     */
+    public GameAction getLastAction()
+    {
+        return lastAction;
     }
 
     /**

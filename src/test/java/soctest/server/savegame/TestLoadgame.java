@@ -28,8 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.MissingResourceException;
 
+import soc.game.GameAction;
+import soc.game.GameAction.ActionType;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
+import soc.game.SOCCity;
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
@@ -41,6 +44,7 @@ import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
+import soc.game.SOCRoad;
 import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
@@ -565,16 +569,21 @@ public class TestLoadgame
         assertEquals("gamestate", SOCGame.SPECIAL_BUILDING, ga.getGameState());
     }
 
-    /** Test loading and resuming a Sea Board game, including open/closed ship routes ({@link SOCShip#isClosed()}). */
+    /**
+     * Test loading and resuming a Sea Board game, including open/closed ship routes ({@link SOCShip#isClosed()}).
+     * Because {@code testsea-closed.game.json} is a known setup, use it to test a few basic game actions
+     * like {@link SOCGame#putPiece(SOCPlayingPiece)}.
+     */
     @Test
     public void testLoadSeaBoard()
         throws IOException
     {
+        final int CURRENT_PLAYER_NUMBER = 0;
         final SavedGameModel sgm = load("testsea-closed.game.json", srv);
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", "testgame-sea-closedships", sgm.gameName);
-        assertEquals(0, ga.getCurrentPlayerNumber());
+        assertEquals(CURRENT_PLAYER_NUMBER, ga.getCurrentPlayerNumber());
         assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
         assertEquals("oldgamestate", SOCGame.PLAY1, sgm.oldGameState);
         assertEquals(4, sgm.playerSeats.length);
@@ -582,8 +591,9 @@ public class TestLoadgame
         assertTrue(ga.hasSeaBoard);
 
         assertEquals(SOCBoard.BOARD_ENCODING_LARGE, ga.getBoard().getBoardEncodingFormat());
-        assertEquals("robberHex", 2312, ga.getBoard().getRobberHex());
-        assertEquals("pirateHex", 2316, ((SOCBoardLarge) ga.getBoard()).getPirateHex());
+        final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
+        assertEquals("robberHex", 2312, board.getRobberHex());
+        assertEquals("pirateHex", 2316, board.getPirateHex());
 
         final String[] NAMES = {"debug", "robot 4", "robot 2", null};
         final SeatLockState[] LOCKS =
@@ -636,6 +646,45 @@ public class TestLoadgame
         fillSeatsForResume(sgm);
         sgm.resumePlay(true);
         assertEquals("gamestate", SOCGame.PLAY1, ga.getGameState());
+        pl = ga.getPlayer(CURRENT_PLAYER_NUMBER);
+
+        assertNull(board.settlementAtNode(0x606));
+        assertTrue(pl.canPlaceSettlement(0x606));
+        ga.putPiece(new SOCSettlement(pl, 0x606, board));
+        assertTrue("settlement built at 0x606", board.settlementAtNode(0x606) instanceof SOCSettlement);
+        assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.SETTLEMENT, 0x606, 0), ga.getLastAction());
+        assertFalse(pl.canPlaceSettlement(0x606));
+
+        assertNull(board.roadOrShipAtEdge(0x605));
+        assertTrue(pl.isPotentialRoad(0x605));
+        assertFalse(pl.isPotentialRoad(0x604));
+        ga.putPiece(new SOCRoad(pl, 0x605, board));
+        assertTrue("road built at 0x605", board.roadOrShipAtEdge(0x605) instanceof SOCRoad);
+        assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.ROAD, 0x605, 0), ga.getLastAction());
+        assertFalse(pl.isPotentialRoad(0x605));
+        assertTrue(pl.isPotentialRoad(0x604));
+
+        assertTrue(pl.isPotentialCity(0x606));
+        ga.putPiece(new SOCCity(pl, 0x606, board));
+        assertTrue("city built at 0x606", board.settlementAtNode(0x606) instanceof SOCCity);
+        assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.CITY, 0x606, 0), ga.getLastAction());
+        assertFalse(pl.isPotentialCity(0x606));
+
+        assertNull(board.roadOrShipAtEdge(0xc03));
+        assertTrue(pl.isPotentialShip(0xc03));
+        assertFalse(pl.isPotentialShip(0xc04));
+        ga.putPiece(new SOCShip(pl, 0xc03, board));
+        assertTrue("ship built at 0xc03", board.roadOrShipAtEdge(0xc03) instanceof SOCShip);
+        assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.SHIP, 0xc03, 0), ga.getLastAction());
+        assertFalse(pl.isPotentialShip(0xc03));
+        assertTrue(pl.isPotentialShip(0xc04));
+
+        assertTrue(ga.getNumDevCards() > 0);
+        assertFalse("not enough resources", ga.couldBuyDevCard(CURRENT_PLAYER_NUMBER));
+        pl.addRolledResources(SOCDevCard.COST);
+        assertTrue(ga.couldBuyDevCard(CURRENT_PLAYER_NUMBER));
+        ga.buyDevCard();
+        assertNull(ga.getLastAction());  // later might be BUY_DEV_CARD, esp. if that becomes undoable
     }
 
     /**

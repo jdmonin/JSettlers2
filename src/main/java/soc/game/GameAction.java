@@ -32,6 +32,9 @@ import soc.message.SOCStartGame;  // javadocs only
  * Meaning of field values depends on {@link #actType}.
  * See {@link ActionType} for all recognized action types.
  *<P>
+ * To copy a GameAction while changing some fields,
+ * use the {@link #GameAction(GameAction, ActionType, int, int, int)} constructor.
+ *<P>
  * Before v2.7.00, this was part of {@link GameActionLog.Action}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -46,6 +49,8 @@ public class GameAction
 
     /** {@link ActionType}-specific resource set parameter value, or null. */
     public final ResourceSet rset1, rset2;
+
+    // reminder: if you add fields, update equals()
 
     /**
      * Create a new GameAction with no parameters.
@@ -72,12 +77,31 @@ public class GameAction
      * @see #GameAction(ActionType)
      * @see #GameAction(ActionType, ResourceSet, ResourceSet)
      * @see #GameAction(ActionType, int, int, int, ResourceSet, ResourceSet)
+     * @see #GameAction(GameAction, ActionType, int, int, int)
      */
     public GameAction
         (ActionType aType, final int p1, final int p2, final int p3)
         throws IllegalArgumentException
     {
         this(aType, p1, p2, p3, null, null);
+    }
+
+    /**
+     * Create a new GameAction by copying an existing one, keeping current field values
+     * except {@link #actType}, {@link #param1}, {@link #param2}, {@link #param3}.
+     * @param copyFrom  GameAction to copy from; not null
+     * @param aType  GameAction type of this new action; not null
+     * @param p1  First action-specific parameter, or 0
+     * @param p2  Second action-specific parameter, or 0
+     * @param p3  Third action-specific parameter, or 0
+     * @throws IllegalArgumentException if {@code aType} is null
+     * @throws NullPointerException if {@code copyFrom} is null
+     */
+    public GameAction
+        (final GameAction copyFrom, ActionType aType, final int p1, final int p2, final int p3)
+        throws IllegalArgumentException, NullPointerException
+    {
+        this(aType, p1, p2, p3, copyFrom.rset1, copyFrom.rset2);
     }
 
     /**
@@ -108,6 +132,7 @@ public class GameAction
      * @see #GameAction(ActionType)
      * @see #GameAction(ActionType, int, int, int)
      * @see #GameAction(ActionType, ResourceSet, ResourceSet)
+     * @see #GameAction(GameAction, ActionType, int, int, int)
      */
     public GameAction
         (ActionType aType, final int p1, final int p2, final int p3, final ResourceSet rs1, final ResourceSet rs2)
@@ -159,6 +184,18 @@ public class GameAction
         return sb.toString();
     }
 
+    @Override
+    public boolean equals(Object o)
+    {
+        if (! (o instanceof GameAction))
+            return false;
+        final GameAction oga = (GameAction) o;
+
+        return (actType == oga.actType)
+            && (param1 == oga.param1) && (param2 == oga.param2) && (param3 == oga.param3)
+            && (rset1 == null ? (oga.rset1 == null) : rset1.equals(oga.rset1))
+            && (rset2 == null ? (oga.rset2 == null) : rset2.equals(oga.rset2));
+    }
 
     /**
      * All recognized {@link GameAction}s.
