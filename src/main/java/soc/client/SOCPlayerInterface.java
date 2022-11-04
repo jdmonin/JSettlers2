@@ -3416,6 +3416,7 @@ public class SOCPlayerInterface extends JFrame
             pp = new SOCRoad(pl, coord, null);
             game.putPiece(pp);
             mesHp.updateValue(PlayerClientListener.UpdateType.Road);
+            boardPanel.setLatestPiecePlacement(pp);
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7])
                 boardPanel.flushBoardLayoutAndRepaint();
 
@@ -3431,6 +3432,7 @@ public class SOCPlayerInterface extends JFrame
              */
             mesHp.updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
 
+            boardPanel.setLatestPiecePlacement(pp);
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7]
                 || debugShowPotentials[6])
                 boardPanel.flushBoardLayoutAndRepaint();
@@ -3443,6 +3445,7 @@ public class SOCPlayerInterface extends JFrame
             mesHp.updateValue(PlayerClientListener.UpdateType.Settlement);
             mesHp.updateValue(PlayerClientListener.UpdateType.City);
 
+            boardPanel.setLatestPiecePlacement(pp);
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7]
                 || debugShowPotentials[6])
                 boardPanel.flushBoardLayoutAndRepaint();
@@ -3461,6 +3464,7 @@ public class SOCPlayerInterface extends JFrame
                     mesHp.disableBankUndoButton();  // just in case; it probably wasn't enabled
             }
 
+            boardPanel.setLatestPiecePlacement(pp);
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7])
                 boardPanel.flushBoardLayoutAndRepaint();
 

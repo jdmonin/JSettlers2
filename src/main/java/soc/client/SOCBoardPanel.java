@@ -96,6 +96,13 @@ import javax.swing.JComponent;
  * water hex tiles, this color is only a fallback; it's briefly visible
  * at window creation while the hexes are loading and rendering.
  *
+ *<H3>Updating game data:</H3>
+ * This panel draws the board and pieces currently in the game data.
+ * Call {@link #setPlayer(SOCPlayer)} when the client sits down as a player.
+ * When game data changes, call methods like {@link #repaint()} or {@link #flushBoardLayoutAndRepaint()}.
+ * Call other methods like {@link #updateMode()} or {@link #setLatestPiecePlacement(SOCPlayingPiece)} as needed
+ * to help the panel understand specific game events.
+ *
  *<H3>Interaction:</H3>
  * When the mouse is over the game board, a tooltip shows information
  * such as a hex's resource, a piece's owner, a port's trading ratio, or the
@@ -1012,7 +1019,7 @@ import javax.swing.JComponent;
      *<P>
      * Methods like {@link #drawBoard(Graphics)} and {@link #drawBoardEmpty(Graphics)} will
      * translate by {@code panelMarginX} before calling playing-piece methods like
-     * {@link #drawSettlement(Graphics, int, int, boolean, boolean)}, so those
+     * {@link #drawSettlement(Graphics, int, int, HilightStyle, boolean)}, so those
      * pieces' methods can ignore the {@code panelMarginX} value.
      *<P>
      * Updated in {@link #rescaleBoard(int, int)}.
@@ -1543,6 +1550,13 @@ import javax.swing.JComponent;
      * @since 1.1.08
      */
     private int superTextTop_w, superTextTop_h, superTextTopBox_x, superTextTopBox_w, superTextTopBox_h;
+
+    /**
+     * The current player's most recent piece placement this turn, or {@code null}.
+     * See {@link #setLatestPiecePlacement(SOCPlayingPiece)} for details.
+     * @since 2.7.00
+     */
+    private SOCPlayingPiece latestPiecePlacement;
 
     /**
      * Edge or node being pointed to. When placing a road/settlement/city,
@@ -2623,6 +2637,19 @@ import javax.swing.JComponent;
     }
 
     /**
+     * Set or clear the most recent piece placement.
+     * Usually by the current player.
+     * Is also cleared by {@ink #updateMode()} when current player changes.
+     * Doesn't trigger a repalnt, assumes caller will do so soon.
+     * @param piece  Latest piece placement, or {@code null} to clear
+     * @since 2.7.00
+     */
+    public void setLatestPiecePlacement(final SOCPlayingPiece piece)
+    {
+        latestPiecePlacement = piece;
+    }
+
+    /**
      * A playing piece's value was updated:
      * {@code _SC_CLVI} village cloth count, or
      * {@code _SC_PIRI} pirate fortress strength.
@@ -3700,7 +3727,7 @@ import javax.swing.JComponent;
      * Draw the robber.
      *<P>
      * The pirate ship (if any) is drawn via
-     * {@link #drawRoadOrShip(Graphics, int, int, boolean, boolean, boolean)}.
+     * {@link #drawRoadOrShip(Graphics, int, int, HilightStyle, boolean, boolean)}.
      *
      * @param g       Graphics context
      * @param hexID   Board hex encoded position
@@ -3811,12 +3838,13 @@ import javax.swing.JComponent;
      *             If the pirate ship (style -2) is being drawn on a hex which also shows a port,
      *             that black ship will be drawn with a white outline for visibility against the
      *             sometimes-dark sometimes-busy port graphics.
-     * @param isHilight  Is this the hilight for showing a potential placement?
+     * @param hilightStyle  Style of hilight to draw (showing a potential placement etc),
+     *           or {@code null} for the usual piece style without hilight
      * @param isRoadNotShip  True to draw a road; false to draw a ship if {@link #isLargeBoard}
      * @param isWarship   True to draw a war ship (not normal ship) if {@link #isLargeBoard}, for scenario _SC_PIRI
      */
     private final void drawRoadOrShip
-        (Graphics g, int edgeNum, final int pn, final boolean isHilight,
+        (Graphics g, int edgeNum, final int pn, final HilightStyle hilightStyle,
          final boolean isRoadNotShip, final boolean isWarship)
     {
         // Draw a road or ship
@@ -3959,21 +3987,22 @@ import javax.swing.JComponent;
                 g.setColor(Color.WHITE);
             else if (pn == -2)  // pirate ship
             {
-                if (isHilight)
+                if (hilightStyle == HilightStyle.HOVER)
                     g.setColor(Color.LIGHT_GRAY);
                 else
                     g.setColor(Color.BLACK);
             }
-            else if (isHilight)
+            else if (hilightStyle == HilightStyle.HOVER)
                 g.setColor(playerInterface.getPlayerColor(pn, true));
             else
                 g.setColor(playerInterface.getPlayerColor(pn));
 
             g.fillPolygon(roadX, roadY, roadX.length);
+            // TODO handle .MOST_RECENT_PLACEMENT
         }
 
         // Outline
-        if (! ((pn == -1) && isHilight))
+        if (! ((pn == -1) && (hilightStyle != null)))
         {
             if (pn == -2)
                 if ((portHexCoords != null) && portHexCoords.contains(Integer.valueOf(edgeNum)))
@@ -3982,8 +4011,9 @@ import javax.swing.JComponent;
                     g.setColor(Color.darkGray);
             else if (pn == -3)
                 g.setColor(Color.lightGray);
-            else if (isHilight)
+            else if (hilightStyle == HilightStyle.HOVER)
                 g.setColor(playerInterface.getPlayerColor(pn, false));
+            // TODO handle .MOST_RECENT_PLACEMENT
             else
                 g.setColor(Color.black);
         }
@@ -3995,26 +4025,31 @@ import javax.swing.JComponent;
     /**
      * draw a settlement
      */
-    private final void drawSettlement(Graphics g, int nodeNum, int pn, boolean isHilight, final boolean outlineOnly)
+    private final void drawSettlement
+        (Graphics g, int nodeNum, int pn, final HilightStyle hilightStyle, final boolean outlineOnly)
     {
-        drawSettlementOrCity(g, nodeNum, pn, isHilight, outlineOnly, false);
+        drawSettlementOrCity(g, nodeNum, pn, hilightStyle, outlineOnly, false);
     }
 
     /**
      * draw a city
      */
-    private final void drawCity(Graphics g, int nodeNum, int pn, boolean isHilight)
+    private final void drawCity
+        (Graphics g, int nodeNum, int pn, final HilightStyle hilightStyle)
     {
-        drawSettlementOrCity(g, nodeNum, pn, isHilight, false, true);
+        drawSettlementOrCity(g, nodeNum, pn, hilightStyle, false, true);
     }
 
     /**
      * draw a settlement or city; they have the same logic for determining (x,y) from nodeNum.
+     * @param hilightStyle  Style of hilight to draw (showing a potential placement etc),
+     *           or {@code null} for the usual piece style without hilight
      * @param outlineOnly  If set for settlement, draw only the outline, not the filled polygon.  Ignored when {@code isCity}.
      * @since 1.1.08
      */
     private final void drawSettlementOrCity
-        (Graphics g, final int nodeNum, final int pn, final boolean isHilight, final boolean outlineOnly, final boolean isCity)
+        (Graphics g, final int nodeNum, final int pn,
+         final HilightStyle hilightStyle, final boolean outlineOnly, final boolean isCity)
     {
         final int hx, hy;
         {
@@ -4028,7 +4063,7 @@ import javax.swing.JComponent;
 
         if (isCity)
         {
-            if (isHilight)
+            if (hilightStyle != null)
             {
                 g.setColor(playerInterface.getPlayerColor(pn, true));
                 g.drawPolygon(scaledCityX, scaledCityY, 8);
@@ -4040,6 +4075,7 @@ import javax.swing.JComponent;
                 g.translate(-(hx+1), -(hy+1));
 
                 return;  // <--- Early return: hilight outline only ---
+                // TODO handle .MOST_RECENT_PLACEMENT
             }
 
             g.setColor(playerInterface.getPlayerColor(pn));
@@ -4051,13 +4087,14 @@ import javax.swing.JComponent;
 
             if (! outlineOnly)
             {
-                if (isHilight)
+                if (hilightStyle == HilightStyle.HOVER)
                     g.setColor(playerInterface.getPlayerColor(pn, true));
+                // TODO handle .MOST_RECENT_PLACEMENT
                 else
                     g.setColor(playerInterface.getPlayerColor(pn));
                 g.fillPolygon(scaledSettlementX, scaledSettlementY, 6);
             }
-            if (isHilight || outlineOnly)
+            if (((hilightStyle != null)) || outlineOnly)
                 g.setColor(playerInterface.getPlayerColor(pn, false));
             else
                 g.setColor(Color.black);
@@ -4192,7 +4229,7 @@ import javax.swing.JComponent;
      * an end-game condition.
      *<P>
      * Same logic for determining (x,y) from {@link SOCPlayingPiece#getCoordinates() v.getCoordinates()}
-     * node as {@link #drawSettlementOrCity(Graphics, int, int, boolean, boolean, boolean)}.
+     * node as {@link #drawSettlementOrCity(Graphics, int, int, HilightStyle, boolean, boolean)}.
      * @param v  Village
      * @since 2.0.00
      */
@@ -4595,13 +4632,15 @@ import javax.swing.JComponent;
             int hex = ((SOCBoardLarge) board).getPirateHex();
             if (hex > 0)
             {
-                drawRoadOrShip(g, hex, -2, (gameState == SOCGame.PLACING_PIRATE), false, false);
+                drawRoadOrShip
+                    (g, hex, -2, (gameState == SOCGame.PLACING_PIRATE) ? HilightStyle.HOVER : null, false, false);
             }
 
             hex = ((SOCBoardLarge) board).getPreviousPirateHex();
             if (hex > 0)
             {
-                drawRoadOrShip(g, hex, -3, (gameState == SOCGame.PLACING_PIRATE), false, false);
+                drawRoadOrShip
+                    (g, hex, -3, (gameState == SOCGame.PLACING_PIRATE) ? HilightStyle.HOVER : null, false, false);
             }
         }
 
@@ -4612,7 +4651,7 @@ import javax.swing.JComponent;
         {
             for (SOCRoutePiece rs : board.getRoadsAndShips())
             {
-                drawRoadOrShip(g, rs.getCoordinates(), rs.getPlayerNumber(), false, ! (rs instanceof SOCShip), false);
+                drawRoadOrShip(g, rs.getCoordinates(), rs.getPlayerNumber(), null, ! (rs instanceof SOCShip), false);
             }
         } else {
             for (int pn = 0; pn < game.maxPlayers; ++pn)
@@ -4625,7 +4664,7 @@ import javax.swing.JComponent;
                 {
                     final boolean isShip = (rs instanceof SOCShip);
                     final boolean isWarship = isShip && (numWarships > 0);
-                    drawRoadOrShip(g, rs.getCoordinates(), pn, false, ! isShip, isWarship);
+                    drawRoadOrShip(g, rs.getCoordinates(), pn, null, ! isShip, isWarship);
                     if (isWarship)
                         --numWarships;  // this works since warships begin with player's 1st-placed ship in getRoads()
                 }
@@ -4644,7 +4683,7 @@ import javax.swing.JComponent;
          */
         for (SOCSettlement s : board.getSettlements())
         {
-            drawSettlement(g, s.getCoordinates(), s.getPlayerNumber(), false, false);
+            drawSettlement(g, s.getCoordinates(), s.getPlayerNumber(), null, false);
         }
 
         /**
@@ -4652,7 +4691,7 @@ import javax.swing.JComponent;
          */
         for (SOCCity c : board.getCities())
         {
-            drawCity(g, c.getCoordinates(), c.getPlayerNumber(), false);
+            drawCity(g, c.getCoordinates(), c.getPlayerNumber(), null);
         }
 
         if (xlat)
@@ -4691,7 +4730,7 @@ import javax.swing.JComponent;
         {
         case MOVE_SHIP:
             if (moveShip_fromEdge != 0)
-                drawRoadOrShip(g, moveShip_fromEdge, -1, false, false, moveShip_isWarship);
+                drawRoadOrShip(g, moveShip_fromEdge, -1, null, false, moveShip_isWarship);
             // fall through to road modes, to draw new location (hilight)
 
         case PLACE_ROAD:
@@ -4701,7 +4740,8 @@ import javax.swing.JComponent;
             if (hilight != 0)
             {
                 drawRoadOrShip
-                    (g, hilight, playerNumber, true, ! hilightIsShip, (moveShip_isWarship && (moveShip_fromEdge != 0)));
+                    (g, hilight, playerNumber, HilightStyle.HOVER,
+                     ! hilightIsShip, (moveShip_isWarship && (moveShip_fromEdge != 0)));
             }
             break;
 
@@ -4710,7 +4750,7 @@ import javax.swing.JComponent;
 
             if (hilight > 0)
             {
-                drawSettlement(g, hilight, playerNumber, true, false);
+                drawSettlement(g, hilight, playerNumber, HilightStyle.HOVER, false);
             }
             break;
 
@@ -4718,7 +4758,7 @@ import javax.swing.JComponent;
 
             if (hilight > 0)
             {
-                drawCity(g, hilight, playerNumber, true);
+                drawCity(g, hilight, playerNumber, HilightStyle.HOVER);
             }
             break;
 
@@ -4726,7 +4766,7 @@ import javax.swing.JComponent;
 
             if (hilight > 0)
             {
-                drawRoadOrShip(g, hilight, playerNumber, true, false, false);
+                drawRoadOrShip(g, hilight, playerNumber, HilightStyle.HOVER, false, false);
             }
             break;
 
@@ -4735,7 +4775,7 @@ import javax.swing.JComponent;
 
             if (hilight > 0)
             {
-                drawSettlement(g, hilight, otherPlayer.getPlayerNumber(), true, false);
+                drawSettlement(g, hilight, otherPlayer.getPlayerNumber(), HilightStyle.HOVER, false);
             }
             break;
 
@@ -4744,7 +4784,7 @@ import javax.swing.JComponent;
 
             if (hilight != 0)
             {
-                drawRoadOrShip(g, hilight, otherPlayer.getPlayerNumber(), false, true, false);
+                drawRoadOrShip(g, hilight, otherPlayer.getPlayerNumber(), null, true, false);
             }
             break;
 
@@ -4752,7 +4792,7 @@ import javax.swing.JComponent;
         case CONSIDER_LT_SHIP:
 
             if (hilight != 0)
-                drawRoadOrShip(g, hilight, otherPlayer.getPlayerNumber(), false, false, false);
+                drawRoadOrShip(g, hilight, otherPlayer.getPlayerNumber(), null, false, false);
             break;
 
         case CONSIDER_LM_CITY:
@@ -4760,7 +4800,7 @@ import javax.swing.JComponent;
 
             if (hilight > 0)
             {
-                drawCity(g, hilight, otherPlayer.getPlayerNumber(), true);
+                drawCity(g, hilight, otherPlayer.getPlayerNumber(), HilightStyle.HOVER);
             }
             break;
 
@@ -4775,7 +4815,7 @@ import javax.swing.JComponent;
         case PLACE_PIRATE:
             if (hilight > 0)
             {
-                drawRoadOrShip(g, hilight, -2, false, false, false);
+                drawRoadOrShip(g, hilight, -2, null, false, false);
             }
             break;
 
@@ -5069,7 +5109,7 @@ import javax.swing.JComponent;
                 {
                     for (int pn = 0; pn < ls.length; ++pn)
                         if (ls[pn] != 0)
-                            drawSettlement(g, ls[pn], pn, false, true);
+                            drawSettlement(g, ls[pn], pn, null, true);
                 }
 
                 final HashSet<Integer> lse = (player != null) ? player.getRestrictedLegalShips() : null;
@@ -5750,6 +5790,7 @@ import javax.swing.JComponent;
 
     /**
      * update the type of interaction mode, and trigger a repaint.
+     * If current player has changed, clears {@link #setLatestPiecePlacement(SOCPlayingPiece)}.
      * Also calls {@link #updateHoverTipToMode()} and
      * (for 6-player board's Special Building Phase) updates top-center text.
      * For {@link soc.game.SOCGameOptionSet#getAllKnownOptions() Game Option "N7"},
@@ -5759,11 +5800,11 @@ import javax.swing.JComponent;
      */
     public void updateMode()
     {
+        final int cpn = game.getCurrentPlayerNumber();
         String topText = null;  // assume not Special Building Phase
 
         if (player != null)
         {
-            final int cpn = game.getCurrentPlayerNumber();
             if (game.isDebugFreePlacement())
             {
                 topText = "DEBUG: Free Placement Mode";
@@ -5925,6 +5966,8 @@ import javax.swing.JComponent;
         }
 
         moveShip_fromEdge = 0;
+        if ((latestPiecePlacement != null) && (cpn != latestPiecePlacement.getPlayerNumber()))
+            latestPiecePlacement = null;
 
         setSuperimposedTopText(topText);
             // has side effect of always calling repaint() for us
@@ -8110,21 +8153,21 @@ import javax.swing.JComponent;
                 if (hoverRoadID != 0)
                 {
                     if (! hoverIsShipMovable)
-                        drawRoadOrShip(g, hoverRoadID, playerNumber, true, true, false);
+                        drawRoadOrShip(g, hoverRoadID, playerNumber, HilightStyle.HOVER, true, false);
                     else
-                        drawRoadOrShip(g, hoverRoadID, -1, true, true, false);
+                        drawRoadOrShip(g, hoverRoadID, -1, HilightStyle.HOVER, true, false);
                 }
                 if (hoverShipID != 0)
                 {
-                    drawRoadOrShip(g, hoverShipID, playerNumber, true, false, hoverIsWarship);
+                    drawRoadOrShip(g, hoverShipID, playerNumber, HilightStyle.HOVER, false, hoverIsWarship);
                 }
                 if (hoverSettlementID != 0)
                 {
-                    drawSettlement(g, hoverSettlementID, playerNumber, true, false);
+                    drawSettlement(g, hoverSettlementID, playerNumber, HilightStyle.HOVER, false);
                 }
                 if (hoverCityID != 0)
                 {
-                    drawCity(g, hoverCityID, playerNumber, true);
+                    drawCity(g, hoverCityID, playerNumber, HilightStyle.HOVER);
                 }
 
                 if (xlat)
@@ -9947,5 +9990,23 @@ import javax.swing.JComponent;
         public void windowCloseChosen() { button2Chosen(); }
 
     }  // nested class ConfirmPlaceShipDialog
+
+    /**
+     * Highlight styles to optionally use when drawing a playing piece.
+     *
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 2.7.00
+     */
+    private enum HilightStyle
+    {
+        /**
+         * The most common type: Highlight when mouse is hovered over the piece,
+         * usually for showing a potential placement
+         */
+        HOVER,
+
+        /** Most recently placed piece */
+        MOST_RECENT_PLACEMENT
+    }
 
 }  // class SOCBoardPanel
