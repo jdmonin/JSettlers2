@@ -3457,14 +3457,16 @@ public class SOCPlayerInterface extends JFrame
             if (! isMove)
             {
                 game.putPiece(pp);
+                boardPanel.setLatestPiecePlacement(pp);
                 mesHp.updateValue(PlayerClientListener.UpdateType.Ship);
             } else {
                 game.moveShip((SOCShip) pp, moveToCoord);
+                boardPanel.setLatestPiecePlacement(game.getBoard().roadOrShipAtEdge(moveToCoord));
+                    // since pp is no longer the SOCShip object on board
                 if (mesHp == clientHand)
                     mesHp.disableBankUndoButton();  // just in case; it probably wasn't enabled
             }
 
-            boardPanel.setLatestPiecePlacement(pp);
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7])
                 boardPanel.flushBoardLayoutAndRepaint();
 

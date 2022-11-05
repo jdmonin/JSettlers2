@@ -17,6 +17,7 @@ JARs for recent JSettlers versions can be downloaded from
 - Currently being developed
 - Client:
 	- Game window:
+	    - For visibility when a player builds, highlight most recently placed piece until end of their turn
 	    - Discard, Year of Plenty dialogs: Each resource pick square won't go past prompted amount  
 	      (was no limit in previous versions)
 	    - `*STATS*`: De-clutter player resource trade stats output

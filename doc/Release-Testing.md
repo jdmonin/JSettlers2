@@ -86,12 +86,15 @@ When preparing to release a new version, testing should include:
         - When client clicks Special Building button, server sends text explaining the house rule is active
 - Basic rules and game play
     - Can build pieces by right-clicking board or with the Build Panel
+        - Most recently placed piece is highlighted until end of turn or another build
     - Can trade with ports by right-clicking board or using Trade Offer Bank/Port button
         - Trade to have resources to build city; should update Build Panel buttons
         - Undo trade; should update Build Panel buttons
     - Trade offer, rejection, counter-offer accept/rejection
         - Build 2 roads, trade to have resources to build settlement; should update Build Panel buttons
     - Can play dev card before dice roll
+    - Sea board: Can move a ship, but not a ship placed this turn
+        - After move, ship gets highlighted since it's most recently placed piece
     - Can win only on your own turn
         - This can be tested using the 6-player board's Special Building Phase
     - Move robber/steal resources
@@ -320,6 +323,7 @@ When preparing to release a new version, testing should include:
      - Pirate Islands and Fortresses
        - Test visibility of Legal Sea Edges (dotted lines to fortress) for all 6 players
          using both hex graphic themes (pastel & classic)
+       - Build a ship, immediately convert it to a warship: Should still be highlighted as most recently placed piece
        - As player with pn=0 and as another pn: Leave and rejoin game: After sitting down, should see Legal Sea Edges
          (dotted line from main island to your player's fortress) and be able to place boats along them
        - Defeat all fortresses: Pirate Fleet should disappear
