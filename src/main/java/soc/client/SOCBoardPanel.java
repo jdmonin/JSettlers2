@@ -8457,8 +8457,10 @@ import javax.swing.JComponent;
 
                     if (pieceExtraDesc == null)
                         pieceExtraDesc = "";
-                    setHoverText
-                        (strings.get(sb.toString(), plName, board.getPortTypeFromNodeCoord(id), pieceExtraDesc), id);
+                    String htext = strings.get(sb.toString(), plName, board.getPortTypeFromNodeCoord(id), pieceExtraDesc);
+                    if (p == latestPiecePlacement)
+                        htext += " " + strings.get("board.most_recent_placement");  // "(Most recent placement)"
+                    setHoverText(htext, id);
                     hoverTextSet = true;
 
                     // If we're at the player's settlement, ready to upgrade to city
@@ -8663,17 +8665,21 @@ import javax.swing.JComponent;
                         if (plName == null)
                             plName = strings.get("board.unowned");  // "unowned"
 
+                        String htext;
                         if (isRoad)
                         {
-                            setHoverText(strings.get("board.road", plName), id);  // "Road: " + plName
+                            htext = strings.get("board.road", plName);  // "Road: " + plName
                         } else {
                             // Scenario _SC_PIRI has warships; check class just in case.
                             hoverIsWarship = (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
                             if (hoverIsWarship)
-                                setHoverText(strings.get("board.warship", plName), id);  // "Warship: " + plName
+                                htext = strings.get("board.warship", plName);  // "Warship: " + plName
                             else
-                                setHoverText(strings.get("board.ship", plName), id);     // "Ship: " + plName
+                                htext = strings.get("board.ship", plName);     // "Ship: " + plName
                         }
+                        if (rs == latestPiecePlacement)
+                            htext += ' ' + strings.get("board.most_recent_placement");  // "(Most recent placement)"
+                        setHoverText(htext, id);
 
                         // Can the player move their ship?
                         if (modeAllowsHoverPieces && playerIsCurrent
