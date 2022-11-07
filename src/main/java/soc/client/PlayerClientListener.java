@@ -622,6 +622,14 @@ public interface PlayerClientListener
     void playerRequestDeclined
         (final int reasonCode, final int detailValue1, final int detailValue2, final String reasonText);
 
+    /**
+     * A player has canceled their current build.
+     * Called when canceling their most recent initial settlement build,
+     * or during regular gameplay to return resources to player's hand
+     * and change gameState back to {@link SOCGame#PLAY1}
+     * after sending a build request from the build panel.
+     * @param player  Player who cancelled their own build; not null
+     */
     void buildRequestCanceled(SOCPlayer player);
 
     /**

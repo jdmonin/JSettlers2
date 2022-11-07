@@ -3526,6 +3526,7 @@ public class SOCPlayerInterface extends JFrame
         {
         case SOCPlayingPiece.SHIP:
             game.removeShip(new SOCShip(player, pieceCoordinate, null));
+            boardPanel.setLatestPiecePlacement(null);  // in case latest-placed ship was just removed
             updateAtPiecesChanged();
             break;
 
@@ -4665,6 +4666,8 @@ public class SOCPlayerInterface extends JFrame
         public void buildRequestCanceled(SOCPlayer player)
         {
             pi.getPlayerHandPanel(player.getPlayerNumber()).updateResourcesVP();
+            if (pi.game.isInitialPlacement())
+                pi.boardPanel.setLatestPiecePlacement(null);
             pi.boardPanel.updateMode();
         }
 

@@ -18,6 +18,9 @@ When preparing to release a new version, testing should include:
 - Game setup, join, and reset:
     - Create and start playing a practice game with 1 locked space & 2 bots, past initial placement
       into normal play (roll dice, etc) with default options
+        - During initial placement, cancel and re-place a settlement
+            - That settlement's visual highlight for "latest placement" should disappear along with the settlement
+            - If second settlement is canceled, game should return gained resources to the bank
     - Create and start playing a practice game on the 6-player board (5 bots), with options like Roll No 7s for First 7 Turns
     - `JSettlersServer.jar`: Start a dedicated server on another ("remote") machine's text-only console
     - Join that remote server & play a full game, then reset board and start another game
@@ -331,6 +334,8 @@ When preparing to release a new version, testing should include:
            - Give both players about 8 Warship cards: `dev: 9 debug`, repeat for bot name
            - Use Free Placement mode to build ships to each player's fortress: `*FREEPLACE* 1`
            - Take turns, upgrade to warships, attack fortress until both are defeated
+               - At least once: Build a ship and attack the same turn;
+                 if battle is lost, the removed ship's visual highlight for "latest placement" should disappear along with the ship
            - Pirate Fleet should disappear
            - Play a few more rounds; should see no exceptions from bot at server console
      - Wonders
