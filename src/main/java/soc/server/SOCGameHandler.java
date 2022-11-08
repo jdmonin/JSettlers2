@@ -1659,6 +1659,25 @@ public class SOCGameHandler extends GameHandler
          */
         if (gameState >= SOCGame.START1A)
         {
+            if (isLoading && (c.getVersion() >= GEType.VERSION_FOR_SHIP_PLACED_THIS_TURN_EDGE))
+            {
+                final List<Integer> shipEdges = gameData.getShipsPlacedThisTurn();
+                if ((shipEdges != null) && ! shipEdges.isEmpty())
+                {
+                    final int n = shipEdges.size();
+                    final int[] edg = new int[n];
+                    final GEType[] ge = new GEType[n];
+                    for (int i = 0; i < n; ++i)
+                    {
+                        ge[i] = GEType.SHIP_PLACED_THIS_TURN_EDGE;
+                        edg[i] = shipEdges.get(i);
+                    }
+
+                    srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
+                        new SOCGameElements(gameName, ge, edg));
+                }
+            }
+
             if (gameData.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
                 srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
                     new SOCPlayerElement

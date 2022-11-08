@@ -2034,6 +2034,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
             ga.setSpecialBuildingPlayerNumberAfter(value);
             break;
 
+        case SHIP_PLACED_THIS_TURN_EDGE:
+            ga.addShipPlacedThisTurn(value);
+            break;
+
         case UNKNOWN_TYPE:
             ;  // no action needed, UNKNOWN_TYPE is mentioned only to avoid compiler warning
         }

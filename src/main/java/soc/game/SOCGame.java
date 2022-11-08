@@ -3637,8 +3637,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Get the list of ships placed this turn by the current player, if {@link #hasSeaBoard}.
-     * @return copy of the list of ships placed this turn, if any.
+     * @return copy of the list of edge coordinates of ships placed this turn, if any.
      *     May be empty; won't be {@code null} unless ! {@link #hasSeaBoard}
+     * @see #addShipPlacedThisTurn(int)
      * @since 2.3.00
      */
     public List<Integer> getShipsPlacedThisTurn()
@@ -3646,6 +3647,21 @@ public class SOCGame implements Serializable, Cloneable
         return (shipsPlacedThisTurn != null)
             ? new ArrayList<>(shipsPlacedThisTurn)
             : null;
+    }
+
+    /**
+     * Add the ship at this edge to the list of {@link #getShipsPlacedThisTurn()}.
+     * Used at client when they're member of a saved game being reloaded by server.
+     * Does nothing if not {@link #hasSeaBoard}.
+     * @param edge  Edge coordinate of ship to add; not validated here
+     * @since 2.7.00
+     */
+    public void addShipPlacedThisTurn(final int edge)
+    {
+        if (shipsPlacedThisTurn == null)
+            return;
+
+        shipsPlacedThisTurn.add(edge);
     }
 
     /**
@@ -3713,6 +3729,9 @@ public class SOCGame implements Serializable, Cloneable
      * Some scenarios use extra initial pieces in fixed locations, placed in
      * {@link SOCBoardAtServer#startGame_putInitPieces(SOCGame)}.  To prevent the state or current player from
      * advancing, temporarily set game state {@link #READY} before calling putPiece for these.
+     *<P>
+     * Adds {@link SOCShip}s to {@link #getShipsPlacedThisTurn()}, except while loading a saved game
+     * (state {@link #LOADING}, or 0 at client) so the joined clients won't think all ships were placed this turn.
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
      * unless the current player gains enough points to win.

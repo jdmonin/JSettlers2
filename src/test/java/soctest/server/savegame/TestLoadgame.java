@@ -706,6 +706,10 @@ public class TestLoadgame
         assertEquals(CURRENT_PLAYER_NUMBER, srp.getPlayerNumber());
         assertEquals(new GameAction(ActionType.MOVE_PIECE, SOCPlayingPiece.SHIP, 0x901, 0xa00), ga.getLastAction());
         assertTrue(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xa00)));
+        // quick direct test of addShipPlacedThisTurn
+        assertFalse(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xc04)));
+        ga.addShipPlacedThisTurn(0xc04);
+        assertTrue(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xc04)));
 
         assertTrue(ga.getNumDevCards() > 0);
         assertFalse("not enough resources", ga.couldBuyDevCard(CURRENT_PLAYER_NUMBER));

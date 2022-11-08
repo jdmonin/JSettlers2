@@ -629,6 +629,14 @@ public class TestToCmdToStringParse
             "1096|ga|2|25|1|2|3|1|6|-1|5|-1",
             "SOCGameElements:game=ga|e2=25,e1=2,e3=1,e6=-1,e5=-1"
         },
+        {
+            // having multiple of same GEType, as sent during loadgame
+            new SOCGameElements
+                ("ga", new GEType[]{GEType.SHIP_PLACED_THIS_TURN_EDGE, GEType.SHIP_PLACED_THIS_TURN_EDGE, GEType.SHIP_PLACED_THIS_TURN_EDGE, GEType.SHIP_PLACED_THIS_TURN_EDGE},
+                 new int[]{0x701, 0x601, 0x602, 0x603}),
+            "1096|ga|8|1793|8|1537|8|1538|8|1539",
+            "SOCGameElements:game=ga|e8=1793,e8=1537,e8=1538,e8=1539"
+        },
         {new SOCGameMembers("ga", Arrays.asList("player0", "droid 1", "robot 2", "debug")), "1017|ga,player0,droid 1,robot 2,debug", "SOCGameMembers:game=ga|members=[player0, droid 1, robot 2, debug]"},
         {new SOCGameMembers("ga", Arrays.asList("p")), "1017|ga,p", "SOCGameMembers:game=ga|members=[p]"},  // shortest list
             // v1.x: slightly different list format, same message type name
