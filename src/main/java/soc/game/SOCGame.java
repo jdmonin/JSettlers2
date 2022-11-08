@@ -3963,7 +3963,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * Remember ships placed this turn
          */
-        if ((pp.getType() == SOCPlayingPiece.SHIP) && (gameState != LOADING))
+        if ((pp.getType() == SOCPlayingPiece.SHIP) && (gameState != 0) && (gameState != LOADING))
             shipsPlacedThisTurn.add(Integer.valueOf(coord));
 
         /**

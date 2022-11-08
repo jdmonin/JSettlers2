@@ -572,7 +572,7 @@ public class TestLoadgame
     /**
      * Test loading and resuming a Sea Board game, including open/closed ship routes ({@link SOCShip#isClosed()}).
      * Because {@code testsea-closed.game.json} is a known setup, use it to test a few basic game actions
-     * like {@link SOCGame#putPiece(SOCPlayingPiece)}.
+     * like {@link SOCGame#putPiece(SOCPlayingPiece)} and {@link SOCGame#moveShip(SOCShip, int)}.
      */
     @Test
     public void testLoadSeaBoard()
@@ -670,14 +670,42 @@ public class TestLoadgame
         assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.CITY, 0x606, 0), ga.getLastAction());
         assertFalse(pl.isPotentialCity(0x606));
 
-        assertNull(board.roadOrShipAtEdge(0xc03));
-        assertTrue(pl.isPotentialShip(0xc03));
-        assertFalse(pl.isPotentialShip(0xc04));
-        ga.putPiece(new SOCShip(pl, 0xc03, board));
-        assertTrue("ship built at 0xc03", board.roadOrShipAtEdge(0xc03) instanceof SOCShip);
-        assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.SHIP, 0xc03, 0), ga.getLastAction());
-        assertFalse(pl.isPotentialShip(0xc03));
-        assertTrue(pl.isPotentialShip(0xc04));
+        assertNull(board.roadOrShipAtEdge(0xc01));
+        assertTrue(pl.isPotentialShip(0xc01));
+        assertFalse(pl.isPotentialShip(0xd01));
+        ga.putPiece(new SOCShip(pl, 0xc01, board));
+        assertTrue("ship built at 0xc01", board.roadOrShipAtEdge(0xc01) instanceof SOCShip);
+        assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.SHIP, 0xc01, 0), ga.getLastAction());
+        assertFalse(pl.isPotentialShip(0xc01));
+        assertTrue(pl.isPotentialShip(0xd01));
+        assertTrue(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xc01)));
+
+        // Can't move ship built this turn, but can move ship built previously:
+        // built this turn, after loading:
+        SOCRoutePiece srp = board.roadOrShipAtEdge(0xc01);
+        assertTrue(srp instanceof SOCShip);
+        assertEquals(CURRENT_PLAYER_NUMBER, srp.getPlayerNumber());
+        assertNull("ship at 0xc01 should not be movable", ga.canMoveShip(CURRENT_PLAYER_NUMBER, 0xc01));
+        // built this turn, before saving (shipsPlacedThisTurn in saved game):
+        srp = board.roadOrShipAtEdge(0xc02);
+        assertTrue(srp instanceof SOCShip);
+        assertEquals(CURRENT_PLAYER_NUMBER, srp.getPlayerNumber());
+        assertNull("ship at 0xc02 should not be movable", ga.canMoveShip(CURRENT_PLAYER_NUMBER, 0xc02));
+        // previously built:
+        srp = board.roadOrShipAtEdge(0x901);
+        assertTrue(srp instanceof SOCShip);
+        assertEquals(CURRENT_PLAYER_NUMBER, srp.getPlayerNumber());
+        assertEquals("ship at 0x901 can be moved", srp, ga.canMoveShip(CURRENT_PLAYER_NUMBER, 0x901));
+        assertTrue(pl.canMoveShip((SOCShip) srp));
+        assertNull(board.roadOrShipAtEdge(0xa00));
+        assertEquals("ship at 0x901 can be moved to 0xa00", srp, ga.canMoveShip(CURRENT_PLAYER_NUMBER, 0x901, 0xa00));
+        ga.moveShip((SOCShip) srp, 0xa00);
+        assertNull(board.roadOrShipAtEdge(0x901));
+        srp = board.roadOrShipAtEdge(0xa00);
+        assertTrue(srp instanceof SOCShip);
+        assertEquals(CURRENT_PLAYER_NUMBER, srp.getPlayerNumber());
+        assertEquals(new GameAction(ActionType.MOVE_PIECE, SOCPlayingPiece.SHIP, 0x901, 0xa00), ga.getLastAction());
+        assertTrue(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xa00)));
 
         assertTrue(ga.getNumDevCards() > 0);
         assertFalse("not enough resources", ga.couldBuyDevCard(CURRENT_PLAYER_NUMBER));

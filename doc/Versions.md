@@ -30,6 +30,8 @@ JARs for recent JSettlers versions can be downloaded from
 	  with info on game duration
 - For developers:
 	- Save/load games:
+	    - After loading, current player can now resume game and move a ship immediately
+	      if client is this version or newer, instead of waiting until their next turn
 	    - `*LOADGAME*`: If SavedGameModel.devCardDeck has an unknown card type, give card's index in warning to user
 	- Gradle 7 compatibility
 - Code internals:
