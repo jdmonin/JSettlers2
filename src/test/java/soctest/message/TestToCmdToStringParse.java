@@ -920,6 +920,7 @@ public class TestToCmdToStringParse
             "SOCPotentialSettlements:game=ga|playerNum=3|list=(empty)|pan=0|la1=a0f |la2=60a |lse={{c07-c0b,e04-e0a},{},{d07-d0b,a03},{}}"
         },
         {new SOCPutPiece("ga", 3, 0, 1034), "1009|ga,3,0,1034", "SOCPutPiece:game=ga|playerNumber=3|pieceType=0|coord=40a"},
+        {new SOCPutPiece("ga", -1, 5, 0x80c), "1009|ga,-1,5,2060", "SOCPutPiece:game=ga|playerNumber=-1|pieceType=5|coord=80c"},
         {new SOCRejectConnection("reason msg"), "1059|reason msg", "SOCRejectConnection:reason msg"},
         {new SOCRejectOffer("ga", 2), "1037|ga,2", "SOCRejectOffer:game=ga|playerNumber=2"},
         {new SOCRejectOffer("ga", 2, SOCRejectOffer.REASON_CANNOT_MAKE_OFFER), "1037|ga,2,3", "SOCRejectOffer:game=ga|playerNumber=2|reasonCode=3"},
@@ -1100,6 +1101,8 @@ public class TestToCmdToStringParse
         {new SOCTimingPing("ga"), "1088|ga", "SOCTimingPing:game=ga"},
         {new SOCTurn("ga", 3, 0), "1026|ga,3", "SOCTurn:game=ga|playerNumber=3"},
         {new SOCTurn("ga", 3, SOCGame.ROLL_OR_CARD), "1026|ga,3,15", "SOCTurn:game=ga|playerNumber=3|gameState=15"},
+        {new SOCUndoPutPiece("ga", 3, 0, 0x40a), "1105|ga,3,0,1034", "SOCUndoPutPiece:game=ga|playerNumber=3|pieceType=0|coord=40a"},
+        {new SOCUndoPutPiece("ga", -1, 2, 0x40a), "1105|ga,-1,2,1034", "SOCUndoPutPiece:game=ga|playerNumber=-1|pieceType=2|coord=40a"},
         {
             new SOCUpdateRobotParams(new soc.util.SOCRobotParameters(120, 35, 0.13f, 1.0f, 1.0f, 3.0f, 1.0f, 0, 1)),
             "1071|120,35,0.13,1.0,1.0,3.0,1.0,0,1",

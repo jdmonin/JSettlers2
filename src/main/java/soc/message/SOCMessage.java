@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -466,6 +466,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @since 2.5.00
      */
     public static final int DECLINEPLAYERREQUEST = 1104;  // Decline player's request, 20211208, v2.5.00
+
+    /**
+     * {@link SOCUndoPutPiece} - Undo a piece placement or move.
+     * @since 2.7.00
+     */
+    public static final int UNDOPUTPIECE = 1105;  // Undo put piece/move piece, 20221109, v2.7.00
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
@@ -1061,6 +1067,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case DECLINEPLAYERREQUEST:  // Decline player's request, 20211208, v2.5.00
                 return SOCDeclinePlayerRequest.parseDataStr(data);
+
+            case UNDOPUTPIECE:          // Undo put piece/move piece, 20221109, v2.7.00
+                return SOCUndoPutPiece.parseDataStr(data);
 
             // gametype-specific messages:
 
