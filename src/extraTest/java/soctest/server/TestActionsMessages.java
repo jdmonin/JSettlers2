@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -209,16 +209,18 @@ public class TestActionsMessages
         // unique client nickname, in case tests run in parallel
         final String CLIENT_NAME = "testBuild_"
             + (withBuildRequest ? "WB_" : "NB_") + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+        final int CLIENT_PN = 3;
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
                 (srv, CLIENT_NAME, null, 0, null, true, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
-        final SOCGame ga = objs.gameAtServer;
+        final SOCGame ga = objs.gameAtServer, gaAtCli = tcli.getGame(ga.getName());
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
         final Vector<EventEntry> records = objs.records;
+        assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
 
         /* build road */
 
@@ -313,6 +315,11 @@ public class TestActionsMessages
         assertTrue(board.roadOrShipAtEdge(0xd05) instanceof SOCShip);
         final int SHIP_EDGE = 0xe05;
         assertNull(board.roadOrShipAtEdge(SHIP_EDGE));
+        List<Integer> shipsThisTurnListAtCli = gaAtCli.getShipsPlacedThisTurn();
+            // loaded from message-seqs.game.json, sent to client player during join
+        assertNotNull(shipsThisTurnListAtCli);
+        assertEquals(1, shipsThisTurnListAtCli.size());
+        assertTrue(shipsThisTurnListAtCli.contains(Integer.valueOf(0xd05)));
         if (withBuildRequest)
         {
             tcli.buildRequest(ga, SOCPlayingPiece.SHIP);
@@ -328,7 +335,11 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertTrue("ship built", board.roadOrShipAtEdge(SHIP_EDGE) instanceof SOCShip);
         assertEquals(10, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
+        assertNull(gaAtCli.canMoveShip(CLIENT_PN, SHIP_EDGE));
         assertArrayEquals(new int[]{2, 0, 1, 1, 2}, cliPl.getResources().getAmounts(false));
+        shipsThisTurnListAtCli = gaAtCli.getShipsPlacedThisTurn();
+        assertEquals(2, shipsThisTurnListAtCli.size());
+        assertTrue(shipsThisTurnListAtCli.contains(Integer.valueOf(SHIP_EDGE)));
 
         StringBuilder comparesShipBuild = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -347,13 +358,17 @@ public class TestActionsMessages
             MOVESHIP_EDGE_TO = 0xf06;
         assertTrue("moving ship from here", board.roadOrShipAtEdge(MOVESHIP_EDGE_FROM) instanceof SOCShip);
         assertNull("no ship here yet", board.roadOrShipAtEdge(MOVESHIP_EDGE_TO));
-        tcli.movePieceRequest(ga, cliPl.getPlayerNumber(), SOCPlayingPiece.SHIP, MOVESHIP_EDGE_FROM, MOVESHIP_EDGE_TO);
+        assertNotNull(gaAtCli.canMoveShip(CLIENT_PN, MOVESHIP_EDGE_FROM, MOVESHIP_EDGE_TO));
+        tcli.movePieceRequest(ga, CLIENT_PN, SOCPlayingPiece.SHIP, MOVESHIP_EDGE_FROM, MOVESHIP_EDGE_TO);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertTrue("ship moved", board.roadOrShipAtEdge(MOVESHIP_EDGE_TO) instanceof SOCShip);
         assertNull("ship moved from here", board.roadOrShipAtEdge(MOVESHIP_EDGE_FROM));
         assertEquals(4, cliPl.getPublicVP());  // unchanged by this move
+        shipsThisTurnListAtCli = gaAtCli.getShipsPlacedThisTurn();
+        assertEquals(3, shipsThisTurnListAtCli.size());
+        assertTrue(shipsThisTurnListAtCli.contains(Integer.valueOf(MOVESHIP_EDGE_TO)));
 
         StringBuilder comparesShipMove = TestRecorder.compareRecordsToExpected
             (records, new String[][]
