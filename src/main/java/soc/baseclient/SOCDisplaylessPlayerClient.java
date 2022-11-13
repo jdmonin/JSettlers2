@@ -39,6 +39,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
+import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
@@ -973,6 +974,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
             case SOCMessage.DECLINEPLAYERREQUEST:
                 handleDECLINEPLAYERREQUEST
                     ((SOCDeclinePlayerRequest) mes, games.get(((SOCMessageForGame) mes).getGame()));
+                break;
+
+            /**
+             * Undo moving or placing a piece.
+             * Added 2022-11-11 for v2.7.00.
+             */
+            case SOCMessage.UNDOPUTPIECE:
+                handleUNDOPUTPIECE
+                    ((SOCUndoPutPiece) mes, games.get(((SOCUndoPutPiece) mes).getGame()));
                 break;
             }
         }
@@ -2936,6 +2946,39 @@ public class SOCDisplaylessPlayerClient implements Runnable
         default:
             System.err.println("Displayless.updateAtPieceRemoved called for un-handled type " + pieceType);
         }
+    }
+
+    /**
+     * Undo moving or placing a piece.
+     * Does nothing for server decline reply ({@link SOCUndoPutPiece#getPlayerNumber()} &lt; 0).
+     * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
+     * @since 2.7.00
+     */
+    public static void handleUNDOPUTPIECE(final SOCUndoPutPiece mes, SOCGame ga)
+    {
+        if (ga == null)
+            return;  // Not one of our games
+        if (mes.getPlayerNumber() < 0)
+            return;
+
+        // currently handles only ship move; undo put piece will be added soon
+        int movedFromCoord = mes.getMovedFromCoordinates();
+        if (movedFromCoord != 0)
+        {
+            final int pieceType = mes.getPieceType();
+            if (pieceType == SOCPlayingPiece.SHIP)
+            {
+                final SOCRoutePiece ship = ga.getBoard().roadOrShipAtEdge(mes.getCoordinates());
+                if (ship instanceof SOCShip)  // also checks non-null
+                    ga.undoMoveShip((SOCShip) ship);
+            } else {
+                System.err.println("Displayless.handleUNDOPUTPIECE: Un-handled move pieceType " + pieceType);
+            }
+        }
+        // else
+            // TODO handle undo put piece
     }
 
     /**

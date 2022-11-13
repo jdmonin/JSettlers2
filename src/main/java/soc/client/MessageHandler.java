@@ -761,6 +761,14 @@ public class MessageHandler
                 handleDECLINEPLAYERREQUEST((SOCDeclinePlayerRequest) mes);
                 break;
 
+            /**
+             * Undo moving or placing a piece.
+             * Added 2022-11-14 for v2.7.00.
+             */
+            case SOCMessage.UNDOPUTPIECE:
+                handleUNDOPUTPIECE((SOCUndoPutPiece) mes);
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Throwable th)
@@ -3080,6 +3088,31 @@ public class MessageHandler
             return;
         SOCPlayer player = ga.getPlayer(mes.getParam1());
         pcl.playerPieceRemoved(player, mes.getParam3(), mes.getParam2());
+    }
+
+    /**
+     * Handle an undo put piece / move piece.
+     * @since 2.7.00
+     */
+    private void handleUNDOPUTPIECE(final SOCUndoPutPiece mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = client.games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+
+        SOCDisplaylessPlayerClient.handleUNDOPUTPIECE(mes, ga);
+
+        PlayerClientListener pcl = client.getClientListener(gaName);
+        if (pcl == null)
+            return;  // Not one of our games
+        final int pn = mes.getPlayerNumber(),
+            pieceType = mes.getPieceType(),
+            fromCoord = mes.getMovedFromCoordinates();
+        if (pn >= 0)
+            pcl.playerPiecePlacementUndone(ga.getPlayer(pn), mes.getCoordinates(), fromCoord, pieceType);
+        else
+            pcl.playerPiecePlacementUndoDeclined(pieceType, (fromCoord != 0));
     }
 
     /**

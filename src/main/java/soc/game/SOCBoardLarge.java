@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -217,6 +217,8 @@ import soc.util.IntPair;
  * (between two hex coordinates, which are to the west and east of
  * the edge); vertical edge row coordinates are odd like hexes.
  * Otherwise, edges get the coordinate of the node at their western end.
+ *<BR>
+ * Edge (0, 0) is not a valid placement location, to simplify some code.
  *<P>
  * The first few rows of nodes are: <pre>
  *       (0,2)  (0,4)  (0,6) ..
@@ -230,6 +232,8 @@ import soc.util.IntPair;
  *
  *   (6,1)  (6,3)  (6,5) ..
  *(6,0)  (6,2)  (6,4)  (6,6) .. </pre>
+ *
+ * Node (0, 0) is not a valid placement location; its hex would be cut off by the side of the board.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00

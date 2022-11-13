@@ -80,6 +80,7 @@ import soc.message.SOCSitDown;  // for javadoc
 import soc.message.SOCStartGame;
 import soc.message.SOCTimingPing;  // for javadoc
 import soc.message.SOCTurn;
+import soc.message.SOCUndoPutPiece;
 
 import soc.util.CappedQueue;
 import soc.util.DebugRecorder;
@@ -1504,6 +1505,10 @@ public class SOCRobotBrain extends Thread
 
                     case SOCMessage.CANCELBUILDREQUEST:
                         handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
+                        break;
+
+                    case SOCMessage.UNDOPUTPIECE:
+                        handleUNDOPUTPIECE((SOCUndoPutPiece) mes);
                         break;
 
                     case SOCMessage.DISCARD:
@@ -3513,6 +3518,19 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Handle an UNDOPUTPIECE for this game.
+     * Updates game data, calls {@link #resetBuildingPlan()}; bot must re-plan after calling this method.
+     * @param mes  the message
+     * @see #handlePUTPIECE_updateTrackers(int, int, int)
+     * @since 2.7.00
+     */
+    private void handleUNDOPUTPIECE(final SOCUndoPutPiece mes)
+    {
+        SOCDisplaylessPlayerClient.handleUNDOPUTPIECE(mes, game);
+        resetBuildingPlan();
+    }
+
+    /**
      * Note that a player has replied to our offer, or we've accepted another player's offer.
      * Determine whether to keep waiting for responses, and update negotiator appropriately.
      * If {@code accepted}, also clears {@link #waitingForTradeResponse}
@@ -3834,6 +3852,7 @@ public class SOCRobotBrain extends Thread
      * @param pn  Piece's player number
      * @param coord  Piece coordinate
      * @param pieceType  Piece type, as in {@link SOCPlayingPiece#SETTLEMENT}
+     * @see #handleUNDOPUTPIECE(SOCUndoPutPiece)
      * @since 1.1.08
      */
     public void handlePUTPIECE_updateTrackers(final int pn, final int coord, final int pieceType)

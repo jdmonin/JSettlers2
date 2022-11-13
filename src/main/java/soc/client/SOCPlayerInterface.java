@@ -3536,6 +3536,28 @@ public class SOCPlayerInterface extends JFrame
     }
 
     /**
+     * Placing or moving a player's piece is being undone.
+     * Is called after game data has been updated.
+     * @param player  The player who owns the piece; not null
+     * @param coordinate  The location of the piece whose placement or move is being undone
+     * @param movedFromCoordinate  If undoing a ship move, the piece's former location before the move; otherwise 0
+     * @param pieceType  The piece type, such as {@link SOCPlayingPiece#CITY}
+     * @since 2.7.00
+     */
+    public void updateAtUndoPutPiece(SOCPlayer player, int coordinate, int movedFromCoordinate, int pieceType)
+    {
+        boardPanel.setLatestPiecePlacement(null);
+        updateAtPiecesChanged();
+
+        final String plName = player.getName(), aPieceType = "a " + SOCPlayingPiece.getTypeName(pieceType);
+        if (movedFromCoordinate != 0)
+            print("* " + plName + " has undone moving " + aPieceType);
+        else
+            print("* " + plName + " has undone building " + aPieceType);
+        // TODO i18n
+    }
+
+    /**
      * The robber or pirate has been moved onto a hex. Repaints board.
      * @param newHex  The new robber/pirate hex coordinate, or 0 to take the pirate off the board
      * @param isPirate  True if the pirate, not the robber, was moved
@@ -4130,6 +4152,20 @@ public class SOCPlayerInterface extends JFrame
         public void playerPieceRemoved(SOCPlayer player, int pieceCoordinate, int pieceType)
         {
             pi.updateAtPieceRemoved(player, pieceCoordinate, pieceType);
+        }
+
+        public void playerPiecePlacementUndone(SOCPlayer player, int coordinate, int movedFromCoordinate, int pieceType)
+        {
+            pi.updateAtUndoPutPiece(player, coordinate, movedFromCoordinate, pieceType);
+        }
+
+        public void playerPiecePlacementUndoDeclined(int pieceType, boolean isMove)
+        {
+            NotifyDialog.createAndShow
+                (pi.getMainDisplay(), pi,
+                 ((isMove) ? "Cannot undo that move" : "Cannot undo that build"), null, true);
+            // TODO i18n
+
         }
 
         public void playerSVPAwarded(SOCPlayer player, int numSvp, String awardDescription)

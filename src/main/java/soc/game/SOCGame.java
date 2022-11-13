@@ -496,6 +496,19 @@ public class SOCGame implements Serializable, Cloneable
     public static final int SPECIAL_BUILDING = 100;  // see advanceTurnToSpecialBuilding()
 
     /**
+     * Game methods are currently undoing the previous move.
+     * Is an internal state used locally (not sent over network) by undo methods
+     * calling other game methods like {@link #putPiece(SOCPlayingPiece)} or {@link #moveShip(SOCShip, int)}.
+     * The undo methods keep the actual current state in a local var,
+     * and restore it after completing their undo work.
+     * In this state, methods should skip any of the usual side-effects checking
+     * (check for winner, give free resources for placement, etc).
+     *
+     * @since 2.7.00
+     */
+    public static final int UNDOING_ACTION = 950;
+
+    /**
      * A saved game is being loaded. Its actual state is saved in field {@code oldGameState}.
      * Bots have joined to sit in seats which were bots in the saved game, and human seats
      * are currently unclaimed except for the requesting user if they were named as a player.
@@ -3667,6 +3680,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Put this piece on the board and update all related game state.
      * May change current player (at server) and gamestate.
+     * Unless {@link #getGameState()} is currently {@link #UNDOING_ACTION}:
      * Calls {@link #checkForWinner()}; gamestate may become {@link #OVER}.
      *<P>
      * For example, if game state when called is {@link #START2A} (or {@link #START3A} in
@@ -3730,8 +3744,9 @@ public class SOCGame implements Serializable, Cloneable
      * {@link SOCBoardAtServer#startGame_putInitPieces(SOCGame)}.  To prevent the state or current player from
      * advancing, temporarily set game state {@link #READY} before calling putPiece for these.
      *<P>
-     * Adds {@link SOCShip}s to {@link #getShipsPlacedThisTurn()}, except while loading a saved game
-     * (state {@link #LOADING}, or 0 at client) so the joined clients won't think all ships were placed this turn.
+     * Adds {@link SOCShip}s to {@link #getShipsPlacedThisTurn()} except in gameState {@link #UNDOING_ACTION},
+     * or while loading a saved game (state {@link #LOADING}, or 0 at client)
+     * so the joined clients won't think all ships were placed this turn.
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
      * unless the current player gains enough points to win.
@@ -3750,8 +3765,8 @@ public class SOCGame implements Serializable, Cloneable
      * See {@link #putPiece(SOCPlayingPiece)} javadoc for more information on what putPieceCommon does.
      *
      * @param pp  The piece to put on the board; coordinates are not checked for validity
-     * @param isTempPiece  Is this a temporary piece?  If so, do not change current
-     *            player or gamestate, call our {@link SOCGameEventListener},
+     * @param isTempPiece  Is this a temporary piece?  If so, or if current gameState is {@link #UNDOING_ACTION}:
+     *            Do not change current player or gamestate, call our {@link SOCGameEventListener},
      *            or update {@link #lastAction}.
      * @since 1.1.14
      */
@@ -3765,7 +3780,7 @@ public class SOCGame implements Serializable, Cloneable
          * During initial placement, a settlement could reveal up to 3 hexes.
          * Current player gets a resource from each revealed hex.
          */
-        if (hasSeaBoard && isAtServer && ! (pp instanceof SOCVillage))
+        if (hasSeaBoard && isAtServer && ! (pp instanceof SOCVillage) && (gameState != UNDOING_ACTION))
         {
             if (pp instanceof SOCRoutePiece)
             {
@@ -3970,7 +3985,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * If temporary piece, don't update gamestate-related info.
          */
-        if (isTempPiece)
+        if (isTempPiece || (gameState == UNDOING_ACTION))
         {
             return;   // <--- Early return: Temporary piece ---
         }
@@ -4496,6 +4511,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Move this ship on the board and update all related game state.
+     * Unless {@link #getGameState()} is currently {@link #UNDOING_ACTION}:
      * Calls {@link #checkForWinner()}; gamestate may become {@link #OVER}
      * if a player gets the longest trade route.
      *<P>
@@ -4504,6 +4520,8 @@ public class SOCGame implements Serializable, Cloneable
      * Updates {@link #getLastAction()}.
      * Updates longest trade route.
      * Not for use with temporary pieces.
+     *<P>
+     * To undo this move, call {@link #undoMoveShip(SOCShip)}.
      *<P>
      *<b>Note:</b> Because <tt>sh</tt> and <tt>toEdge</tt>
      * are not checked for validity, please call
@@ -4531,10 +4549,74 @@ public class SOCGame implements Serializable, Cloneable
         final int fromEdge = sh.getCoordinates();
         undoPutPieceCommon(sh, false, true);
         putPiece(new SOCShip(sh.getPlayer(), toEdge, board));  // calls checkForWinner, etc
+        if (gameState == UNDOING_ACTION)
+            return;
+
         movedShipThisTurn = true;
-        if (lastAction != null)
+        if ((lastAction != null) && (lastAction.actType == ActionType.BUILD_PIECE))
             // change lastAction from BUILD_PIECE to MOVE_PIECE, but keep anything like revealed fog hex info
             lastAction = new GameAction(lastAction, ActionType.MOVE_PIECE, sh.getType(), fromEdge, toEdge);
+    }
+
+    /**
+     * Can this player currently undo moving this ship?
+     * {@link #getLastAction()} must be a move of this piece.
+     * Must be current player. Game state must be {@link #PLAY1}.
+     * @param pn  Player number
+     * @param sh  Their ship to undo moving
+     * @return  True if can undo that move now
+     * @since 2.7.00
+     */
+    public boolean canUndoMoveShip(final int pn, final SOCShip sh)
+    {
+        final GameAction moveAct = lastAction;
+        return (pn == currentPlayerNumber) && (gameState == PLAY1)
+            && (moveAct != null) && (moveAct.actType == ActionType.MOVE_PIECE)
+            && (moveAct.param1 == SOCPlayingPiece.SHIP)
+            && (moveAct.param3 == sh.getCoordinates());
+    }
+
+    /**
+     * Undo the previous {@link #moveShip(SOCShip, int)} if possible.
+     * Temporarily sets gameState to {@link #UNDOING_ACTION} while it does so,
+     * then restores the actual gameState to what it was at start of the method.
+     * Sets {@link #getLastAction()} to {@link ActionType#UNDO_MOVE_PIECE}.
+     *<P>
+     * For validity checks, please call {@link #canUndoMoveShip(int, SOCShip)} before this method.
+     *
+     * @param sh  Ship to undo the move of, from its new location
+     * @return  Undo information; see {@link GameAction.ActionType#UNDO_MOVE_PIECE} for details
+     * @throws NullPointerException if {@code sh} is {@code null}
+     * @throws IllegalStateException  If {@link #getLastAction()} isn't
+     *     a {@link GameAction.ActionType#MOVE_PIECE MOVE_PIECE} to {@code sh}'s coordinates
+     * @see #removeShip(SOCShip)
+     * @since 2.7.00
+     */
+    public GameAction undoMoveShip(final SOCShip sh)
+        throws NullPointerException, IllegalStateException
+    {
+        final int wasMovedToEdge = sh.getCoordinates();
+        final GameAction moveAct = lastAction;
+        if ((moveAct == null) || (moveAct.actType != ActionType.MOVE_PIECE)
+            || (moveAct.param1 != SOCPlayingPiece.SHIP)
+            || (moveAct.param3 != wasMovedToEdge))
+            throw new IllegalStateException("lastAction");
+
+        final int wasMovedFromEdge = moveAct.param2;
+
+        final int actualGS = gameState;
+        gameState = UNDOING_ACTION;
+        shipsPlacedThisTurn.remove(Integer.valueOf(wasMovedToEdge));
+        // TODO any closed ship routes to open up?
+        moveShip(sh, wasMovedFromEdge);
+        gameState = actualGS;
+
+        final GameAction undoAct = new GameAction
+            (moveAct, ActionType.UNDO_MOVE_PIECE, SOCPlayingPiece.SHIP, wasMovedFromEdge, wasMovedToEdge);
+        lastAction = undoAct;
+        lastActionTime = System.currentTimeMillis();
+
+        return undoAct;
     }
 
     /**
@@ -4546,6 +4628,7 @@ public class SOCGame implements Serializable, Cloneable
      * Not for use with temporary pieces or ship moves.
      *
      * @param sh  the ship to remove
+     * @see #undoMoveShip(SOCShip)
      * @since 2.0.00
      */
     public void removeShip(SOCShip sh)

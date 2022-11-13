@@ -167,6 +167,27 @@ public interface PlayerClientListener
     void playerPieceRemoved(SOCPlayer player, int pieceCoordinate, int pieceType);
 
     /**
+     * Placing or moving a player's piece is being undone.
+     * Is called after game data has been updated.
+     * @param player  The player who owns the piece; not null
+     * @param coordinate  The location of the piece whose placement or move is being undone
+     * @param movedFromCoordinate  If undoing a ship move, the piece's former location before the move; otherwise 0
+     * @param pieceType  The piece type, such as {@link SOCPlayingPiece#CITY}
+     * @see #playerPiecePlacementUndoDeclined(int)
+     * @since 2.7.00
+     */
+    void playerPiecePlacementUndone(SOCPlayer player, int coordinate, int movedFromCoordinate, int pieceType);
+
+    /**
+     * Server has declined our request to undo placing or moving a player's piece.
+     * @param pieceType  The piece type, such as {@link SOCPlayingPiece#CITY}
+     * @param isMove  True if declining a move, not a placement
+     * @see #playerPiecePlacementUndone(SOCPlayer, int, int, int)
+     * @since 2.7.00
+     */
+    void playerPiecePlacementUndoDeclined(int pieceType, boolean isMove);
+
+    /**
      * A player has been awarded Special Victory Point(s).
      * @param player The player awarded special victory points. Will not be {@code null}
      * @param numSvp The count of how many new special victory points were awarded

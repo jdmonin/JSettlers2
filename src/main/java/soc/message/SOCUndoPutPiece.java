@@ -70,33 +70,60 @@ public class SOCUndoPutPiece extends SOCMessage
     private final int playerNumber;
 
     /**
-     * the coordinates of the piece; must be &gt;= 0
+     * The coordinates of the piece; must be &gt; 0. If undoing a move, the coordinates after the move.
      */
     private final int coordinates;
 
     /**
-     * create a {@link SOCUndoPutPiece} message.
+     * The former coordinates of a moved piece (before it was moved); must be &gt; 0. Is 0 if not undoing a move.
+     */
+    private final int movedFromCoordinates;
+
+    /**
+     * Create a {@link SOCUndoPutPiece} message to undo a piece build (not a move).
      *
      * @param gn  name of the game
      * @param pt  type of playing piece, such as {@link SOCPlayingPiece#CITY}; must be >= 0
      * @param pn  player number, or -1 for server decline replies.
      *     Sent from server, ignored if sent from client.
-     * @param co  coordinates; must be &gt;= 0
-     * @throws IllegalArgumentException if {@code pt} &lt; 0 or {@code co} &lt; 0
+     * @param co  coordinates; must be &gt; 0
+     * @throws IllegalArgumentException if {@code pt} &lt; 0 or {@code co} &lt;= 0
+     * @see #SOCUndoPutPiece(String, int, int, int, int)
      */
     public SOCUndoPutPiece(String gn, int pn, int pt, int co)
         throws IllegalArgumentException
     {
+        this(gn, pn, pt, co, 0);
+    }
+
+    /**
+     * Create a {@link SOCUndoPutPiece} message to undo a piece move (not a build).
+     *
+     * @param gn  name of the game
+     * @param pt  type of playing piece, such as {@link SOCPlayingPiece#CITY}; must be >= 0
+     * @param pn  player number, or -1 for server decline replies.
+     *     Sent from server, ignored if sent from client.
+     * @param co  current coordinates; must be &gt; 0
+     * @param fromCo  former coordinates before the move; must be &gt; 0 (otherwise it's undoing a build)
+     * @throws IllegalArgumentException if {@code pt} &lt; 0, {@code co} &lt;= 0, or {@code fromCo} &lt; 0
+     * @see #SOCUndoPutPiece(String, int, int, int)
+     */
+    public SOCUndoPutPiece(String gn, int pn, int pt, int co, int fromCo)
+        throws IllegalArgumentException
+    {
         if (pt < 0)
             throw new IllegalArgumentException("pt: " + pt);
-        if (co < 0)
-            throw new IllegalArgumentException("coord < 0: " + co);
+        if (co <= 0)
+            throw new IllegalArgumentException("coord <= 0: " + co);
+        if (fromCo < 0)
+            throw new IllegalArgumentException("fromCo < 0: " + fromCo);
 
         messageType = UNDOPUTPIECE;
         game = gn;
         pieceType = pt;
         playerNumber = pn;
         coordinates = co;
+        movedFromCoordinates = fromCo;
     }
 
     /**
@@ -124,7 +151,9 @@ public class SOCUndoPutPiece extends SOCMessage
     }
 
     /**
-     * @return the coordinates; is &gt;= 0
+     * Get the coordinates of the piece whose placement or move is being undone.
+     * @return the coordinates; is &gt; 0. If undoing a move (not a build), the coordinates after the move.
+     * @see #getMovedFromCoordinates()
      */
     public int getCoordinates()
     {
@@ -132,15 +161,30 @@ public class SOCUndoPutPiece extends SOCMessage
     }
 
     /**
+     * If undoing a move, get the piece's former coordinates before the move.
+     * @return the coordinates (&gt; 0), or 0 if undoing a build instead of a move
+     * @see #getCoordinates()
+     */
+    public int getMovedFromCoordinates()
+    {
+        return movedFromCoordinates;
+    }
+
+    /**
      * Command string:
      *
-     * UNDOPUTPIECE sep game sep2 playerNumber sep2 pieceType sep2 coordinates
+     * UNDOPUTPIECE sep game sep2 playerNumber sep2 pieceType sep2 coordinates [sep2 movedFromCoordinates]
      *
      * @return the command string
      */
     public String toCmd()
     {
-        return UNDOPUTPIECE + sep + game + sep2 + playerNumber + sep2 + pieceType + sep2 + coordinates;
+        StringBuilder ret = new StringBuilder
+            (UNDOPUTPIECE + sep + game + sep2 + playerNumber + sep2 + pieceType + sep2 + coordinates);
+        if (movedFromCoordinates != 0)
+            ret.append(sep2).append(movedFromCoordinates);
+
+        return ret.toString();
     }
 
     /**
@@ -155,6 +199,7 @@ public class SOCUndoPutPiece extends SOCMessage
         int pn; // player number
         int pt; // type of piece
         int co; // coordinates
+        int fromCo = 0;  // optional moved-from coordinates
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -164,8 +209,10 @@ public class SOCUndoPutPiece extends SOCMessage
             pn = Integer.parseInt(st.nextToken());
             pt = Integer.parseInt(st.nextToken());
             co = Integer.parseInt(st.nextToken());
+            if (st.hasMoreTokens())
+                fromCo = Integer.parseInt(st.nextToken());
 
-            return new SOCUndoPutPiece(gn, pn, pt, co);
+            return new SOCUndoPutPiece(gn, pn, pt, co, fromCo);
         }
         catch (Exception e)
         {
@@ -191,6 +238,8 @@ public class SOCUndoPutPiece extends SOCMessage
         for (int i = 0; i < 3; i++)
             ret.append(pieces[i]).append(sep2_char);
         ret.append(Integer.parseInt(pieces[3], 16));
+        if (pieces.length > 4)
+            ret.append(sep2_char).append(Integer.parseInt(pieces[4], 16));  // optional movedFromCoord
 
         return ret.toString();
     }
@@ -200,7 +249,13 @@ public class SOCUndoPutPiece extends SOCMessage
      */
     public String toString()
     {
-        return "SOCUndoPutPiece:game=" + game + "|playerNumber=" + playerNumber + "|pieceType=" + pieceType + "|coord=" + Integer.toHexString(coordinates);
+        StringBuilder ret = new StringBuilder
+            ("SOCUndoPutPiece:game=" + game + "|playerNumber=" + playerNumber + "|pieceType=" + pieceType
+             + "|coord=" + Integer.toHexString(coordinates));
+        if (movedFromCoordinates != 0)
+            ret.append("|movedFromCoord=").append(Integer.toHexString(movedFromCoordinates));
+
+        return ret.toString();
     }
 
 }

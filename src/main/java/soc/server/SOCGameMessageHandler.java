@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import soc.debug.D;
+import soc.game.GameAction;
 import soc.game.ResourceSet;
+import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCard;
@@ -364,6 +366,14 @@ public class SOCGameMessageHandler
          */
         case SOCMessage.GAMESTATS:
             handleGAMESTATS(game, connection, (SOCGameStats) message);
+            break;
+
+        /**
+         * Undo put piece/move piece request.
+         * Added 2022-11-09 for v2.7.00.
+         */
+        case SOCMessage.UNDOPUTPIECE:
+            handleUNDOPUTPIECE(game, connection, (SOCUndoPutPiece) message);
             break;
 
         /**
@@ -2674,6 +2684,90 @@ public class SOCGameMessageHandler
                 srv.messageToPlayer(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
                     "Not a valid location to place that.");
             }
+        }
+    }
+
+    /**
+     * Handle "undo put piece" message.
+     * @param ga  the game for this message
+     * @param c  the connection that sent the message
+     * @param mes  the message
+     * @since 2.7.00
+     */
+    private void handleUNDOPUTPIECE(final SOCGame ga, final Connection c, final SOCUndoPutPiece mes)
+    {
+        final String gaName = ga.getName();
+        final int pieceType = mes.getPieceType(), coord = mes.getCoordinates();
+
+        ga.takeMonitor();
+        try
+        {
+            final SOCPlayer player = ga.getPlayer(c.getData());
+            final int pn = (player != null)
+                ? player.getPlayerNumber()
+                : SOCServer.PN_OBSERVER;
+
+            GameAction act = ga.getLastAction();
+            if ((act == null)
+                || (act.param1 != pieceType)
+                || ((act.actType != GameAction.ActionType.BUILD_PIECE)
+                    && (act.actType != GameAction.ActionType.MOVE_PIECE))
+                || (player == null)
+                || (ga.getCurrentPlayerNumber() != pn))
+            {
+                srv.messageToPlayer
+                    (c, gaName, pn, new SOCUndoPutPiece(gaName, -1, pieceType, coord));
+                return;
+            }
+
+            final SOCBoard board = ga.getBoard();
+            final SOCPlayingPiece pp;
+            switch (pieceType)
+            {
+            case SOCPlayingPiece.ROAD:
+            case SOCPlayingPiece.SHIP:
+                pp = board.roadOrShipAtEdge(coord);
+                break;
+
+            case SOCPlayingPiece.SETTLEMENT:
+            case SOCPlayingPiece.CITY:
+                pp = board.settlementAtNode(coord);
+                break;
+
+            default:
+                pp = null;
+            }
+
+            boolean sendDenyReply = true;
+            if ((act.actType == GameAction.ActionType.MOVE_PIECE) && (pp instanceof SOCShip))
+            {
+                if (ga.canUndoMoveShip(pn, (SOCShip) pp))
+                {
+                    final GameAction undoShipMove = ga.undoMoveShip((SOCShip) pp);
+                    // TODO any side effects to announce?
+                    sendDenyReply = false;
+                    srv.messageToGame
+                        (gaName, true,
+                         new SOCUndoPutPiece(gaName, pn, pieceType, coord, undoShipMove.param2));
+                }
+            }
+            else if (pp != null)
+            {
+                if (false)  // ga.canUndoPutPiece(pp))  // must be piece's owner, must be current player, lastGameAction is this piece
+                {
+                    // ga.undoPutPiece(pp);  // TODO any side effects to announce?
+                    sendDenyReply = false;
+                    srv.messageToGame
+                        (gaName, true,
+                         new SOCUndoPutPiece(gaName, pn, pieceType, coord));
+                }
+            }
+
+            if (sendDenyReply)
+                srv.messageToPlayer
+                    (c, gaName, pn, new SOCUndoPutPiece(gaName, -1, pieceType, coord));
+        } finally {
+            ga.releaseMonitor();
         }
     }
 

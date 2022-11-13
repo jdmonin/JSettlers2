@@ -207,6 +207,8 @@ public class GameAction
      *<P>
      * Before v2.7.00, this was part of {@link GameActionLog.Action}.
      * For use there, some {@code ActionType} javadocs refer to log sequences.
+     *
+     * @since 2.5.00
      */
     public static enum ActionType
     {
@@ -282,8 +284,20 @@ public class GameAction
          * {@code p1} = piece type like {@link SOCPlayingPiece#SHIP},
          * {@code p2} = coordinate to move from, {@code p3} = coordinate to move to.
          * {@code rs1} = free resources gained from revealing any non-gold land hex from fog; null otherwise
+         * @see #UNDO_MOVE_PIECE
          */
         MOVE_PIECE(60),
+
+        /**
+         * Undo previous move of a piece ({@link #MOVE_PIECE}).
+         *<BR>
+         * {@code p1} = piece type like {@link SOCPlayingPiece#SHIP},
+         * {@code p2} = coordinate piece was previously moved from, and where the undo has returned it,
+         * {@code p3} = coordinate piece was previously moved to.
+         * {@code rs1} = free resources to return, gained from revealing any non-gold land hex from fog; null otherwise
+         * @since 2.7.00
+         */
+        UNDO_MOVE_PIECE(65),
 
         /**
          * Buy a development card.
