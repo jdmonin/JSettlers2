@@ -39,27 +39,37 @@ describing their structure and interactions. If something is unclear after
 reading those docs and this README section, please file an issue at github
 or email `jsettlers@nand.net` to clarify things.
 
-The main server class is `soc.server.SOCServer`; clients' requests and actions
-are dispatched into `SOCServerMessageHandler`, `SOCGameMessageHandler`, and
-`SOCGameHandler`. The client communication and game-list window is in
-`soc.client.SOCPlayerClient`, and in-game interface is in
-`soc.client.SOCPlayerInterface`. Game state is held at the server in
-`soc.game.SOCGame` and its fields; only partial game state is known at clients.
-The game's "business logic" is mostly in `SOCGame`, `SOCPlayer`, and `SOCBoard`.
+The main server class is [soc.server.SOCServer](../src/main/java/soc/server/SOCServer.java);
+ clients' requests and actions are dispatched into
+[SOCServerMessageHandler](../src/main/java/soc/server/SOCServerMessageHandler.java),
+[SOCGameMessageHandler](../src/main/java/soc/server/SOCGameMessageHandler.java),
+and [SOCGameHandler](../src/main/java/soc/server/SOCGameHandler.java).
+The client communication and game-list window is in
+[soc.client.SOCPlayerClient](../src/main/java/soc/client/SOCPlayerClient.java),
+and in-game interface is in
+[soc.client.SOCPlayerInterface](../src/main/java/soc/client/SOCPlayerInterface.java).
+Game state is held at the server in
+[soc.game.SOCGame](../src/main/java/soc/game/SOCGame.java) and its fields;
+only partial game state is known at clients.
+The game's "business logic" is mostly in SOCGame,
+[SOCPlayer](../src/main/java/soc/game/SOCPlayer.java),
+and [SOCBoard](../src/main/java/soc/game/SOCBoard.java).
 
-The sea board and scenarios use `SOCBoardLarge`. Game options and scenario rules
-are controlled through `SOCGameOption`: See section "Game rules, Game Options"
+The sea board and scenarios use [SOCBoardLarge](../src/main/java/soc/game/SOCBoardLarge.java).
+Game options and scenario rules
+are controlled through [SOCGameOption](../src/main/java/soc/game/SOCGameOption.java):
+See section "Game rules, Game Options"
 for details.
 
-Package `soc.extra` is for useful or reusable code like `GameEventLog`
+Package `soc.extra` is for useful or reusable code like [GameEventLog](../src/main/java/soc/extra/GameEventLog.java)
 which is developed with the main code but shouldn't be part of the built jars
 or test packages.
 
 Communication is described in the "Network Communication" section
-and `soc.message.SOCMessage` javadocs. Robots talk with the
+and [soc.message.SOCMessage](../src/main/java/soc/message/SOCMessage.java) javadocs. Robots talk with the
 server like normal human clients. Most robot messages are per-game; instead
 of being handled in SOCRobotClient, these are handled in a loop in
-SOCRobotBrain.run().
+[SOCRobotBrain](../src/main/java/soc/robot/SOCRobotBrain.java)`.run()`.
 
 For more information about the AI, please see the "Robots (AI)" section
 and Robert S Thomas' dissertation.
@@ -71,8 +81,9 @@ Pieces are placed at edges, nodes, or hexes.
 To show piece coordinates in the board's tooltips, in the game window chat box type: `=*= showcoords`  
 To no longer show those coordinates, type: `=*= hidecoords`
 
-For more information about the board coordinates, see javadocs in `soc.game.SOCBoard`
-and `soc.game.SOCBoardLarge` (or dissertation appendix A), and these diagrams:
+For more information about the board coordinates, see javadocs in [soc.game.SOCBoard](../src/main/java/soc/game/SOCBoard.java)
+and [SOCBoardLarge](../src/main/java/soc/game/SOCBoardLarge.java)
+(or dissertation appendix A), and these diagrams:
 
 **Sea boards:**  
 Rectilinear grid of rows and columns. A vertical edge's coordinate is its center.

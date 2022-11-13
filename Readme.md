@@ -69,6 +69,7 @@ Currently, this Readme and the `doc` directory are the only technical
 documentation for running the client or server, setup and other issues.
 Over time, more docs will be written. If you are interested in helping
 write documentation please contact the development team from our github page.
+For developer docs, see [Readme.developer.md](doc/Readme.developer.md).
 
 If you downloaded a JSettlers JAR file without attached documentation,
 the official location of this Readme and the docs is online at
