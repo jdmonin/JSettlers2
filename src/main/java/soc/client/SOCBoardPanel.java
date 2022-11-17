@@ -22,6 +22,7 @@
  **/
 package soc.client;
 
+import soc.game.GameAction;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
@@ -9020,8 +9021,13 @@ import javax.swing.JComponent;
 
       /**
        * Menu item to cancel a build as we're placing it,
-       * or to cancel moving a ship.
-       * Piece type to cancel is {@link #cancelBuildType}.
+       * or cancel moving a ship,
+       * or undo previous placement/move in {@link SOCGame#PLAY1}.
+       * Piece type to cancel/undo is {@link #cancelBuildType}.
+       * The only piece that can be undone is {@link SOCBoardPanel#latestPiecePlacement}.
+       * Enabled/disabled by methods like {@link #showBuild(int, int, int, int, int, int)}.
+       * @see #wantsCancel
+       * @see #wantsUndo
        */
       final MenuItem cancelBuildItem;
 
@@ -9032,7 +9038,7 @@ import javax.swing.JComponent;
       private boolean menuPlayerIsCurrent;
 
       /** determined at menu-show time */
-      private boolean wantsCancel;
+      private boolean wantsCancel, wantsUndo;
 
       /** If allow cancel, type of building piece ({@link SOCPlayingPiece#ROAD}, SETTLEMENT, ...) to cancel */
       private int cancelBuildType;
@@ -9114,6 +9120,7 @@ import javax.swing.JComponent;
           menuPlayerIsCurrent = (player != null) && playerInterface.isClientCurrentPlayer();
           wantsCancel = true;
           cancelBuildType = buildType;
+          wantsUndo = false;
           hoverRoadID = 0;
           if (hoverSettlementID == -1)
           {
@@ -9208,6 +9215,7 @@ import javax.swing.JComponent;
       public void showBuild(int x, int y, int hR, int hSe, int hC, int hSh)
       {
           wantsCancel = false;
+          wantsUndo = false;
           isInitialPlacement = false;
           isShipMovable = false;
           cancelBuildItem.setEnabled(false);
@@ -9301,6 +9309,19 @@ import javax.swing.JComponent;
                   didEnableDisable = false;  // must still check enable/disable
                   if (gs < SOCGame.PLAY1)
                       menuPlayerIsCurrent = false;  // Not in a state to place items
+                  else if (gs == SOCGame.PLAY1)
+                  {
+                      final GameAction act = game.getLastAction();
+                      if ((act != null) && (act.actType == GameAction.ActionType.MOVE_PIECE)
+                          && (bp.latestPiecePlacement instanceof SOCShip)
+                          && (game.canUndoMoveShip(player.getPlayerNumber(), (SOCShip) bp.latestPiecePlacement)))
+                      {
+                          wantsUndo = true;
+                          cancelBuildItem.setEnabled(true);
+                          cancelBuildItem.setLabel(strings.get("board.undo.ship.move"));  // "Undo move ship"
+                          cancelBuildType = SOCPlayingPiece.SHIP;
+                      }
+                  }
               }
           }
 
@@ -9414,6 +9435,7 @@ import javax.swing.JComponent;
           menuPlayerIsCurrent = (player != null) && playerInterface.isClientCurrentPlayer();
           wantsCancel = false;
           cancelBuildType = 0;
+          wantsUndo = false;
           hoverRoadID = 0;
           hoverSettlementID = (ft != null) ? -1 : 0;
           hoverCityID = 0;
@@ -9479,7 +9501,10 @@ import javax.swing.JComponent;
           }
           else if (target == cancelBuildItem)
           {
-              tryCancel();
+              if (wantsUndo)
+                  tryUndo();
+              else
+                  tryCancel();
           }
       }
 
@@ -9657,6 +9682,21 @@ import javax.swing.JComponent;
           // Use buttons to cancel the build request
           playerInterface.getBuildingPanel().clickBuildingButton
               (game, btarget, false);
+      }
+
+      /**
+       * Undo placing the building piece or moving the ship
+       * tracked by {@link SOCBoardPanel#latestPiecePlacement}.
+       * @since 2.7.00
+       */
+      void tryUndo()
+      {
+          final GameAction act = game.getLastAction();
+          if ((act == null) || (bp.latestPiecePlacement == null))
+              return;
+          playerInterface.getClient().getGameMessageSender().undoPutOrMovePieceRequest
+              (game, latestPiecePlacement.getType(), latestPiecePlacement.getCoordinates(),
+               (act.actType == GameAction.ActionType.MOVE_PIECE ? act.param2 : 0));
       }
 
       /**

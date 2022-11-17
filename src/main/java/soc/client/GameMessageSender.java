@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2022 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -66,6 +66,7 @@ import soc.message.SOCSetSpecialItem;
 import soc.message.SOCSimpleRequest;
 import soc.message.SOCSitDown;
 import soc.message.SOCStartGame;
+import soc.message.SOCUndoPutPiece;
 
 /**
  * Client class to form outgoing messages and call {@link ClientNetwork} methods to send them to the server.
@@ -215,6 +216,24 @@ import soc.message.SOCStartGame;
         throws IllegalArgumentException
     {
         put(SOCMovePiece.toCmd(ga.getName(), pn, ptype, fromCoord, toCoord), ga.isPractice);
+    }
+
+    /**
+     * Ask the server to undo placing or moving a piece.
+     * @param ga  game where the action is taking place; will call {@link SOCGame#getCurrentPlayerNumber()}
+     * @param ptype  piece type, such as {@link SOCPlayingPiece#SHIP}; must be &gt;= 0
+     * @param coord  coordinate where piece was placed or moved to; must be &gt; 0
+     * @param movedFromCoord  if undoing a move, the coordinate where piece was moved from, otherwise 0
+     * @throws IllegalArgumentException if {@code ptype} &lt; 0, {@code coord} &lt;= 0, or {@code movedFromCoord} &lt; 0
+     * @since 2.7.00
+     */
+    public void undoPutOrMovePieceRequest
+        (final SOCGame ga, final int ptype, final int coord, final int movedFromCoord)
+        throws IllegalArgumentException
+    {
+        put
+            (new SOCUndoPutPiece(ga.getName(), ga.getCurrentPlayerNumber(), ptype, coord, movedFromCoord).toCmd(),
+             ga.isPractice);
     }
 
     /**
