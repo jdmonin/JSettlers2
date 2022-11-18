@@ -5837,6 +5837,7 @@ import javax.swing.JComponent;
      *<P>
      * This method only scales down; does <em>not</em> rotate if {@link #isRotated()}
      * or translate by {@link #panelMarginX} or {@link #panelMarginY}.
+     * To also do those things, call {@link #rotateScaleXYFromActual(int, int)} instead.
      *<P>
      * Before v2.0.00 this method was {@code scaleFromActualX(x)} and {@code scaleFromActualY(y)}.
      *
@@ -5851,6 +5852,40 @@ import javax.swing.JComponent;
             return x;
         else
             return (int) ((x * (long) unscaledBoardW) / scaledBoardW);
+    }
+
+    /**
+     * Scale board-pixel internal-scaled coordinates down from actual-scaled (x, y),
+     * rotating if {@link #isRotated()} and translating from {@link #panelMarginX}, {@link #panelMarginY} as needed.
+     * @param x x-coordinate to be scaled
+     * @param y y-coordinate to be scaled
+     * @return array with {@code [xb, yb]}
+     * @see #scaleFromActual(int)
+     * @since 2.7.00
+     */
+    public final int[] rotateScaleXYFromActual(final int x, final int y)
+    {
+        int xb, yb;
+
+        if (isScaled)
+        {
+            xb = scaleFromActual(x - panelMarginX);
+            yb = scaleFromActual(y - panelMarginY);
+        }
+        else
+        {
+            xb = x - panelMarginX;
+            yb = y - panelMarginY;
+        }
+        if (isRotated)
+        {
+            // (ccw): P'=(y, panelMinBW-x)
+            int xb1 = yb;
+            yb = panelMinBW - xb - HEXY_OFF_SLOPE_HEIGHT;  // offset for similar reasons as -HEXHEIGHT in drawHex
+            xb = xb1;
+        }
+
+        return new int[]{xb, yb};
     }
 
     /**
@@ -6346,25 +6381,10 @@ import javax.swing.JComponent;
         {
             int x = e.getX();
             int y = e.getY();
-            int xb, yb;
-
-            // get (xb, yb) internal board-pixel coordinates from (x, y):
-            if (isScaled)
+            final int xb, yb;
             {
-                xb = scaleFromActual(x - panelMarginX);
-                yb = scaleFromActual(y - panelMarginY);
-            }
-            else
-            {
-                xb = x - panelMarginX;
-                yb = y - panelMarginY;
-            }
-            if (isRotated)
-            {
-                // (ccw): P'=(y, panelMinBW-x)
-                int xb1 = yb;
-                yb = panelMinBW - xb - HEXY_OFF_SLOPE_HEIGHT;  // offset for similar reasons as -HEXHEIGHT in drawHex
-                xb = xb1;
+                int[] xyb = rotateScaleXYFromActual(x, y);
+                xb = xyb[0];  yb = xyb[1];
             }
 
             int edgeNum;
@@ -9201,7 +9221,8 @@ import javax.swing.JComponent;
 
       /**
        * Custom show method that finds current game status and player status.
-       * Also checks for hovering-over-port for port-trade submenu.
+       * Also checks for hovering-over-port for port-trade submenu,
+       * and last-placed piece for undo build placement/ship movement in game state {@link SOCGame#PLAY1}.
        *
        * @param x   Mouse x-position
        * @param y   Mouse y-position
@@ -9311,15 +9332,25 @@ import javax.swing.JComponent;
                       menuPlayerIsCurrent = false;  // Not in a state to place items
                   else if (gs == SOCGame.PLAY1)
                   {
+                      final SOCPlayingPiece latest = bp.latestPiecePlacement;
                       final GameAction act = game.getLastAction();
                       if ((act != null) && (act.actType == GameAction.ActionType.MOVE_PIECE)
-                          && (bp.latestPiecePlacement instanceof SOCShip)
-                          && (game.canUndoMoveShip(player.getPlayerNumber(), (SOCShip) bp.latestPiecePlacement)))
+                          && (latest instanceof SOCShip)
+                          && (game.canUndoMoveShip(player.getPlayerNumber(), (SOCShip) latest)))
                       {
-                          wantsUndo = true;
-                          cancelBuildItem.setEnabled(true);
-                          cancelBuildItem.setLabel(strings.get("board.undo.ship.move"));  // "Undo move ship"
-                          cancelBuildType = SOCPlayingPiece.SHIP;
+                          // enable Undo only if currently pointing at that piece
+                          final int edgeCoord;
+                          {
+                              int[] xyb = rotateScaleXYFromActual(x, y);
+                              edgeCoord = findEdge(xyb[0], xyb[1], false);
+                          }
+                          if (edgeCoord == latest.getCoordinates())
+                          {
+                              wantsUndo = true;
+                              cancelBuildItem.setEnabled(true);
+                              cancelBuildItem.setLabel(strings.get("board.undo.ship.move"));  // "Undo move ship"
+                              cancelBuildType = SOCPlayingPiece.SHIP;
+                          }
                       }
                   }
               }
