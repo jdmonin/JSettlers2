@@ -4609,6 +4609,7 @@ public class SOCGame implements Serializable, Cloneable
         shipsPlacedThisTurn.remove(Integer.valueOf(wasMovedToEdge));
         // TODO any closed ship routes to open up?
         moveShip(sh, wasMovedFromEdge);
+        movedShipThisTurn = false;
         gameState = actualGS;
 
         final GameAction undoAct = new GameAction
