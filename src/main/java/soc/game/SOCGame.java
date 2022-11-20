@@ -26,6 +26,7 @@ package soc.game;
 
 import soc.disableDebug.D;
 import soc.game.GameAction.ActionType;
+import soc.game.GameAction.EffectType;
 import soc.message.SOCMessage;  // For static calls only; SOCGame does not interact with network messages
 import soc.server.SOCBoardAtServer;  // For calling server-only methods like distributeClothFromRoll
 import soc.util.DataUtils;
@@ -3914,6 +3915,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * update which player has longest road or trade route
          */
+        final int longestRoadPN = playerWithLongestRoad;
         if (pieceType != SOCPlayingPiece.CITY)
         {
             if (pp instanceof SOCRoutePiece)
@@ -3990,8 +3992,16 @@ public class SOCGame implements Serializable, Cloneable
             return;   // <--- Early return: Temporary piece ---
         }
 
+        List<GameAction.Effect> effects = null;
+        if (longestRoadPN != playerWithLongestRoad)
+        {
+            effects = new ArrayList<>();
+            effects.add(new GameAction.Effect
+                (EffectType.CHANGE_LONGEST_ROAD_PLAYER, new int[]{longestRoadPN, playerWithLongestRoad}));
+        }
+
         lastActionTime = System.currentTimeMillis();
-        lastAction = new GameAction(ActionType.BUILD_PIECE, pieceType, coord, placingPN);
+        lastAction = new GameAction(ActionType.BUILD_PIECE, pieceType, coord, placingPN, effects);
             // TODO set rs1 if revealed fog hexes? What else should we record about revealed fog hexes? coords, types
 
         /**

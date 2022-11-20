@@ -20,6 +20,9 @@
 
 package soc.game;
 
+import java.util.Arrays;
+import java.util.List;
+
 import soc.extra.robot.GameActionLog;  // for javadocs only
 import soc.extra.server.GameEventLog;  // javadocs only
 import soc.message.SOCGameState;  // javadocs only
@@ -36,6 +39,7 @@ import soc.message.SOCStartGame;  // javadocs only
  * use the {@link #GameAction(GameAction, ActionType, int, int, int)} constructor.
  *<P>
  * Before v2.7.00, this was part of {@link GameActionLog.Action}.
+ * So, some members may have {@code @since} 2.7.00 or earlier.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.7.00
@@ -49,6 +53,14 @@ public class GameAction
 
     /** {@link ActionType}-specific resource set parameter value, or null. */
     public final ResourceSet rset1, rset2;
+
+    /**
+     * Side-effects of the action, if any, or {@code null}.
+     * Not used when extracting actions from a {@link GameEventLog}.
+     * @since 2.7.00
+     */
+    public final List<Effect> effects;
+      // TODO add rest of possible construcs
 
     // reminder: if you add fields, update equals()
 
@@ -78,17 +90,37 @@ public class GameAction
      * @see #GameAction(ActionType, ResourceSet, ResourceSet)
      * @see #GameAction(ActionType, int, int, int, ResourceSet, ResourceSet)
      * @see #GameAction(GameAction, ActionType, int, int, int)
+     * @see #GameAction(ActionType, int, int, int, List)
      */
     public GameAction
         (ActionType aType, final int p1, final int p2, final int p3)
         throws IllegalArgumentException
     {
-        this(aType, p1, p2, p3, null, null);
+        this(aType, p1, p2, p3, null, null, null);
+    }
+
+    /**
+     * Create a new GameAction with optional int and {@link Effect} parameters.
+     * @param aType GameAction type of this action; not null
+     * @param p1  First action-specific parameter, or 0
+     * @param p2  Second action-specific parameter, or 0
+     * @param p3  Third action-specific parameter, or 0
+     * @param effects  Action's effects, or null
+     * @throws IllegalArgumentException if {@code aType} is null
+     * @see #GameAction(ActionType, int, int, int)
+     * @see #GameAction(ActionType, int, int, int, ResourceSet, ResourceSet, List)
+     */
+    public GameAction
+        (ActionType aType, final int p1, final int p2, final int p3, final List<Effect> effects)
+        throws IllegalArgumentException
+    {
+        this(aType, p1, p2, p3, null, null, effects);
     }
 
     /**
      * Create a new GameAction by copying an existing one, keeping current field values
      * except {@link #actType}, {@link #param1}, {@link #param2}, {@link #param3}.
+     * The {@link ResourceSet}s and {@link #effects} are copied by reference, not deep-copied by value.
      * @param copyFrom  GameAction to copy from; not null
      * @param aType  GameAction type of this new action; not null
      * @param p1  First action-specific parameter, or 0
@@ -101,7 +133,7 @@ public class GameAction
         (final GameAction copyFrom, ActionType aType, final int p1, final int p2, final int p3)
         throws IllegalArgumentException, NullPointerException
     {
-        this(aType, p1, p2, p3, copyFrom.rset1, copyFrom.rset2);
+        this(aType, p1, p2, p3, copyFrom.rset1, copyFrom.rset2, copyFrom.effects);
     }
 
     /**
@@ -133,9 +165,30 @@ public class GameAction
      * @see #GameAction(ActionType, int, int, int)
      * @see #GameAction(ActionType, ResourceSet, ResourceSet)
      * @see #GameAction(GameAction, ActionType, int, int, int)
+     * @see #GameAction(ActionType, int, int, int, ResourceSet, ResourceSet, List)
      */
     public GameAction
         (ActionType aType, final int p1, final int p2, final int p3, final ResourceSet rs1, final ResourceSet rs2)
+        throws IllegalArgumentException
+    {
+        this(aType, p1, p2, p3, rs1, rs2, null);
+    }
+
+    /**
+     * Create a new GameAction with optional int, resource, and {@link Effect} parameters.
+     * @param aType GameAction type of this action; not null
+     * @param p1  First action-specific parameter, or 0
+     * @param p2  Second action-specific parameter, or 0
+     * @param p3  Third action-specific parameter, or 0
+     * @param rs1  First resource set parameter, or null
+     * @param rs2  Second resource set parameter, or null
+     * @param effects  Action's effects, or null
+     * @throws IllegalArgumentException if {@code aType} is null
+     * @see #GameAction(ActionType, int, int, int, ResourceSet, ResourceSet)
+     */
+    public GameAction
+        (ActionType aType, final int p1, final int p2, final int p3,
+         final ResourceSet rs1, final ResourceSet rs2, final List<Effect> effects)
         throws IllegalArgumentException
     {
         if (aType == null)
@@ -147,14 +200,17 @@ public class GameAction
         param3 = p3;
         rset1 = rs1;
         rset2 = rs2;
+        this.effects = effects;
     }
 
     /**
      * Contents for debugging, formatted like:
-     *<BR>
+     *<pre>
      * GameAction(ROLL_DICE, p1=12)
+     * GameAction(BUILD_PIECE, p1=1, p2=3, p3=33, e=[CHANGE_LONGEST_ROAD_PLAYER(1, 3)])
+     *</pre>
      *<P>
-     * Includes {@code p1 p2 p3} if non-zero, then {@code rs1 rs2} if non-null.
+     * Includes {@code p1 p2 p3} if non-zero, then {@code rs1 rs2} if non-null, then any {@code effects}.
      */
     @Override
     public String toString()
@@ -179,6 +235,8 @@ public class GameAction
             if (rset2 != null)
                 sb.append(", rs2=").append(rset2);
         }
+        if (effects != null)
+            sb.append(", e=").append(effects);  // "e=[A, B, C]"
         sb.append(')');
 
         return sb.toString();
@@ -194,7 +252,8 @@ public class GameAction
         return (actType == oga.actType)
             && (param1 == oga.param1) && (param2 == oga.param2) && (param3 == oga.param3)
             && (rset1 == null ? (oga.rset1 == null) : rset1.equals(oga.rset1))
-            && (rset2 == null ? (oga.rset2 == null) : rset2.equals(oga.rset2));
+            && (rset2 == null ? (oga.rset2 == null) : rset2.equals(oga.rset2))
+            && (effects == null ? (oga.effects == null) : effects.equals(oga.effects));
     }
 
     /**
@@ -496,6 +555,156 @@ public class GameAction
                     return t;
 
             return null;
+        }
+    }
+
+    /**
+     * All currently known {@link Effect} types.
+     * @since 2.7.00
+     */
+    public static enum EffectType
+    {
+        /**
+         * Enum constant with {@link #ordinal()} 0, declared to prevent 0 being seen as a valid type.
+         * @see #UNKNOWN
+         */
+        UNINITIALIZED(0),
+
+        /**
+         * The type to use when converting from int but value is unknown.
+         * Note: {@link #valueOf(int)} returns {@code null} and not this value.
+         */
+        UNKNOWN(1),
+
+        /**
+         * Player with longest road has changed.
+         * Params: old LR playerNumber, new LR playerNumber.
+         * Either can be -1 for none.
+         */
+        CHANGE_LONGEST_ROAD_PLAYER(10),
+
+        /**
+         * Player with largest army has changed.
+         * Params: old LA playerNumber, new LA playerNumber.
+         * Old can be -1 for none.
+         */
+        CHANGE_LARGEST_ARMY_PLAYER(20),
+
+        /** Player has gained SVP with this action. Should record amount gained, new total. */
+        PLAYER_GAIN_SVP(30),
+
+        /** The {@link SOCGame#hasBuiltCity()} flag was set by building a piece. */
+        SET_GAME_FLAG_N7C(40),
+
+        /**
+         * Building or moving caused a ship route to be closed. Params are {@link SOCShip} edge coords
+         * which became closed because of this action.
+         */
+        CLOSE_SHIP_ROUTE(50),
+
+        /** Building or moving revealed a fog hex. */
+        REVEAL_FOG_HEX(60);
+
+        /**
+         * This enum member's unique int value ({@link #CHANGE_LONGEST_ROAD_PLAYER} == 10, etc).
+         * @see #valueOf(int)
+         */
+        public final int value;
+
+        private EffectType(final int v)
+        {
+            value = v;
+        }
+
+        /**
+         * Get an EffectType from its int {@link #value}, if type is known.
+         * @param ti  Type int value ({@link #CHANGE_LONGEST_ROAD_PLAYER} == 10, etc).
+         * @return  EffectType for that value, or {@code null} if unknown
+         */
+        public static EffectType valueOf(final int ti)
+        {
+            for (EffectType t : values())
+                if (t.value == ti)
+                    return t;
+
+            return null;
+        }
+    }
+
+    /**
+     * One side-effect of a specific {@link GameAction}.
+     * An action may have multiple {@link GameAction#effects effects}, or none.
+     * @see EffectType
+     * @since 2.7.00
+     */
+    public static class Effect
+    {
+        public final EffectType eType;
+
+        /** {@link EffectType}-specific parameter value(s), or null if none. Never 0-length. */
+        public final int[] params;
+
+        /**
+         * Construct an Effect with no parameters.
+         * @param et  This Effect's EffectType; not null
+         * @throws IllegalArgumentException if {@code et} is null
+         */
+        public Effect(EffectType et)
+            throws IllegalArgumentException
+        {
+            this(et, null);
+        }
+
+        /**
+         * Construct an Effect, optionally with parameters.
+         * @param et  This Effect's EffectType; not null
+         * @param p  Any params used with {@code et}, or null; not empty
+         * @throws IllegalArgumentException if {@code et} is null, or {@code p} is empty
+         */
+        public Effect(EffectType et, int[] p)
+            throws IllegalArgumentException
+        {
+            if (et == null)
+                throw new IllegalArgumentException("eType");
+            if ((p != null) && (p.length == 0))
+                throw new IllegalArgumentException("params");
+
+            eType = et;
+            params = p;
+        }
+
+        /**
+         * @return a human readable form of this object: {@link #eType}
+         *     followed by "(param1, param2, ...)" if any.
+         */
+        @Override
+        public String toString()
+        {
+            StringBuilder sb = new StringBuilder(eType.toString());
+            if (params != null)
+            {
+                sb.append('(');
+                for (int i = 0; i < params.length; ++i)
+                {
+                    if (i > 0)
+                        sb.append(", ");
+                    sb.append(params[i]);
+                }
+                sb.append(')');
+            }
+
+            return sb.toString();
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (! (o instanceof Effect))
+                return false;
+            final Effect oe = (Effect) o;
+
+            return (eType == oe.eType)
+                && Arrays.equals(params, oe.params);
         }
     }
 

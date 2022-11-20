@@ -41,6 +41,7 @@ import soc.baseclient.SOCDisplaylessPlayerClient;  // for javadocs only
 import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.EventEntry;
 import soc.extra.server.RecordingSOCServer;
+import soc.game.GameAction;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
@@ -555,6 +556,7 @@ public class TestActionsMessages
         final String CLIENT_NAME
             = "testPlayDevCrd_" + observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h");
 
+        final int CLIENT_PN = 3;
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
                 (srv, CLIENT_NAME, null, 0, null, true, observabilityMode, clientAsRobot, othersAsRobot);
@@ -563,6 +565,7 @@ public class TestActionsMessages
         final SOCGame ga = objs.gameAtServer;
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer;
+        assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
         final Vector<EventEntry> records = objs.records;
 
         List<Integer> expectedCardsPlayed = new ArrayList<>(Arrays.asList(SOCDevCardConstants.KNIGHT));
@@ -668,6 +671,13 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertEquals(SOCGame.PLACING_FREE_ROAD2, ga.getGameState());
         assertTrue(board.roadOrShipAtEdge(ROAD_EDGE_1) instanceof SOCRoad);
+        GameAction act = ga.getLastAction();
+        assertNotNull(act);
+        assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.ROAD, act.param1);
+        assertEquals(ROAD_EDGE_1, act.param2);
+        assertEquals(CLIENT_PN, act.param3);
+        assertNull(act.effects);
         tcli.putPiece(ga, new SOCRoad(cliPl, ROAD_EDGE_2, board));
 
         try { Thread.sleep(60); }
@@ -676,6 +686,21 @@ public class TestActionsMessages
         assertTrue(board.roadOrShipAtEdge(ROAD_EDGE_2) instanceof SOCRoad);
         assertEquals(cliPl, ga.getPlayerWithLongestRoad());
         assertEquals(4, cliPl.getPublicVP());
+        act = ga.getLastAction();
+        assertNotNull(act);
+        assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.ROAD, act.param1);
+        assertEquals(ROAD_EDGE_2, act.param2);
+        assertEquals(CLIENT_PN, act.param3);
+        {
+            List<GameAction.Effect> effects = act.effects;
+            assertNotNull(effects);
+            assertEquals(1, effects.size());
+
+            GameAction.Effect e = effects.get(0);
+            assertEquals(GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
+            assertArrayEquals(new int[]{-1, CLIENT_PN}, e.params);
+        }
 
         StringBuilder comparesRoadBuild = TestRecorder.compareRecordsToExpected
             (records, new String[][]
