@@ -325,8 +325,23 @@ public class GameAction
          * When player changes during initial placement,
          * {@link Action#endingGameState} won't change during the {@code BUILD_PIECE},
          * but during the {@link #TURN_BEGINS} action which follows it.
+         * @see #UNDO_BUILD_PIECE
          */
         BUILD_PIECE(40),
+
+        /**
+         * Undo previous build/placement of a piece ({@link #BUILD_PIECE}).
+         *<BR>
+         * {@code p1} = piece type like {@link SOCPlayingPiece#SETTLEMENT},
+         * {@code p2} = coordinate it was built at.
+         * {@code rs1} = free resources to return, if any; null otherwise
+         *<P>
+         * Includes any {@link GameAction#effects} of the build action.
+         *<P>
+         * Undo can happen only during gameState {@link SOCGame#PLAY1 PLAY1}, not initial placement.
+         * @since 2.7.00
+         */
+        UNDO_BUILD_PIECE(45),
 
         /**
          * Cancel current player's just-built piece (like during initial settlement placement).
@@ -354,6 +369,8 @@ public class GameAction
          * {@code p2} = coordinate piece was previously moved from, and where the undo has returned it,
          * {@code p3} = coordinate piece was previously moved to.
          * {@code rs1} = free resources to return, gained from revealing any non-gold land hex from fog; null otherwise
+         *<P>
+         * Includes any {@link GameAction#effects} of the move action.
          * @since 2.7.00
          */
         UNDO_MOVE_PIECE(65),

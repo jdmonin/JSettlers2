@@ -4570,12 +4570,14 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Can this player currently undo moving this ship?
-     * {@link #getLastAction()} must be a move of this piece.
+     * {@link #getLastAction()} must be a move of this piece ({@link ActionType#MOVE_PIECE}).
      * Must be current player. Game state must be {@link #PLAY1}.
      * @param pn  Player number
      * @param sh  Their ship to undo moving
      * @return  True if can undo that move now
      * @since 2.7.00
+     * @see #undoMoveShip(SOCShip)
+     * @see #canUndoPutPiece(int, SOCPlayingPiece)
      */
     public boolean canUndoMoveShip(final int pn, final SOCShip sh)
     {
@@ -4599,8 +4601,9 @@ public class SOCGame implements Serializable, Cloneable
      * @throws NullPointerException if {@code sh} is {@code null}
      * @throws IllegalStateException  If {@link #getLastAction()} isn't
      *     a {@link GameAction.ActionType#MOVE_PIECE MOVE_PIECE} to {@code sh}'s coordinates
-     * @see #removeShip(SOCShip)
      * @since 2.7.00
+     * @see #removeShip(SOCShip)
+     * @see #undoPutPiece(SOCPlayingPiece)
      */
     public GameAction undoMoveShip(final SOCShip sh)
         throws NullPointerException, IllegalStateException
@@ -4648,8 +4651,113 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Can this player currently undo placing (building) this piece?
+     * {@link #getLastAction()} must be the placement of this piece ({@link ActionType#BUILD_PIECE}).
+     * Must be current player. Game state must be {@link #PLAY1}.
+     * @param pn  Player number
+     * @param pp  Their piece to undo placing
+     * @return  True if can undo that placement now
+     * @since 2.7.00
+     * @see #undoPutPiece(SOCPlayingPiece)
+     * @see #canUndoMoveShip(int, SOCShip)
+     */
+    public boolean canUndoPutPiece(final int pn, final SOCPlayingPiece pp)
+    {
+        final GameAction buildAct = lastAction;
+        final int ptype = pp.getType();
+        return (pn == currentPlayerNumber) && (gameState == PLAY1)
+            && (ptype >= SOCPlayingPiece.ROAD) && (ptype <= SOCPlayingPiece.SHIP)
+            && (buildAct != null) && (buildAct.actType == ActionType.BUILD_PIECE)
+            && (buildAct.param1 == ptype)
+            && (buildAct.param2 == pp.getCoordinates())
+            && (buildAct.param3 == pn);
+    }
+
+    /**
+     * Undo the previous {@link #putPiece(SOCPlayingPiece)} if possible.
+     * Temporarily sets gameState to {@link #UNDOING_ACTION} while it does so,
+     * then restores the actual gameState to what it was at start of the method.
+     * Sets {@link #getLastAction()} to {@link ActionType#UNDO_BUILD_PIECE}.
+     *<P>
+     * For validity checks, please call {@link #canUndoPutPiece(int, SOCPlayingPiece)} before this method.
+     *<P>
+     * The putPiece's {@link GameAction#effects} are undone only at server;
+     * the server will send messages to the client to take care of it there.
+     *
+     * @param pp  Piece to undo the placement of
+     * @return Undo information; see {@link GameAction.ActionType#UNDO_BUILD_PIECE} for details
+     * @throws NullPointerException if {@code pp} is {@code null}
+     * @throws IllegalStateException  If {@link #getLastAction()} isn't
+     *     a {@link GameAction.ActionType#BUILD_PIECE BUILD_PIECE} at {@code pp}'s coordinates.
+     * @since 2.7.00
+     * @see #undoPutTempPiece(SOCPlayingPiece)
+     */
+    public GameAction undoPutPiece(final SOCPlayingPiece pp)
+        throws NullPointerException, IllegalStateException
+    {
+        final GameAction buildAct = lastAction;
+        final int ptype = pp.getType(), coord = pp.getCoordinates();
+        if ((buildAct == null) || (buildAct.actType != ActionType.BUILD_PIECE)
+            || (buildAct.param1 != buildAct.param1)
+            || (buildAct.param2 != coord))
+            throw new IllegalStateException("lastAction");
+
+        final int actualGS = gameState;
+        gameState = UNDOING_ACTION;
+        switch (ptype)
+        {
+        case SOCPlayingPiece.ROAD:
+        case SOCPlayingPiece.SETTLEMENT:
+        case SOCPlayingPiece.SHIP:
+            undoPutPieceCommon(pp, false, false);
+            for (SOCPlayer pl : players)
+                pl.calcLongestRoad2();
+            break;
+
+        case SOCPlayingPiece.CITY:
+            undoPutPieceCommon(pp, false, false);  // places a settlement there
+            break;
+
+        default:
+            // ... TODO debug prn?
+            gameState = actualGS;
+            throw new IllegalStateException("ptype: " + ptype);
+        }
+
+        if (isAtServer && (buildAct.effects != null))
+            for (GameAction.Effect e : buildAct.effects)
+                switch (e.eType)
+                {
+                case CHANGE_LONGEST_ROAD_PLAYER:
+                    {
+                        final int longestPNBeforePut = e.params[0];
+                        setPlayerWithLongestRoad(longestPNBeforePut >= 0 ? players[longestPNBeforePut] : null);
+                    }
+                    break;
+
+                // TODO any other side effects for now? (reopen closed ship routes, etc)
+
+                default:
+                    ;  // nothing yet
+                }
+
+        gameState = actualGS;
+
+        final GameAction undoAct = new GameAction(buildAct, ActionType.UNDO_BUILD_PIECE, ptype, coord, 0);
+        lastAction = undoAct;
+        lastActionTime = System.currentTimeMillis();
+
+        return undoAct;
+    }
+
+    /**
      * undo the putting of a temporary or initial piece
      * or a ship being moved.
+     * Updates player potentials, but doesn't update longest route;
+     * calls {@link SOCPlayer#undoPutPiece(SOCPlayingPiece, boolean)}.
+     *<P>
+     * If the piece is a city, puts a settlement back at that location.
+     *<P>
      * If state is START2B or START3B and resources were given, they will be returned.
      *<P>
      * If a ship is removed in scenario {@code _SC_PIRI}, makes sure its player's
@@ -4661,6 +4769,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param isMoveOrReplacement  Is the piece really being moved to a new location, or replaced with another?
      *            If so, don't remove its {@link SOCPlayingPiece#specialVP} from player.
      * @since 1.1.00
+     * @see #undoPutPiece(SOCPlayingPiece)
      */
     protected void undoPutPieceCommon
         (SOCPlayingPiece pp, final boolean isTempPiece, final boolean isMoveOrReplacement)
@@ -4700,6 +4809,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @see #undoPutInitSettlement(SOCPlayingPiece)
      * @see #restoreLargestArmyState()
+     * @see #undoPutPiece(SOCPlayingPiece)
      */
     public void undoPutTempPiece(SOCPlayingPiece pp)
     {

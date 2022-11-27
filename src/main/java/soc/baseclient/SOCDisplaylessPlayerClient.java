@@ -2963,22 +2963,31 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (mes.getPlayerNumber() < 0)
             return;
 
-        // currently handles only ship move; undo put piece will be added soon
-        int movedFromCoord = mes.getMovedFromCoordinates();
+        final SOCBoard board = ga.getBoard();
+        int pieceCurrCoord = mes.getCoordinates(), movedFromCoord = mes.getMovedFromCoordinates(),
+            pieceType = mes.getPieceType();
         if (movedFromCoord != 0)
         {
-            final int pieceType = mes.getPieceType();
             if (pieceType == SOCPlayingPiece.SHIP)
             {
-                final SOCRoutePiece ship = ga.getBoard().roadOrShipAtEdge(mes.getCoordinates());
+                final SOCRoutePiece ship = board.roadOrShipAtEdge(pieceCurrCoord);
                 if (ship instanceof SOCShip)  // also checks non-null
                     ga.undoMoveShip((SOCShip) ship);
             } else {
                 System.err.println("Displayless.handleUNDOPUTPIECE: Un-handled move pieceType " + pieceType);
             }
+        } else {
+            SOCPlayingPiece pp = null;
+            if ((pieceType == SOCPlayingPiece.ROAD) || (pieceType == SOCPlayingPiece.SHIP))
+                pp = board.roadOrShipAtEdge(pieceCurrCoord);
+            else if ((pieceType == SOCPlayingPiece.SETTLEMENT) || (pieceType == SOCPlayingPiece.CITY))
+                pp = board.settlementAtNode(pieceCurrCoord);
+            else
+                System.err.println("Displayless.handleUNDOPUTPIECE: Un-handled move pieceType " + pieceType);
+
+            if (pp != null)
+                ga.undoPutPiece(pp);
         }
-        // else
-            // TODO handle undo put piece
     }
 
     /**

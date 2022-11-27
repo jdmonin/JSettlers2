@@ -3540,6 +3540,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * For roads, does not update longest road; if you need to,
      * call {@link #calcLongestRoad2()} after this call.
      *<P>
+     * For cities, doesn't add a settlement at its location.
+     *<P>
      * For removing second initial settlement (state START2B),
      *   will zero the player's resource cards.
      *
@@ -3812,6 +3814,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Most callers will want to instead call {@link #undoPutPiece(SOCPlayingPiece, boolean)}
      * which calls removePiece and does more.
+     *<P>
+     * Removing a city doesn't add a settlement at its location.
      *<P>
      * Don't call removePiece for a {@link SOCFortress}; see {@link #getFortress()} javadoc.
      *<P>

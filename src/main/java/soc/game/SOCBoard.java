@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -1972,6 +1972,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * remove a piece from the board.
+     * If removing a city, doesn't add a settlement at its location.
      *<P>
      * If you're calling {@link SOCPlayer#undoPutPiece(SOCPlayingPiece, boolean)},
      * call this method first.

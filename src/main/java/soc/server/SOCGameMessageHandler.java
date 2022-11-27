@@ -2753,13 +2753,31 @@ public class SOCGameMessageHandler
             }
             else if (pp != null)
             {
-                if (false)  // ga.canUndoPutPiece(pp))  // must be piece's owner, must be current player, lastGameAction is this piece
+                if (ga.canUndoPutPiece(pn, pp))
                 {
-                    // ga.undoPutPiece(pp);  // TODO any side effects to announce?
+                    final GameAction undoBuild = ga.undoPutPiece(pp);
+                    // any side effects to announce before/after?
                     sendDenyReply = false;
+                    List<SOCMessage> msgsAfter = new ArrayList<>();
+                    if (undoBuild.effects != null)
+                        for (GameAction.Effect e : undoBuild.effects)
+                            switch (e.eType)
+                            {
+                            case CHANGE_LONGEST_ROAD_PLAYER:
+                                msgsAfter.add(new SOCLongestRoad(gaName, e.params[0]));
+                                break;
+
+                            // TODO any other side effects for now? (reopen closed ship routes, etc)
+
+                            default:
+                                ;  // nothing yet
+                            }
                     srv.messageToGame
                         (gaName, true,
                          new SOCUndoPutPiece(gaName, pn, pieceType, coord));
+                    if (! msgsAfter.isEmpty())
+                        for (SOCMessage m : msgsAfter)
+                            srv.messageToGame(gaName, true, m);
                 }
             }
 
