@@ -3544,10 +3544,33 @@ public class SOCPlayerInterface extends JFrame
      * @param pieceType  The piece type, such as {@link SOCPlayingPiece#CITY}
      * @since 2.7.00
      */
+    @SuppressWarnings("fallthrough")
     public void updateAtUndoPutPiece(SOCPlayer player, int coordinate, int movedFromCoordinate, int pieceType)
     {
         boardPanel.setLatestPiecePlacement(null);
         updateAtPiecesChanged();
+
+        final SOCHandPanel hpan = getPlayerHandPanel(player.getPlayerNumber());
+        if (hpan != null)
+        {
+            hpan.updateResourcesVP();
+            if (movedFromCoordinate == 0)
+                switch (pieceType)
+                {
+                case SOCPlayingPiece.ROAD:
+                    hpan.updateValue(PlayerClientListener.UpdateType.Road);
+                    break;
+                case SOCPlayingPiece.CITY:
+                    hpan.updateValue(PlayerClientListener.UpdateType.City);
+                    // fall through because a city became a settlement
+                case SOCPlayingPiece.SETTLEMENT:
+                    hpan.updateValue(PlayerClientListener.UpdateType.Settlement);
+                    break;
+                case SOCPlayingPiece.SHIP:
+                    hpan.updateValue(PlayerClientListener.UpdateType.Ship);
+                    break;
+                }
+        }
 
         final String plName = player.getName(), aPieceType = "a " + SOCPlayingPiece.getTypeName(pieceType);
         if (movedFromCoordinate != 0)

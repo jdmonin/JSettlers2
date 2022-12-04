@@ -9334,22 +9334,61 @@ import javax.swing.JComponent;
                   {
                       final SOCPlayingPiece latest = bp.latestPiecePlacement;
                       final GameAction act = game.getLastAction();
-                      if ((act != null) && (act.actType == GameAction.ActionType.MOVE_PIECE)
-                          && (latest instanceof SOCShip)
-                          && (game.canUndoMoveShip(player.getPlayerNumber(), (SOCShip) latest)))
+                      if ((latest != null) && (act != null))
                       {
-                          // enable Undo only if currently pointing at that piece
-                          final int edgeCoord;
+                          // enable Undo only if game allows and currently pointing at latest piece
+
+                          if ((act.actType == GameAction.ActionType.MOVE_PIECE)
+                              && (latest instanceof SOCShip)
+                              && game.canUndoMoveShip(playerNumber, (SOCShip) latest))
                           {
-                              int[] xyb = rotateScaleXYFromActual(x, y);
-                              edgeCoord = findEdge(xyb[0], xyb[1], false);
+                              final int edgeCoord;
+                              {
+                                  int[] xyb = rotateScaleXYFromActual(x, y);
+                                  edgeCoord = findEdge(xyb[0], xyb[1], false);
+                              }
+                              if (edgeCoord == latest.getCoordinates())
+                              {
+                                  wantsUndo = true;
+                                  cancelBuildItem.setEnabled(true);
+                                  cancelBuildItem.setLabel(strings.get("board.undo.move.ship"));  // "Undo move ship"
+                                  cancelBuildType = SOCPlayingPiece.SHIP;
+                              }
                           }
-                          if (edgeCoord == latest.getCoordinates())
+                          else if ((act.actType == GameAction.ActionType.BUILD_PIECE)
+                              && game.canUndoPutPiece(playerNumber, latest))
                           {
-                              wantsUndo = true;
-                              cancelBuildItem.setEnabled(true);
-                              cancelBuildItem.setLabel(strings.get("board.undo.ship.move"));  // "Undo move ship"
-                              cancelBuildType = SOCPlayingPiece.SHIP;
+                              int coord = 0;
+                              if (latest instanceof SOCRoutePiece)
+                              {
+                                  int[] xyb = rotateScaleXYFromActual(x, y);
+                                  coord = findEdge(xyb[0], xyb[1], false);
+                              }
+                              else if ((latest instanceof SOCSettlement) || (latest instanceof SOCCity))
+                              {
+                                  int[] xyb = rotateScaleXYFromActual(x, y);
+                                  coord = findNode(xyb[0], xyb[1]);
+                              }
+
+                              if (coord == latest.getCoordinates())
+                              {
+                                  wantsUndo = true;
+                                  cancelBuildItem.setEnabled(true);
+                                  cancelBuildType = latest.getType();
+                                  final String key;
+                                  switch (cancelBuildType)
+                                  {
+                                  case SOCPlayingPiece.ROAD:
+                                      key = "board.undo.build.road";  break;  // "Undo build Road"
+                                  case SOCPlayingPiece.SETTLEMENT:
+                                      key = "board.undo.build.stlmt";  break; // "Undo build Settlement"
+                                  case SOCPlayingPiece.SHIP:
+                                      key = "board.undo.build.ship";  break;  // "Undo build Ship"
+                                  default:  // SOCPlayingPiece.CITY
+                                      key = "board.undo.build.city.upgrade";  // "Undo City upgrade"
+                                  }
+                                  cancelBuildItem.setLabel(strings.get(key));
+                              }
                           }
                       }
                   }
