@@ -265,6 +265,22 @@ public class TestActionsMessages
         assertEquals(3, cliPl.getPublicVP());
         assertArrayEquals(new int[]{2, 3, 2, 3, 3}, cliPl.getResources().getAmounts(false));
 
+        GameAction act = ga.getLastAction();
+        assertNotNull(act);
+        assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals(SETTLEMENT_NODE, act.param2);
+        assertEquals(CLIENT_PN, act.param3);
+        {
+            List<GameAction.Effect> effects = act.effects;
+            assertNotNull(effects);
+            assertEquals(1, effects.size());
+
+            GameAction.Effect e = effects.get(0);
+            assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+            assertNull(e.params);
+        }
+
         StringBuilder comparesSettle = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -298,6 +314,22 @@ public class TestActionsMessages
         assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
         assertEquals(4, cliPl.getPublicVP());
         assertArrayEquals(new int[]{2, 0, 2, 1, 3}, cliPl.getResources().getAmounts(false));
+
+        act = ga.getLastAction();
+        assertNotNull(act);
+        assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.CITY, act.param1);
+        assertEquals(SETTLEMENT_NODE, act.param2);
+        assertEquals(CLIENT_PN, act.param3);
+        {
+            List<GameAction.Effect> effects = act.effects;
+            assertNotNull(effects);
+            assertEquals(1, effects.size());
+
+            GameAction.Effect e = effects.get(0);
+            assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+            assertNull(e.params);
+        }
 
         StringBuilder comparesCity = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -342,6 +374,22 @@ public class TestActionsMessages
         assertEquals(2, shipsThisTurnListAtCli.size());
         assertTrue(shipsThisTurnListAtCli.contains(Integer.valueOf(SHIP_EDGE)));
 
+        act = ga.getLastAction();
+        assertNotNull(act);
+        assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals(SHIP_EDGE, act.param2);
+        assertEquals(CLIENT_PN, act.param3);
+        {
+            List<GameAction.Effect> effects = act.effects;
+            assertNotNull(effects);
+            assertEquals(1, effects.size());
+
+            GameAction.Effect e = effects.get(0);
+            assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+            assertNull(e.params);
+        }
+
         StringBuilder comparesShipBuild = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -370,6 +418,14 @@ public class TestActionsMessages
         shipsThisTurnListAtCli = gaAtCli.getShipsPlacedThisTurn();
         assertEquals(3, shipsThisTurnListAtCli.size());
         assertTrue(shipsThisTurnListAtCli.contains(Integer.valueOf(MOVESHIP_EDGE_TO)));
+
+        act = ga.getLastAction();
+        assertNotNull(act);
+        assertEquals(GameAction.ActionType.MOVE_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals(MOVESHIP_EDGE_FROM, act.param2);
+        assertEquals(MOVESHIP_EDGE_TO, act.param3);
+        assertNull(act.effects);
 
         StringBuilder comparesShipMove = TestRecorder.compareRecordsToExpected
             (records, new String[][]

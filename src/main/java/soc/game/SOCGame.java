@@ -299,8 +299,13 @@ public class SOCGame implements Serializable, Cloneable
      */
     public static final int PLAY1 = 20; // Done rolling
 
+    /** Player has bought and is placing a new {@link SOCRoad}. */
     public static final int PLACING_ROAD = 30;
+
+    /** Player has bought and is placing a new {@link SOCSettlement}. */
     public static final int PLACING_SETTLEMENT = 31;
+
+    /** Player has bought and is placing a new {@link SOCCity}. */
     public static final int PLACING_CITY = 32;
 
     /**
@@ -334,7 +339,7 @@ public class SOCGame implements Serializable, Cloneable
     public static final int PLACING_PIRATE = 34;
 
     /**
-     * This game {@link #hasSeaBoard}, and a player has bought and is placing a ship.
+     * This game {@link #hasSeaBoard}, and a player has bought and is placing a {@link SOCShip}.
      * @since 2.0.00
      */
     public static final int PLACING_SHIP = 35;
@@ -3993,9 +3998,16 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         List<GameAction.Effect> effects = null;
-        if (longestRoadPN != playerWithLongestRoad)
+        if ((gameState == PLACING_ROAD) || (gameState == PLACING_SETTLEMENT)
+            || (gameState == PLACING_CITY) || (gameState == PLACING_SHIP))
         {
             effects = new ArrayList<>();
+            effects.add(new GameAction.Effect(EffectType.DEDUCT_COST_FROM_PLAYER));
+        }
+        if (longestRoadPN != playerWithLongestRoad)
+        {
+            if (effects == null)
+                effects = new ArrayList<>();
             effects.add(new GameAction.Effect
                 (EffectType.CHANGE_LONGEST_ROAD_PLAYER, new int[]{longestRoadPN, playerWithLongestRoad}));
         }
@@ -4728,6 +4740,23 @@ public class SOCGame implements Serializable, Cloneable
             for (GameAction.Effect e : buildAct.effects)
                 switch (e.eType)
                 {
+                case DEDUCT_COST_FROM_PLAYER:
+                    {
+                        SOCResourceSet cost = null;
+                        if (e.params != null)
+                            cost = new SOCResourceSet(e.params);
+                        else
+                            try
+                            {
+                                cost = SOCPlayingPiece.getResourcesToBuild(ptype);
+                            }
+                            catch(IllegalArgumentException ex) {}
+
+                        if (cost != null)
+                            players[currentPlayerNumber].getResources().add(cost);
+                    }
+                    break;
+
                 case CHANGE_LONGEST_ROAD_PLAYER:
                     {
                         final int longestPNBeforePut = e.params[0];

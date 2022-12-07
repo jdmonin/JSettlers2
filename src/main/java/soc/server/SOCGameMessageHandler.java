@@ -2763,6 +2763,23 @@ public class SOCGameMessageHandler
                         for (GameAction.Effect e : undoBuild.effects)
                             switch (e.eType)
                             {
+                            case DEDUCT_COST_FROM_PLAYER:
+                                {
+                                    SOCResourceSet cost = null;
+                                    if (e.params != null)
+                                        cost = new SOCResourceSet(e.params);
+                                    else
+                                        try
+                                        {
+                                            cost = SOCPlayingPiece.getResourcesToBuild(pieceType);
+                                        }
+                                        catch(IllegalArgumentException ex) {}
+
+                                    if (cost != null)
+                                        msgsAfter.add(new SOCPlayerElements(gaName, pn, SOCPlayerElement.GAIN, cost));
+                                }
+                                break;
+
                             case CHANGE_LONGEST_ROAD_PLAYER:
                                 msgsAfter.add(new SOCLongestRoad(gaName, e.params[0]));
                                 break;

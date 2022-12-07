@@ -325,6 +325,10 @@ public class GameAction
          * When player changes during initial placement,
          * {@link Action#endingGameState} won't change during the {@code BUILD_PIECE},
          * but during the {@link #TURN_BEGINS} action which follows it.
+         *<P>
+         * At server, {@link GameAction#effects} will include {@link GameAction.EffectType#DEDUCT_COST_FROM_PLAYER}
+         * unless the piece was free (road building card, etc).
+         *
          * @see #UNDO_BUILD_PIECE
          */
         BUILD_PIECE(40),
@@ -594,33 +598,43 @@ public class GameAction
         UNKNOWN(1),
 
         /**
+         * Player paid resources for this action.
+         * Example: Buying and building a road, as opposed to placing a free road from a dev card.
+         * If this is for a typical action where the cost is known and constant,
+         * like buying and building a standard piece type, don't record the cost: Null params.
+         * Otherwise params[] are the cost resource amounts in same format as
+         * {@link SOCResourceSet#getAmounts(boolean) SOCResourceSet.getAmounts(false)}.
+         */
+        DEDUCT_COST_FROM_PLAYER(10),
+
+        /**
          * Player with longest road has changed.
          * Params: old LR playerNumber, new LR playerNumber.
          * Either can be -1 for none.
          */
-        CHANGE_LONGEST_ROAD_PLAYER(10),
+        CHANGE_LONGEST_ROAD_PLAYER(20),
 
         /**
          * Player with largest army has changed.
          * Params: old LA playerNumber, new LA playerNumber.
          * Old can be -1 for none.
          */
-        CHANGE_LARGEST_ARMY_PLAYER(20),
+        CHANGE_LARGEST_ARMY_PLAYER(30),
 
         /** Player has gained SVP with this action. Should record amount gained, new total. */
-        PLAYER_GAIN_SVP(30),
+        PLAYER_GAIN_SVP(40),
 
         /** The {@link SOCGame#hasBuiltCity()} flag was set by building a piece. */
-        SET_GAME_FLAG_N7C(40),
+        SET_GAME_FLAG_N7C(50),
 
         /**
          * Building or moving caused a ship route to be closed. Params are {@link SOCShip} edge coords
          * which became closed because of this action.
          */
-        CLOSE_SHIP_ROUTE(50),
+        CLOSE_SHIP_ROUTE(60),
 
         /** Building or moving revealed a fog hex. */
-        REVEAL_FOG_HEX(60);
+        REVEAL_FOG_HEX(70);
 
         /**
          * This enum member's unique int value ({@link #CHANGE_LONGEST_ROAD_PLAYER} == 10, etc).

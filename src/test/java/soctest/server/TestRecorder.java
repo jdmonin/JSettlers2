@@ -37,6 +37,7 @@ import static org.junit.Assert.*;
 import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.EventEntry;
 import soc.extra.server.RecordingSOCServer;
+import soc.game.GameAction;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCDevCardConstants;
@@ -1218,6 +1219,7 @@ public class TestRecorder
      * Build a road on board of savegame artifact {@code message-seqs},
      * optionally with preceding SOCBuildRequest message (which is optional in v2.0 and newer).
      * Tests that sequence and {@code compareRecordsToExpected}'s null-element handling.
+     * Also checks game data, including {@link SOCGame#getLastAction()}.
      *
      * @param tcli  Test client connected to server and playing in {@code ga}
      * @param ga  Game loaded and started by
@@ -1256,6 +1258,22 @@ public class TestRecorder
         assertNotNull("road built", board.roadOrShipAtEdge(ROAD_COORD));
         assertEquals(11, cliPl.getNumPieces(SOCPlayingPiece.ROAD));
         assertArrayEquals(new int[]{2, 3, 3, 4, 3}, cliPl.getResources().getAmounts(false));
+
+        GameAction act = ga.getLastAction();
+        assertNotNull(act);
+        assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.ROAD, act.param1);
+        assertEquals(ROAD_COORD, act.param2);
+        assertEquals(cliPl.getPlayerNumber(), act.param3);
+        {
+            List<GameAction.Effect> effects = act.effects;
+            assertNotNull(effects);
+            assertEquals(1, effects.size());
+
+            GameAction.Effect e = effects.get(0);
+            assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+            assertNull(e.params);
+        }
 
         // for now, quick rough comparison of record contents
         return compareRecordsToExpected
