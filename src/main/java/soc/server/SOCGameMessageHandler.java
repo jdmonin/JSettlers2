@@ -1251,6 +1251,65 @@ public class SOCGameMessageHandler
 
 
     /**
+     * While undoing a game action for the current player,
+     * send its {@link GameAction.Effect} game data messages
+     * which are sent before the undo, and gather those to send afterwards.
+     * @param ga  Game for this action
+     * @param actToUndo  Action being undone; not {@code null}
+     * @param pieceType  Piece type for action being undone if relevant, such as {@link SOCPlayingPiece#SHIP}, or -1
+     * @return  Game data messages to send afterwards, or {@code null} if none
+     * @since 2.7.00
+     */
+    List<SOCMessage> sendUndoSideEffects
+        (final SOCGame ga, final GameAction actToUndo, final int pieceType)
+    {
+        if (actToUndo.effects == null)
+            return null;
+
+        // The messages sent here or queued into msgsAfter correspond to
+        // effects undone in SOCGame.undoActionSideEffects_pre and
+        // .undoActionSideEffects_post; if you update this method,
+        // check those for whether they need updates too
+
+        List<SOCMessage> msgsAfter = new ArrayList<>();
+        final String gaName = ga.getName();
+
+        for (GameAction.Effect e : actToUndo.effects)
+            switch (e.eType)
+            {
+            case DEDUCT_COST_FROM_PLAYER:
+                {
+                    SOCResourceSet cost = null;
+                    if (e.params != null)
+                        cost = new SOCResourceSet(e.params);
+                    else
+                        try
+                        {
+                            cost = SOCPlayingPiece.getResourcesToBuild(pieceType);
+                        }
+                        catch(IllegalArgumentException ex) {}
+
+                    if (cost != null)
+                        msgsAfter.add(new SOCPlayerElements
+                            (gaName, ga.getCurrentPlayerNumber(), SOCPlayerElement.GAIN, cost));
+                }
+                break;
+
+            case CHANGE_LONGEST_ROAD_PLAYER:
+                msgsAfter.add(new SOCLongestRoad(gaName, e.params[0]));
+                break;
+
+            // TODO any other side effects for now? (reopen closed ship routes, etc)
+
+            default:
+                ;  // nothing yet
+            }
+
+        return (msgsAfter.isEmpty() ? null : msgsAfter);
+    }
+
+
+    /**
      * handle "end turn" message.
      * This normally ends a player's normal turn (phase {@link SOCGame#PLAY1}).
      * On the 6-player board, it ends their placements during the
@@ -2744,11 +2803,14 @@ public class SOCGameMessageHandler
                 if (ga.canUndoMoveShip(pn, (SOCShip) pp))
                 {
                     final GameAction undoShipMove = ga.undoMoveShip((SOCShip) pp);
-                    // TODO any side effects to announce?
                     sendDenyReply = false;
+                    List<SOCMessage> msgsAfter = sendUndoSideEffects(ga, undoShipMove, SOCPlayingPiece.SHIP);
                     srv.messageToGame
                         (gaName, true,
                          new SOCUndoPutPiece(gaName, pn, pieceType, coord, undoShipMove.param2));
+                    if (msgsAfter != null)
+                        for (SOCMessage m : msgsAfter)
+                            srv.messageToGame(gaName, true, m);
                 }
             }
             else if (pp != null)
@@ -2756,43 +2818,12 @@ public class SOCGameMessageHandler
                 if (ga.canUndoPutPiece(pn, pp))
                 {
                     final GameAction undoBuild = ga.undoPutPiece(pp);
-                    // any side effects to announce before/after?
                     sendDenyReply = false;
-                    List<SOCMessage> msgsAfter = new ArrayList<>();
-                    if (undoBuild.effects != null)
-                        for (GameAction.Effect e : undoBuild.effects)
-                            switch (e.eType)
-                            {
-                            case DEDUCT_COST_FROM_PLAYER:
-                                {
-                                    SOCResourceSet cost = null;
-                                    if (e.params != null)
-                                        cost = new SOCResourceSet(e.params);
-                                    else
-                                        try
-                                        {
-                                            cost = SOCPlayingPiece.getResourcesToBuild(pieceType);
-                                        }
-                                        catch(IllegalArgumentException ex) {}
-
-                                    if (cost != null)
-                                        msgsAfter.add(new SOCPlayerElements(gaName, pn, SOCPlayerElement.GAIN, cost));
-                                }
-                                break;
-
-                            case CHANGE_LONGEST_ROAD_PLAYER:
-                                msgsAfter.add(new SOCLongestRoad(gaName, e.params[0]));
-                                break;
-
-                            // TODO any other side effects for now? (reopen closed ship routes, etc)
-
-                            default:
-                                ;  // nothing yet
-                            }
+                    List<SOCMessage> msgsAfter = sendUndoSideEffects(ga, undoBuild, pieceType);
                     srv.messageToGame
                         (gaName, true,
                          new SOCUndoPutPiece(gaName, pn, pieceType, coord));
-                    if (! msgsAfter.isEmpty())
+                    if (msgsAfter != null)
                         for (SOCMessage m : msgsAfter)
                             srv.messageToGame(gaName, true, m);
                 }

@@ -57,6 +57,7 @@ public class GameAction
     /**
      * Side-effects of the action, if any, or {@code null}.
      * Not used when extracting actions from a {@link GameEventLog}.
+     * Used only at server, not sent to clients; may contain hidden info about players.
      * @since 2.7.00
      */
     public final List<Effect> effects;

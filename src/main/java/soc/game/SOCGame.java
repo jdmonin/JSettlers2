@@ -4631,10 +4631,16 @@ public class SOCGame implements Serializable, Cloneable
 
         final int actualGS = gameState;
         gameState = UNDOING_ACTION;
+        if (isAtServer)
+            undoActionSideEffects_pre(moveAct, SOCPlayingPiece.SHIP);
+
         shipsPlacedThisTurn.remove(Integer.valueOf(wasMovedToEdge));
         // TODO any closed ship routes to open up?
         moveShip(sh, wasMovedFromEdge);
         movedShipThisTurn = false;
+
+        if (isAtServer)
+            undoActionSideEffects_post(moveAct, SOCPlayingPiece.SHIP);
         gameState = actualGS;
 
         final GameAction undoAct = new GameAction
@@ -4716,6 +4722,9 @@ public class SOCGame implements Serializable, Cloneable
 
         final int actualGS = gameState;
         gameState = UNDOING_ACTION;
+        if (isAtServer)
+            undoActionSideEffects_pre(buildAct, ptype);
+
         switch (ptype)
         {
         case SOCPlayingPiece.ROAD:
@@ -4736,40 +4745,8 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException("ptype: " + ptype);
         }
 
-        if (isAtServer && (buildAct.effects != null))
-            for (GameAction.Effect e : buildAct.effects)
-                switch (e.eType)
-                {
-                case DEDUCT_COST_FROM_PLAYER:
-                    {
-                        SOCResourceSet cost = null;
-                        if (e.params != null)
-                            cost = new SOCResourceSet(e.params);
-                        else
-                            try
-                            {
-                                cost = SOCPlayingPiece.getResourcesToBuild(ptype);
-                            }
-                            catch(IllegalArgumentException ex) {}
-
-                        if (cost != null)
-                            players[currentPlayerNumber].getResources().add(cost);
-                    }
-                    break;
-
-                case CHANGE_LONGEST_ROAD_PLAYER:
-                    {
-                        final int longestPNBeforePut = e.params[0];
-                        setPlayerWithLongestRoad(longestPNBeforePut >= 0 ? players[longestPNBeforePut] : null);
-                    }
-                    break;
-
-                // TODO any other side effects for now? (reopen closed ship routes, etc)
-
-                default:
-                    ;  // nothing yet
-                }
-
+        if (isAtServer)
+            undoActionSideEffects_post(buildAct, ptype);
         gameState = actualGS;
 
         final GameAction undoAct = new GameAction(buildAct, ActionType.UNDO_BUILD_PIECE, ptype, coord, 0);
@@ -4878,6 +4855,88 @@ public class SOCGame implements Serializable, Cloneable
             gameState = START2A;
         else // gameState == START3B
             gameState = START3A;
+    }
+
+    /**
+     * At server, handle undoing some side effects of a game action.
+     * Called by undo methods before they undo the direct part of the action (like building a piece).
+     * After that, they'll call {@link #undoActionSideEffects_post(GameAction, int)}
+     * to undo any other possible side effects.
+     *
+     * @param actToUndo  Action being undone; not {@code null}.
+     *     Does nothing if {@link GameAction#effects actToUndo.effects} is {@code null} or empty.
+     * @param pieceType  Piece type for action being undone if relevant, such as {@link SOCPlayingPiece#SHIP}, or -1
+     * @exception IllegalStateException if {@link #getGameState()} != {@link #UNDOING_ACTION} when called
+     * @since 2.7.00
+     */
+    protected void undoActionSideEffects_pre(final GameAction actToUndo, final int pieceType)
+    {
+        if (actToUndo.effects == null)
+            return;
+        if (gameState != UNDOING_ACTION)
+            throw new IllegalStateException("gameState " + gameState + " != UNDOING_ACTION");
+
+        // The effects undone here have corresponding messages sent immediately in
+        // SOCGameMessageHandler.sendUndoSideEffects; if you update this method,
+        // update that one too
+
+        // None yet
+    }
+
+    /**
+     * At server, handle undoing some side effects of a game action.
+     * Called by undo methods after they undo the direct part of the action (like building a piece).
+     *
+     * @param actToUndo  Action being undone; not {@code null}
+     *     Does nothing if {@link GameAction#effects actToUndo.effects} is {@code null} or empty.
+     * @param pieceType  Piece type for action being undone if relevant, such as {@link SOCPlayingPiece#SHIP}, or -1
+     * @exception IllegalStateException if {@link #getGameState()} != {@link #UNDOING_ACTION} when called
+     * @since 2.7.00
+     * @see #undoActionSideEffects_pre(GameAction, int)
+     */
+    protected void undoActionSideEffects_post(final GameAction actToUndo, final int pieceType)
+    {
+        if (actToUndo.effects == null)
+            return;
+        if (gameState != UNDOING_ACTION)
+            throw new IllegalStateException("gameState " + gameState + " != UNDOING_ACTION");
+
+        // The effects undone here have corresponding messages queued into msgsAfter in
+        // SOCGameMessageHandler.sendUndoSideEffects; if you update this method,
+        // update that one too
+
+        for (GameAction.Effect e : actToUndo.effects)
+            switch (e.eType)
+            {
+            case DEDUCT_COST_FROM_PLAYER:
+                {
+                    SOCResourceSet cost = null;
+                    if (e.params != null)
+                        cost = new SOCResourceSet(e.params);
+                    else
+                        try
+                        {
+                            cost = SOCPlayingPiece.getResourcesToBuild(pieceType);
+                        }
+                        catch(IllegalArgumentException ex) {}
+
+                    if (cost != null)
+                        players[currentPlayerNumber].getResources().add(cost);
+                }
+                break;
+
+            case CHANGE_LONGEST_ROAD_PLAYER:
+                {
+                    final int longestPNBeforePut = e.params[0];
+                    setPlayerWithLongestRoad(longestPNBeforePut >= 0 ? players[longestPNBeforePut] : null);
+                }
+                break;
+
+            // TODO any other side effects for now? (reopen closed ship routes, etc)
+
+            default:
+                ;  // nothing yet
+            }
     }
 
     /**
