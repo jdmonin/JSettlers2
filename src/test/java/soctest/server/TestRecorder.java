@@ -809,8 +809,8 @@ public class TestRecorder
      *     or a different savegame artifact already loaded and changed if needed by the caller.
      *     The highest player number (3 or 5) must be named {@code "debug"};
      *     that player number will be used for {@code clientName}.
-     * @param withResume  If true and {@code gameArtifactSGM} is null,
-     *     call {@link #resumeLoadedGame(SOCGame, SOCServer, Connection)}
+     * @param withResume  If true, call {@link #resumeLoadedGame(SOCGame, SOCServer, Connection)}.
+     *     If {@code gameArtifactSGM} != null, see that method for conditions which must be met in SGM.
      * @param observabilityMode Whether to test using normally-inactive game options for "observability":
      *     <UL>
      *      <LI> 0: Normal mode: Resources and Victory Point/development cards are hidden as usual
@@ -826,7 +826,6 @@ public class TestRecorder
      * @throws IllegalArgumentException if {@code clientName} is null or too long
      *     (max length is {@link SOCServer#PLAYER_NAME_MAX_LENGTH});
      *     or if using {@code client2Name} but {@code client2PN} isn't a non-vacant robot player number;
-     *     or if {@code withResume} but {@code gameArtifactSGM != null};
      *     or if {@code observabilityMode} not in range 0..2
      * @throws IllegalStateException if {@code clientName} or {@code client2Name} was already used for
      *     a different call to this method: Use unique names for each call to avoid intermittent auth problems
@@ -838,8 +837,6 @@ public class TestRecorder
          final int observabilityMode, final boolean clientAsRobot, final boolean othersAsRobot)
         throws IllegalArgumentException, IllegalStateException, IOException
     {
-        if (withResume && (gameArtifactSGM != null))
-            throw new IllegalArgumentException("withResume is only for default artifact, but gameArtifactSGM != null");
         if (clientName == null)
             throw new IllegalArgumentException("clientName");
         if (clientName.length() > SOCServer.PLAYER_NAME_MAX_LENGTH)

@@ -33,6 +33,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - After loading, current player can now resume game and move a ship immediately
 	      if client is this version or newer, instead of waiting until their next turn
 	    - `*LOADGAME*`: If SavedGameModel.devCardDeck has an unknown card type, give card's index in warning to user
+	    - TestRecorder.connectLoadJoinResumeGame: Resume any loaded game file
 	- Gradle 7 compatibility
 - Code internals:
 	- Refactored soc.game.GameAction out of soc.extra.robot.GameActionLog.Action
