@@ -557,7 +557,7 @@ public class TestActionsMessages
         /* settlement to join roads + ships for longest route */
         final int SETTLEMENT_NODE = 0x80b;
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.SETTLEMENT, SETTLEMENT_NODE, 3, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.SETTLEMENT, SETTLEMENT_NODE, 0, 3, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesSettle = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -568,7 +568,7 @@ public class TestActionsMessages
 
         final int ROAD_EDGE = 0xc07;
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.ROAD, ROAD_EDGE, 13, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.ROAD, ROAD_EDGE, 0, 13, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesRoad = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -579,7 +579,7 @@ public class TestActionsMessages
 
         final int SHIP_EDGE_EAST = 0x80b;
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, 10, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, 0, 8, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesShip = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -588,7 +588,31 @@ public class TestActionsMessages
                 {"all:SOCLongestRoad:", "|playerNumber=2"},
             }, false);
 
-        // TODO move ship & undo
+        /* move ship & undo */
+        final int SHIP_MOVE_FROM = 0xc0b;
+        testOne_UndoBuildAndMove_buildAndUndoPiece
+            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 8, objs, clientAsRobot, othersAsRobot);
+        StringBuilder comparesShipMove = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=3|coord=80b|movedFromCoord=c0b"},
+                {"all:SOCLongestRoad:", "|playerNumber=2"},
+            }, false);
+        if (comparesShipMove == null)
+        {
+            /* move and undo same ship, to verify we've undone game data about ships moved/placed this turn */
+            System.out.println("(Re-testing move & undo same ship)");
+            testOne_UndoBuildAndMove_buildAndUndoPiece
+                (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 8, objs, clientAsRobot, othersAsRobot);
+            comparesShipMove = TestRecorder.compareRecordsToExpected
+                (records, new String[][]
+                {
+                    {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=3|coord=80b|movedFromCoord=c0b"},
+                    {"all:SOCLongestRoad:", "|playerNumber=2"},
+                }, false);
+            if (comparesShipMove != null)
+                comparesShipMove.insert(0, "Test move & undo same ship:");
+        }
 
         /* leave game, consolidate results */
 
@@ -615,6 +639,13 @@ public class TestActionsMessages
             compares.append("Undo build ship: Message mismatch: ");
             compares.append(comparesShip);
         }
+        if (comparesShipMove != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("Undo move ship: Message mismatch: ");
+            compares.append(comparesShipMove);
+        }
 
         if (compares.length() > 0)
         {
@@ -625,11 +656,12 @@ public class TestActionsMessages
     }
 
     /**
-     * Build 1 piece which gains longest road for client player, then undo it to revert longest road,
+     * Build or move a piece which gains longest road for client player, then undo it to revert longest road,
      * for {@link #testOne_UndoBuildAndMove(boolean, boolean)}.
      * Calls {@code records.clear()} before sending undo request.
      * @param pieceType  Piece type to build and then undo: Must be ROAD, SETTLEMENT or SHIP
-     * @param pieceCoord  Node or edge coordinate to build at
+     * @param pieceCoord  Node or edge coordinate to build at or move to
+     * @param movedFromCoord  Edge coordinate to move ship from, or 0 when building
      * @param startPieceCount  Player's expected amount of {@code pieceType} before building one
      * @param objs  Game and client/server objects
      * @param clientAsRobot
@@ -637,18 +669,25 @@ public class TestActionsMessages
      * @since 2.7.00
      */
     private void testOne_UndoBuildAndMove_buildAndUndoPiece
-        (final int pieceType, final int pieceCoord, final int startPieceCount,
+        (final int pieceType, final int pieceCoord, final int movedFromCoord, final int startPieceCount,
          final StartedTestGameObjects objs, final boolean clientAsRobot, final boolean othersAsRobot)
     {
         final int CLIENT_PN = 3, OTHER_PN = 2;
         final int[] PL_START_RES_ARR = {2, 0, 2, 1, 2};
         final int[] PL_NEXT_RES_ARR;  // use array so assert(..) will print details of what's unexpected
+        if (movedFromCoord == 0)
         {
             SOCResourceSet res = new SOCResourceSet(PL_START_RES_ARR);
             res.subtract(SOCPlayingPiece.getResourcesToBuild(pieceType));
             PL_NEXT_RES_ARR = res.getAmounts(false);
+        } else {
+            PL_NEXT_RES_ARR = null;
         }
-        final String testDesc="place piecetype=" + pieceType + " at 0x" + Integer.toHexString(pieceCoord);
+        final String testDesc =
+            ((movedFromCoord != 0)
+                ? "move ship from 0x"  + Integer.toHexString(movedFromCoord)
+                : "place piecetype=" + pieceType)
+            + " at 0x" + Integer.toHexString(pieceCoord);
 
         final DisplaylessTesterClient tcli = objs.tcli;
         final SOCGame ga = objs.gameAtServer, gaAtCli = tcli.getGame(ga.getName());
@@ -669,52 +708,73 @@ public class TestActionsMessages
         assertEquals(testDesc, OTHER_PN, gaAtCli.getPlayerWithLongestRoad().getPlayerNumber());
         assertArrayEquals(testDesc, PL_START_RES_ARR, cliPl.getResources().getAmounts(false));
         assertArrayEquals(testDesc, PL_START_RES_ARR, cliPlAtCli.getResources().getAmounts(false));
-        final SOCPlayingPiece pieceToPut;
-        switch (pieceType)
+        if (movedFromCoord == 0)
         {
-        case SOCPlayingPiece.ROAD:
-            pieceToPut = new SOCRoad(cliPl, pieceCoord, board);
-            break;
-        case SOCPlayingPiece.SETTLEMENT:
-            pieceToPut = new SOCSettlement(cliPl, pieceCoord, board);
-            break;
-        case SOCPlayingPiece.SHIP:
-            pieceToPut = new SOCShip(cliPl, pieceCoord, board);
-            break;
-        default:
-            fail(testDesc + ": unsupported pieceType for test");
-            return;  // to satisfy compiler
+            final SOCPlayingPiece pieceToPut;
+            switch (pieceType)
+            {
+            case SOCPlayingPiece.ROAD:
+                pieceToPut = new SOCRoad(cliPl, pieceCoord, board);
+                break;
+            case SOCPlayingPiece.SETTLEMENT:
+                pieceToPut = new SOCSettlement(cliPl, pieceCoord, board);
+                break;
+            case SOCPlayingPiece.SHIP:
+                pieceToPut = new SOCShip(cliPl, pieceCoord, board);
+                break;
+            default:
+                fail(testDesc + ": unsupported pieceType for test");
+                return;  // to satisfy compiler
+            }
+            tcli.putPiece(ga, pieceToPut);
+        } else {
+            tcli.movePieceRequest(ga, CLIENT_PN, SOCPlayingPiece.SHIP, movedFromCoord, pieceCoord);
         }
-        tcli.putPiece(ga, pieceToPut);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
+        String pieceCheckDesc = testDesc + ((movedFromCoord == 0) ? ": built it" : ": moved it");
         if ((pieceType == SOCPlayingPiece.ROAD) || (pieceType == SOCPlayingPiece.SHIP))
-            assertNotNull(testDesc + ": built it", board.roadOrShipAtEdge(pieceCoord));
+            assertNotNull(pieceCheckDesc, board.roadOrShipAtEdge(pieceCoord));
         else
-            assertNotNull(testDesc + ": built it", board.settlementAtNode(pieceCoord));
-        assertEquals(testDesc, startPieceCount - 1, cliPl.getNumPieces(pieceType));
+            assertNotNull(pieceCheckDesc, board.settlementAtNode(pieceCoord));
+        if (movedFromCoord == 0)
+            assertEquals(testDesc, startPieceCount - 1, cliPl.getNumPieces(pieceType));
         assertEquals(testDesc, (pieceType == SOCPlayingPiece.SETTLEMENT) ? 5 : 4, cliPl.getPublicVP());
         assertEquals(testDesc, CLIENT_PN, ga.getPlayerWithLongestRoad().getPlayerNumber());
         assertEquals(testDesc, CLIENT_PN, gaAtCli.getPlayerWithLongestRoad().getPlayerNumber());
-        assertArrayEquals(testDesc, PL_NEXT_RES_ARR, cliPl.getResources().getAmounts(false));
-        assertArrayEquals(testDesc, PL_NEXT_RES_ARR, cliPlAtCli.getResources().getAmounts(false));
+        if (movedFromCoord == 0)
+        {
+            assertArrayEquals(testDesc, PL_NEXT_RES_ARR, cliPl.getResources().getAmounts(false));
+            assertArrayEquals(testDesc, PL_NEXT_RES_ARR, cliPlAtCli.getResources().getAmounts(false));
+        }
 
         GameAction act = ga.getLastAction();
         assertNotNull(testDesc, act);
-        assertEquals(testDesc, GameAction.ActionType.BUILD_PIECE, act.actType);
-        assertEquals(testDesc, pieceType, act.param1);
-        assertEquals(testDesc, pieceCoord, act.param2);
-        assertEquals(testDesc, CLIENT_PN, act.param3);
+        if (movedFromCoord == 0)
+        {
+            assertEquals(testDesc, GameAction.ActionType.BUILD_PIECE, act.actType);
+            assertEquals(testDesc, pieceType, act.param1);
+            assertEquals(testDesc, pieceCoord, act.param2);
+            assertEquals(testDesc, CLIENT_PN, act.param3);
+        } else {
+            assertEquals(testDesc, GameAction.ActionType.MOVE_PIECE, act.actType);
+            assertEquals(testDesc, pieceType, act.param1);
+            assertEquals(testDesc, movedFromCoord, act.param2);
+            assertEquals(testDesc, pieceCoord, act.param3);
+        }
         {
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(testDesc, effects);
-            assertEquals(testDesc, 2, effects.size());
+            assertEquals(testDesc, (movedFromCoord == 0) ? 2 : 1, effects.size());
 
             GameAction.Effect e = effects.get(0);
-            assertEquals(testDesc, GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
-            assertNull(testDesc, e.params);
-            e = effects.get(1);
+            if (movedFromCoord == 0)
+            {
+                assertEquals(testDesc, GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+                assertNull(testDesc, e.params);
+                e = effects.get(1);
+            }
             assertEquals(testDesc, GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
             assertArrayEquals(testDesc, new int[]{OTHER_PN, CLIENT_PN}, e.params);
         }
@@ -722,10 +782,10 @@ public class TestActionsMessages
         // Don't need to check TestRecorder.compareRecordsToExpected for the build:
         // We do that in another test, and shouldn't have 2 places to update when we update that sequence.
 
-        /* Undo the build; longest-road player should change back */
+        /* Undo the build or move; longest-road player should change back */
 
         records.clear();
-        tcli.undoPutOrMovePieceRequest(ga, pieceType, pieceCoord, 0);
+        tcli.undoPutOrMovePieceRequest(ga, pieceType, pieceCoord, movedFromCoord);
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         if ((pieceType == SOCPlayingPiece.ROAD) || (pieceType == SOCPlayingPiece.SHIP))
@@ -741,18 +801,29 @@ public class TestActionsMessages
 
         act = ga.getLastAction();
         assertNotNull(act);
-        assertEquals(GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);
-        assertEquals(pieceType, act.param1);
-        assertEquals(pieceCoord, act.param2);
+        if (movedFromCoord == 0)
+        {
+            assertEquals(GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);
+            assertEquals(pieceType, act.param1);
+            assertEquals(pieceCoord, act.param2);
+        } else {
+            assertEquals(GameAction.ActionType.UNDO_MOVE_PIECE, act.actType);
+            assertEquals(pieceType, act.param1);
+            assertEquals(movedFromCoord, act.param2);
+            assertEquals(pieceCoord, act.param3);
+        }
         {
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(effects);
-            assertEquals(2, effects.size());
+            assertEquals((movedFromCoord == 0) ? 2 : 1, effects.size());
 
             GameAction.Effect e = effects.get(0);
-            assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
-            assertNull(e.params);
-            e = effects.get(1);
+            if (movedFromCoord == 0)
+            {
+                assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+                assertNull(e.params);
+                e = effects.get(1);
+            }
             assertEquals(GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
             assertArrayEquals(new int[]{OTHER_PN, CLIENT_PN}, e.params);
         }

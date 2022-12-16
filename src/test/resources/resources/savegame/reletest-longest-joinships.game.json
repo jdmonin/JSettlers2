@@ -4,7 +4,7 @@
   "gameMinVersion": 2000,
   "gameName": "reletest-longest-joinships",
   "comments": "when player 3 builds a coastal settlement to connect roads to ships, should gain longest route from player 2 (checked in server v2.5.00 and newer; github issue 95)",
-  "author": "Jeremy D Monin  2021",
+  "author": "Jeremy D Monin  2021-2022",
   "gameOptions": "BC\u003dt4,N7\u003df7,PL\u003d3,RD\u003df,SBL\u003dt,VP\u003dt11",
   "gameDurationSeconds": 215,
   "gameState": 20,
@@ -49,7 +49,6 @@
   "askedSpecialBuildPhase": false,
   "movedShipThisTurn": false,
   "shipsPlacedThisTurn": [
-    3081,
     2826,
     2570,
     2315
@@ -540,7 +539,7 @@
         "STARTING_LANDAREAS": 1
       },
       "elements": {
-        "SHIPS": 10,
+        "SHIPS": 8,
         "ROADS": 13,
         "SETTLEMENTS": 3,
         "NUMKNIGHTS": 0,
@@ -581,6 +580,14 @@
         {
           "pieceType": "SHIP",
           "coord": 3081
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 3082
+        },
+        {
+          "pieceType": "SHIP",
+          "coord": 3083
         },
         {
           "pieceType": "SHIP",
