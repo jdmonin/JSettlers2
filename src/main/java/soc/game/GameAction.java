@@ -41,6 +41,7 @@ import soc.message.SOCStartGame;  // javadocs only
  * Before v2.7.00, this was part of {@link GameActionLog.Action}.
  * So, some members may have {@code @since} 2.7.00 or earlier.
  *
+ * @see SOCGame#getLastAction()
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.7.00
  */
@@ -630,7 +631,7 @@ public class GameAction
 
         /**
          * Building or moving caused a ship route to be closed. Params are {@link SOCShip} edge coords
-         * which became closed because of this action.
+         * which became closed because of this action: {@link SOCShip#isClosed()}.
          */
         CLOSE_SHIP_ROUTE(60),
 

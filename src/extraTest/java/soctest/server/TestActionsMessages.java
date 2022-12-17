@@ -556,8 +556,11 @@ public class TestActionsMessages
 
         /* settlement to join roads + ships for longest route */
         final int SETTLEMENT_NODE = 0x80b;
+        final int[] SHIP_ROUTE_BECOMES_CLOSED = {0xc08, 0xc09, 0xb0a, 0xa0a, 0x90b},
+            SHIP_ROUTE_REMAINS_OPEN = {0xc0a, 0xc0b};
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.SETTLEMENT, SETTLEMENT_NODE, 0, 3, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.SETTLEMENT, SETTLEMENT_NODE, 0, 3,
+             SHIP_ROUTE_BECOMES_CLOSED, SHIP_ROUTE_REMAINS_OPEN, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesSettle = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -568,7 +571,7 @@ public class TestActionsMessages
 
         final int ROAD_EDGE = 0xc07;
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.ROAD, ROAD_EDGE, 0, 13, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.ROAD, ROAD_EDGE, 0, 13, null, null, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesRoad = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -579,7 +582,7 @@ public class TestActionsMessages
 
         final int SHIP_EDGE_EAST = 0x80b;
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, 0, 8, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, 0, 8, null, null, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesShip = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -591,7 +594,7 @@ public class TestActionsMessages
         /* move ship & undo */
         final int SHIP_MOVE_FROM = 0xc0b;
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 8, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 8, null, null, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesShipMove = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -603,7 +606,7 @@ public class TestActionsMessages
             /* move and undo same ship, to verify we've undone game data about ships moved/placed this turn */
             System.out.println("(Re-testing move & undo same ship)");
             testOne_UndoBuildAndMove_buildAndUndoPiece
-                (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 8, objs, clientAsRobot, othersAsRobot);
+                (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 8, null, null, objs, clientAsRobot, othersAsRobot);
             comparesShipMove = TestRecorder.compareRecordsToExpected
                 (records, new String[][]
                 {
@@ -613,6 +616,9 @@ public class TestActionsMessages
             if (comparesShipMove != null)
                 comparesShipMove.insert(0, "Test move & undo same ship:");
         }
+
+        // TODO test close ship route by moving another ship
+        // TODO implement reopen during undo
 
         /* leave game, consolidate results */
 
@@ -663,6 +669,8 @@ public class TestActionsMessages
      * @param pieceCoord  Node or edge coordinate to build at or move to
      * @param movedFromCoord  Edge coordinate to move ship from, or 0 when building
      * @param startPieceCount  Player's expected amount of {@code pieceType} before building one
+     * @param shipRouteBecomesClosed  Edges to check that {@link SOCShip#isClosed()} becomes true with placement, or null
+     * @param shipRouteRemainsOpen  Edges to check that {@link SOCShip#isClosed()} remains false with placement, or null
      * @param objs  Game and client/server objects
      * @param clientAsRobot
      * @param othersAsRobot
@@ -670,6 +678,7 @@ public class TestActionsMessages
      */
     private void testOne_UndoBuildAndMove_buildAndUndoPiece
         (final int pieceType, final int pieceCoord, final int movedFromCoord, final int startPieceCount,
+         final int[] shipRouteBecomesClosed, final int[] shipRouteRemainsOpen,
          final StartedTestGameObjects objs, final boolean clientAsRobot, final boolean othersAsRobot)
     {
         final int CLIENT_PN = 3, OTHER_PN = 2;
@@ -696,6 +705,16 @@ public class TestActionsMessages
         final Vector<EventEntry> records = objs.records;
         assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
         assertFalse(ga.isSeatVacant(OTHER_PN));
+
+        // Pre-check ships, if any:
+        if (shipRouteBecomesClosed != null)
+            for (int edge : shipRouteBecomesClosed)
+                assertFalse(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should be open",
+                    ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
+        if (shipRouteRemainsOpen != null)
+            for (int edge : shipRouteRemainsOpen)
+                assertFalse(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should be open",
+                    ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
 
         // records.clear();
         if ((pieceType == SOCPlayingPiece.ROAD) || (pieceType == SOCPlayingPiece.SHIP))
@@ -748,6 +767,14 @@ public class TestActionsMessages
             assertArrayEquals(testDesc, PL_NEXT_RES_ARR, cliPl.getResources().getAmounts(false));
             assertArrayEquals(testDesc, PL_NEXT_RES_ARR, cliPlAtCli.getResources().getAmounts(false));
         }
+        if (shipRouteBecomesClosed != null)
+            for (int edge : shipRouteBecomesClosed)
+                assertTrue(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should be closed",
+                    ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
+        if (shipRouteRemainsOpen != null)
+            for (int edge : shipRouteRemainsOpen)
+                assertFalse(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should still be open",
+                    ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
 
         GameAction act = ga.getLastAction();
         assertNotNull(testDesc, act);
@@ -766,14 +793,25 @@ public class TestActionsMessages
         {
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(testDesc, effects);
-            assertEquals(testDesc, (movedFromCoord == 0) ? 2 : 1, effects.size());
+            assertEquals(testDesc,
+                ((movedFromCoord == 0) ? 2 : 1) + ((shipRouteBecomesClosed != null) ? 1 : 0),
+                effects.size());
 
             GameAction.Effect e = effects.get(0);
+            if (shipRouteBecomesClosed != null)
+            {
+                assertEquals(testDesc, GameAction.EffectType.CLOSE_SHIP_ROUTE, e.eType);
+                assertNotNull(testDesc, e.params);
+                assertEquals(testDesc, shipRouteBecomesClosed.length, e.params.length);
+                for (int edge : shipRouteBecomesClosed)
+                     assertTrue(Arrays.stream(e.params).anyMatch(i -> i == edge));
+                e = effects.get(1);
+            }
             if (movedFromCoord == 0)
             {
                 assertEquals(testDesc, GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
                 assertNull(testDesc, e.params);
-                e = effects.get(1);
+                e = effects.get(effects.size() - 1);
             }
             assertEquals(testDesc, GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
             assertArrayEquals(testDesc, new int[]{OTHER_PN, CLIENT_PN}, e.params);
@@ -798,6 +836,17 @@ public class TestActionsMessages
         assertEquals(OTHER_PN, gaAtCli.getPlayerWithLongestRoad().getPlayerNumber());
         assertArrayEquals(PL_START_RES_ARR, cliPl.getResources().getAmounts(false));
         assertArrayEquals(PL_START_RES_ARR, cliPlAtCli.getResources().getAmounts(false));
+        /*
+         * TODO: we don't undo isClosed yet
+        if (shipRouteBecomesClosed != null)
+            for (int edge : shipRouteBecomesClosed)
+                assertTrue(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should be open again",
+                    ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
+         */
+        if (shipRouteRemainsOpen != null)
+            for (int edge : shipRouteRemainsOpen)
+                assertFalse(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should still be open",
+                    ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
 
         act = ga.getLastAction();
         assertNotNull(act);
@@ -815,14 +864,23 @@ public class TestActionsMessages
         {
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(effects);
-            assertEquals((movedFromCoord == 0) ? 2 : 1, effects.size());
+            assertEquals(((movedFromCoord == 0) ? 2 : 1) + ((shipRouteBecomesClosed != null) ? 1 : 0), effects.size());
 
             GameAction.Effect e = effects.get(0);
+            if (shipRouteBecomesClosed != null)
+            {
+                assertEquals(testDesc, GameAction.EffectType.CLOSE_SHIP_ROUTE, e.eType);
+                assertNotNull(testDesc, e.params);
+                assertEquals(testDesc, shipRouteBecomesClosed.length, e.params.length);
+                for (int edge : shipRouteBecomesClosed)
+                     assertTrue(Arrays.stream(e.params).anyMatch(i -> i == edge));
+                e = effects.get(1);
+            }
             if (movedFromCoord == 0)
             {
                 assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
                 assertNull(e.params);
-                e = effects.get(1);
+                e = effects.get(effects.size() - 1);
             }
             assertEquals(GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
             assertArrayEquals(new int[]{OTHER_PN, CLIENT_PN}, e.params);

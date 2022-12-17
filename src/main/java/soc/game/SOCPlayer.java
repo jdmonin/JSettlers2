@@ -3048,12 +3048,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param piece        The piece to be put into play; coordinates are not checked for validity.
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
      *                     game's {@link SOCGameEventListener}.
+     * @return any side-effects of placing our own piece at server, or null (never an empty list)
      * @throws IllegalArgumentException  only if piece is a {@link SOCFortress}, and either
      *                     <tt>isTempPiece</tt>, or player already has a fortress set.
      */
-    public void putPiece(final SOCPlayingPiece piece, final boolean isTempPiece)
+    public List<GameAction.Effect> putPiece(final SOCPlayingPiece piece, final boolean isTempPiece)
         throws IllegalArgumentException
     {
+        List<GameAction.Effect> effects = null;
+
         /**
          * only do this stuff if it's our piece
          */
@@ -3070,7 +3073,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              */
             case SOCPlayingPiece.ROAD:
                 numPieces[SOCPlayingPiece.ROAD]--;
-                putPiece_roadOrShip((SOCRoutePiece) piece, board, isTempPiece);
+                effects = putPiece_roadOrShip((SOCRoutePiece) piece, board, isTempPiece);
                 break;
 
             /**
@@ -3089,7 +3092,24 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     } else {
                         numPieces[SOCPlayingPiece.SETTLEMENT]--;
                     }
-                    putPiece_settlement_checkTradeRoutes((SOCSettlement) piece, board);
+
+                    {
+                        List<SOCShip> newlyClosed =
+                            putPiece_settlement_checkTradeRoutes((SOCSettlement) piece, board);
+                        if ((newlyClosed != null) && game.isAtServer)
+                        {
+                            if (effects == null)
+                                effects = new ArrayList<>();
+
+                            final int L = newlyClosed.size();
+                            int[] edges = new int[L];
+                            for (int i = 0; i < L; ++i)
+                                edges[i] = newlyClosed.get(i).getCoordinates();
+
+                            effects.add(new GameAction.Effect(GameAction.EffectType.CLOSE_SHIP_ROUTE, edges));
+                        }
+                    }
+
                     settlements.addElement((SOCSettlement) piece);
                     lastSettlementCoord = settlementNode;
                     buildingVP++;
@@ -3166,7 +3186,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              */
             case SOCPlayingPiece.SHIP:
                 numPieces[SOCPlayingPiece.SHIP]--;
-                putPiece_roadOrShip((SOCShip) piece, board, isTempPiece);
+                effects = putPiece_roadOrShip((SOCShip) piece, board, isTempPiece);
                 break;
 
             /**
@@ -3183,6 +3203,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
 
         updatePotentials(piece);
+
+        return effects;
     }
 
     /**
@@ -3194,17 +3216,20 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param board  The board
      * @param isTempPiece  Is this a temporary piece?  If so, do not check special edges or "gift" ports
      *     or close a Ship Route
+     * @return any side-effects of placing our own piece at server, or null (never an empty list)
      * @since 2.0.00
      */
-    private void putPiece_roadOrShip
+    private List<GameAction.Effect> putPiece_roadOrShip
         (final SOCRoutePiece piece, final SOCBoard board, final boolean isTempPiece)
     {
+        List<GameAction.Effect> effects = null;
+
         /**
          * before adding a non-temporary ship, check to see if its trade route is now closed,
          * or if it's reached a Special Edge or an _SC_FTRI "gift" trade port.
          */
         if ((piece instanceof SOCShip) && ! isTempPiece)
-            putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
+            effects = putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
                 ((SOCShip) piece, (SOCBoardLarge) board);
 
         /**
@@ -3292,6 +3317,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[0])+"]["+Integer.toHexString(nodeCoords[1])+"] = true");
         //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[1])+"]["+Integer.toHexString(nodeCoords[0])+"] = true");
+
+        return effects;
     }
 
     /**
@@ -3322,19 +3349,22 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *                 should not yet be added to {@link #roadsAndShips}
      * @param board  game board
+     * @return any side-effects of placing our own piece at server, or null (never an empty list)
      * @throws IllegalArgumentException if {@link SOCShip#isClosed() newShip.isClosed()} is already true
      * @since 2.0.00
      */
-    private void putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
+    private List<GameAction.Effect> putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
         (final SOCShip newShip, final SOCBoardLarge board)
         throws IllegalArgumentException
     {
         if (game.isAtServer && (game.getGameState() == SOCGame.LOADING))
-            return;  // <--- Early return ---
+            return null;  // <--- Early return ---
 
         final boolean boardHasVillages = game.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI);
         final int edge = newShip.getCoordinates();
         final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(edge);
+        List<GameAction.Effect> effects = null;
+        List<SOCShip> allNewlyClosed = null;  // only at server, for effects
 
         for (int i = 0; i < 2; ++i)
         {
@@ -3357,6 +3387,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             final List<SOCShip> closedRoute = checkTradeRouteFarEndClosed(newShip, edgeFarNode);
             if (closedRoute != null)
             {
+                if (game.isAtServer)
+                {
+                    if (allNewlyClosed != null)
+                        allNewlyClosed.addAll(closedRoute);
+                    else
+                        allNewlyClosed = closedRoute;
+                }
+
                 if (pp instanceof SOCVillage)
                 {
                     final boolean gotCloth = ((SOCVillage) pp).addTradingPlayer(this);
@@ -3375,6 +3413,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                 break;
             }
+        }
+
+        if ((allNewlyClosed != null) && game.isAtServer)
+        {
+            final int L = allNewlyClosed.size();
+            int[] edges = new int[L];
+            for (int i = 0; i < L; ++i)
+                edges[i] = allNewlyClosed.get(i).getCoordinates();
+
+            if (effects == null)
+                effects = new ArrayList<>();
+            effects.add(new GameAction.Effect(GameAction.EffectType.CLOSE_SHIP_ROUTE, edges));
         }
 
         final int seType = board.getSpecialEdgeType(edge);
@@ -3433,6 +3483,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             game.removePort(this, edge);  // updates game state, fires SOCPlayerEvent.REMOVED_TRADE_PORT
         }
 
+        return effects;
     }
 
     /**
@@ -3441,11 +3492,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param newSettle  Our new settlement being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *            should not yet be added to {@link #settlements}
      * @param board  game board
+     * @return  all the newly-closed {@link SOCShip}s, or null if open
      * @since 2.0.00
      */
-    private void putPiece_settlement_checkTradeRoutes
+    private List<SOCShip> putPiece_settlement_checkTradeRoutes
         (SOCSettlement newSettle, SOCBoard board)
     {
+        List<SOCShip> newlyClosed = null;
         final int[] nodeEdges = board.getAdjacentEdgesToNode_arr
             (newSettle.getCoordinates());
 
@@ -3464,9 +3517,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             final int edgeFarNode =
                 ((SOCBoardLarge) board).getAdjacentNodeFarEndOfEdge
                   (edge, newSettle.getCoordinates());
-            checkTradeRouteFarEndClosed
-                (sh, edgeFarNode);
+            List<SOCShip> segment =
+                checkTradeRouteFarEndClosed(sh, edgeFarNode);
+
+            if (segment != null)
+                if (newlyClosed != null)
+                    newlyClosed.addAll(segment);
+                else
+                    newlyClosed = segment;
         }
+
+        return newlyClosed;
     }
 
     /**

@@ -1782,7 +1782,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Put a piece on the board.
      *<P>
-     * Except for {@link SOCVillage}, call
+     * Except for {@link SOCVillage} which is unowned, call
      * {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean) pl.putPiece(pp)}
      * for each player before calling this method.
      *

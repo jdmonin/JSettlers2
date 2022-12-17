@@ -29,6 +29,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- When client joining game is this version or newer, server sends `SOCGameStats(TYPE_TIMING)`
 	  with info on game duration
 - For developers:
+	- Enhanced GameAction class to start unifying info about actions and their side-effects
 	- Save/load games:
 	    - After loading, current player can now resume game and move a ship immediately
 	      if client is this version or newer, instead of waiting until their next turn

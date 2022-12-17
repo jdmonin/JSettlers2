@@ -3811,6 +3811,9 @@ public class SOCGame implements Serializable, Cloneable
             }
         }
 
+        /** Side effects at server, including any from owningPlayer.putPiece */
+        List<GameAction.Effect> effects = null;
+
         /**
          * call putPiece() on every player so that each
          * player's updatePotentials() function gets called
@@ -3818,7 +3821,12 @@ public class SOCGame implements Serializable, Cloneable
         if (! (pp instanceof SOCVillage))
         {
             for (int i = 0; i < maxPlayers; i++)
-                players[i].putPiece(pp, isTempPiece);
+            {
+                List<GameAction.Effect> ef =
+                    players[i].putPiece(pp, isTempPiece);
+                if (ef != null)
+                    effects = ef;
+            }
         }
 
         board.putPiece(pp);
@@ -3997,11 +4005,11 @@ public class SOCGame implements Serializable, Cloneable
             return;   // <--- Early return: Temporary piece ---
         }
 
-        List<GameAction.Effect> effects = null;
         if ((gameState == PLACING_ROAD) || (gameState == PLACING_SETTLEMENT)
             || (gameState == PLACING_CITY) || (gameState == PLACING_SHIP))
         {
-            effects = new ArrayList<>();
+            if (effects == null)
+                effects = new ArrayList<>();
             effects.add(new GameAction.Effect(EffectType.DEDUCT_COST_FROM_PLAYER));
         }
         if (longestRoadPN != playerWithLongestRoad)

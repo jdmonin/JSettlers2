@@ -1213,7 +1213,7 @@ public class TestRecorder
     }
 
     /**
-     * Build a road on board of savegame artifact {@code message-seqs},
+     * Build a road at {@code 0x40a} on board of savegame artifact {@code message-seqs},
      * optionally with preceding SOCBuildRequest message (which is optional in v2.0 and newer).
      * Tests that sequence and {@code compareRecordsToExpected}'s null-element handling.
      * Also checks game data, including {@link SOCGame#getLastAction()}.

@@ -25,11 +25,13 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.MissingResourceException;
 
 import soc.game.GameAction;
 import soc.game.GameAction.ActionType;
+import soc.game.GameAction.EffectType;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
@@ -63,6 +65,7 @@ import static org.junit.Assert.*;
 
 /**
  * A few tests for {@link GameLoaderJSON} and {@link SavedGameModel},
+ * and some basic gameplay behavior in loaded and resumed games,
  * using JSON test artifacts under {@code /src/test/resources/resources/savegame}.
  *
  * @see TestSavegame
@@ -685,6 +688,7 @@ public class TestLoadgame
         SOCRoutePiece srp = board.roadOrShipAtEdge(0xc01);
         assertTrue(srp instanceof SOCShip);
         assertEquals(CURRENT_PLAYER_NUMBER, srp.getPlayerNumber());
+        assertFalse(((SOCShip) srp).isClosed());
         assertNull("ship at 0xc01 should not be movable", ga.canMoveShip(CURRENT_PLAYER_NUMBER, 0xc01));
         // built this turn, before saving (shipsPlacedThisTurn in saved game):
         srp = board.roadOrShipAtEdge(0xc02);
@@ -710,6 +714,40 @@ public class TestLoadgame
         assertFalse(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xc04)));
         ga.addShipPlacedThisTurn(0xc04);
         assertTrue(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xc04)));
+
+        // Close ship route from building:
+
+        assertNull(board.roadOrShipAtEdge(0xd01));
+        assertTrue(pl.isPotentialShip(0xd01));
+        ga.putPiece(new SOCShip(pl, 0xd01, board));
+        srp = board.roadOrShipAtEdge(0xd01);
+        assertTrue("ship built at 0xd01", srp instanceof SOCShip);
+        assertFalse(((SOCShip) srp).isClosed());
+        assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.SHIP, 0xd01, 0), ga.getLastAction());
+        assertFalse(pl.isPotentialShip(0xd01));
+        assertTrue(pl.isPotentialSettlement(0xe01));
+
+        assertNull(board.settlementAtNode(0xe01));
+        assertTrue(pl.canPlaceSettlement(0xe01));
+        ga.putPiece(new SOCSettlement(pl, 0xe01, board));
+        assertTrue("settlement built at 0xe01", board.settlementAtNode(0xe01) instanceof SOCSettlement);
+        assertTrue(((SOCShip) board.roadOrShipAtEdge(0xc01)).isClosed());
+        assertTrue(((SOCShip) board.roadOrShipAtEdge(0xd01)).isClosed());
+        GameAction act = ga.getLastAction();
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals(0xe01, act.param2);
+        assertEquals(0, act.param3);
+        assertNotNull(act.effects);
+        assertEquals(1, act.effects.size());
+        GameAction.Effect ef = act.effects.get(0);
+        assertEquals(EffectType.CLOSE_SHIP_ROUTE, ef.eType);
+        // params should contain both of the ships which became closed
+        assertEquals(2, ef.params.length);
+        assertTrue(Arrays.stream(ef.params).anyMatch(i -> i == 0xc01));
+        assertTrue(Arrays.stream(ef.params).anyMatch(i -> i == 0xd01));
+
+        // Basic dev card check:
 
         assertTrue(ga.getNumDevCards() > 0);
         assertFalse("not enough resources", ga.couldBuyDevCard(CURRENT_PLAYER_NUMBER));
@@ -1036,6 +1074,7 @@ public class TestLoadgame
         assertEquals("gamestate", SOCGame.PLAY1, ga.getGameState());
 
         // Another ship & coastal settlement in a landarea we've already built to
+        // Shouldn't change SVP
         ga.putPiece(new SOCShip(plDebug, 0x505, board));
         ga.putPiece(new SOCSettlement(plDebug, 0x605, board));
         assertEquals(2, plDebug.getSpecialVP());
