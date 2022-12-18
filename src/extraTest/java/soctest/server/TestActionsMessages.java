@@ -836,13 +836,10 @@ public class TestActionsMessages
         assertEquals(OTHER_PN, gaAtCli.getPlayerWithLongestRoad().getPlayerNumber());
         assertArrayEquals(PL_START_RES_ARR, cliPl.getResources().getAmounts(false));
         assertArrayEquals(PL_START_RES_ARR, cliPlAtCli.getResources().getAmounts(false));
-        /*
-         * TODO: we don't undo isClosed yet
         if (shipRouteBecomesClosed != null)
             for (int edge : shipRouteBecomesClosed)
-                assertTrue(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should be open again",
+                assertFalse(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should be open again",
                     ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
-         */
         if (shipRouteRemainsOpen != null)
             for (int edge : shipRouteRemainsOpen)
                 assertFalse(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should still be open",

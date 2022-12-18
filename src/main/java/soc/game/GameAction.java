@@ -632,6 +632,7 @@ public class GameAction
         /**
          * Building or moving caused a ship route to be closed. Params are {@link SOCShip} edge coords
          * which became closed because of this action: {@link SOCShip#isClosed()}.
+         * When undoing this effect, reopen the ship route before moving or un-building the piece.
          */
         CLOSE_SHIP_ROUTE(60),
 

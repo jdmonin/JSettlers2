@@ -1299,7 +1299,11 @@ public class SOCGameMessageHandler
                 msgsAfter.add(new SOCLongestRoad(gaName, e.params[0]));
                 break;
 
-            // TODO any other side effects for now? (reopen closed ship routes, etc)
+            case CLOSE_SHIP_ROUTE:
+                // TODO create and send a message now (not after)
+                break;
+
+            // TODO any other side effects for now? (SVP reaching a new island, etc)
 
             default:
                 ;  // nothing yet

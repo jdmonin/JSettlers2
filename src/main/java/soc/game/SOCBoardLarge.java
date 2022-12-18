@@ -1805,6 +1805,32 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * Close or reopen a trade route by calling {@link SOCShip#setClosed(boolean)} on each ship.
+     * {@code edges[]} aren't validated here before starting the update.
+     * @param closed  True to close, false to reopen, when calling {@link SOCShip#setClosed(boolean)}
+     * @param edges  List of edge coordinates with ships to update; does nothing if null or empty
+     * @param startingIndex  0, or &gt; 0 to skip some elements of {@code edges[]}
+     * @throws IllegalArgumentException  if any edge in {@code edges[]} doesn't return a {@link SOCShip}
+     *     from {@link #roadOrShipAtEdge(int)}
+     * @since 2.7.00
+     */
+    public void setShipsClosed(final boolean closed, final int[] edges, final int startingIndex)
+        throws IllegalArgumentException
+    {
+        if (edges == null)
+            return;
+
+        for (int i = startingIndex; i < edges.length; ++i)
+        {
+            final int edge = edges[i];
+            SOCRoutePiece rs = roadOrShipAtEdge(edge);
+            if (! (rs instanceof SOCShip))
+                throw new IllegalArgumentException("Not a ship at 0x" + Integer.toHexString(edge));
+            ((SOCShip) rs).setClosed(closed);
+        }
+    }
+
+    /**
      * Add one legal settlement location to each player.
      * The new location is alone by itself, outside of the other Land Areas where they can place.
      * Used in some scenarios ({@link SOCScenario#K_SC_PIRI _SC_PIRI}) when {@link SOCGame#hasSeaBoard}.

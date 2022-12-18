@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2013,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2013,2017-2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -84,10 +84,23 @@ public class SOCShip extends SOCRoutePiece
 
     /**
      * Call when this ship's trade route has been closed.
+     * @see #setClosed(boolean)
      */
     public void setClosed()
     {
-        isClosed = true;
+        setClosed(true);
+    }
+
+    /**
+     * Call when this ship's trade route has been closed,
+     * or when an undo has reopened it.
+     *
+     * @param setClosed  True to close, false to reopen
+     * @since 2.7.00
+     */
+    public void setClosed(final boolean closed)
+    {
+        isClosed = closed;
     }
 
 }

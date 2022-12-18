@@ -4888,7 +4888,18 @@ public class SOCGame implements Serializable, Cloneable
         // SOCGameMessageHandler.sendUndoSideEffects; if you update this method,
         // update that one too
 
-        // None yet
+        for (GameAction.Effect e : actToUndo.effects)
+            switch (e.eType)
+            {
+            case CLOSE_SHIP_ROUTE:
+                ((SOCBoardLarge) board).setShipsClosed(false, e.params, 0);
+                break;
+
+            // TODO any other side effects for now? (SVP reaching a new island, etc)
+
+            default:
+                ;  // nothing yet
+            }
     }
 
     /**
@@ -4940,7 +4951,7 @@ public class SOCGame implements Serializable, Cloneable
                 }
                 break;
 
-            // TODO any other side effects for now? (reopen closed ship routes, etc)
+            // TODO any other side effects for now? (SVP reaching a new island, etc)
 
             default:
                 ;  // nothing yet
