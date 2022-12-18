@@ -778,8 +778,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
             /**
              * Call SOCDisplaylessClient.treat for all other message types.
-             * For types relevant to robots, it will update data from the message contents.
-             * Other message types will be ignored.
+             * For types relevant to robots, updates game data from the message contents.
              */
             default:
                 super.treat(mes, true);

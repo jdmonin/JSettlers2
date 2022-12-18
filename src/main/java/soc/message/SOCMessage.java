@@ -108,10 +108,11 @@ import java.util.StringTokenizer;
  *      Set <tt>serialVersionUID</tt> to the version it's added in.
  *      for example, if adding for version 1.1.09:
  *      <code> private static final long serialVersionUID = 1109L;</code>
- * <LI> Add to the switch in SOCPlayerClient.treat and/or SOCServerMessageHandler.dispatch
- *      or its game type's GameMessageHandler.dispatch.  Note the JSettlers version with a comment.
+ * <LI> Add to the switch in {@link soc.client.MessageHandler#handle(SOCMessage, boolean)}
+ *      and/or {@code SOCServerMessageHandler.dispatch} or its game type's {@code GameMessageHandler.dispatch}.
+ *      Note the JSettlers version with a comment.
  *      <P>
- *      <em>Note:</em> Most things added to SOCPlayerClient.treat should also be added to
+ *      <em>Note:</em> Most things added to client {@code MessageHandler.handle} should also be added to
  *      {@link soc.baseclient.SOCDisplaylessPlayerClient#treat(SOCMessage)}. If robots
  *      should react, also add to {@link soc.robot.SOCRobotClient#treat(SOCMessage)}
  *      and maybe also {@link soc.robot.SOCRobotBrain#run()}.
@@ -121,7 +122,7 @@ import java.util.StringTokenizer;
  * <LI> If the {@link #toString()} form has fields that can't be automatically parsed by {@link #parseMsgStr(String)},
  *      such as hex values or int constant strings, write a {@code stripAttribNames(..)} method to help: See
  *      {@code parseMsgStr(..)} javadocs for details.
- * <LI> Add it to unit test {@code soctest.message.TestToCmdToStringParse}'s {@code TOCMD_TOSTRING_COMPARES} array
+ * <LI> Add it to unit test {@link soctest.message.TestToCmdToStringParse}'s {@code TOCMD_TOSTRING_COMPARES} array
  *</UL>
  *
  *<H3>Backwards compatibility:</H3>
@@ -504,6 +505,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int SETSHIPROUTECLOSED = 10002;  // for Undo put piece/move piece, 20221218, v2.7.00
 
 
+
+    //////////////////////////////////////////////
+    // General message token constants          //
+    //////////////////////////////////////////////
 
     /**
      * Token separators. At most one SEP per message; multiple SEP2 are allowed after SEP.
