@@ -27,8 +27,9 @@ import soc.game.SOCShip;  // javadocs only
 
 /**
  * This game data message from server reopens or closes a shipping trade route.
- * Typically this is sent (to reopen) as part of a sequence to undo placing or moving a ship ({@link SOCUndoPutPiece}).
- * Closing a ship route is handled at client's game logic while the pieces are placed.
+ * Typically this is sent (to reopen) near start of a sequence to undo placing or moving a ship ({@link SOCUndoPutPiece}).
+ * Closing a ship route is handled at client's game logic while the pieces are placed,
+ * not by sending a message from the server.
  *<P>
  * Because the open/closed flag is element 0 of the sent parameters, client should call
  * <tt>{@link SOCBoardLarge#setShipsClosed(boolean, int[], int) board.setShipsClosed}

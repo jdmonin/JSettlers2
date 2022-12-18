@@ -715,7 +715,8 @@ public class TestLoadgame
         ga.addShipPlacedThisTurn(0xc04);
         assertTrue(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xc04)));
 
-        // Close ship route from building:
+        // Close ship route from building a settlement:
+        // (close from building and moving a ship are tested in TestActionsMessages.testUndoBuildAndMove)
 
         assertNull(board.roadOrShipAtEdge(0xd01));
         assertTrue(pl.isPotentialShip(0xd01));
