@@ -1080,6 +1080,11 @@ public class TestToCmdToStringParse
             "SOCSetSeatLock:game=ga|states=UNLOCKED,CLEAR_ON_RESET,LOCKED,UNLOCKED"
         },
         {
+            new SOCSetShipRouteClosed("ga", true, new int[]{2315, 2570, 2826, 3081, 3080}),
+            "10002|ga|1|2315|2570|2826|3081|3080",
+            "SOCSetShipRouteClosed:game=ga|p=1|p=2315|p=2570|p=2826|p=3081|p=3080"
+        },
+        {
             new SOCSetSpecialItem("ga", SOCSetSpecialItem.OP_CLEAR_PICK, "_SC_WOND", 2, 0, 3),
             "1099|ga,6,_SC_WOND,2,0,3,-1,0,\t",
             "SOCSetSpecialItem:game=ga|op=CLEAR_PICK|typeKey=_SC_WOND|gi=2|pi=0|pn=3|co=-1|lv=0|sv null"

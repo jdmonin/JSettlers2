@@ -95,8 +95,9 @@ public class SOCShip extends SOCRoutePiece
      * Call when this ship's trade route has been closed,
      * or when an undo has reopened it.
      *
-     * @param setClosed  True to close, false to reopen
+     * @param closed  True to close, false to reopen
      * @since 2.7.00
+     * @see SOCBoardLarge#setShipsClosed(boolean, int[], int)
      */
     public void setClosed(final boolean closed)
     {

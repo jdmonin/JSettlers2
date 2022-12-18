@@ -1805,10 +1805,11 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Close or reopen a trade route by calling {@link SOCShip#setClosed(boolean)} on each ship.
-     * {@code edges[]} aren't validated here before starting the update.
+     * Reopen or close a trade route by calling {@link SOCShip#setClosed(boolean)} on each ship.
+     *
      * @param closed  True to close, false to reopen, when calling {@link SOCShip#setClosed(boolean)}
-     * @param edges  List of edge coordinates with ships to update; does nothing if null or empty
+     * @param edges  List of edge coordinates with ships to update; does nothing if null or empty.
+     *     Contents aren't validated here before starting the update.
      * @param startingIndex  0, or &gt; 0 to skip some elements of {@code edges[]}
      * @throws IllegalArgumentException  if any edge in {@code edges[]} doesn't return a {@link SOCShip}
      *     from {@link #roadOrShipAtEdge(int)}

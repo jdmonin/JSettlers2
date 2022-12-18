@@ -564,6 +564,7 @@ public class TestActionsMessages
         StringBuilder comparesSettle = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
+                {"all:SOCSetShipRouteClosed:", "|p=0|p=2315|p=2570|p=2826|p=3081|p=3080"},
                 {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=1|coord=80b"},
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=GAIN|e1=1,e3=1,e4=1,e5=1"},
                 {"all:SOCLongestRoad:", "|playerNumber=2"},
@@ -618,7 +619,6 @@ public class TestActionsMessages
         }
 
         // TODO test close ship route by moving another ship
-        // TODO implement reopen during undo
 
         /* leave game, consolidate results */
 
@@ -700,7 +700,7 @@ public class TestActionsMessages
 
         final DisplaylessTesterClient tcli = objs.tcli;
         final SOCGame ga = objs.gameAtServer, gaAtCli = tcli.getGame(ga.getName());
-        final SOCBoardLarge board = (SOCBoardLarge) objs.board;
+        final SOCBoardLarge board = (SOCBoardLarge) objs.board, boardAtCli = (SOCBoardLarge) gaAtCli.getBoard();
         final SOCPlayer cliPl = objs.clientPlayer, cliPlAtCli = gaAtCli.getPlayer(CLIENT_PN);
         final Vector<EventEntry> records = objs.records;
         assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
@@ -709,18 +709,30 @@ public class TestActionsMessages
         // Pre-check ships, if any:
         if (shipRouteBecomesClosed != null)
             for (int edge : shipRouteBecomesClosed)
-                assertFalse(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should be open",
+            {
+                assertFalse(testDesc + ": srv: ship at 0x" + Integer.toHexString(edge) + " should be open",
                     ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
+                assertFalse(testDesc + ": cli: ship at 0x" + Integer.toHexString(edge) + " should be open",
+                    ((SOCShip) boardAtCli.roadOrShipAtEdge(edge)).isClosed());
+            }
         if (shipRouteRemainsOpen != null)
             for (int edge : shipRouteRemainsOpen)
-                assertFalse(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should be open",
+            {
+                assertFalse(testDesc + ": srv: ship at 0x" + Integer.toHexString(edge) + " should be open",
                     ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
+                assertFalse(testDesc + ": cli: ship at 0x" + Integer.toHexString(edge) + " should be open",
+                    ((SOCShip) boardAtCli.roadOrShipAtEdge(edge)).isClosed());
+            }
 
         // records.clear();
         if ((pieceType == SOCPlayingPiece.ROAD) || (pieceType == SOCPlayingPiece.SHIP))
+        {
             assertNull(testDesc, board.roadOrShipAtEdge(pieceCoord));
-        else
+            assertNull(testDesc, boardAtCli.roadOrShipAtEdge(pieceCoord));
+        } else {
             assertNull(testDesc, board.settlementAtNode(pieceCoord));
+            assertNull(testDesc, boardAtCli.settlementAtNode(pieceCoord));
+        }
         assertEquals(testDesc, startPieceCount, cliPl.getNumPieces(pieceType));
         assertEquals(testDesc, 2, cliPl.getPublicVP());
         assertEquals(testDesc, OTHER_PN, ga.getPlayerWithLongestRoad().getPlayerNumber());
@@ -754,9 +766,13 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         String pieceCheckDesc = testDesc + ((movedFromCoord == 0) ? ": built it" : ": moved it");
         if ((pieceType == SOCPlayingPiece.ROAD) || (pieceType == SOCPlayingPiece.SHIP))
+        {
             assertNotNull(pieceCheckDesc, board.roadOrShipAtEdge(pieceCoord));
-        else
+            assertNotNull(pieceCheckDesc, boardAtCli.roadOrShipAtEdge(pieceCoord));
+        } else {
             assertNotNull(pieceCheckDesc, board.settlementAtNode(pieceCoord));
+            assertNotNull(pieceCheckDesc, boardAtCli.settlementAtNode(pieceCoord));
+        }
         if (movedFromCoord == 0)
             assertEquals(testDesc, startPieceCount - 1, cliPl.getNumPieces(pieceType));
         assertEquals(testDesc, (pieceType == SOCPlayingPiece.SETTLEMENT) ? 5 : 4, cliPl.getPublicVP());
@@ -769,12 +785,20 @@ public class TestActionsMessages
         }
         if (shipRouteBecomesClosed != null)
             for (int edge : shipRouteBecomesClosed)
-                assertTrue(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should be closed",
+            {
+                assertTrue(testDesc + ": srv: ship at 0x" + Integer.toHexString(edge) + " should be closed",
                     ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
+                assertTrue(testDesc + ": cli: ship at 0x" + Integer.toHexString(edge) + " should be closed",
+                    ((SOCShip) boardAtCli.roadOrShipAtEdge(edge)).isClosed());
+            }
         if (shipRouteRemainsOpen != null)
             for (int edge : shipRouteRemainsOpen)
-                assertFalse(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should still be open",
+            {
+                assertFalse(testDesc + ": srv: ship at 0x" + Integer.toHexString(edge) + " should still be open",
                     ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
+                assertFalse(testDesc + ": cli: ship at 0x" + Integer.toHexString(edge) + " should still be open",
+                    ((SOCShip) boardAtCli.roadOrShipAtEdge(edge)).isClosed());
+            }
 
         GameAction act = ga.getLastAction();
         assertNotNull(testDesc, act);
@@ -827,9 +851,13 @@ public class TestActionsMessages
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         if ((pieceType == SOCPlayingPiece.ROAD) || (pieceType == SOCPlayingPiece.SHIP))
-            assertNull(testDesc + ": cleared it", board.roadOrShipAtEdge(pieceCoord));
-        else
-            assertNull(testDesc + ": cleared it", board.settlementAtNode(pieceCoord));
+        {
+            assertNull(testDesc + ": srv: cleared it", board.roadOrShipAtEdge(pieceCoord));
+            assertNull(testDesc + ": cli: cleared it", boardAtCli.roadOrShipAtEdge(pieceCoord));
+        } else {
+            assertNull(testDesc + ": srv: cleared it", board.settlementAtNode(pieceCoord));
+            assertNull(testDesc + ": cli: cleared it", boardAtCli.roadOrShipAtEdge(pieceCoord));
+        }
         assertEquals(startPieceCount, cliPl.getNumPieces(pieceType));
         assertEquals(2, cliPl.getPublicVP());
         assertEquals(OTHER_PN, ga.getPlayerWithLongestRoad().getPlayerNumber());
@@ -838,12 +866,20 @@ public class TestActionsMessages
         assertArrayEquals(PL_START_RES_ARR, cliPlAtCli.getResources().getAmounts(false));
         if (shipRouteBecomesClosed != null)
             for (int edge : shipRouteBecomesClosed)
-                assertFalse(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should be open again",
+            {
+                assertFalse(testDesc + ": srv: ship at 0x" + Integer.toHexString(edge) + " should be open again",
                     ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
+                assertFalse(testDesc + ": cli: ship at 0x" + Integer.toHexString(edge) + " should be open again",
+                    ((SOCShip) boardAtCli.roadOrShipAtEdge(edge)).isClosed());
+            }
         if (shipRouteRemainsOpen != null)
             for (int edge : shipRouteRemainsOpen)
-                assertFalse(testDesc + ": ship at 0x" + Integer.toHexString(edge) + " should still be open",
+            {
+                assertFalse(testDesc + ": srv: ship at 0x" + Integer.toHexString(edge) + " should still be open",
                     ((SOCShip) board.roadOrShipAtEdge(edge)).isClosed());
+                assertFalse(testDesc + ": cli: ship at 0x" + Integer.toHexString(edge) + " should still be open",
+                    ((SOCShip) boardAtCli.roadOrShipAtEdge(edge)).isClosed());
+            }
 
         act = ga.getLastAction();
         assertNotNull(act);

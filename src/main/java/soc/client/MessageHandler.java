@@ -769,6 +769,15 @@ public class MessageHandler
                 handleUNDOPUTPIECE((SOCUndoPutPiece) mes);
                 break;
 
+            /**
+             * Reopen or close a shipping trade route.
+             * Added 2022-12-18 for v2.7.00.
+             */
+            case SOCMessage.SETSHIPROUTECLOSED:
+                SOCDisplaylessPlayerClient.handleSETSHIPROUTECLOSED
+                    ((SOCSetShipRouteClosed) mes, client.games.get(((SOCSetShipRouteClosed) mes).getGame()));
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Throwable th)

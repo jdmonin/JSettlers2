@@ -497,6 +497,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static final int REVEALFOGHEX = 10001;  // fog hexes, 20121108, v2.0.00
 
+    /**
+     * {@link SOCSetShipRouteClosed} - Reopen or close a trade route.
+     * @since 2.7.00
+     */
+    public static final int SETSHIPROUTECLOSED = 10002;  // for Undo put piece/move piece, 20221218, v2.7.00
+
 
 
     /**
@@ -1075,6 +1081,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case REVEALFOGHEX:      // fog hexes, 20121108, v2.0.00
                 return SOCRevealFogHex.parseDataStr(data);
+
+            case SETSHIPROUTECLOSED:    // for Undo put piece/move piece, 20221218, v2.7.00
+                return SOCSetShipRouteClosed.parseDataStr(multiData);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

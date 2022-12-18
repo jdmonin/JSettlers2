@@ -984,6 +984,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 handleUNDOPUTPIECE
                     ((SOCUndoPutPiece) mes, games.get(((SOCUndoPutPiece) mes).getGame()));
                 break;
+
+            /**
+             * Reopen or close a shipping trade route.
+             * Added 2022-12-18 for v2.7.00.
+             */
+            case SOCMessage.SETSHIPROUTECLOSED:
+                handleSETSHIPROUTECLOSED
+                    ((SOCSetShipRouteClosed) mes, games.get(((SOCSetShipRouteClosed) mes).getGame()));
+                break;
+
             }
         }
         catch (Exception e)
@@ -3036,6 +3046,24 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (fort != null)
                 fort.setStrength(pv);
         }
+    }
+
+    /**
+     * Handle the "reopen or close a shipping trade route" message.
+     * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
+     *     or if game doesn't use {@link SOCBoardLarge}
+     * @since 2.7.00
+     */
+    public static void handleSETSHIPROUTECLOSED(final SOCSetShipRouteClosed mes, SOCGame ga)
+    {
+        if (ga == null)
+            return;  // Not one of our games
+
+        final SOCBoard board = ga.getBoard();
+        if (board instanceof SOCBoardLarge)
+            ((SOCBoardLarge) board).setShipsClosed(mes.isClosed(), mes.getParams(), 1);
     }
 
     /**

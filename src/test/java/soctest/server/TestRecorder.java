@@ -1576,6 +1576,9 @@ public class TestRecorder
 
         /**
          * Reloaded game within the test server, from {@link #sgm}; not null.
+         * For the game at client, call
+         * <tt>{@link #tcli}.{@link soc.baseclient.SOCDisplaylessPlayerClient#getGame(String) getGame(gaName)}</tt>
+         * or <tt>{@link #tcli2}.getGame(gaName)</tt>.
          * @see #board
          * @see #clientPlayer
          * @see #records

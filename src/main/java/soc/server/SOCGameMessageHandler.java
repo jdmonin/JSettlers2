@@ -1300,7 +1300,7 @@ public class SOCGameMessageHandler
                 break;
 
             case CLOSE_SHIP_ROUTE:
-                // TODO create and send a message now (not after)
+                srv.messageToGame(gaName, true, new SOCSetShipRouteClosed(gaName, false, e.params));
                 break;
 
             // TODO any other side effects for now? (SVP reaching a new island, etc)
