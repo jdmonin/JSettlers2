@@ -770,6 +770,15 @@ public class MessageHandler
                 break;
 
             /**
+             * Update last-action data.
+             * Added 2022-12-20 for v2.7.00.
+             */
+            case SOCMessage.SETLASTACTION:
+                SOCDisplaylessPlayerClient.handleSETLASTACTION
+                    ((SOCSetLastAction) mes, client.games.get(((SOCSetLastAction) mes).getGame()));
+                break;
+
+            /**
              * Reopen or close a shipping trade route.
              * Added 2022-12-18 for v2.7.00.
              */

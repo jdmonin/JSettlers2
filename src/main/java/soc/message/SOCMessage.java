@@ -474,6 +474,13 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static final int UNDOPUTPIECE = 1105;  // Undo put piece/move piece, 20221109, v2.7.00
 
+    /**
+     * {@link SOCSetLastAction} - Send {@link soc.game.GameAction} game data from server to client joining a game.
+     * @since 2.7.00
+     */
+    public static final int SETLASTACTION = 1106;  // for Undo put piece/move piece, 20221220, v2.7.00
+
+
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
     /////////////////////////////////////////
@@ -1081,6 +1088,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case UNDOPUTPIECE:          // Undo put piece/move piece, 20221109, v2.7.00
                 return SOCUndoPutPiece.parseDataStr(data);
+
+            case SETLASTACTION:         // for Undo put piece/move piece, 20221220, v2.7.00
+                return SOCSetLastAction.parseDataStr(data);
 
             // gametype-specific messages:
 

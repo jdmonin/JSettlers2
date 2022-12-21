@@ -23,6 +23,7 @@ package soc.baseclient;
 
 import soc.disableDebug.D;
 
+import soc.game.GameAction;
 import soc.game.ResourceSet;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
@@ -983,6 +984,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
             case SOCMessage.UNDOPUTPIECE:
                 handleUNDOPUTPIECE
                     ((SOCUndoPutPiece) mes, games.get(((SOCUndoPutPiece) mes).getGame()));
+                break;
+
+            /**
+             * Update last-action data.
+             * Added 2022-12-20 for v2.7.00.
+             */
+            case SOCMessage.SETLASTACTION:
+                handleSETLASTACTION
+                    ((SOCSetLastAction) mes, games.get(((SOCSetLastAction) mes).getGame()));
                 break;
 
             /**
@@ -2804,6 +2814,26 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             knownOpts.addKnownOption(opt);
         }
+    }
+
+    /**
+     * Update last-action data game data; may be sent from server while joining a game.
+     * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
+     * @since 2.7.00
+     */
+    public static void handleSETLASTACTION(final SOCSetLastAction mes, SOCGame ga)
+    {
+        if (ga == null)
+            return;  // Not one of our games
+
+        GameAction.ActionType at = GameAction.ActionType.valueOf(mes.getActionTypeValue());
+        if (at == null)
+            ga.setLastAction(null);
+        else
+            ga.setLastAction(new GameAction
+                (at, mes.getParam1(), mes.getParam2(), mes.getParam3(), mes.getRS1(), mes.getRS2()));
     }
 
     /**

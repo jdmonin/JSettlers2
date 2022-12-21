@@ -36,7 +36,8 @@ import java.util.StringTokenizer;
  * piece counts, current player, etc. This sequence begins with {@link SOCJoinGameAuth}
  * (sometimes preceded by optional {@link SOCScenarioInfo} or
  * {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_SCENARIO TYPE_SCENARIO})),
- * also includes misc data like {@link SOCGameStats}({@link SOCGameStats#TYPE_TIMING TYPE_TIMING}),
+ * also includes misc data like {@link SOCSetLastAction} and
+ * {@link SOCGameStats}({@link SOCGameStats#TYPE_TIMING TYPE_TIMING}),
  * and ends with: {@link SOCGameMembers}, {@link SOCGameState}.
  * {@code SOCGameMembers} thus tells the client that the server is ready for its input.
  *<P>

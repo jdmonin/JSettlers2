@@ -95,6 +95,7 @@ import soc.message.SOCRollDice;
 import soc.message.SOCRollDicePrompt;
 import soc.message.SOCSVPTextMessage;
 import soc.message.SOCScenarioInfo;
+import soc.message.SOCSetLastAction;
 import soc.message.SOCSetPlayedDevCard;
 import soc.message.SOCSetSeatLock;
 import soc.message.SOCSetSpecialItem;
@@ -1659,7 +1660,7 @@ public class SOCGameHandler extends GameHandler
          */
         if (gameState >= SOCGame.START1A)
         {
-            if (isLoading && (c.getVersion() >= GEType.VERSION_FOR_SHIP_PLACED_THIS_TURN_EDGE))
+            if (isLoading && (cliVers >= GEType.VERSION_FOR_SHIP_PLACED_THIS_TURN_EDGE))
             {
                 final List<Integer> shipEdges = gameData.getShipsPlacedThisTurn();
                 if ((shipEdges != null) && ! shipEdges.isEmpty())
@@ -1683,6 +1684,15 @@ public class SOCGameHandler extends GameHandler
                     new SOCPlayerElement
                         (gameName, -1, SOCPlayerElement.SET,
                          PEType.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
+
+            if (cliVers >= SOCSetLastAction.VERSION_FOR_SETLASTACTION)
+            {
+                final GameAction act = gameData.getLastAction();
+                if (act != null)
+                    srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
+                        new SOCSetLastAction
+                            (gameName, act.actType.value, act.param1, act.param2, act.param3, act.rset1, act.rset2));
+            }
         }
 
         /**

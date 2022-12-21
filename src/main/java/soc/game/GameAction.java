@@ -64,7 +64,7 @@ public class GameAction
     public final List<Effect> effects;
       // TODO add rest of possible construcs
 
-    // reminder: if you add fields, update equals()
+    // reminder: if you add fields, update equals() and toString()
 
     /**
      * Create a new GameAction with no parameters.
@@ -218,6 +218,7 @@ public class GameAction
     public String toString()
     {
         // if you update this format, consider also updating GameActionLog.Action.toString()
+        // and SOCSetLastAction.toString()
 
         StringBuilder sb = new StringBuilder("GameAction(");
         sb.append(actType.toString());

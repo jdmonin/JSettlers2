@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import soc.game.GameAction;
 import soc.game.SOCBoard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
@@ -1072,6 +1073,28 @@ public class TestToCmdToStringParse
             new HashSet<String>(Arrays.asList("scKey", "noMoreScens", "pa"))
         },
         {new SOCServerPing(42), "9999|42", "SOCServerPing:sleepTime=42"},
+        {
+            new SOCSetLastAction("ga", GameAction.ActionType.BUILD_PIECE.value, 1, 3337, 3),
+            "1106|ga,40,1,3337,3",
+            "SOCSetLastAction:game=ga|actType=BUILD_PIECE|p1=1|p2=3337|p3=3",
+        },
+        {
+            new SOCSetLastAction("ga", GameAction.ActionType.MOVE_PIECE.value, 1, 3337, 2059, new SOCResourceSet(1, 0, 0, 0, 4, 0), null),
+            "1106|ga,60,1,3337,2059,R1,1,0,0,0,4",
+            "SOCSetLastAction:game=ga|actType=MOVE_PIECE|p1=1|p2=3337|p3=2059|rs1=[clay=1|ore=0|sheep=0|wheat=0|wood=4|unknown=0]",
+        },
+        {
+            // with RS2 but not RS1
+            new SOCSetLastAction("ga", GameAction.ActionType.BUILD_PIECE.value, 1, 3337, 3, null, new SOCResourceSet(0, 2, 0, 2, 0, 0)),
+            "1106|ga,40,1,3337,3,R2,0,2,0,2,0",
+            "SOCSetLastAction:game=ga|actType=BUILD_PIECE|p1=1|p2=3337|p3=3|rs2=[clay=0|ore=2|sheep=0|wheat=2|wood=0|unknown=0]",
+        },
+        {
+            // with both RS
+            new SOCSetLastAction("ga", GameAction.ActionType.BUILD_PIECE.value, 1, 3337, 3, new SOCResourceSet(1, 0, 0, 0, 4, 0), new SOCResourceSet(0, 2, 0, 2, 0, 0)),
+            "1106|ga,40,1,3337,3,R1,1,0,0,0,4,R2,0,2,0,2,0",
+            "SOCSetLastAction:game=ga|actType=BUILD_PIECE|p1=1|p2=3337|p3=3|rs1=[clay=1|ore=0|sheep=0|wheat=0|wood=4|unknown=0]|rs2=[clay=0|ore=2|sheep=0|wheat=2|wood=0|unknown=0]",
+        },
         {new SOCSetPlayedDevCard("ga", 2, false), "1048|ga,2,false", "SOCSetPlayedDevCard:game=ga|playerNumber=2|playedDevCard=false"},
         {new SOCSetSeatLock("ga", 2, SeatLockState.LOCKED), "1068|ga,2,true", "SOCSetSeatLock:game=ga|playerNumber=2|state=LOCKED"},
         {

@@ -4643,7 +4643,6 @@ public class SOCGame implements Serializable, Cloneable
             undoActionSideEffects_pre(moveAct, SOCPlayingPiece.SHIP);
 
         shipsPlacedThisTurn.remove(Integer.valueOf(wasMovedToEdge));
-        // TODO any closed ship routes to open up?
         moveShip(sh, wasMovedFromEdge);
         movedShipThisTurn = false;
 
@@ -7455,10 +7454,25 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @return  Most recent action if that action type is recorded, otherwise {@code null}
      * @since 2.7.00
+     * @see #setLastAction(GameAction)
      */
     public GameAction getLastAction()
     {
         return lastAction;
+    }
+
+    /**
+     * Set the most recent game action, if any, at client.
+     * See {@link #getLastAction()} for details.
+     * Server sends this to client when joining a game, and then
+     * the {@code SOCGame} at client updates the field locally
+     * as each player takes actions on their turn.
+     * @param act  Game action, or {@code null} for none
+     * @since 2.7.00
+     */
+    public void setLastAction(final GameAction act)
+    {
+        lastAction = act;
     }
 
     /**
