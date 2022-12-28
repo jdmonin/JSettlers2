@@ -4592,6 +4592,7 @@ public class SOCGame implements Serializable, Cloneable
      * Can this player currently undo moving this ship?
      * {@link #getLastAction()} must be a move of this piece ({@link ActionType#MOVE_PIECE}).
      * Must be current player. Game state must be {@link #PLAY1}.
+     * {@link SOCGameOption} {@code "UB"} must be set.
      * @param pn  Player number
      * @param sh  Their ship to undo moving
      * @return  True if can undo that move now
@@ -4605,7 +4606,8 @@ public class SOCGame implements Serializable, Cloneable
         return (pn == currentPlayerNumber) && (gameState == PLAY1)
             && (moveAct != null) && (moveAct.actType == ActionType.MOVE_PIECE)
             && (moveAct.param1 == SOCPlayingPiece.SHIP)
-            && (moveAct.param3 == sh.getCoordinates());
+            && (moveAct.param3 == sh.getCoordinates())
+            && isGameOptionSet("UB");
     }
 
     /**
@@ -4679,6 +4681,7 @@ public class SOCGame implements Serializable, Cloneable
      * Can this player currently undo placing (building) this piece?
      * {@link #getLastAction()} must be the placement of this piece ({@link ActionType#BUILD_PIECE}).
      * Must be current player. Game state must be {@link #PLAY1}.
+     * {@link SOCGameOption} {@code "UB"} must be set.
      * @param pn  Player number
      * @param pp  Their piece to undo placing
      * @return  True if can undo that placement now
@@ -4695,7 +4698,8 @@ public class SOCGame implements Serializable, Cloneable
             && (buildAct != null) && (buildAct.actType == ActionType.BUILD_PIECE)
             && (buildAct.param1 == ptype)
             && (buildAct.param2 == pp.getCoordinates())
-            && (buildAct.param3 == pn);
+            && (buildAct.param3 == pn)
+            && isGameOptionSet("UB");
     }
 
     /**

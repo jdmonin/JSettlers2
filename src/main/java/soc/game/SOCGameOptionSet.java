@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import soc.game.SOCGameOption;
 import soc.server.SOCServer;  // for javadocs only
 import soc.server.savegame.SavedGameModel;  // for javadocs only
 import soc.util.DataUtils;
@@ -290,6 +289,7 @@ public class SOCGameOptionSet
      *<LI> NT  No trading allowed
      *<LI> VP  Victory points (10-15)
      *<LI> SC  Game Scenario (optional groups of rules; see {@link SOCScenario})
+     *<LI> UB  allow Undo Build and Move
      *<LI> _BHW  Board height and width, if not default, for {@link SOCBoardLarge}: 0xRRCC.
      *           Used only at client, for board size received in JoinGame message from server
      *           to pass through SOCGame constructor into SOCBoard factory
@@ -380,7 +380,7 @@ public class SOCGameOptionSet
      *   For example, the boolean "PLB" can force use of the 6-player board in
      *   versions 1.1.08 - 1.1.12 by changing "PL"'s value to 5 or 6.
      *<LI> Within {@link SOCGame}, don't add any object fields due to the new option;
-     *   instead call {@link SOCGame#isGameOptionDefined(String)},
+     *   instead call {@link SOCGame#isGameOptionSet(String)},
      *   {@link SOCGame#getGameOptionIntValue(String)}, etc.
      *   Look for game methods where game behavior changes with the new option,
      *   and adjust those.
@@ -560,6 +560,12 @@ public class SOCGameOptionSet
             (K_SC_WOND, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
              "Scenarios: Wonders"));
 
+        opts.add(new SOCGameOption
+            ("UB", 2700, 2700, false, FLAG_DROP_IF_UNUSED, "Allow undo piece builds and moves"));
+
+        // NEW_OPTION - Add opt.put here at end of list, and update the
+        //       list of "current known options" in javadoc just above.
+
         // "Extra" options for third-party developers
 
         opts.add(new SOCGameOption
@@ -580,9 +586,6 @@ public class SOCGameOptionSet
         opts.add(new SOCGameOption
             (K_PLAY_VPO, 2000, 2500, false, SOCGameOption.FLAG_INACTIVE_HIDDEN | FLAG_DROP_IF_UNUSED,
              "Show all VP/dev card info"));
-
-        // NEW_OPTION - Add opt.put here at end of list, and update the
-        //       list of "current known options" in javadoc just above.
 
         // ChangeListeners for client convenience:
         // Remember that a new server version can't update this code at an older client:

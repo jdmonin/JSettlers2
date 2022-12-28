@@ -1096,7 +1096,7 @@ public class SOCGameOption
         // None of the other current options change minVers based on their value.
 
         // NEW_OPTION:
-        // If your option changes the minVers based on its current value,
+        // If your option's minVers changes depending on its current value,
         // check the key and current value and set the appropriate version like "SC" does.
         //
         // ADDITIONAL BACKWARDS-COMPATIBLE CHECK (opts != null):
