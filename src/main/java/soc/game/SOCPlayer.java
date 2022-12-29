@@ -3152,8 +3152,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             if ((newSettleArea != 0)
                                 && (newSettleArea != startingLandArea1) && (newSettleArea != startingLandArea2))
                             {
-                                putPiece_settlement_checkScenarioSVPs
+                                List<GameAction.Effect> ef = putPiece_settlement_checkScenarioSVPs
                                     ((SOCSettlement) piece, newSettleArea, isTempPiece);
+                                if (ef != null)
+                                    effects.addAll(ef);
                             }
                         }
                     }
@@ -3543,36 +3545,70 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param newSettleArea  Land area number of new settlement's location
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
      *            game's {@link SOCGameEventListener}.
+     * @return any {@link GameAction.Effect}s from setting those SVPs if at server and not {@code isTempPiece},
+     *     otherwise null
      * @since 2.0.00
      */
-    private final void putPiece_settlement_checkScenarioSVPs
+    private final List<GameAction.Effect> putPiece_settlement_checkScenarioSVPs
         (final SOCSettlement newSettle, final int newSettleArea, final boolean isTempPiece)
     {
+        List<GameAction.Effect> effects = null;
+
         if ((! hasPlayerEvent(SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA))
              && game.isGameOptionSet(SOCGameOptionSet.K_SC_SANY))
         {
+            final int prevSVP = specialVP, prevEvents = getPlayerEvents();
+
             setPlayerEvent(SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA);
             ++specialVP;
             newSettle.specialVP = 1;
             newSettle.specialVPEvent = SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA;
 
-            if ((game.gameEventListener != null) && ! isTempPiece)
-                game.gameEventListener.playerEvent
-                    (game, this, SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA, true, newSettle);
+            if (! isTempPiece)
+            {
+                if (game.gameEventListener != null)
+                    game.gameEventListener.playerEvent
+                        (game, this, SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA, true, newSettle);
+
+                if (game.isAtServer)
+                {
+                    if (effects == null)
+                        effects = new ArrayList<>();
+                    effects.add(new GameAction.Effect
+                        (GameAction.EffectType.PLAYER_GAIN_SVP,
+                         new int[]{ prevSVP, 1, prevEvents, SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA.flagValue }));
+                }
+            }
         }
 
         final int laBit = (1 << (newSettleArea - 1));
         if ((0 == (laBit & scenario_svpFromEachLandArea_bitmask)) && game.isGameOptionSet(SOCGameOptionSet.K_SC_SEAC))
         {
+            final int prevSVP = specialVP, prevLAs = scenario_svpFromEachLandArea_bitmask;
+
             scenario_svpFromEachLandArea_bitmask |= laBit;
             specialVP += 2;
             newSettle.specialVP = 2;
             newSettle.specialVPEvent = SOCPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA;
 
-            if ((game.gameEventListener != null) && ! isTempPiece)
-                game.gameEventListener.playerEvent
-                    (game, this, SOCPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA, true, newSettle);
+            if (! isTempPiece)
+            {
+                if (game.gameEventListener != null)
+                    game.gameEventListener.playerEvent
+                        (game, this, SOCPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA, true, newSettle);
+
+                if (game.isAtServer)
+                {
+                    if (effects == null)
+                        effects = new ArrayList<>();
+                    effects.add(new GameAction.Effect
+                        (GameAction.EffectType.PLAYER_GAIN_SETTLED_LANDAREA,
+                         new int[]{ prevSVP, prevLAs, scenario_svpFromEachLandArea_bitmask }));
+                }
+            }
         }
+
+        return effects;
     }
 
     /**
@@ -4172,12 +4208,20 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * As part of
      * {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece, boolean) removePiece(SOCPlayingPiece, null, false)},
      * update player's {@link #specialVP} and related fields.
+     *<P>
      * Not called if the removed piece is being moved (a ship) or replaced by another one (settlement upgrade to city).
+     *<P>
+     * Does nothing in game state {@link SOCGame#UNDOING_ACTION}, because in that state the SVPs are removed
+     * by other code as part of undoing the piece placement and its {@link GameAction.Effect}s.
+     *
      * @param p  Our piece being removed, which has {@link SOCPlayingPiece#specialVP} != 0
      * @since 2.0.00
      */
     private final void removePieceUpdateSpecialVP(final SOCPlayingPiece p)
     {
+        if (game.getGameState() == SOCGame.UNDOING_ACTION)
+            return;
+
         specialVP -= p.specialVP;
 
         switch (p.specialVPEvent)

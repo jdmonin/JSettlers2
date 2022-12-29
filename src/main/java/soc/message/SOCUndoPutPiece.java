@@ -37,13 +37,17 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  *
  *<H3>Announcement from Server</H3>
  *<UL>
- * <LI> Any preceding messages? TBD. (Un-close ship routes, return pieces, etc)
+ * <LI> Any preceding messages (Un-close ship routes, return pieces, etc; usually {@link SOCPlayerElement})
  * <LI> Server sends {@code SOCUndoPutPiece}(pn, pieceType, coordinates) to all clients in the game
- * <LI> Any following messages? TBD. (Un-close ship routes, return pieces, etc)
  * <LI> Client UI should update at this point and announce the undo.
+ * <LI> Any following messages (Un-close ship routes, return pieces, etc; usually {@link SOCPlayerElement}).
+ *      Such messages update client UI on their own if needed.
  *</UL>
  *
  * See also {@link SOCCancelBuildRequest} and {@link SOCRemovePiece}.
+ *<P>
+ * This message is used only with {@link soc.game.SOCGameOption} {@code "UB"}, which has a minimum version of 2.7.00.
+ * If a game has that SGO, server doesn't need to check client versions before sending {@code SOCUndoPutPiece}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.7.00
@@ -219,6 +223,13 @@ public class SOCUndoPutPiece extends SOCMessage
             return null;
         }
     }
+
+    /**
+     * Minimum version where this message type is used.
+     * @return Version number, 2700 for JSettlers 2.7.00.
+     */
+    @Override
+    public int getMinimumVersion() { return 2700; }
 
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,

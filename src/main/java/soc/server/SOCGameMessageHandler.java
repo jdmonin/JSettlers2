@@ -1273,6 +1273,7 @@ public class SOCGameMessageHandler
 
         List<SOCMessage> msgsAfter = new ArrayList<>();
         final String gaName = ga.getName();
+        final int cpn = ga.getCurrentPlayerNumber();
 
         for (GameAction.Effect e : actToUndo.effects)
             switch (e.eType)
@@ -1291,7 +1292,7 @@ public class SOCGameMessageHandler
 
                     if (cost != null)
                         msgsAfter.add(new SOCPlayerElements
-                            (gaName, ga.getCurrentPlayerNumber(), SOCPlayerElement.GAIN, cost));
+                            (gaName, cpn, SOCPlayerElement.GAIN, cost));
                 }
                 break;
 
@@ -1299,11 +1300,43 @@ public class SOCGameMessageHandler
                 msgsAfter.add(new SOCLongestRoad(gaName, e.params[0]));
                 break;
 
+            case PLAYER_GAIN_SVP:
+                {
+                    final int prevSVP = e.params[0];
+                    int prevEvents = 0;
+                    boolean sendPrevEvents = false;
+                    if (e.params.length >= 4)
+                    {
+                        prevEvents = e.params[2];
+                        final int effectEventFlag = e.params[3];
+                        sendPrevEvents = (0 == (prevEvents & effectEventFlag));  // was flag already set before action?
+                    }
+                    if (sendPrevEvents)
+                        msgsAfter.add
+                            (new SOCPlayerElements
+                                (gaName, cpn, SOCPlayerElement.SET,
+                                 new PEType[]{ PEType.SCENARIO_SVP, PEType.PLAYEREVENTS_BITMASK },
+                                 new int[]{ prevSVP, prevEvents }));
+                    else
+                        msgsAfter.add
+                            (new SOCPlayerElement
+                                (gaName, cpn, SOCPlayerElement.SET, PEType.SCENARIO_SVP, prevSVP));
+                }
+                break;
+
+            case PLAYER_GAIN_SETTLED_LANDAREA:
+                msgsAfter.add
+                    (new SOCPlayerElements
+                        (gaName, cpn, SOCPlayerElement.SET,
+                         new PEType[]{ PEType.SCENARIO_SVP, PEType.SCENARIO_SVP_LANDAREAS_BITMASK },
+                         new int[]{ e.params[0], e.params[1] }));
+                break;
+
             case CLOSE_SHIP_ROUTE:
                 srv.messageToGame(gaName, true, new SOCSetShipRouteClosed(gaName, false, e.params));
                 break;
 
-            // TODO any other side effects for now? (SVP reaching a new island, etc)
+            // TODO any other side effects for now? (SVP from scenarios, etc)
 
             default:
                 ;  // nothing yet

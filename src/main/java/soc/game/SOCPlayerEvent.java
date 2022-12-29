@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013,2015-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013,2015-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -72,6 +72,8 @@ public enum SOCPlayerEvent
      * If {@link soc.server.SOCBoardAtServer#getBonusExcludeLandArea()} is set during board generation,
      * at end of initial placement that LA number is sent to player clients as if it's their second "starting land area"
      * to exclude it from this bonus award.
+     *
+     * @see GameAction.EffectType#PLAYER_GAIN_SETTLED_LANDAREA
      */
     SVP_SETTLED_EACH_NEW_LANDAREA(0x02),
 

@@ -624,21 +624,33 @@ public class GameAction
          */
         CHANGE_LARGEST_ARMY_PLAYER(30),
 
-        /** Player has gained SVP with this action. Should record amount gained, new total. */
+        /**
+         * Player has gained SVP with this action, usually from a {@link SOCPlayerEvent}.
+         * Params: Old {@link SOCPlayer#getSpecialVP()}, amount gained, and if from a player event,
+         * old {@link SOCPlayer#getPlayerEvents()} and {@link SOCPlayerEvent#flagValue}.
+         * <tt>{@link Effect#params}.length</tt> is 2 when not from a player event.
+         */
         PLAYER_GAIN_SVP(40),
 
+        /**
+         * Player has gained 2 SVP by settling a new landarea (Game option {@link SOCGameOptionSet#K_SC_SEAC _SC_SEAC}):
+         * {@link SOCPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
+         * Params: Old {@link SOCPlayer#getSpecialVP()}, old and new {@link SOCPlayer#getScenarioSVPLandAreas()}.
+         */
+        PLAYER_GAIN_SETTLED_LANDAREA(50),
+
         /** The {@link SOCGame#hasBuiltCity()} flag was set by building a piece. */
-        SET_GAME_FLAG_N7C(50),
+        SET_GAME_FLAG_N7C(60),
 
         /**
          * Building or moving caused a ship route to be closed. Params are {@link SOCShip} edge coords
          * which became closed because of this action: {@link SOCShip#isClosed()}.
          * When undoing this effect, reopen the ship route before moving or un-building the piece.
          */
-        CLOSE_SHIP_ROUTE(60),
+        CLOSE_SHIP_ROUTE(70),
 
         /** Building or moving revealed a fog hex. */
-        REVEAL_FOG_HEX(70);
+        REVEAL_FOG_HEX(80);
 
         /**
          * This enum member's unique int value ({@link #CHANGE_LONGEST_ROAD_PLAYER} == 10, etc).

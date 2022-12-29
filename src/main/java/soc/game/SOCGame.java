@@ -4927,6 +4927,7 @@ public class SOCGame implements Serializable, Cloneable
         // SOCGameMessageHandler.sendUndoSideEffects; if you update this method,
         // update that one too
 
+        final SOCPlayer currPlayer = players[currentPlayerNumber];
         for (GameAction.Effect e : actToUndo.effects)
             switch (e.eType)
             {
@@ -4943,7 +4944,7 @@ public class SOCGame implements Serializable, Cloneable
                         catch(IllegalArgumentException ex) {}
 
                     if (cost != null)
-                        players[currentPlayerNumber].getResources().add(cost);
+                        currPlayer.getResources().add(cost);
                 }
                 break;
 
@@ -4954,7 +4955,27 @@ public class SOCGame implements Serializable, Cloneable
                 }
                 break;
 
-            // TODO any other side effects for now? (SVP reaching a new island, etc)
+            case PLAYER_GAIN_SVP:
+                {
+                    currPlayer.setSpecialVP(e.params[0]);
+                    if (e.params.length >= 3)
+                    {
+                        final int prevEvents = e.params[2];
+                        if (prevEvents != currPlayer.getPlayerEvents())
+                            currPlayer.setPlayerEvents(prevEvents);
+                                // is equiv to calling pl.clearPlayerEvent
+                    }
+                }
+                break;
+
+            case PLAYER_GAIN_SETTLED_LANDAREA:
+                {
+                    currPlayer.setSpecialVP(e.params[0]);
+                    currPlayer.setScenarioSVPLandAreas(e.params[1]);
+                }
+                break;
+
+            // TODO any other side effects for now? (SVP from scenarios, etc)
 
             default:
                 ;  // nothing yet
