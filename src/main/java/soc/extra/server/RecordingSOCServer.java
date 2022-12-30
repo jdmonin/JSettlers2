@@ -48,7 +48,7 @@ import soc.server.genericServer.Connection;
  * If you also want to record messages from clients with {@link #recordClientMessage(String, int, SOCMessageForGame)},
  * set the {@link #isRecordingFromClients} flag field.
  *<P>
- * Works with {@link DisplaylessTesterClient}.
+ * Used with {@link soctest.server.DisplaylessTesterClient}.
  *<P>
  * Logs are kept in memory, and can be written to a file with
  * {@link #saveLogToFile(SOCGame, File, String, boolean, boolean)}.

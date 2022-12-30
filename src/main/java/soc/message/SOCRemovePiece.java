@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2019-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -52,6 +52,7 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
      * @param pn  player number owning the piece
      * @param ptype  type of playing piece, such as {@link soc.game.SOCPlayingPiece#SHIP}
      * @param co  coordinates of the piece to remove; must be >= 0
+     * @throws IllegalArgumentException if {@code co} &lt; 0
      */
     public SOCRemovePiece(final String ga, final int pn, final int ptype, final int co)
         throws IllegalArgumentException
@@ -66,6 +67,7 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
      * Create a SOCRemovePiece message for this piece.
      * @param ga  the name of the game
      * @param pp  the playing piece to remove; {@link SOCPlayingPiece#getCoordinates() pp.getCoordinates()} must be >= 0
+     * @throws IllegalArgumentException if {@code co} &lt; 0
      */
     public SOCRemovePiece(final String ga, final SOCPlayingPiece pp)
         throws IllegalArgumentException
@@ -81,6 +83,7 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
      * @param ptype  type of playing piece, such as {@link soc.game.SOCPlayingPiece#SHIP}
      * @param co  coordinates of the piece to remove; must be >= 0
      * @return the command string
+     * @throws IllegalArgumentException if {@code co} &lt; 0
      */
     public static String toCmd(final String ga, final int pn, final int ptype, final int co)
         throws IllegalArgumentException

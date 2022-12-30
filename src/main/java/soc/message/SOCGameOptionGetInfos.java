@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2010,2013,2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2010,2013,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -67,6 +67,8 @@ import soc.util.DataUtils;
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't create games.
+ *<P>
+ * For a similar negotiation/synchronization about game scenarios, see {@link SOCScenarioInfo}.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @since 1.1.07

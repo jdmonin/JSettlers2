@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file Copyright (C) 2009,2013-2015,2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013-2015,2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -73,10 +73,10 @@ public class SOCGameOptionGetDefaults extends SOCMessage
         this.opts = opts;
     }
 
-    /**
+    /**f
      * Get the string of option name-value pairs sent over the network.
-     * To turn this into a group of {@link soc.game.SOCGameOption SOCGameOptions},
-     * call {@link soc.game.SOCGameOption#parseOptionsToMap(String, soc.game.SOCGameOptionSet)}.
+     * To turn this into a group of {@link SOCGameOption}s,
+     * call {@link SOCGameOption#parseOptionsToMap(String, soc.game.SOCGameOptionSet)}.
      * @return the string of options, or null if none (client to server)
      */
     public String getOpts()

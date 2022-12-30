@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,7 +48,7 @@ import soc.util.SOCGameList;
  *      See {@link SOCGame#resetAsCopy()} and {@link SOCGameListAtServer#resetBoard(String)}.
  *</UL>
  *
- * Interface and interaction:
+ *<H3>Interface and interaction:</H3>
  *<UL>
  * <LI> The {@link SOCServer} manages the "boundary" of the game: The list of all games;
  *      joining and leaving players and bots; creating and destroying games; game start time and the board reset framework.

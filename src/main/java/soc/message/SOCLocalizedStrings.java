@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2015,2017-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2017-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -213,11 +213,11 @@ public class SOCLocalizedStrings extends SOCMessageTemplateMs
      *     This constructor will prepend {@code type} to the {@code strs} list.
      * @param flags  Any flags such as {@link #FLAG_SENT_ALL}, or 0
      * @param strs  the list of strings, organized in a type-specific way; see {@code type} constant javadocs.
-     *     Each element must pass
+     *     The list may be empty or null. Otherwise each element must pass
      *     {@link SOCMessage#isSingleLineAndSafe(String, boolean) isSingleLineAndSafe(String, true)}:
      *     {@link SOCMessage#sep2} characters are allowed, but {@link SOCMessage#sep} are not.
      *    <P>
-     *     The list may be empty or null.  Since this constructor builds an object and not a
+     *     Since this constructor builds an object and not a
      *     network message command, will not replace empty or null elements with {@link SOCMessage#EMPTYSTR}.
      *     The constructor will prepend {@code type} to the {@code strs} list, creating it if null.
      *    <P>

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017-2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018,2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message has the total resource count for a player.
- * Includes all resources of known and unknown types, from
+ * This message from server has the total resource count for a player.
+ * The total number includes all resources of known and unknown types, from
  * player's hand's {@link soc.game.SOCResourceSet#getTotal()}.
  *<P>
  * In games where all clients are v2.0.00 or newer, can send {@link SOCPlayerElement.PEType#RESOURCE_COUNT} instead:

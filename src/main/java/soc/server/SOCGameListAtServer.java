@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -53,7 +53,7 @@ import soc.util.Version;
  * {@link SOCGame} object, member client {@link Connection}s, and
  * {@link SOCChatRecentBuffer}.
  *<P>
- * In 1.1.07, parent class SOCGameList was refactored, with
+ * Parent class SOCGameList was refactored in v1.1.07, with
  * some methods moved to this new subclass, such as
  * {@link #createGame(String, String, String, SOCGameOptionSet, GameHandler) createGame}.
  *

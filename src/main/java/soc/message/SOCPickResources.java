@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2014,2017-2018,2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2014,2017-2018,2020-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -137,6 +137,8 @@ public class SOCPickResources extends SOCMessage
      * @param wh  the amount of wheat being picked
      * @param wo  the amount of wood being picked
      * @since 2.0.00
+     * @see #SOCPickResources(String, SOCResourceSet)
+     * @see #SOCPickResources(String, SOCResourceSet, int, int)
      */
     public SOCPickResources(String ga, int cl, int or, int sh, int wh, int wo)
     {
@@ -149,6 +151,8 @@ public class SOCPickResources extends SOCMessage
      * @param ga  the name of the game
      * @param rs  the resources being picked.
      *     Should not contain unknown resources, those will be ignored and not sent.
+     * @see #SOCPickResources(String, SOCResourceSet, int, int)
+     * @see #SOCPickResources(String, int, int, int, int, int)
      */
     public SOCPickResources(String ga, SOCResourceSet rs)
     {
@@ -164,6 +168,8 @@ public class SOCPickResources extends SOCMessage
      *     Should not contain unknown resources, those will be ignored and not sent.
      * @param pn  player number when sent from server, or 0 when sent from client
      * @param rc  reason code ({@link #REASON_DISCOVERY}, etc), or 0 for none
+     * @see #SOCPickResources(String, SOCResourceSet)
+     * @see #SOCPickResources(String, int, int, int, int, int)
      */
     public SOCPickResources(String ga, SOCResourceSet rs, int pn, int rc)
     {

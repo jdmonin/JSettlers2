@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2013,2017-2018,2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013,2017-2018,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,7 +26,8 @@ import soc.game.SOCResourceConstants;  // for javadocs only
 
 
 /**
- * Server's report of the total amount rolled on the dice this turn.
+ * Server's report of the total amount rolled on the dice this turn,
+ * or -1 at start of game or to clear displayed result during play.
  * The two individual dice amounts can be reported in a text message.
  *<P>
  * This is in response to a client player's {@link SOCRollDice} request.

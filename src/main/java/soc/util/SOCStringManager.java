@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
- * Some parts of this file Copyright (C) 2013,2017-2021 Jeremy D Monin <jeremy@nand.net>
+ * Some parts of this file Copyright (C) 2013,2017-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -214,7 +214,7 @@ public class SOCStringManager extends StringManager
      *
      * @param game  Game, in case its options influence the strings (such as dev card Knight -> Warship in scenario _SC_PIRI)
      * @param key  Key to use for string retrieval. The retrieved string can contain <tt>{0,rsrcs}</tt> and/or
-     *            <tt>{0,dcards}</tt>. You can use <tt>{1</tt>, <tt>{2</tt>, or any other slot number.
+     *            <tt>{0,dcards}</tt>. You can use <tt>1</tt>, <tt>2</tt>, or any other slot number there.
      * @param arguments  Objects to go with <tt>{0,list}</tt>, <tt>{0,rsrcs}</tt>, <tt>{0,dcards}</tt>, etc in {@code key};
      *            see above for the expected object types.
      * @return the localized formatted string from the manager's bundle or one of its parents

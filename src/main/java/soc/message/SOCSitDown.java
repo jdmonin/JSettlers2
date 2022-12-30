@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -77,7 +77,7 @@ public class SOCSitDown extends SOCMessage
      * @param ga  the name of the game
      * @param nk  nickname of the player; ignored from client, can be "-" or {@link SOCMessage#EMPTYSTR} but not blank
      * @param pn  the seat number
-     * @param rf  true if this is a robot
+     * @param rf  true if this is a robot; ignored from client
      */
     public SOCSitDown(String ga, String nk, int pn, boolean rf)
     {
@@ -114,7 +114,7 @@ public class SOCSitDown extends SOCMessage
     }
 
     /**
-     * @return the value of the robot flag
+     * @return the value of the robot flag; ignored when sent from client
      */
     public boolean isRobot()
     {

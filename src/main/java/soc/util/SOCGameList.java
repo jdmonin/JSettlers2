@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2014,2016-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - getGameNames, parameterize types
  *
  * This program is free software; you can redistribute it and/or
@@ -535,8 +535,13 @@ public class SOCGameList
     protected class GameInfo
     {
         public MutexFlag mutex;
-        public SOCGameOptionSet opts;  // or null
-        public String optsStr;  // or null
+
+        /** Game options, or {@code null} if none. Rendered in {@link #optsStr}. */
+        public SOCGameOptionSet opts;
+
+        /** Game options rendered from {@link #opts}, or {@code null}. */
+        public String optsStr;
+
         public boolean canJoin;
 
         /** Flag for when game has been destroyed, in case anything's waiting on its mutex. @since 1.1.15 */

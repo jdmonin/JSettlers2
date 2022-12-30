@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2020-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -106,6 +106,7 @@ public class SOCRobotParameters implements Serializable
      *
      * @param gameOpts The game's {@link SOCGameOption}s, or null
      * @return This object, or a copy with updated parameters.
+     * @since 1.1.07
      */
     public SOCRobotParameters copyIfOptionChanged(SOCGameOptionSet gameOpts)
     {

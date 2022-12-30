@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2014,2016-2017,2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2014,2016-2017,2020-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,8 @@ package soc.message;
 
 
 /**
- * This is a ping message from the server, or its reply from the client.
+ * This is a ping message from the server, or its reply from the client,
+ * or a notification from server to a client being disconnected.
  *<P>
  * In version 1.1.08 and higher, the client echoes
  * the ping back to the server.  Server can use

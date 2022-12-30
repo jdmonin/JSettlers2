@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -103,6 +103,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * (as v1.x did before sending current player "You monopolized..." text)
      * so client's game data is updated by the time it sees RSRC_TYPE_MONOPOLIZED.
      *
+     * @see SOCPickResourceType
      * @since 2.0.00
      */
     public static final int RSRC_TYPE_MONOPOLIZED = 3;
