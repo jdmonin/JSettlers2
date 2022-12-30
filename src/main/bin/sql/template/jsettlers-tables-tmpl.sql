@@ -9,6 +9,7 @@
 -- Developers: Do not directly edit: Rendered from template {{render_src}}
 -- When changing the schema, update template/jsettlers-tables-tmpl.sql and not these db-specific files.
 ---- Then re-render from the template: Search doc/Readme.developer.md for render.py
+
 -- Always use lowercase for table names and field names.  0-9 and underscore (_) are also safe.
 -- Don't create "mytable_name" if that name without underscores ("mytablename") is already a table.
 -- Remember that the sql must be valid for mysql, postgresql, sqlite, and oracle.

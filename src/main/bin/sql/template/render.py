@@ -16,7 +16,7 @@
 #
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+# This file Copyright (C) 2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -190,7 +190,7 @@ def render_one(dbtype, infile, outfile, compfile):
 
         # ignore any whole-line ---- comments in template:
         # uses (?m) for re.MULTILINE flag, because re.sub flags param not added until python 2.7
-        in_str = re.sub(r'(?m)^\s*---- .+$', '', in_str)
+        in_str = re.sub(r'(?m)^\s*---- .+\r?\n', '', in_str)
 
         out_str = render(in_str)
 
