@@ -21,6 +21,7 @@
 package soctest.message;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import soc.message.SOCMessage;
@@ -90,7 +91,38 @@ public class TestTemplatesAbstracts
         assertEquals("MessageMs:(a null)|b=zw", msg.toString(pa, NAMES_3));
     }
 
-    // TODO test SOCMessageTemplateMs.parseData_FindEmptyStrs
+    /**
+     * Test {@link SOCMessageTemplateMs#parseData_FindEmptyStrs(List)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testSOCMessageTemplateMsParseData_FindEmptyStrs()
+    {
+        assertNull(SOCMessageTemplateMs.parseData_FindEmptyStrs(null));
+
+        List<String> li = new ArrayList<>();
+
+        SOCMessageTemplateMs.parseData_FindEmptyStrs(li);
+        assertTrue(li.isEmpty());
+
+        li.add("xyz");
+        assertEquals(Arrays.asList(new String[]{"xyz"}), SOCMessageTemplateMs.parseData_FindEmptyStrs(li));
+
+        li.add(SOCMessage.EMPTYSTR);
+        assertEquals(Arrays.asList(new String[]{"xyz", ""}), SOCMessageTemplateMs.parseData_FindEmptyStrs(li));
+
+        li.clear();
+        li.add(SOCMessage.EMPTYSTR);
+        assertEquals(Arrays.asList(new String[]{""}), SOCMessageTemplateMs.parseData_FindEmptyStrs(li));
+
+        li.add(SOCMessageTemplateMs.GAME_NONE);
+        li.add(SOCMessage.EMPTYSTR);
+        li.add("xyz");
+        assertEquals
+            (Arrays.asList(new String[]{"", SOCMessageTemplateMs.GAME_NONE, "", "xyz"}),
+             SOCMessageTemplateMs.parseData_FindEmptyStrs(li));
+
+    }
 
     /** Non-abstract subclass for tests. */
     @SuppressWarnings("serial")
