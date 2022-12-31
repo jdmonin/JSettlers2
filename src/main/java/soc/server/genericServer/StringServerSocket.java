@@ -132,7 +132,7 @@ public class StringServerSocket implements SOCServerSocket
 
         StringServerSocket ss = allSockets.get(name);
         if (ss.isOutEOF())
-            throw new ConnectException("StringServerSocket name is EOF: " + name);
+            throw new ConnectException("StringServerSocket already EOF: " + name);
 
         StringConnection servSidePeer;
         try
