@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2014,2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2014,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -123,12 +123,7 @@ public class SOCRevealFogHex extends SOCMessageTemplate3i
         String[] pieces = s.split(SOCMessage.sep2);
         pieces[1] = Integer.toString(Integer.parseInt(pieces[1], 16));
 
-        StringBuilder ret = new StringBuilder();
-        for (int i = 0; i < 3; i++)
-            ret.append(pieces[i]).append(sep2_char);
-        ret.append(pieces[3]);
-
-        return ret.toString();
+        return String.join(SOCMessage.sep2, pieces);
     }
 
     /**
