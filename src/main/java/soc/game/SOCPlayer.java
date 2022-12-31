@@ -3155,7 +3155,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 List<GameAction.Effect> ef = putPiece_settlement_checkScenarioSVPs
                                     ((SOCSettlement) piece, newSettleArea, isTempPiece);
                                 if (ef != null)
-                                    effects.addAll(ef);
+                                {
+                                    if (effects != null)
+                                        effects.addAll(ef);
+                                    else
+                                        effects = ef;
+                                }
                             }
                         }
                     }
