@@ -1,6 +1,6 @@
 /**
  * Local ({@link StringConnection}) network message system.
- * This file Copyright (C) 2007-2009,2016-2017,2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007-2009,2016-2017,2020-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -43,6 +43,7 @@ import java.util.Vector;
  *                       LocalStringServerSocket -> StringServerSocket. Remove unused broadcast(..).
  *  2.1.0 - 2020-01-09 - Only TCP-server changes: See {@link SOCServerSocket}
  *  2.3.0 - 2020-04-27 - no change in this file
+ *  2.5.0 - 2021-12-30 - no change in this file
  *</PRE>
  *
  * @see NetServerSocket

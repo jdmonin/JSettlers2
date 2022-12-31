@@ -61,7 +61,7 @@ import soc.message.SOCMessage;
  *                       Connection is now a superclass, not an interface.
  *  2.1.0 - 2020-01-09 - Only server-side changes: See {@link SOCServerSocket}
  *  2.3.0 - 2020-04-27 - no change in this file
- *  2.5.0 - 2020-07-17 - put: fix cosmetic "IllegalStateException: Not accepted by server yet" seen when
+ *  2.5.0 - 2021-12-30 - put: fix cosmetic "IllegalStateException: Not accepted by server yet" seen when
  *                       sending message during disconnect/server shutdown
  *</PRE>
  *
