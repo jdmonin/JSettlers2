@@ -28,8 +28,8 @@ import java.awt.event.MouseListener;
 
 import javax.swing.JPanel;
 
+import soc.game.ResourceSet;
 import soc.game.SOCResourceConstants;
-import soc.game.SOCResourceSet;
 
 /**
  * Display grid of give/get resources
@@ -244,7 +244,7 @@ import soc.game.SOCResourceSet;
      *
      * @param give DOCUMENT ME!
      * @param get DOCUMENT ME!
-     * @see #setValues(SOCResourceSet, SOCResourceSet)
+     * @see #setValues(ResourceSet, ResourceSet)
      */
     public void setValues(int[] give, int[] get)
     {
@@ -267,7 +267,7 @@ import soc.game.SOCResourceSet;
      * @param get   Trade resources to use in Line 2; will clear all to 0 if null
      * @since 2.0.00
      */
-    public void setValues(final SOCResourceSet give, final SOCResourceSet get)
+    public void setValues(final ResourceSet give, final ResourceSet get)
     {
         boolean notAllZ = false;
 
