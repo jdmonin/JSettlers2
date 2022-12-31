@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
- * Portions of this file copyright (C) 2009-2013,2017-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2013,2017-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -132,8 +132,9 @@ public class OpeningBuildStrategy {
     }
 
     /**
-     * figure out where to place the two settlements
+     * Figure out where to place the first settlement.
      * @return {@link #firstSettlement}, or 0 if no potential settlements for our player
+     * @see #planSecondSettlement()
      */
     public int planInitialSettlements()
     {
@@ -417,6 +418,7 @@ public class OpeningBuildStrategy {
     /**
      * figure out where to place the second settlement
      * @return {@link #secondSettlement}, or -1 if none
+     * @see #planInitialSettlements()
      */
     public int planSecondSettlement()
     {

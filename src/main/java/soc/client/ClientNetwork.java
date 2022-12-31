@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2022 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
@@ -67,7 +67,7 @@ import soc.util.Version;
  * Messages from client to server are formed in {@link GameMessageSender} or other classes,
  * which call back here to send to the server via {@link #putNet(String)} or {@link #putPractice(String)}.
  *<br>
- * Network shutdown is {@link #disconnect()} or {@link #dispose()}.
+ * Network shutdown is done in {@link #dispose()}, or {@link #disconnect()} for only the client part.
  *<P>
  * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
  *
@@ -248,7 +248,7 @@ import soc.util.Version;
         mainDisplay = md;
     }
 
-    /** Shut down the local TCP server (if any) and disconnect from the network. */
+    /** Shut down the local TCP server (if any) and {@link #disconnect()} from the network. */
     public void dispose()
     {
         shutdownLocalServer();

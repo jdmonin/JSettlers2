@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -78,7 +78,7 @@ import soc.util.Version;
  *      <LI> {@code type} is {@code F} for a full log (all messages from and to server),
  *           or {@code C} if contains only messages from the server to one or all clients,
  *           not also from all clients to server;
- *           based on {@code isAtClient} parameter when calling {@code save(..)}.
+ *           based on {@code isAtClient} parameter when calling {@link #save(File, String, boolean, boolean) save(..)}.
  *           Is always first in this list of properties.
  *      <LI> {@code version} is the current {@link Version#versionNumber()}.
  *           Always follows {@code type} in this list of properties.

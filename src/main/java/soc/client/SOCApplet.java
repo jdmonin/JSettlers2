@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2018-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
@@ -32,6 +32,7 @@ import soc.util.Version;
 
 /**
  * Applet methods to display the main screen (list of games), separated out from main GUI class.
+ * Game play will be in separate windows as usual; only the initial connect/practice panel is within the browser.
  * @author paulbilnoski
  * @since 2.0.00
  */

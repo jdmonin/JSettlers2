@@ -76,7 +76,7 @@ public class RobberStrategy
    /**
     * Determine the best hex to move the robber, based on
     * board and current opponent info in {@link SOCPlayerTracker}s.
-    * Calls {@link #selectPlayerToThwart(int)}, {@link #selectRobberHex(int, int)}.
+    * Calls {@link #selectPlayerToThwart(int)}, then {@link #selectRobberHex(int, int)} for that victim player.
     *<P>
     * Currently the robot always chooses to move the robber, never the pirate,
     * so this method calculates for the robber only.

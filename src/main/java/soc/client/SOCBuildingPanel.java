@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014,2016-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -221,7 +221,7 @@ import javax.swing.SwingConstants;
     public static final int MINHEIGHT = 2 + (4 * ColorSquare.HEIGHT) + (3 * 4) + 2;  // rowSpaceH == 4
 
     /**
-     * Client's player data.  Initially null; call setPlayer once seat is chosen.
+     * Client's player data.  Initially null; should call {@link #setPlayer()} once seat is chosen.
      *
      * @see #setPlayer()
      * @since 1.1.00
@@ -1189,7 +1189,8 @@ import javax.swing.SwingConstants;
 
     /**
      * Set our game and player data based on client's nickname,
-     * via game.getPlayer(client.getNickname()).
+     * by having {@link SOCPlayerInterface#getClientPlayer()}
+     * call {@code game.getPlayer(ourPlayerNumber)}.
      *<P>
      * Call only after {@link SOCPlayerInterface#addPlayer(String, int)} has been called for client player.
      *

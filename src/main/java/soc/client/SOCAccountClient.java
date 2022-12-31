@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009-2011,2013-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2011,2013-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -81,7 +81,7 @@ import javax.swing.WindowConstants;
  *<P>
  * To connect the applet to a non-default server port, you must specify it as the
  * {@code port} parameter in the html applet tag. If you run {@code SOCAccountClient}
- * as a stand-alone app, specify the server's hostname and port on the command line.
+ * as a stand-alone app, specify the server's hostname and optionally port on the command line.
  *
  * @author Robert S Thomas
  */
@@ -131,6 +131,7 @@ public class SOCAccountClient extends Applet
 
     /** Name of new user to be created. */
     private JTextField nick;
+
     private JPasswordField pass;
     private JPasswordField pass2;
     private JTextField email;
@@ -152,6 +153,7 @@ public class SOCAccountClient extends Applet
     /**
      * Username, password, and status fields on {@link #connPanel}.
      * @since 1.1.19
+     * @see #conn_sentAuth
      */
     private JTextField conn_user, conn_pass, conn_status;
 
@@ -166,6 +168,7 @@ public class SOCAccountClient extends Applet
      * Used by {@link #handleSTATUSMESSAGE(SOCStatusMessage)} to show error results using {@code connPanel}
      * instead of the main panel.
      * @since 1.1.19
+     * @see #conn_user
      */
     private boolean conn_sentAuth;
 
@@ -173,14 +176,17 @@ public class SOCAccountClient extends Applet
 
     /**
      * For high-DPI displays, what scaling factor to use? Unscaled is 1.
+     * See {@link #SOCAccountClient(int)} for how to calculate.
      * @since 2.0.00
      */
     private final int displayScale;
 
     protected String host;
     protected int port;
+
     /** Network socket. Before v2.5.00 this field was {@code s}. */
     protected Socket sock;
+
     protected DataInputStream in;
     protected DataOutputStream out;
     protected Thread reader = null;

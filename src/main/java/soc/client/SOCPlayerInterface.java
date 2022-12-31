@@ -1871,7 +1871,10 @@ public class SOCPlayerInterface extends JFrame
 
     /**
      * If client player is seated and active in game, their player object.
-     * Set by {@link #setClientHand(SOCHandPanel)}.
+     * Set by {@link #setClientHand(SOCHandPanel)}
+     * which is called by {@link SOCHandPanel#addPlayer(String)}
+     * and {@link SOCHandPanel#removePlayer()}.
+     *
      * @return Client's player if active, or {@code null}
      * @see #getClientPlayerNumber()
      * @see #getClientHand()
