@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007,2010-2013,2017-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007,2010-2013,2017-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -100,10 +100,8 @@ public class SOCCancelBuildRequest extends SOCMessage
     private final String game;
 
     /**
-     * The type of piece to cancel build, such as {@link soc.game.SOCPlayingPiece#CITY}
-     * -2 is used from server to reject request to buy a Development Card.
-     * -3 ({@link #INV_ITEM_PLACE_CANCEL}) is used from client to request canceling placement of a
-     *    special SOCInventoryItem if possible.
+     * The type of piece to cancel build, such as {@link soc.game.SOCPlayingPiece#CITY}.
+     * See {@link #getPieceType()} for details.
      */
     private final int pieceType;
 
@@ -112,9 +110,7 @@ public class SOCCancelBuildRequest extends SOCMessage
      *
      * @param ga  the name of the game
      * @param pt  the type of piece to cancel build, such as {@link soc.game.SOCPlayingPiece#CITY}.
-     *   -2 is used from server to reject request to buy a Development Card.
-     *   -3 ({@link #INV_ITEM_PLACE_CANCEL}) is used from client to request canceling placement of a
-     *      special SOCInventoryItem if possible.
+     *   See {@link #getPieceType()} for details.
      */
     public SOCCancelBuildRequest(String ga, int pt)
     {
@@ -132,6 +128,7 @@ public class SOCCancelBuildRequest extends SOCMessage
     }
 
     /**
+     * Get the type of piece to cancel build.
      * @return the type of piece to cancel build, such as {@link soc.game.SOCPlayingPiece#CITY}.
      *   -2 is used from server to reject request to buy a Development Card.
      *   -3 ({@link #INV_ITEM_PLACE_CANCEL}) is used from client to request canceling placement of a

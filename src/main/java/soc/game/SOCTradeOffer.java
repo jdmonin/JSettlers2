@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2014,2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2014,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +28,8 @@ import java.util.Arrays;
 /**
  * This class represents a trade offer in Settlers of Catan
  * and/or is part of a network message about trades.
+ *
+ * @see SOCPlayer#getCurrentOffer()
  */
 @SuppressWarnings("serial")
 public class SOCTradeOffer implements Serializable, Cloneable

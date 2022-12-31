@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014-2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014-2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -81,6 +81,11 @@ import java.util.concurrent.Executors;
  * for {@link #PROP_JSETTLERS_DB_URL} and {@link #PROP_JSETTLERS_DB_DRIVER}.
  *<P>
  * For database schema, see {@code src/main/bin/sql/template/jsettlers-tables-tmpl.sql}.
+ *
+ *<H3>Basic connection:</H3>
+ * Call {@link #initialize(String, String, Properties)} to initially connect.
+ * Use {@link #isInitialized()} to see if still connected.
+ * (Private method {@code checkConnection()} will try to reconnect if not connected.)
  *
  *<H3>Schema Upgrades:</H3>
  * Sometimes a new JSettlers version adds to the DB schema. When starting the JSettlers server, call
