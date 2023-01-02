@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
@@ -4436,6 +4436,7 @@ public class SOCGame implements Serializable, Cloneable
      * Can this player currently move this ship, based on game state and
      * their trade routes and settlements/cities?
      * Must be current player.  Game state must be {@link #PLAY1}.
+     * Can't move ships during a Special Building Phase.
      *<P>
      * Use this method to check a specific move-from location.
      * Use {@link #canMoveShip(int, int, int)} to also check a specific move-to location
@@ -4488,6 +4489,7 @@ public class SOCGame implements Serializable, Cloneable
      * Can this player currently move this ship to this new coordinate,
      * based on game state and their trade routes and settlements/cities?
      * Must be current player.  Game state must be {@link #PLAY1}.
+     * Can't move ships during a Special Building Phase.
      *<P>
      * Use this method to check a specific move-from and move-to location pair.
      * Use {@link #canMoveShip(int, int)} to check only the move-from.
@@ -4603,7 +4605,7 @@ public class SOCGame implements Serializable, Cloneable
     public boolean canUndoMoveShip(final int pn, final SOCShip sh)
     {
         final GameAction moveAct = lastAction;
-        return (pn == currentPlayerNumber) && (gameState == PLAY1)
+        return (pn == currentPlayerNumber) && (gameState == PLAY1)  // rules reminder: can't move ships during SBP
             && (moveAct != null) && (moveAct.actType == ActionType.MOVE_PIECE)
             && (moveAct.param1 == SOCPlayingPiece.SHIP)
             && (moveAct.param3 == sh.getCoordinates())
@@ -4680,7 +4682,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Can this player currently undo placing (building) this piece?
      * {@link #getLastAction()} must be the placement of this piece ({@link ActionType#BUILD_PIECE}).
-     * Must be current player. Game state must be {@link #PLAY1}.
+     * Must be current player. Game state must be {@link #PLAY1} or {@link #SPECIAL_BUILDING}.
      * {@link SOCGameOption} {@code "UB"} must be set.
      * @param pn  Player number
      * @param pp  Their piece to undo placing
@@ -4693,7 +4695,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         final GameAction buildAct = lastAction;
         final int ptype = pp.getType();
-        return (pn == currentPlayerNumber) && (gameState == PLAY1)
+        return (pn == currentPlayerNumber) && ((gameState == PLAY1) || (gameState == SPECIAL_BUILDING))
             && (ptype >= SOCPlayingPiece.ROAD) && (ptype <= SOCPlayingPiece.SHIP)
             && (buildAct != null) && (buildAct.actType == ActionType.BUILD_PIECE)
             && (buildAct.param1 == ptype)
