@@ -7494,6 +7494,9 @@ public class SOCGame implements Serializable, Cloneable
      * Server sends this to client when joining a game, and then
      * the {@code SOCGame} at client updates the field locally
      * as each player takes actions on their turn.
+     *<P>
+     * Also set at server while loading a game.
+     *
      * @param act  Game action, or {@code null} for none
      * @since 2.7.00
      */

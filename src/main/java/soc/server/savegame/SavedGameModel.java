@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -124,6 +124,13 @@ public class SavedGameModel
      * can still be reliably parsed.
      *
      *<H3>Changes by JSettlers version:</H3>
+     *
+     *<H4>2.7.00</H4>
+     *<UL>
+     * <LI> Model version is still 2400
+     * <LI> Adds game field {@link #lastAction}
+     * <LI> Earlier server versions will ignore this added field while loading a savegame
+     *</UL>
      *
      *<H4>2.5.00</H4>
      *<UL>
@@ -310,6 +317,12 @@ public class SavedGameModel
     /** Ships placed this turn if {@link SOCGame#hasSeaBoard}, from {@link SOCGame#getShipsPlacedThisTurn()}, or null */
     public List<Integer> shipsPlacedThisTurn;
 
+    /**
+     * Most recent action by the current player, if recorded, from {@link SOCGame#getLastAction()}.
+     * @since 2.7.00
+     */
+    public GameAction lastAction;
+
     /** Board layout and contents */
     public BoardInfo boardInfo;
 
@@ -471,6 +484,7 @@ public class SavedGameModel
         playingRoadBuildingCardForLastRoad = flags[4];
 
         shipsPlacedThisTurn = ga.getShipsPlacedThisTurn();
+        lastAction = ga.getLastAction();
 
         {
             final SOCPlayer lrPlayer = ga.getPlayerWithLongestRoad(),
@@ -757,6 +771,8 @@ public class SavedGameModel
             // so Longest Route determinations in resumed game are correct
             for (int pn = 0; pn < ga.maxPlayers; ++pn)
                 ga.getPlayer(pn).calcLongestRoad2();
+
+            ga.setLastAction(lastAction);
 
         } catch (Exception e) {
             throw new IllegalArgumentException("Problem initializing game: " + e, e);
