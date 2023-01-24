@@ -4005,6 +4005,7 @@ public class SOCGame implements Serializable, Cloneable
             return;   // <--- Early return: Temporary piece ---
         }
 
+        int[] oldNewGS = null;
         if ((gameState == PLACING_ROAD) || (gameState == PLACING_SETTLEMENT)
             || (gameState == PLACING_CITY) || (gameState == PLACING_SHIP))
         {
@@ -4012,6 +4013,14 @@ public class SOCGame implements Serializable, Cloneable
                 effects = new ArrayList<>();
             effects.add(new GameAction.Effect(EffectType.DEDUCT_COST_FROM_PLAYER));
         }
+        else if ((gameState == PLACING_FREE_ROAD1) || (gameState == PLACING_FREE_ROAD2))
+        {
+            oldNewGS = new int[]{gameState, 0};  // will fill in newGS after advanceTurnStateAfterPutPiece()
+            if (effects == null)
+                effects = new ArrayList<>();
+            effects.add(new GameAction.Effect(EffectType.CHANGE_GAMESTATE, oldNewGS));
+        }
+
         if (longestRoadPN != playerWithLongestRoad)
         {
             if (effects == null)
@@ -4041,6 +4050,9 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (active)
             advanceTurnStateAfterPutPiece();
+
+        if (oldNewGS != null)
+            oldNewGS[1] = gameState;
     }
 
     /**

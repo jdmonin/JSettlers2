@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1296,7 +1296,15 @@ public class TestActionsMessages
         assertEquals(SOCPlayingPiece.ROAD, act.param1);
         assertEquals(ROAD_EDGE_1, act.param2);
         assertEquals(CLIENT_PN, act.param3);
-        assertNull(act.effects);
+        {
+            List<GameAction.Effect> effects = act.effects;
+            assertNotNull(effects);
+            assertEquals(1, effects.size());
+
+            GameAction.Effect e = effects.get(0);
+            assertEquals(GameAction.EffectType.CHANGE_GAMESTATE, e.eType);
+            assertArrayEquals(new int[]{SOCGame.PLACING_FREE_ROAD1, SOCGame.PLACING_FREE_ROAD2}, e.params);
+        }
         tcli.putPiece(ga, new SOCRoad(cliPl, ROAD_EDGE_2, board));
 
         try { Thread.sleep(60); }
@@ -1314,9 +1322,13 @@ public class TestActionsMessages
         {
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(effects);
-            assertEquals(1, effects.size());
+            assertEquals(2, effects.size());
 
             GameAction.Effect e = effects.get(0);
+            assertEquals(GameAction.EffectType.CHANGE_GAMESTATE, e.eType);
+            assertArrayEquals(new int[]{SOCGame.PLACING_FREE_ROAD2, SOCGame.PLAY1}, e.params);
+
+            e = effects.get(1);
             assertEquals(GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
             assertArrayEquals(new int[]{-1, CLIENT_PN}, e.params);
         }

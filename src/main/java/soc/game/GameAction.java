@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2022-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -611,18 +611,28 @@ public class GameAction
         DEDUCT_COST_FROM_PLAYER(10),
 
         /**
+         * Game state changed in a notable way.
+         * Example: Action was {@link ActionType#BUILD_PIECE} for a free road instead of the usual built road,
+         * so the pre-place state was {@link SOCGame#PLACING_FREE_ROAD1} or {@link SOCGame#PLACING_FREE_ROAD2}.
+         * (Typical state changes, like for buying and placing a piece, aren't an Effect.)
+         *<P>
+         * Params: Old and new {@link SOCGame#getGameState()}.
+         */
+        CHANGE_GAMESTATE(20),
+
+        /**
          * Player with longest road has changed.
          * Params: old LR playerNumber, new LR playerNumber.
          * Either can be -1 for none.
          */
-        CHANGE_LONGEST_ROAD_PLAYER(20),
+        CHANGE_LONGEST_ROAD_PLAYER(30),
 
         /**
          * Player with largest army has changed.
          * Params: old LA playerNumber, new LA playerNumber.
          * Old can be -1 for none.
          */
-        CHANGE_LARGEST_ARMY_PLAYER(30),
+        CHANGE_LARGEST_ARMY_PLAYER(40),
 
         /**
          * Player has gained SVP with this action, usually from a {@link SOCPlayerEvent}.
@@ -630,27 +640,27 @@ public class GameAction
          * old {@link SOCPlayer#getPlayerEvents()} and {@link SOCPlayerEvent#flagValue}.
          * <tt>{@link Effect#params}.length</tt> is 2 when not from a player event.
          */
-        PLAYER_GAIN_SVP(40),
+        PLAYER_GAIN_SVP(50),
 
         /**
          * Player has gained 2 SVP by settling a new landarea (Game option {@link SOCGameOptionSet#K_SC_SEAC _SC_SEAC}):
          * {@link SOCPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
          * Params: Old {@link SOCPlayer#getSpecialVP()}, old and new {@link SOCPlayer#getScenarioSVPLandAreas()}.
          */
-        PLAYER_GAIN_SETTLED_LANDAREA(50),
+        PLAYER_GAIN_SETTLED_LANDAREA(60),
 
         /** The {@link SOCGame#hasBuiltCity()} flag was set by building a piece. */
-        SET_GAME_FLAG_N7C(60),
+        SET_GAME_FLAG_N7C(70),
 
         /**
          * Building or moving caused a ship route to be closed. Params are {@link SOCShip} edge coords
          * which became closed because of this action: {@link SOCShip#isClosed()}.
          * When undoing this effect, reopen the ship route before moving or un-building the piece.
          */
-        CLOSE_SHIP_ROUTE(70),
+        CLOSE_SHIP_ROUTE(80),
 
         /** Building or moving revealed a fog hex. */
-        REVEAL_FOG_HEX(80);
+        REVEAL_FOG_HEX(90);
 
         /**
          * This enum member's unique int value ({@link #CHANGE_LONGEST_ROAD_PLAYER} == 10, etc).
@@ -705,8 +715,10 @@ public class GameAction
         /**
          * Construct an Effect, optionally with parameters.
          * @param et  This Effect's EffectType; not null
-         * @param p  Any params used with {@code et}, or null; not empty
-         * @throws IllegalArgumentException if {@code et} is null, or {@code p} is empty
+         * @param p  Any params used with {@code et}, or null; not empty.
+         *     Copies the reference to {@code p[]}, not its current contents,
+         *     in case the caller doesn't yet have all necessary info while constructing the Effect.
+         * @throws IllegalArgumentException if {@code et} is null, or {@code p} is empty but not null
          */
         public Effect(EffectType et, int[] p)
             throws IllegalArgumentException
