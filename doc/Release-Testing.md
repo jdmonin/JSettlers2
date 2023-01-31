@@ -166,13 +166,15 @@ When preparing to release a new version, testing should include:
           - Build roads only
           - Build a route that has roads and ships (through a coastal settlement)
           - Move a ship to gain Longest Route
-    - Take Longest Route by building a coastal settlement to connect roads to ships
+    - Take Longest Route by building a coastal settlement to connect roads to ships, then undo that
         - Copy src/test/resources/resources/savegame/reletest-longest-joinships.game.json to your server's configured savegame directory
         - Run `*LOADGAME* reletest-longest-joinships` debug command in any other game window
         - Optional: Use client 2.4.00 or older as players or observers
             - Those versions don't recalculate longest route in this situation, but server 2.5.00 and newer should tell them it's changed
         - Build a coastal settlement
         - Should take Longest Route from other player
+        - Right-click that settlement, Undo build
+        - Other player should regain Longest Route
     - Can win by gaining Longest Road/Route
         - To set up for each test, can use debug command `*FREEPLACE* 1` to quickly build pieces until you have 8 VP;
           be careful to not gain longest route before the test begins

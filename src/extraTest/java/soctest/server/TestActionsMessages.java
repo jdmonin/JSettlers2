@@ -554,6 +554,7 @@ public class TestActionsMessages
         final Vector<EventEntry> records = objs.records;
         assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
         assertFalse(ga.isSeatVacant(OTHER_PN));
+        assertTrue(ga.isGameOptionSet("UB"));  // Undo Build
 
         /* settlement to join roads + ships for longest route */
         final int SETTLEMENT_NODE = 0x80b;
