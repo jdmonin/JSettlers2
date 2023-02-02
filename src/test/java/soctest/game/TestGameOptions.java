@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -809,11 +809,33 @@ public class TestGameOptions
     @Test
     public void testItemsMinimumVersion()
     {
-        assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(null, false));
+        final SOCGameOptionSet knowns = SOCGameOptionSet.getAllKnownOptions();
 
-        assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(new HashMap<String, SOCGameOption>(), false));
+        assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(null, false, null));
 
-        // TODO expand beyond empty/null tests
+        assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(new HashMap<String, SOCGameOption>(), false, null));
+
+        Map<String, SOCGameOption> optsUB = SOCGameOption.parseOptionsToMap("UB=t", knowns);
+
+        assertEquals(2700, SOCVersionedItem.itemsMinimumVersion(optsUB, false, null));
+
+        {
+            Map<String, Integer> optsMins = new HashMap<>();
+            assertEquals(2700, SOCVersionedItem.itemsMinimumVersion(optsUB, false, optsMins));
+            assertEquals(1, optsMins.size());
+            Integer minUB = optsMins.get("UB");
+            assertNotNull(minUB);
+            assertEquals(2700, minUB.intValue());
+
+            // now optsMins isn't empty, so itemsMinimumVersion should reject it as incoming itemsMins
+            try
+            {
+                SOCVersionedItem.itemsMinimumVersion(optsUB, false, optsMins);
+                fail("should reject non-empty itemsMins arg");
+            } catch (IllegalArgumentException e) {}
+        }
+
+        // TODO expand beyond those simple tests
     }
 
     /**

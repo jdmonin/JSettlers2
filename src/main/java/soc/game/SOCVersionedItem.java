@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015,2017,2019-2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015,2017,2019-2020,2022-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file from SOCGameOption.java Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -363,16 +363,16 @@ public abstract class SOCVersionedItem implements Cloneable
      * Calls at the client to {@code itemsMinimumVersion} should keep this in mind, especially if
      * a client's game option's {@link #lastModVersion} is newer than the server.
      *<P>
-     * Calls {@link #itemsMinimumVersion(Map, boolean) itemsMinimumVersion(items, false)}.
+     * Calls {@link #itemsMinimumVersion(Map, boolean, null) itemsMinimumVersion(items, false, null)}.
      *
      * @param items  a set of items; may be empty or {@code null}
      * @return the highest 'minimum version' among these items, or -1
-     * @see #itemsMinimumVersion(Map, boolean)
+     * @see #itemsMinimumVersion(Map, boolean, Map)
      * @see #getMinVersion(Map)
      */
     public static int itemsMinimumVersion(final Map<?, ? extends SOCVersionedItem> items)
     {
-        return itemsMinimumVersion(items, false);
+        return itemsMinimumVersion(items, false, null);
     }
 
     /**
@@ -403,17 +403,24 @@ public abstract class SOCVersionedItem implements Cloneable
      * @param items  a set of items; may be empty or {@code null}
      * @param calcMinVersionForUnchanged  If true, return the minimum version at which these
      *         options' values aren't changed (for compatibility) by the presence of new options.
+     * @param itemsMins  If not {@code null}, an empty map to which to add any item keys which have a minimum version
+     *         in order to return that info
      * @return the highest 'minimum version' among these options, or -1.
      *         If {@code calcMinVersionForUnchanged}, the returned version will either be -1 or >= 1107
      *         (the first version with game options).
+     * @throws IllegalArgumentException if {@code itemsMins} != null but isn't empty
      * @see #itemsMinimumVersion(Map)
      * @see #getMinVersion(Map)
      */
     public static int itemsMinimumVersion
-        (final Map<?, ? extends SOCVersionedItem> items, final boolean calcMinVersionForUnchanged)
+        (final Map<?, ? extends SOCVersionedItem> items, final boolean calcMinVersionForUnchanged,
+         final Map<String, Integer> itemsMins)
+        throws IllegalArgumentException
     {
         if (items == null)
             return -1;
+        if ((itemsMins != null) && ! itemsMins.isEmpty())
+            throw new IllegalArgumentException("itemsMins");
 
         int minVers = -1;
         final Map<?, ? extends SOCVersionedItem> itemsChk = calcMinVersionForUnchanged ? items : null;
@@ -421,8 +428,13 @@ public abstract class SOCVersionedItem implements Cloneable
         for (SOCVersionedItem itm : items.values())
         {
             int itmMin = itm.getMinVersion(itemsChk);  // includes any item-value checking for minVers
+            if (itmMin == -1)
+                continue;
+
             if (itmMin > minVers)
                 minVers = itmMin;
+            if (itemsMins != null)
+                itemsMins.put(itm.key, itmMin);
         }
 
         return minVers;
