@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -649,17 +649,27 @@ public class TestToCmdToStringParse
         {new SOCGameOptionGetInfos(Arrays.asList("SC", "PLP"), false, false), "1081|SC,PLP", "SOCGameOptionGetInfos:options=SC,PLP"},
         {new SOCGameOptionGetInfos(Arrays.asList("SC", "PLP"), true, false), "1081|SC,PLP,?I18N", "SOCGameOptionGetInfos:options=SC,PLP,?I18N"},
         {
-            new SOCGameOptionGetInfos(Arrays.asList(new SOCGameOption("N7"), new SOCGameOption("PL")), false),
+            new SOCGameOptionGetInfos(Arrays.asList(new SOCGameOption("N7", null), new SOCGameOption("PL", null)), false),
             "1081|N7,PL",
             "SOCGameOptionGetInfos:options=N7,PL"
         },
         {
-            new SOCGameOptionGetInfos(Arrays.asList(new SOCGameOption("N7"), new SOCGameOption("PL")), true),
+            new SOCGameOptionGetInfos(Arrays.asList(new SOCGameOption("N7", null), new SOCGameOption("PL", null)), true),
             "1081|N7,PL,?I18N",
             "SOCGameOptionGetInfos:options=N7,PL,?I18N"
         },
         // For SOCGameOptionGetInfos forms with OPTKEY_GET_ANY_CHANGES, see testMiscMessageForms()
-        // TODO SOCGameOptionInfo
+        {
+            new SOCGameOptionInfo(new SOCGameOption("UB", null), -1, null),  // OTYPE_UNKNOWN
+            "1082|UB|0|2147483647|2147483647|f|0|0|0|f|0|f|UB",
+            "SOCGameOptionInfo:p=UB|p=0|p=2147483647|p=2147483647|p=f|p=0|p=0|p=0|p=f|p=0|p=f|p=UB"
+        },
+        {
+            new SOCGameOptionInfo(new SOCGameOption("UB", "Allow undo piece builds and moves"), -1, null),  // OTYPE_UNKNOWN
+            "1082|UB|0|2147483647|2147483647|f|0|0|0|f|0|f|Allow undo piece builds and moves",
+            "SOCGameOptionInfo:p=UB|p=0|p=2147483647|p=2147483647|p=f|p=0|p=0|p=0|p=f|p=0|p=f|p=Allow undo piece builds and moves"
+        },
+        // TODO SOCGameOptionInfo for other OTYPEs
         // TODO? SOCGames
         {
             new SOCGameServerText("ga", "You stole a wheat from robot 2."),

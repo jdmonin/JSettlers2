@@ -552,7 +552,7 @@ public class TestGameOptions
         assertTrue("SGOSet.addKnownOption should copy ChangeListener ref", newKnown2.getChangeListener() == cl);
 
         // cleanup/remove known opt, by adding unknown opt
-        hadNoOld = knowns.addKnownOption(new SOCGameOption("_TESTF"));
+        hadNoOld = knowns.addKnownOption(new SOCGameOption("_TESTF", null));
         assertFalse(hadNoOld);
         assertNull(knowns.getKnownOption("_TESTF", false));
     }
@@ -583,7 +583,7 @@ public class TestGameOptions
         assertNull(newGameOpts.get("_TESTF"));
 
         // cleanup
-        knowns.addKnownOption(new SOCGameOption("_TESTF"));
+        knowns.addKnownOption(new SOCGameOption("_TESTF", null));
         assertNull(knowns.getKnownOption("_TESTF", false));
     }
 
@@ -762,7 +762,7 @@ public class TestGameOptions
         assertNull(optProblems);
 
         // cleanup
-        knowns.addKnownOption(new SOCGameOption("_TESTACT"));
+        knowns.addKnownOption(new SOCGameOption("_TESTACT", null));
         assertNull(knowns.getKnownOption("_TESTACT", false));
     }
 
@@ -965,7 +965,7 @@ public class TestGameOptions
                 fail("missing expected key: " + optKey);
 
         // cleanup
-        knowns.addKnownOption(new SOCGameOption("T3P"));
+        knowns.addKnownOption(new SOCGameOption("T3P", null));
         assertNull(knowns.getKnownOption("T3P", false));
 
         // TODO server-side tests too: call w/ (cliVers, false, true, null) etc

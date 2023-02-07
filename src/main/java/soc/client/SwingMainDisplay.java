@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2023 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -3040,7 +3040,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             pcli.gameOptsTask = null;  // Clear reference to this soon-to-expire obj
             srvOpts.noMoreOptions(false);
             pcli.getClient().getMessageHandler().handleGAMEOPTIONINFO
-                (new SOCGameOptionInfo(new SOCGameOption("-"), Version.versionNumber(), null), false);
+                (new SOCGameOptionInfo(new SOCGameOption("-", null), Version.versionNumber(), null), false);
         }
 
     }  // GameOptionsTimeoutTask

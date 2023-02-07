@@ -3933,6 +3933,10 @@ public class SOCServer extends Server
      * Activate an inactive {@link SOCGameOption} in server's Known Options
      * and announce its updated {@link SOCGameOptionInfo} to all connected clients.
      * May be useful during testing with bots; not expected to be used in typical production.
+     *<P>
+     * I18N: Unlike {@link #setClientVersSendGamesOrReject(Connection, int, String, String, boolean)},
+     * because this isn't for everyday use, it doesn't bother localizing the activated option's description
+     * when sending it to currently connected clients and bots.
      *
      * @param optKey The inactive Known Option's {@link SOCVersionedItem#key key}
      * @return true if option was found and activated, or was already active; false if not found
@@ -3954,15 +3958,19 @@ public class SOCServer extends Server
         opt = knownOpts.get(optKey);
 
         final int minVers = opt.minVersion;
-        final String optFeat = opt.getClientFeature();
+        final String optFeat = opt.getClientFeature(), optDesc = opt.getDesc();
         for (final Connection c : conns.values())
         {
             final int cliVers = c.getVersion();
             final SOCClientData scd = (SOCClientData) c.getAppData();
             final boolean isSupported = ((cliVers >= minVers)
                 && ((optFeat == null) || ((scd != null) && scd.feats.isActive(optFeat))));
+            final String desc =
+                ((! isSupported) && (cliVers >= SOCGameOptionInfo.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION))
+                ? optDesc
+                : null;
             c.put(new SOCGameOptionInfo
-                ((isSupported) ? opt : new SOCGameOption(opt.key), cliVers, null));
+                ((isSupported) ? opt : new SOCGameOption(opt.key, desc), cliVers, null));
         }
         for (final Connection c : unnamedConns)
         {
@@ -3970,8 +3978,12 @@ public class SOCServer extends Server
             final SOCClientData scd = (SOCClientData) c.getAppData();
             final boolean isSupported = ((cliVers >= minVers)
                 && ((optFeat == null) || ((scd != null) && scd.feats.isActive(optFeat))));
+            final String desc =
+                ((! isSupported) && (cliVers >= SOCGameOptionInfo.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION))
+                ? optDesc
+                : null;
             c.put(new SOCGameOptionInfo
-                ((isSupported) ? opt : new SOCGameOption(opt.key), cliVers, null));
+                ((isSupported) ? opt : new SOCGameOption(opt.key, desc), cliVers, null));
         }
 
         return true;
@@ -7224,7 +7236,7 @@ public class SOCServer extends Server
             return false;  // <--- Early return: Rejected client ---
         }
 
-        // Unless client is older, check now for unsupported/limited/activated SGOs
+        // Unless client is older than server, check now for unsupported/limited/activated SGOs
         // and send their info, because client may not send a SOCGameOptionGetInfos request
         if (cvers >= Version.versionNumber())
         {
@@ -7239,8 +7251,9 @@ public class SOCServer extends Server
                 unsupportedOpts = knownOpts.optionsNotSupported(cliLimitedFeats);
                 if (unsupportedOpts != null)
                 {
-                    for (String okey : unsupportedOpts.keySet())
-                        c.put(new SOCGameOptionInfo(new SOCGameOption(okey), cvers, "-"));
+                    for (SOCGameOption opt : unsupportedOpts.values())
+                        c.put(new SOCGameOptionInfo
+                            (new SOCGameOption(opt.key, opt.getDesc()), cvers, "-"));  // OTYPE_UNKNOWN
                     hadAny = true;
                 }
 
@@ -7782,14 +7795,30 @@ public class SOCServer extends Server
 
                 if (hadUnknowns && ! scd.sentUnknownGameoptsInfo)
                 {
-                    // Let client know those are unknown;
+                    // Let client know those are unknown or unavailable to it;
                     // see sentUnknownGameoptsInfo javadoc for details
 
                     scd.sentUnknownGameoptsInfo = true;
 
                     // simplified from SGMH.handleGAMEOPTIONGETINFOS
+                    final boolean unknownsWithDescs =
+                        (cliVers >= SOCGameOptionInfo.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION);
                     for (final String optKey : optProblems.keySet())
-                        c.put(new SOCGameOptionInfo(new SOCGameOption(optKey), cliVers, null));  // OTYPE_UNKNOWN
+                    {
+                        String localDesc = null;
+                        if (unknownsWithDescs)
+                        {
+                            final SOCGameOption opt = knownOpts.get(optKey);
+                            if (opt != null)
+                                try {
+                                    localDesc = c.getLocalized("gameopt." + optKey);
+                                } catch (MissingResourceException e) {
+                                    localDesc = opt.getDesc();
+                                }
+                        }
+                        c.put(new SOCGameOptionInfo
+                            (new SOCGameOption(optKey, localDesc), cliVers, null));  // OTYPE_UNKNOWN
+                    }
                     c.put(SOCGameOptionInfo.OPTINFO_NO_MORE_OPTS);  // GAMEOPTIONINFO("-")
                 }
 

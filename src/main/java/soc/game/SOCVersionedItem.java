@@ -188,6 +188,8 @@ public abstract class SOCVersionedItem implements Cloneable
      * Descriptive text for the item. Must not contain the network delimiter
      * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
      * If ! {@link #isKnown}, will be {@link #key} or an empty string.
+     * Exception: Server v2.7.00 and newer may send description strings for
+     * specific {@link SOCGameOption}s which can't be used by the client which asked about them.
      *<P>
      * Subclass <b>{@link SOCGameOption}</b>:<BR>
      * If option type is integer-valued ({@link SOCGameOption#OTYPE_ENUM}, {@link SOCGameOption#OTYPE_INTBOOL}, etc),

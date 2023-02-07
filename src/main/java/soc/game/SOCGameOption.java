@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -431,16 +431,20 @@ public class SOCGameOption
     /**
      * Create a new game option of unknown type ({@link #OTYPE_UNKNOWN}).
      * Minimum version will be {@link Integer#MAX_VALUE}.
-     * Value will be false/0. desc will be an empty string.
+     * Value will be false/0. desc will be an empty string unless {@code desc != null}.
      * @param key   Alphanumeric short unique key for this option;
      *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
+     * @param desc  Descriptive brief text, to appear in Game Info window when a game has this unknown option,
+     *                or {@code null} to use "" as in versions older than v2.7.00.
      * @throws IllegalArgumentException if key is not alphanumeric or length is > 8;
      *        {@link Throwable#getMessage()} will have details
      */
-    public SOCGameOption(final String key)
+    public SOCGameOption(final String key, final String desc)
         throws IllegalArgumentException
     {
-        this(OTYPE_UNKNOWN, key, Integer.MAX_VALUE, Integer.MAX_VALUE, false, 0, 0, 0, null, 0, key);
+        this
+            (OTYPE_UNKNOWN, key, Integer.MAX_VALUE, Integer.MAX_VALUE, false, 0, 0, 0, null, 0,
+             ((desc != null) && ! desc.isEmpty()) ? desc : key);
     }
 
     /**
@@ -1411,7 +1415,7 @@ public class SOCGameOption
      * @see #parseOptionNameValue(String, boolean, SOCGameOptionSet)
      * @see #parseOptionNameValue(String, String, boolean, SOCGameOptionSet)
      * @throws IllegalArgumentException if any game option keyname in {@code ostr} is unknown
-     *     and not a valid alphanumeric keyname by the rules listed at {@link #SOCGameOption(String)}
+     *     and not a valid alphanumeric keyname by the rules listed at {@link #SOCGameOption(String, String)}
      */
     public static Map<String,SOCGameOption> parseOptionsToMap(final String ostr, final SOCGameOptionSet knownOpts)
     {
@@ -1450,7 +1454,7 @@ public class SOCGameOption
      * @see #parseOptionNameValue(String, boolean, SOCGameOptionSet)
      * @see #parseOptionNameValue(String, String, boolean, SOCGameOptionSet)
      * @throws IllegalArgumentException if any game option keyname in {@code ostr} is unknown
-     *     and not a valid alphanumeric keyname by the rules listed at {@link #SOCGameOption(String)}
+     *     and not a valid alphanumeric keyname by the rules listed at {@link #SOCGameOption(String, String)}
      * @since 2.5.00
      */
     public static SOCGameOptionSet parseOptionsToSet(final String ostr, final SOCGameOptionSet knownOpts)
@@ -1480,7 +1484,7 @@ public class SOCGameOption
      *         if known, the returned object is a clone of the SGO from the set of all known options.
      *         if nvpair's option keyname is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
      * @throws IllegalArgumentException if {@code optkey} is unknown and not a valid alphanumeric keyname
-     *         by the rules listed at {@link #SOCGameOption(String)}
+     *         by the rules listed at {@link #SOCGameOption(String, String)}
      * @see #parseOptionNameValue(String, String, boolean, SOCGameOptionSet)
      * @see #parseOptionsToMap(String, SOCGameOptionSet)
      * @see #parseOptionsToSet(String, SOCGameOptionSet)
@@ -1505,7 +1509,7 @@ public class SOCGameOption
      * See {@code packOptionsToString(..)} for the format.
      *
      * @param optkey  Game option's alphanumeric keyname, known or unknown.
-     *               Optkey must be a valid key by the rules listed at {@link #SOCGameOption(String)}.
+     *               Optkey must be a valid key by the rules listed at {@link #SOCGameOption(String, String)}.
      * @param optval  Game option's value, as created by {@link #packOptionsToString(Map, boolean, boolean)}.
      *               <BR>
      *               'T', 't', 'Y', 'y' are always allowed for bool true values, regardless of {@code forceNameUpcase}.
@@ -1517,7 +1521,8 @@ public class SOCGameOption
      *         if known, the returned object is a clone of the SGO from the set of all known options.
      *         if {@code optkey} is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
      * @throws IllegalArgumentException if {@code optkey} is unknown and not a valid alphanumeric keyname
-     *         by the rules listed at {@link #SOCGameOption(String)}; {@link Throwable#getMessage()} will have details
+     *         by the rules listed at {@link #SOCGameOption(String, String)};
+     *         {@link Throwable#getMessage()} will have details
      * @see #parseOptionNameValue(String, boolean, SOCGameOptionSet)
      * @see #parseOptionsToMap(String, SOCGameOptionSet)
      * @see #parseOptionsToSet(String, SOCGameOptionSet)
@@ -1535,7 +1540,7 @@ public class SOCGameOption
         SOCGameOption copyOpt;
         if (knownOpt == null)
         {
-            copyOpt = new SOCGameOption(optkey);  // OTYPE_UNKNOWN; may throw IllegalArgumentException
+            copyOpt = new SOCGameOption(optkey, null);  // OTYPE_UNKNOWN; may throw IllegalArgumentException
         }
         else
         {
@@ -1633,7 +1638,7 @@ public class SOCGameOption
                 break;
 
             default:
-                copyOpt = new SOCGameOption(optkey);  // OTYPE_UNKNOWN
+                copyOpt = new SOCGameOption(optkey, copyOpt.getDesc());  // OTYPE_UNKNOWN
             }
         }
 

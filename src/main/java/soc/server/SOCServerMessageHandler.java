@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2021,2023 Jeremy D Monin <jeremy@nand.net>
  * Some contents were formerly part of SOCServer.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
@@ -665,6 +665,7 @@ public class SOCServerMessageHandler
         final boolean wantsLocalDescs =
             scd.wantsI18N
             && ! SOCServer.i18n_gameopt_PL_desc.equals(c.getLocalized("gameopt.PL"));
+        final boolean unknownsWithDescs = (cliVers >= SOCGameOptionInfo.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION);
 
         if (wantsLocalDescs)
         {
@@ -686,7 +687,17 @@ public class SOCServerMessageHandler
                 SOCGameOption opt = srv.knownOpts.getKnownOption(okey, false);
 
                 if ((opt == null) || (opt.minVersion > cliVers))  // don't use dynamic opt.getMinVersion(Map) here
-                    opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
+                {
+                    String localDesc = null;
+                    if (unknownsWithDescs && (opt != null))
+                        try {
+                            localDesc = c.getLocalized("gameopt." + okey);
+                        } catch (MissingResourceException e) {
+                            localDesc = opt.getDesc();
+                        }
+
+                    opt = new SOCGameOption(okey, localDesc);  // OTYPE_UNKNOWN
+                }
 
                 opts.put(okey, opt);
             }
@@ -723,7 +734,7 @@ public class SOCServerMessageHandler
         // Overwrites any which happened to already be in opts (unknown or otherwise).
         // See also SOCGameOptionSet.adjustOptionsToKnown which has very similar code for limited client feats.
 
-        // Unsupported 3rd-party opts aren't sent unless client asked about them by key.
+        // Unsupported 3rd-party opts won't be sent unless client asked about them by key.
 
         SOCFeatureSet limitedCliFeats = srv.checkLimitClientFeaturesForServerDisallows(scd.feats);
         if ((limitedCliFeats == null) && hasLimitedFeats)
@@ -733,7 +744,7 @@ public class SOCServerMessageHandler
             (limitedCliFeats != null) ? srv.knownOpts.optionsNotSupported(limitedCliFeats) : null;
         if (unsupportedOpts != null)
             for (SOCGameOption opt : unsupportedOpts.values())
-                opts.put(opt.key, new SOCGameOption(opt.key));  // OTYPE_UNKNOWN
+                opts.put(opt.key, new SOCGameOption(opt.key, opt.getDesc()));  // OTYPE_UNKNOWN
 
         final Map<String, SOCGameOption> trimmedOpts =
             (limitedCliFeats != null) ? srv.knownOpts.optionsTrimmedForSupport(limitedCliFeats) : null;
@@ -758,7 +769,7 @@ public class SOCServerMessageHandler
 
                     if ((requestedKeys != null) && requestedKeys.contains(okey))
                     {
-                        opts.put(okey, new SOCGameOption(okey));  // OTYPE_UNKNOWN
+                        opts.put(okey, new SOCGameOption(okey, opt.getDesc()));  // OTYPE_UNKNOWN
                     } else {
                         opts.remove(okey);
                         if (wantsLocalDescs)
@@ -782,13 +793,22 @@ public class SOCServerMessageHandler
 
             if (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
             {
-                if ((opt.minVersion > cliVers)
-                    || (hasLimitedFeats && unsupportedOpts.containsKey(okey)))
-                    opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
-                else if (wantsLocalDescs)
+                final boolean sendAsUnknown = (opt.minVersion > cliVers)
+                    || (hasLimitedFeats && unsupportedOpts.containsKey(okey));
+
+                if (wantsLocalDescs || (sendAsUnknown && unknownsWithDescs))
                     try {
                         localDesc = c.getLocalized("gameopt." + okey);
-                    } catch (MissingResourceException e) {}
+                    } catch (MissingResourceException e) {
+                        if (sendAsUnknown)
+                            localDesc = opt.getDesc();
+                    }
+
+                if (sendAsUnknown)
+                {
+                    opt = new SOCGameOption(okey, localDesc);  // OTYPE_UNKNOWN
+                    localDesc = null;
+                }
             }
 
             if (wantsLocalDescs)
@@ -797,7 +817,7 @@ public class SOCServerMessageHandler
                 optsToLocal.remove(okey);
 
                 if (opt.getDesc().equals(localDesc))
-                    // don't send desc if not localized, client already has unlocalized desc string
+                    // don't send desc if not localized: client already has unlocalized desc string
                     localDesc = null;
             }
 

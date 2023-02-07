@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1579,7 +1579,7 @@ public class SOCGameOptionSet
      * @param limitedCliFeats For {@link doServerPreadjust}, client's set of features if limited compared to
      *     the standard client; null if client doesn't have limited feats.
      *     See {@link soc.server.SOCClientData#hasLimitedFeats} for details.
-     * @return <tt>null</tt> if all are known; or, a map of game options to human-readable problem descriptions if:
+     * @return <tt>null</tt> if all are known; or, a map of game option keys to human-readable problem descriptions if:
      *     <UL>
      *       <LI> any option in this set not a Known Option
      *            or is inactive (has {@link SOCGameOption#FLAG_INACTIVE_HIDDEN})
