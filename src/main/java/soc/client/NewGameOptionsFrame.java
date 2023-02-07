@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2015,2017-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2015,2017-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1979,11 +1979,12 @@ import soc.util.Version;
 
         if (allOK && checkOptionsMinVers && ! forPractice)
         {
-            int optsVers = SOCVersionedItem.itemsMinimumVersion(controlsOpts);
+            Map<String, Integer> optsMins = new HashMap<>();
+            int optsVers = SOCVersionedItem.itemsMinimumVersion(controlsOpts, false, optsMins);
             if ((optsVers > -1) && (optsVers > Version.versionNumberMaximumNoWarn()))
             {
                 allOK = false;
-                new VersionConfirmDialog(this, optsVers).setVisible(true);
+                new VersionConfirmDialog(this, optsVers, optsMins).setVisible(true);
             }
         }
 
@@ -2598,6 +2599,44 @@ import soc.util.Version;
         gameInfo.setText(txt);
     }
 
+    /**
+     * Builds a multi-line list of game option localized descriptions and minimum versions.
+     * Each line's format is "version: opt desc": {@code "2.7.00: Allow undo piece builds and moves"}
+     * followed by a newline character {@code '\n'}.
+     *
+     * @param optsMins  Map of gameopt keys -> minVers,
+     *     from {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, Map)};
+     *     can be null or empty
+     * @param versIgnoreMax  Ignores {@code optsMins} entries whose version is this or lower,
+     *     like {@link Version#versionNumberMaximumNoWarn()}, or -1 to use all entries
+     * @return {@code optsMins} entries' version numbers and localized {@link SOCGameOption#getDesc()}s,
+     *     one line per entry, or {@code ""} if none
+     * @since 2.7.00
+     */
+    private StringBuilder buildOptionVersionList
+        (final Map<String, Integer> optsMins, final int versIgnoreMax)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (optsMins != null)
+        {
+            ArrayList<String> okeys = new ArrayList<>(optsMins.keySet());
+            Collections.sort(okeys);
+            for (String okey : okeys)
+            {
+                final int vers = optsMins.get(okey).intValue();
+                if ((versIgnoreMax > -1) && (vers <= versIgnoreMax))
+                    continue;
+
+                sb.append(Version.version(vers)).append(": ");
+                sb.append(knownOpts.get(okey).getDesc());
+                sb.append('\n');
+            }
+        }
+
+        return sb;
+    }
+
 
     /**
      * A textfield that accepts only nonnegative-integer characters.
@@ -2705,11 +2744,15 @@ import soc.util.Version;
          *
          * @param ngof  Parent options-frame, which contains these options
          * @param minVers  Minimum required version for these options
+         * @param optsMins  Map of options which require a minimum version,
+         *     from {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, Map)}, or null or empty if none
          */
-        public VersionConfirmDialog(NewGameOptionsFrame ngof, int minVers)
+        public VersionConfirmDialog(NewGameOptionsFrame ngof, int minVers, Map<String, Integer> optsMins)
         {
             super(mainDisplay, ngof, strings.get("game.options.verconfirm.title"),
-                strings.get("game.options.verconfirm.prompt", Version.version(minVers)),
+                strings.get
+                    ("game.options.verconfirm.prompt", Version.version(minVers),
+                     buildOptionVersionList(optsMins, Version.versionNumberMaximumNoWarn())),
                 strings.get("game.options.verconfirm.create"),
                 strings.get("game.options.verconfirm.change"), true, false);
         }
