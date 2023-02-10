@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -883,13 +883,15 @@ public class SOCGameListAtServer extends SOCGameList
         // If client is too old (< 1.1.06), it can't be told names of games
         // that it isn't capable of joining.
         boolean cliCanKnow = (cliVers >= SOCGames.VERSION_FOR_UNJOINABLE);
-        final boolean cliCouldKnow = (prevVers >= SOCGames.VERSION_FOR_UNJOINABLE);
+        final boolean cliCouldKnow = (prevVers >= SOCGames.VERSION_FOR_UNJOINABLE),
+            cliGetsUnjoinableWithOpts = (cliVers >= SOCGameOption.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION);
         final boolean cliNotLimitedFeats = ! (alwaysCheckFeats || scd.hasLimitedFeats);
         final SOCFeatureSet cliLimitedFeats = cliNotLimitedFeats ? null : scd.feats;
 
         ArrayList<Object> gl = new ArrayList<Object>();  // contains Strings and/or SOCGames;
-                                   // strings are names of unjoinable games,
-                                   // with the UNJOINABLE prefix.
+               // this is the format used by the SOCGamesWithOptions constructor.
+               // strings are names of unjoinable games, with the UNJOINABLE prefix.
+               // If cliGetsUnjoinableWithOpts, each unjoinable game is Boolean.FALSE followed by the SOCGame.
         takeMonitor();
 
         // Note this flag now, while gamelist monitor is held
@@ -943,10 +945,13 @@ public class SOCGameListAtServer extends SOCGameList
                                // could join it with lower (prev-assumed) version
                 }
 
-                if ((cliVers >= gameVers)
-                    && (cliNotLimitedFeats || g.canClientJoin(cliLimitedFeats)))
+                final boolean canJoin = (cliVers >= gameVers)
+                    && (cliNotLimitedFeats || g.canClientJoin(cliLimitedFeats));
+                if (canJoin || cliGetsUnjoinableWithOpts)
                 {
-                    gl.add(g);  // Can join
+                    if (! canJoin)
+                        gl.add(Boolean.FALSE);
+                    gl.add(g);
                 } else if (cliCanKnow)
                 {
                     //  Cannot join, but can see it
@@ -972,14 +977,23 @@ public class SOCGameListAtServer extends SOCGameList
 
             } else {
                 // send deltas only
-                for (int i = 0; i < gl.size(); ++i)
+                boolean isJoinable = true;
+                for (Object ob : gl)
                 {
-                    Object ob = gl.get(i);
                     String gaName;
-                    if (ob instanceof SOCGame)
+                    if (ob instanceof Boolean)
+                    {
+                        isJoinable = ((Boolean) ob).booleanValue();  // false, because Boolean.TRUE would be redundant
+                        continue;
+                    }
+                    else if (ob instanceof SOCGame)
+                    {
                         gaName = ((SOCGame) ob).getName();
-                    else
+                        if (! isJoinable)
+                            gaName = SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName;
+                    } else {
                         gaName = (String) ob;
+                    }
 
                     if (cliCouldKnow)
                     {
@@ -988,9 +1002,12 @@ public class SOCGameListAtServer extends SOCGameList
                     }
                     // announce as 'new game' to client
                     if ((ob instanceof SOCGame) && (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
-                        c.put(new SOCNewGameWithOptions((SOCGame) ob, cliVers));
+                        c.put(new SOCNewGameWithOptions((SOCGame) ob, cliVers, isJoinable));
                     else
                         c.put(new SOCNewGame(gaName));
+
+                    if (! isJoinable)
+                        isJoinable = true;  // reset for next
                 }
             }
         }

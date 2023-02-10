@@ -665,7 +665,7 @@ public class SOCServerMessageHandler
         final boolean wantsLocalDescs =
             scd.wantsI18N
             && ! SOCServer.i18n_gameopt_PL_desc.equals(c.getLocalized("gameopt.PL"));
-        final boolean unknownsWithDescs = (cliVers >= SOCGameOptionInfo.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION);
+        final boolean unknownsWithDescs = (cliVers >= SOCGameOption.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION);
 
         if (wantsLocalDescs)
         {

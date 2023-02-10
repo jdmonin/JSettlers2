@@ -3213,8 +3213,7 @@ public class SOCServer extends Server
 
             // Check whether any clients have only limited features and can't join:
 
-            Connection cliLimited = null;  // the first limited connection found, if any
-            SOCMessage cannotJoinMsg = null;  // if needed, lazy init in loop body
+            Connection cliLimited = null;  // the first limited connection found, if any, as an optimization
 
             if (has3rdPartyGameopts || ! limitedConns.isEmpty())
             {
@@ -3269,12 +3268,6 @@ public class SOCServer extends Server
                                 }
                         }
                     }
-
-                    if (cliLimited != null)
-                    {
-                        cannotJoinMsg = new SOCNewGame(SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName);  // was null
-                        cliLimited.put(cannotJoinMsg);
-                    }
                 }
             }
 
@@ -3293,18 +3286,15 @@ public class SOCServer extends Server
                 // If no game options, send simple NEWGAME message type to all clients.
 
                 final HashMap<Integer, SOCMessage> msgCacheForVersion = new HashMap<Integer, SOCMessage>();
-                    // key = client version. Special keys:
-                    // 1 if older than VERSION_FOR_NEWGAMEWITHOPTIONS;
-                    // -1 if older than that and can't join
 
                 synchronized (unnamedConns)
                 {
                     broadcastNewGame_toConns
                         (newGame, gaOpts, gVers, gVersMinGameOptsNoChange,
-                         conns.values(), cliLimited, msgCacheForVersion, cannotJoinMsg);
+                         conns.values(), cliLimited, msgCacheForVersion);
                     broadcastNewGame_toConns
                         (newGame, gaOpts, gVers, gVersMinGameOptsNoChange,
-                         unnamedConns, cliLimited, msgCacheForVersion, cannotJoinMsg);
+                         unnamedConns, cliLimited, msgCacheForVersion);
                 }
                 if (isRecordGameEventsActive())
                     recordGameEvent(gaName, new SOCNewGameWithOptions(gaName, gaOpts, gVers, -2));
@@ -3321,34 +3311,47 @@ public class SOCServer extends Server
      */
     private void broadcastNewGame_toConns
         (final SOCGame newGame, final SOCGameOptionSet gaOpts, final int gVers,
-         final int gVersMinGameOptsNoChange, Collection<Connection> connSet, Connection cliLimited,
-         final HashMap<Integer, SOCMessage> msgCacheForVersion, SOCMessage cannotJoinMsg)
+         final int gVersMinGameOptsNoChange, Collection<Connection> connSet, final Connection cliLimited,
+         final HashMap<Integer, SOCMessage> msgCacheForVersion)
     {
         final String gaName = newGame.getName();
+        SOCMessage cannotJoinMsgNoOpts = null, cannotJoinMsgWithOpts = null;
 
         for (Connection c : connSet)
         {
+            int cvers = c.getVersion();
             if (cliLimited != null)
             {
-                if (c == cliLimited)
-                    continue;  // already sent
-
-                if ((has3rdPartyGameopts || limitedConns.contains(c))
+                if ((c == cliLimited) || (has3rdPartyGameopts || limitedConns.contains(c))
                     && ! newGame.canClientJoin(((SOCClientData) c.getAppData()).feats))
                 {
-                    if (cannotJoinMsg == null)
-                        cannotJoinMsg = new SOCNewGame(SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName);
-                    c.put(cannotJoinMsg);
+                    SOCMessage m;
+                    final boolean unknownsWithDescs = (cvers >= SOCGameOption.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION);
+                    if (unknownsWithDescs && (cvers < gVersMinGameOptsNoChange))
+                        m = new SOCNewGameWithOptions
+                            (SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName, gaOpts, gVers, cvers);
+                    else
+                    {
+                        m = (unknownsWithDescs)
+                            ? cannotJoinMsgWithOpts
+                            : cannotJoinMsgNoOpts;
+                        if (m == null)
+                        {
+                            if (unknownsWithDescs)
+                                m = cannotJoinMsgWithOpts = new SOCNewGameWithOptions(newGame, -2, false);
+                            else
+                                m = cannotJoinMsgNoOpts = new SOCNewGame(SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName);
+                        }
+                    }
+                    c.put(m);
 
                     continue;  // can't join
                 }
             }
 
-            int cvers = c.getVersion();
-            if (cvers < gVers)
-                cvers = -1;
-            else if ((gaOpts == null) || (cvers < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
-                cvers = 1;
+            final boolean versCanJoin = (cvers >= gVers);
+            if (versCanJoin && ((gaOpts == null) || (cvers < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)))
+                cvers = 1;  // ignore version if client won't be sent gameopts
             final Integer cversKey = Integer.valueOf(cvers);
 
             SOCMessage cacheMsg = msgCacheForVersion.get(cversKey);
@@ -3359,10 +3362,26 @@ public class SOCServer extends Server
             }
 
             // Based on client's version, determine the message to send
-            if (cvers == -1)
+            if (! versCanJoin)
             {
-                // Older clients who can't join: announce game with cant-join prefix
-                cacheMsg = new SOCNewGame(SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName);
+                final boolean unknownsWithDescs = (cvers >= SOCGameOption.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION);
+                if (unknownsWithDescs && (cvers < gVersMinGameOptsNoChange))
+                {
+                    cacheMsg = new SOCNewGameWithOptions
+                        (SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName, gaOpts, gVers, cvers);
+                } else {
+                    cacheMsg = (unknownsWithDescs)
+                        ? cannotJoinMsgWithOpts
+                        : cannotJoinMsgNoOpts;
+                    if (cacheMsg == null)
+                    {
+                        if (unknownsWithDescs)
+                            cacheMsg = cannotJoinMsgWithOpts = new SOCNewGameWithOptions(newGame, -2, false);
+                        else
+                            cacheMsg = cannotJoinMsgNoOpts = new SOCNewGame
+                                (SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName);
+                    }
+                }
             }
             else if (cvers == 1)
             {
@@ -3966,7 +3985,7 @@ public class SOCServer extends Server
             final boolean isSupported = ((cliVers >= minVers)
                 && ((optFeat == null) || ((scd != null) && scd.feats.isActive(optFeat))));
             final String desc =
-                ((! isSupported) && (cliVers >= SOCGameOptionInfo.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION))
+                ((! isSupported) && (cliVers >= SOCGameOption.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION))
                 ? optDesc
                 : null;
             c.put(new SOCGameOptionInfo
@@ -3979,7 +3998,7 @@ public class SOCServer extends Server
             final boolean isSupported = ((cliVers >= minVers)
                 && ((optFeat == null) || ((scd != null) && scd.feats.isActive(optFeat))));
             final String desc =
-                ((! isSupported) && (cliVers >= SOCGameOptionInfo.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION))
+                ((! isSupported) && (cliVers >= SOCGameOption.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION))
                 ? optDesc
                 : null;
             c.put(new SOCGameOptionInfo
@@ -7802,7 +7821,7 @@ public class SOCServer extends Server
 
                     // simplified from SGMH.handleGAMEOPTIONGETINFOS
                     final boolean unknownsWithDescs =
-                        (cliVers >= SOCGameOptionInfo.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION);
+                        (cliVers >= SOCGameOption.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION);
                     for (final String optKey : optProblems.keySet())
                     {
                         String localDesc = null;

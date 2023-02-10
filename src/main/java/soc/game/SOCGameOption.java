@@ -323,6 +323,16 @@ public class SOCGameOption
     public static final int VERSION_FOR_LONGER_OPTNAMES = 2000;
 
     /**
+     * First version where the option's localized description may be sent to client
+     * as part of server's response about an option it can't use ({@link #OTYPE_UNKNOWN}),
+     * and client is sent gameopts of the games it can't join (SOCGamesWithOptions, SOCNewGameWithOptions messages).
+     *<P>
+     * {@link #packOptionsToString(Map, boolean, boolean, int)} checks for this version.
+     * @since 2.7.00
+     */
+    public static final int VERSION_FOR_UNKNOWN_WITH_DESCRIPTION = 2700;
+
+    /**
      * Maximum possible length of any text-type SOCGameOption's value, to conserve network bandwidth.
      * Checked in option's constructor. Individual SOCGameOptions may choose a shorter max length
      * (stored in {@link #maxIntValue} field).
@@ -1247,6 +1257,7 @@ public class SOCGameOption
      *       <LI> OTYPE_BOOL: t or f
      *       <LI> OTYPE_ENUM: int in range 1-n
      *       <LI> OTYPE_INTBOOL: t or f followed immediately by int value, as in: t7 or f9
+     *       <LI> OTYPE_UNKNOWN: ?
      *       <LI> All other optTypes: int value or string value, as appropriate
      *     </UL>
      *
@@ -1266,6 +1277,9 @@ public class SOCGameOption
      * This can be unpacked with {@link #parseOptionsToMap(String, SOCGameOptionSet)}
      * or {@link #parseOptionsToSet(String, SOCGameOptionSet)}.
      * See {@link #packOptionsToString(Map, boolean, boolean)} javadoc for details.
+     *<P>
+     * Clients v2.7.00 or newer ({@link #VERSION_FOR_UNKNOWN_WITH_DESCRIPTION}) are sent {@link #OTYPE_UNKNOWN} options
+     * too, to show in the Game Info window.
      *
      * @param omap  Map of SOCGameOptions, or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
@@ -1273,10 +1287,13 @@ public class SOCGameOption
      * @param sortByKey  If true, sort the options by {@link SOCVersionedItem#key}
      *            (using {@link String#compareTo(String)}) to make the returned string stable and canonical
      * @param cliVers  Client version; assumed >= {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
-     *            If any game's options need adjustment for an older client, cliVers triggers that.
-     *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
-     *            Use -3 to omit options with long names, and do no other adjustment;
-     *               for use with clients older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES}.
+     *            <UL>
+     *            <LI> If any game's options need adjustment for an older client, cliVers triggers that.
+     *            <LI> If >= {@link #VERSION_FOR_UNKNOWN_WITH_DESCRIPTION}, will include unknown options.
+     *            <LI> Use -2 if the client version doesn't matter, or if adjustment should not be done.
+     *            <LI> Use -3 to omit options with long names, and do no other adjustment;
+     *                 for use with clients older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES}.
+     *            </UL>
      * @return string of name-value pairs, or "-" for an empty or null omap;
      *         see {@link #packOptionsToString(Map, boolean, boolean)} javadoc for details.
      * @see #packValue(StringBuilder)
@@ -1293,6 +1310,7 @@ public class SOCGameOption
             && omap.get("PLB").boolValue;
 
         // Pack all non-unknown options:
+        //  (if cliVers >= 2.7.00, include unknowns)
         StringBuilder sb = new StringBuilder();
         boolean hadAny = false;
         Collection<SOCGameOption> opts = omap.values();
@@ -1310,7 +1328,8 @@ public class SOCGameOption
         }
         for (SOCGameOption op : opts)
         {
-            if (op.optType == OTYPE_UNKNOWN)
+            if ((op.optType == OTYPE_UNKNOWN)
+                && (cliVers < VERSION_FOR_UNKNOWN_WITH_DESCRIPTION))
                 continue;  // <-- Skip this one --
             if (hideEmptyStringOpts
                 && ((op.optType == OTYPE_STR) || (op.optType == OTYPE_STRHIDE))  // OTYPE_* - add here if string-valued
@@ -1390,7 +1409,7 @@ public class SOCGameOption
             break;
 
         default:
-            sb.append ('?');  // Shouldn't happen
+            sb.append ('?');  // OTYPE_UNKNOWN
         }
     }
 

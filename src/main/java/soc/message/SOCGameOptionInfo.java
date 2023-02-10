@@ -46,7 +46,7 @@ import soc.game.SOCVersionedItem;
  * If the client asks about an option too new for it to use,
  * by sending the option name or GAMEOPTIONGETINFOS("-"),
  * the server will respond with {@link SOCGameOption#OTYPE_UNKNOWN}.
- * To clients v2.7.00 and newer ({@link #VERSION_FOR_UNKNOWN_WITH_DESCRIPTION}),
+ * To clients v2.7.00 and newer ({@link SOCGameOption#VERSION_FOR_UNKNOWN_WITH_DESCRIPTION}),
  * that response may include the option's description instead of "".
  *<P>
  * Special case: If the client is asking for any new options by sending
@@ -68,13 +68,6 @@ import soc.game.SOCVersionedItem;
 public class SOCGameOptionInfo extends SOCMessageTemplateMs
 {
     private static final long serialVersionUID = 2000L;
-
-    /**
-     * First version where the option's localized description may be sent to client
-     * as part of server's response about an option it can't use ({@link SOCGameOption#OTYPE_UNKNOWN}).
-     * @since 2.7.00
-     */
-    public static final int VERSION_FOR_UNKNOWN_WITH_DESCRIPTION = 2700;
 
     /**
      * If the client is asking for any new options by sending GAMEOPTIONGETINFOS("-"),
@@ -148,7 +141,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * <LI> pal[10] = optFlags as integer -- before v2.0.00, only FLAG_DROP_IF_UNUSED ('t' or 'f')
      * <LI> pal[11] = desc (displayed text) if present; required for all types except {@code OTYPE_UNKNOWN};
      *          may be sent for unknowns to client v2.7.00 and newer
-     *          ({@link SOCGameOptionInfo#VERSION_FOR_UNKNOWN_WITH_DESCRIPTION})
+     *          ({@link SOCGameOption#VERSION_FOR_UNKNOWN_WITH_DESCRIPTION})
      * <LI> pal[12] and beyond, if present = each enum choice's text
      *</UL>
      * Any parameter which is {@link SOCMessage#EMPTYSTR} is changed to "" in place in {@code pal}.

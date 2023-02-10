@@ -31,8 +31,11 @@ JARs for recent JSettlers versions can be downloaded from
 	- Game Info/Options popup: Show game duration and status (not started yet, in progress, finished)
 	- Don't set gotPassword field while joining a practice game
 - Network/Message traffic:
-	- When client joining game is this version or newer, server sends `SOCGameStats(TYPE_TIMING)`
-	  with info on game duration
+	- When client is this version or newer:
+	    - Client is sent every game's list of options; previous versions omitted options of any unjoinable game
+	    - If asked for info about a game option not compatible with client,
+	      server's "unknown option" `SOCGameOptionInfo` reply includes that option's description
+	    - When joining game, server sends `SOCGameStats(TYPE_TIMING)` with info on game duration
 - For developers:
 	- Enhanced GameAction class to start unifying info about actions and their side-effects
 	- Save/load games:
