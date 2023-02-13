@@ -2004,6 +2004,7 @@ import soc.util.Version;
             switch (e.getKeyCode())
             {
             case KeyEvent.VK_ENTER:
+                e.consume();
                 if (readOnly)
                     clickCancel(true);
                 else
@@ -2012,6 +2013,7 @@ import soc.util.Version;
 
             case KeyEvent.VK_CANCEL:
             case KeyEvent.VK_ESCAPE:
+                e.consume();
                 clickCancel(false);
                 break;
             }  // switch(e)
@@ -2680,11 +2682,15 @@ import soc.util.Version;
         /** reject entered characters which aren't digits */
         public void keyTyped(KeyEvent e)
         {
+            if (e.isConsumed())
+                return;
+
             // TODO this is not always rejecting non-digits
 
             switch (e.getKeyCode())
             {
             case KeyEvent.VK_ENTER:
+                e.consume();
                 if (readOnly)
                     clickCancel(true);
                 else
@@ -2693,6 +2699,7 @@ import soc.util.Version;
 
             case KeyEvent.VK_CANCEL:
             case KeyEvent.VK_ESCAPE:
+                e.consume();
                 clickCancel(false);
                 break;
 
