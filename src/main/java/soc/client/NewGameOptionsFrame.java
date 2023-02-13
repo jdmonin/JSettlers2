@@ -350,7 +350,7 @@ import soc.util.Version;
      *                 is pressed, so the next OptionsFrame will default to the values the user has chosen.
      *                 To preserve them, copy the set beforehand.
      *                 Null if server doesn't support game options.
-     *                 Unknown options ({@link SOCGameOption#OTYPE_UNKNOWN}) will be removed.
+     *                 Unknown options ({@link SOCGameOption#OTYPE_UNKNOWN}) will be removed unless <tt>readOnly</tt>.
      *                 If not <tt>readOnly</tt>, each option's {@link SOCGameOption#userChanged userChanged}
      *                 flag will be cleared, to reset status from any previously shown NewGameOptionsFrame.
      * @param forPractice For making a new game: Will the game be on local practice server, vs remote tcp server?
@@ -690,7 +690,7 @@ import soc.util.Version;
      * When the dialog is shown read-only during a game, these options are shown.
      *<P>
      * Options which have {@link SOCGameOption#FLAG_INTERNAL_GAME_PROPERTY} are always hidden.
-     * If not {@link #readOnly}, they're removed from opts.  Unknown opts are always removed.
+     * If not {@link #readOnly}, they're removed from opts. Unknown opts are removed unless read-only.
      *<P>
      * This is called from constructor, so this is a new NGOF being shown.
      * If not read-only, clear {@link SOCGameOption#userChanged} flag for
@@ -743,7 +743,7 @@ import soc.util.Version;
         {
             final String okey = opt.key;
             final int kL = okey.length();
-            if ((kL <= 2) || (opt.optType == SOCGameOption.OTYPE_UNKNOWN)
+            if ((kL <= 2) || ((opt.optType == SOCGameOption.OTYPE_UNKNOWN) && ! readOnly)
                 || opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
                 continue;
 
@@ -758,7 +758,7 @@ import soc.util.Version;
                 kf2 = okey.substring(0, i);
             }
             SOCGameOption op2 = opts.get(kf2);
-            if ((op2 != null) && (op2.optType != SOCGameOption.OTYPE_UNKNOWN))
+            if ((op2 != null) && ((op2.optType != SOCGameOption.OTYPE_UNKNOWN) || readOnly))
                 sameGroupOpts.put(okey, kf2);
         }
 
@@ -776,7 +776,7 @@ import soc.util.Version;
         {
             final SOCGameOption op = optArr[i];
 
-            if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
+            if ((op.optType == SOCGameOption.OTYPE_UNKNOWN) && ! readOnly)
             {
                 opts.remove(op.key);
                 continue;  // <-- Removed, Go to next entry --
@@ -950,6 +950,7 @@ import soc.util.Version;
         switch (op.optType)  // OTYPE_*
         {
         case SOCGameOption.OTYPE_BOOL:
+        case SOCGameOption.OTYPE_UNKNOWN:
             {
                 JCheckBox cb = new JCheckBox();
                 initInterface_Opt1(op, cb, true, false, false, bp, gbl, gbc);
@@ -1038,7 +1039,8 @@ import soc.util.Version;
             else
                 cb = new JCheckBox();
             controlsOpts.put(cb, op);
-            cb.setSelected(op.getBoolValue());
+            cb.setSelected
+                ((op.optType != SOCGameOption.OTYPE_UNKNOWN) ? op.getBoolValue() : true);
             cb.setEnabled(! readOnly);
             if (! isOSHighContrast)
             {

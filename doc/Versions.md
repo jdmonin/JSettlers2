@@ -28,7 +28,9 @@ JARs for recent JSettlers versions can be downloaded from
 	- New Game dialog:
 	    - If any of the chosen Game Options require a minimum client version, list those options in the confirmation dialog
 	      so user knows what to leave out if they don't want that requirement
-	- Game Info/Options popup: Show game duration and status (not started yet, in progress, finished)
+	- Game Info/Options popup:
+	    - Show game duration and status (not started yet, in progress, finished)
+	    - Even if client can't join game, show its options (with server v2.7.00 or newer)
 	- Don't set gotPassword field while joining a practice game
 - Network/Message traffic:
 	- When client is this version or newer:
