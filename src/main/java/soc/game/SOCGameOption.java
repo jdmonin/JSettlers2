@@ -1240,7 +1240,7 @@ public class SOCGameOption
      *<P>
      * For sending options to a client, use {@link #packOptionsToString(Map, boolean, boolean, int)} instead.
      *
-     * @param omap  Map of SOCGameOptions, or null
+     * @param omap  Map of SOCGameOptions; can be empty or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
      * @param sortByKey  If true, sort the options by {@link SOCVersionedItem#key}
@@ -1278,20 +1278,25 @@ public class SOCGameOption
      * or {@link #parseOptionsToSet(String, SOCGameOptionSet)}.
      * See {@link #packOptionsToString(Map, boolean, boolean)} javadoc for details.
      *<P>
+     * Does not check {@code cliVers} against each option's {@link SOCGameOption#getMinVersion(Map)}.
+     * Generally all options besides unknowns ({@link #OTYPE_UNKNOWN}, or having {@link #FLAG_INACTIVE_HIDDEN})
+     * are included in the returned string; for details see {@code cliVers} parameter
+     * and {@link #packOptionsToString(Map, boolean, boolean)} "returns" javadoc.
      * Clients v2.7.00 or newer ({@link #VERSION_FOR_UNKNOWN_WITH_DESCRIPTION}) are sent {@link #OTYPE_UNKNOWN} options
      * too, to show in the Game Info window.
      *
-     * @param omap  Map of SOCGameOptions, or null
+     * @param omap  Map of SOCGameOptions; can be empty or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
      * @param sortByKey  If true, sort the options by {@link SOCVersionedItem#key}
      *            (using {@link String#compareTo(String)}) to make the returned string stable and canonical
      * @param cliVers  Client version; assumed >= {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
      *            <UL>
-     *            <LI> If any game's options need adjustment for an older client, cliVers triggers that.
+     *            <LI> If the set of option values needs adjustment for an older client, cliVers triggers that.
      *            <LI> If >= {@link #VERSION_FOR_UNKNOWN_WITH_DESCRIPTION}, will include unknown options.
      *            <LI> Use -2 if the client version doesn't matter, or if adjustment should not be done.
-     *            <LI> Use -3 to omit options with long names, and do no other adjustment;
+     *                 Omits unknown options.
+     *            <LI> Use -3 to omit options with long names or underscores, and unknowns, and do no other adjustment;
      *                 for use with clients older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES}.
      *            </UL>
      * @return string of name-value pairs, or "-" for an empty or null omap;

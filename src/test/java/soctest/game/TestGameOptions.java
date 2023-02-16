@@ -141,6 +141,148 @@ public class TestGameOptions
     }
 
     /**
+     * Test {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}
+     * and {@link SOCGameOption#packOptionsToString(Map, boolean, boolean, int)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testPackOptionsToString()
+    {
+        assertEquals("-", SOCGameOption.packOptionsToString(null, false, false));
+        assertEquals("-", SOCGameOption.packOptionsToString(null, false, false, 2000));
+        Map<String, SOCGameOption> opts = new HashMap<>();
+        assertEquals("-", SOCGameOption.packOptionsToString(opts, false, false));
+        assertEquals("-", SOCGameOption.packOptionsToString(opts, false, false, 2000));
+
+        /*
+         * only 1 game option in map
+         */
+        final SOCGameOption optPL = knownOpts.getKnownOption("PL", true);
+        optPL.setIntValue(3);
+        opts.put("PL", optPL);
+        assertEquals("PL=3", SOCGameOption.packOptionsToString(opts, false, false));
+        assertEquals("PL=3", SOCGameOption.packOptionsToString(opts, false, false, 2000));
+
+        /*
+         * hideEmptyStringOpts: set of opts with one string that isn't special-case scenario ("SC")
+         */
+        SOCGameOption op;
+        op = knownOpts.getKnownOption("RD", true);
+        op.setBoolValue(true);
+        opts.put("RD", op);
+        op = knownOpts.getKnownOption("N7C", true);
+        op.setBoolValue(true);
+        opts.put("N7C", op);
+        op = knownOpts.getKnownOption(SOCGameOptionSet.K__EXT_GAM, true);
+        opts.put(SOCGameOptionSet.K__EXT_GAM, op);
+
+        op.setStringValue("");
+        assertEquals("N7C=t,PL=3,RD=t,_EXT_GAM=", SOCGameOption.packOptionsToString(opts, false, true));
+        assertEquals("N7C=t,PL=3,RD=t", SOCGameOption.packOptionsToString(opts, true, true));
+
+        op.setStringValue("x");
+        assertEquals("N7C=t,PL=3,RD=t,_EXT_GAM=x", SOCGameOption.packOptionsToString(opts, false, true));
+        assertEquals("N7C=t,PL=3,RD=t,_EXT_GAM=x", SOCGameOption.packOptionsToString(opts, true, true));
+        assertEquals("N7C=t,PL=3,RD=t,_EXT_GAM=x", SOCGameOption.packOptionsToString(opts, false, true, 2700));
+        assertEquals("N7C=t,PL=3,RD=t,_EXT_GAM=x", SOCGameOption.packOptionsToString(opts, false, true, -2));
+        assertEquals("N7C=t,PL=3,RD=t,_EXT_GAM=x", SOCGameOption.packOptionsToString(opts, true, true, 2700));
+        assertEquals("N7C=t,PL=3,RD=t,_EXT_GAM=x", SOCGameOption.packOptionsToString(opts, true, true, -2));
+
+        /*
+         * VERSION_FOR_LONGER_OPTNAMES (cliVers -3)
+         */
+        op = new SOCGameOption("_X", 2700, 2700, false, 0, "A short name with an underscore");
+        op.setBoolValue(true);
+        opts.put("_X", op);
+        assertEquals("N7C=t,PL=3,RD=t,_EXT_GAM=x,_X=t", SOCGameOption.packOptionsToString(opts, true, true, 2700));
+        assertEquals("N7C=t,PL=3,RD=t,_EXT_GAM=x,_X=t", SOCGameOption.packOptionsToString(opts, true, true, -2));
+        assertEquals("N7C=t,PL=3,RD=t", SOCGameOption.packOptionsToString(opts, true, true, -3));
+
+        opts.remove(SOCGameOptionSet.K__EXT_GAM);
+        opts.remove("_X");
+        opts.remove("N7C");
+
+        /*
+         * omit FLAG_INACTIVE_HIDDEN
+         */
+        op = new SOCGameOption
+            ("FO", 2000, 2500, false,
+             SOCGameOption.FLAG_INACTIVE_HIDDEN | SOCGameOption.FLAG_DROP_IF_UNUSED, "test option PLAY_FO");
+        op.setBoolValue(true);
+        opts.put("FO", op);
+        assertEquals("PL=3,RD=t", SOCGameOption.packOptionsToString(opts, false, true, -3));
+        assertEquals("PL=3,RD=t", SOCGameOption.packOptionsToString(opts, false, true, -2));
+        assertEquals("PL=3,RD=t", SOCGameOption.packOptionsToString(opts, false, true, 2700));
+        // simulate SGOSet.activate
+        op = new SOCGameOption
+            ("FO", 2000, 2500, false,
+             SOCGameOption.FLAG_ACTIVATED | SOCGameOption.FLAG_DROP_IF_UNUSED, "test option PLAY_FO");
+        op.setBoolValue(true);
+        opts.put("FO", op);
+        assertEquals("FO=t,PL=3,RD=t", SOCGameOption.packOptionsToString(opts, false, true, -3));
+        assertEquals("FO=t,PL=3,RD=t", SOCGameOption.packOptionsToString(opts, false, true, -2));
+        assertEquals("FO=t,PL=3,RD=t", SOCGameOption.packOptionsToString(opts, false, true, 2700));
+        opts.remove("FO");
+
+        /*
+         * adjustment (cliVers -2 or < 1.1.13): PL=3 PLB=t -> PL=5
+         */
+        assertEquals("PL=3,RD=t", SOCGameOption.packOptionsToString(opts, false, true, -3));
+        assertEquals("PL=3,RD=t", SOCGameOption.packOptionsToString(opts, false, true, -2));
+        assertEquals("PL=3,RD=t", SOCGameOption.packOptionsToString(opts, false, true, 2700));
+        assertEquals("PL=3,RD=t", SOCGameOption.packOptionsToString(opts, false, true, 1113));
+        assertEquals("PL=3,RD=t", SOCGameOption.packOptionsToString(opts, false, true, 1112));  // no adjustment without PLB
+
+        op = knownOpts.getKnownOption("PLB", true);
+        op.setBoolValue(true);
+        opts.put("PLB", op);
+        assertEquals(3, optPL.getIntValue());
+        assertEquals("PL=3,PLB=t,RD=t", SOCGameOption.packOptionsToString(opts, false, true, -3));
+        assertEquals("PL=3,PLB=t,RD=t", SOCGameOption.packOptionsToString(opts, false, true, -2));
+        assertEquals("PL=3,PLB=t,RD=t", SOCGameOption.packOptionsToString(opts, false, true, 2700));
+        assertEquals("PL=3,PLB=t,RD=t", SOCGameOption.packOptionsToString(opts, false, true, 1113));
+        assertEquals("PL=5,PLB=t,RD=t", SOCGameOption.packOptionsToString(opts, false, true, 1112));  // adjustment because PLB
+
+        /*
+         * unknowns (cliVers vs 2.7.00 VERSION_FOR_UNKNOWN_WITH_DESCRIPTION)
+         */
+        opts.remove("RD");
+        op = knownOpts.getKnownOption("SBL", true);
+        op.setBoolValue(true);
+        assertEquals(2000, op.getMinVersion(null));
+        opts.put("SBL", op);
+        op = knownOpts.getKnownOption("UB", true);
+        op.setBoolValue(true);
+        assertEquals(2700, op.getMinVersion(null));
+        opts.put("UB", op);
+        assertEquals(2700, SOCGameOption.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION);
+
+        // doesn't check cliVers vs op.minVers, only OTYPE_UNKNOWN
+        assertEquals("PL=3,PLB=t,SBL=t,UB=t", SOCGameOption.packOptionsToString(opts, false, true, -3));
+        assertEquals("PL=3,PLB=t,SBL=t,UB=t", SOCGameOption.packOptionsToString(opts, false, true, -2));
+        assertEquals("PL=3,PLB=t,SBL=t,UB=t", SOCGameOption.packOptionsToString(opts, false, true, 2700));
+        assertEquals("PL=3,PLB=t,SBL=t,UB=t", SOCGameOption.packOptionsToString(opts, false, true, 2699));
+        assertEquals("PL=3,PLB=t,SBL=t,UB=t", SOCGameOption.packOptionsToString(opts, false, true, 2000));
+        assertEquals("PL=3,PLB=t,SBL=t,UB=t", SOCGameOption.packOptionsToString(opts, false, true, 1999));
+
+        // test with unknowns
+        opts.put("UB", new SOCGameOption("UB", "unknown UB"));
+        assertEquals("PL=3,PLB=t,SBL=t", SOCGameOption.packOptionsToString(opts, false, true, -3));
+        assertEquals("PL=3,PLB=t,SBL=t", SOCGameOption.packOptionsToString(opts, false, true, -2));
+        assertEquals("PL=3,PLB=t,SBL=t,UB=?", SOCGameOption.packOptionsToString(opts, false, true, 2700));
+        assertEquals("PL=3,PLB=t,SBL=t", SOCGameOption.packOptionsToString(opts, false, true, 2699));
+        assertEquals("PL=3,PLB=t,SBL=t", SOCGameOption.packOptionsToString(opts, false, true, 2000));
+        assertEquals("PL=3,PLB=t,SBL=t", SOCGameOption.packOptionsToString(opts, false, true, 1999));
+        opts.put("SBL", new SOCGameOption("SBL", "unknown SBL"));
+        assertEquals("PL=3,PLB=t", SOCGameOption.packOptionsToString(opts, false, true, -3));
+        assertEquals("PL=3,PLB=t", SOCGameOption.packOptionsToString(opts, false, true, -2));
+        assertEquals("PL=3,PLB=t,SBL=?,UB=?", SOCGameOption.packOptionsToString(opts, false, true, 2700));
+        assertEquals("PL=3,PLB=t", SOCGameOption.packOptionsToString(opts, false, true, 2699));
+        assertEquals("PL=3,PLB=t", SOCGameOption.packOptionsToString(opts, false, true, 2000));
+        assertEquals("PL=3,PLB=t", SOCGameOption.packOptionsToString(opts, false, true, 1999));
+    }
+
+    /**
      * Test {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet) adjustOptionsToKnown(knownOpts, doServerPreadjust=true, null)}
      * with all 3 * 3 possible combinations of {@code "VP"} at server's known opts and client:
      * True ({@code t13}), false ({@code f13}), not in set.
