@@ -73,6 +73,11 @@ import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;  // for convenience in
  * <LI> {@link #setKnownOptionCurrentValue(SOCGameOption)}
  *</UL>
  *
+ *<H4>Groups of related Options</H4>
+ *<UL>
+ * <LI> {@link SOCGameOption#getGroupParentKey(String)}
+ *</UL>
+ *
  *<H4>Options available only when Activated or when client has a Feature</H4>
  *<UL>
  * <LI> {@link #optionsNotSupported(SOCFeatureSet)}
@@ -768,6 +773,9 @@ public class SOCGameOptionSet
         opts.add(new SOCGameOption
             ("DEBUGSTRHIDE", 1107, Version.versionNumber(), 20, true, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option strhide"));
 
+        opts.add(new SOCGameOption
+            ("N7_DROPP", 2000, Version.versionNumber(), false, SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED, "Test drop if parent N7 unused"));
+            // testing note: deliberately doesn't have FLAG_DROP_IF_UNUSED; an actual option would usually set that too
         opts.add(new SOCGameOption
             ("_3P", 2000, Version.versionNumber(), false, SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_DROP_IF_UNUSED, "Test third-party option"));
         opts.add(new SOCGameOption
@@ -1724,6 +1732,8 @@ public class SOCGameOptionSet
             if (((opt != null) && (opt.getIntValue() > 4))
                 || ((optPLP != null) && optPLP.getBoolValue()))
                 setBoolOption("PLB", knownOpts);
+
+            // TODO: check for FLAG_DROP_IF_PARENT_UNUSED
 
         }  // if(doServerPreadjust)
 

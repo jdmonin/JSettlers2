@@ -1337,6 +1337,39 @@ public class TestGameOptions
     }
 
     /**
+     * Test {@link SOCGameOption#getGroupParentKey(String)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testGetGroupParentKey()
+    {
+        String groupKey;
+
+        try {
+            groupKey = SOCGameOption.getGroupParentKey(null);
+            fail("getGroupParentKey(null): should have thrown; returned " + groupKey);
+        }
+        catch(IllegalArgumentException e) {}
+        try {
+            groupKey = SOCGameOption.getGroupParentKey("");
+            fail("getGroupParentKey(\"\"): should have thrown; returned " + groupKey);
+        }
+        catch(IllegalArgumentException e) {}
+
+        assertNull(SOCGameOption.getGroupParentKey("X"));  // length 1
+        assertNull(SOCGameOption.getGroupParentKey("XY"));  // length 2
+        assertNull(SOCGameOption.getGroupParentKey("_XYZ"));  // length > 3, starts with '_'
+        assertNull(SOCGameOption.getGroupParentKey("XYZW"));  // length > 3, has no '_'
+
+        assertEquals("XY", SOCGameOption.getGroupParentKey("XYZ"));  // length 3, no special chars
+        assertEquals("X3", SOCGameOption.getGroupParentKey("X3Z"));
+        assertEquals("XY", SOCGameOption.getGroupParentKey("XY_"));  // length 3 & ends with '_'
+        assertEquals("_Y", SOCGameOption.getGroupParentKey("_YZ"));  // length 3 & starts with '_'
+        assertEquals("ABC", SOCGameOption.getGroupParentKey("ABC_"));  // length > 3 & ends with '_'
+        assertEquals("ABC", SOCGameOption.getGroupParentKey("ABC_DEF"));
+    }
+
+    /**
      * Test {@link SOCGameOption#equals(Object)}.
      * @since 2.5.00
      */

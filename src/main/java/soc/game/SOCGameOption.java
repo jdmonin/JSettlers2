@@ -66,6 +66,20 @@ import soc.util.Version;
  * Also search {@link SOCScenario} for the option as part of a string,
  * such as <tt>"SBL=t,VP=12"</tt>.
  *
+ *<H3>Groups of Related Options</H3>
+ *
+ * Some Known Options are grouped together because they're for related features or rules.
+ *<BR>
+ * Example:
+ *<UL>
+ * <LI> {@code PL} Maximum # players
+ * <LI> {@code PLB} Use 6-player board
+ * <LI> {@code PLP} 6-player board: Can Special Build only if 5 or 6 players in game
+ *</UL>
+ * The key of the group's parent ({@code PL} here) is used as the prefix for the name of the
+ * other group members: See {@link #getGroupParentKey(String)} for details.
+ * {@code NewGameOptionsFrame} also groups them together under the parent.
+ *
  *<H3>Name and value formats</H3>
  *
  * Option name keys must start with a letter and contain only ASCII uppercase
@@ -171,7 +185,10 @@ public class SOCGameOption
      * Only recommended if game behavior without the option is well-established
      * (for example, trading is allowed unless option NT is present).
      *<P>
-     *<b>Details:</b><BR>
+     * For the same behavior within a group of related options, see {@link #FLAG_DROP_IF_PARENT_UNUSED}.
+     *
+     *<H3>Details:</H3>
+     *
      * Should the server drop this option from game options, and not send over
      * the network, if the value is false or blank?
      * (Meaning false (not set) for {@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL}
@@ -258,6 +275,31 @@ public class SOCGameOption
      * @since 2.5.00
      */
     public static final int FLAG_3RD_PARTY = 0x10;
+
+    /**
+     * {@link #optFlags} bitfield constant to indicate option is part of a group and
+     * should be dropped if the group's parent option is unset/default.
+     * If parent's value is the default, server should not add this option to game options
+     * or send over the network.
+     *
+     *<H3>Details:</H3>
+     *
+     * Parent key is determined by {@link #getGroupParentKey(String)}.
+     * Parent has same criteria for "set" values as {@link #FLAG_DROP_IF_UNUSED}.
+     *<P>
+     * When creating a new game at the client, {@code NewGameOptionsFrame} may use this flag as a hint
+     * to auto-set the parent's value if possible when the user changes this option from default
+     * (by creating a client-side {@link ChangeListener}).
+     *<P>
+     * When the "Create Game" button is pressed, {@code NewGameOptionsFrame} ignores this flag
+     * and will send all options and values to the server. Server then examines the set of options
+     * for consistency as usual, and will drop this option if the parent isn't set, by calling
+     * <tt>gameOpts.{@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet) adjustOptionsToKnown}(knownOpts,
+     * doServerPreadjust=true, ...)</tt>.
+     *
+     * @since 2.7.00
+     */
+    public static final int FLAG_DROP_IF_PARENT_UNUSED = 0x20;
 
     // -- Option Types --
     // OTYPE_*: See comment above optType for "If you create a new option type"
@@ -1687,6 +1729,48 @@ public class SOCGameOption
         String[] evkeep = new String[ev];
         System.arraycopy(opt.enumVals, 0, evkeep, 0, ev);
         return new SOCGameOption(opt, evkeep);  // Copy option and restrict enum values
+    }
+
+    /**
+     * For an option that's part of a group, calculate the group parent's {@link SOCVersionedItem#key key}.
+     * Used when determining the parent for {@link #FLAG_DROP_IF_PARENT_UNUSED}.
+     *<UL>
+     * <LI> For a 3-character option key, parent is always its first 2 characters.
+     * <LI> For a longer option keys containing {@code '_'}, parent is the prefix before {@code '_'}.
+     *     <BR>
+     *      But if the option <em>starts with</em> {@code '_'}, it's an internal option which has no parent.
+     *</UL>
+     *<P>
+     * Deals with string contents only; does not check whether {@code optKey}
+     * or the returned prefix is a Known Option.
+     *<P>
+     * Before v2.7.00 this code was in {@code NewGameOptionsFrame.initInterface_Options(..)}.
+     *
+     * @param optKey  Key string from which to extract group parent's key name
+     * @return Group parent's key, or null if none or if {@code optKey} length is 1 or 2
+     * @throws IllegalArgumentException if {@code optKey} is null or empty (length 0)
+     * @since 2.7.00
+     */
+    public static String getGroupParentKey(final String optKey)
+        throws IllegalArgumentException
+    {
+        if ((optKey == null) || optKey.isEmpty())
+            throw new IllegalArgumentException("optKey");
+
+        final int kL = optKey.length();
+        if (kL < 3)
+            return null;
+
+        final String groupKey;
+        if (kL == 3)
+        {
+            groupKey = optKey.substring(0, 2);
+        } else {
+            int i = optKey.indexOf('_');
+            groupKey = (i >= 1) ? optKey.substring(0, i) : null;
+        }
+
+        return groupKey;
     }
 
     /**

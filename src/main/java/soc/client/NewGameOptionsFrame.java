@@ -682,7 +682,8 @@ import soc.util.Version;
      * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
      * One row per option; 3-letter options are grouped under their matching 2-letter ones,
      * longer options whose keys have a {@code '_'} under the option (if any) whose key
-     * is the prefix before {@code '_'}. Non-grouped options are sorted by case-insensitive description
+     * is the prefix before {@code '_'} (see {@link SOCGameOption#getGroupParentKey(String)}).
+     * Non-grouped options are sorted by case-insensitive description
      * by calling {@link SOCGameOption#compareTo(Object)}.
      *<P>
      * When showing options to create a new game, option keys starting with '_' are hidden.
@@ -747,16 +748,9 @@ import soc.util.Version;
                 || opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
                 continue;
 
-            final String kf2;
-            if (kL == 3)
-            {
-                kf2 = okey.substring(0, 2);
-            } else {
-                int i = okey.indexOf('_');
-                if (i < 1)
-                    continue;
-                kf2 = okey.substring(0, i);
-            }
+            final String kf2 = SOCGameOption.getGroupParentKey(okey);
+            if (kf2 == null)
+                continue;
             SOCGameOption op2 = opts.get(kf2);
             if ((op2 != null) && ((op2.optType != SOCGameOption.OTYPE_UNKNOWN) || readOnly))
                 sameGroupOpts.put(okey, kf2);
