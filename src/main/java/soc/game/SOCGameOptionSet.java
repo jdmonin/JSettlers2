@@ -294,7 +294,8 @@ public class SOCGameOptionSet
      *<LI> NT  No trading allowed
      *<LI> VP  Victory points (10-15)
      *<LI> SC  Game Scenario (optional groups of rules; see {@link SOCScenario})
-     *<LI> UB  allow Undo Build and Move
+     *<LI> UB  Allow Undo Build and Move
+     *<LI> UBL   Limit each player to # undos per game
      *<LI> _BHW  Board height and width, if not default, for {@link SOCBoardLarge}: 0xRRCC.
      *           Used only at client, for board size received in JoinGame message from server
      *           to pass through SOCGame constructor into SOCBoard factory
@@ -522,6 +523,11 @@ public class SOCGameOptionSet
             // (not a text box) for user convenience
         opts.add(new SOCGameOption
             ("_VP_ALL", 2000, 2500, false, FLAG_DROP_IF_UNUSED, "Use default VP in all scenarios"));
+        opts.add(new SOCGameOption
+            ("UB", 2700, 2700, false, FLAG_DROP_IF_UNUSED, "Allow undo piece builds and moves"));
+        opts.add(new SOCGameOption
+            ("UBL", 2700, 2700, true, 7, 1, 999, SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED,
+             "Limit undos to # per player"));
 
         final SOCGameOption optSC = new SOCGameOption
             ("SC", 2000, 2000, 8, false, FLAG_DROP_IF_UNUSED, "Game Scenario: #");
@@ -564,9 +570,6 @@ public class SOCGameOptionSet
         opts.add(new SOCGameOption
             (K_SC_WOND, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
              "Scenarios: Wonders"));
-
-        opts.add(new SOCGameOption
-            ("UB", 2700, 2700, false, FLAG_DROP_IF_UNUSED, "Allow undo piece builds and moves"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
