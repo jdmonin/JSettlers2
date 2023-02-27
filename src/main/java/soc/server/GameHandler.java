@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@
 package soc.server;
 
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.message.SOCDeclinePlayerRequest;
@@ -111,6 +112,7 @@ public abstract class GameHandler
      * When creating a new game at the server, check its options and
      * if any of them require any optional client features, calculate
      * the required features and call {@link SOCGame#setClientFeaturesRequired(soc.util.SOCFeatureSet)}.
+     * Calls {@link SOCGameOption#hasValue()} on each such option to see if it's actually being used.
      * @param ga  Game to check features; not {@code null}
      */
     public abstract void calcGameClientFeaturesRequired(SOCGame ga);

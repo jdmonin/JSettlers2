@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2021,2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -57,11 +57,15 @@ public class TestSOCGameHandler
                 { "SBL=t", ';' + SOCFeatureSet.CLIENT_SEA_BOARD + ';' },
                 { "PL=4", null },
                 { "PL=5", ';' + SOCFeatureSet.CLIENT_6_PLAYERS + ';' },
+                { "PLB=f", null },
+                { "PLB=t", ';' + SOCFeatureSet.CLIENT_6_PLAYERS + ';' },
                 { "SC=" + SOCScenario.K_SC_4ISL, ';' + SOCFeatureSet.CLIENT_SCENARIO_VERSION + "=2000;" },
                 { "SC=_NONEXISTENT_", ';' + SOCFeatureSet.CLIENT_SCENARIO_VERSION + "=" + Integer.MAX_VALUE + ";" },
                 { "SBL=t,PL=5", ';' + SOCFeatureSet.CLIENT_SEA_BOARD + ';' + SOCFeatureSet.CLIENT_6_PLAYERS + ';' },
                 { "_3P=7", ";com.example.js.feat.t3p;" },
             };
+            // OTYPE_*: Test the new type's fields by adding an option here having setClientFeature.
+            // See SGH.calcGameClientFeaturesRequired jdoc for how it checks whether the option is being used.
 
         // test FLAG_3RD_PARTY and its feature
         SOCGameOption opt3PKnown = new SOCGameOption

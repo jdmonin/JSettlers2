@@ -955,12 +955,14 @@ public class SOCGameOption
 
     /**
      * Is a value currently stored in this option?
+     *<P>
      * Any of:
      *<UL>
      * <LI> {@link #getBoolValue()} true
-     * <LI> {@link #getIntValue()} != 0
+     * <LI> {@link #getIntValue()} != 0; doesn't check != {@link #defaultIntValue}
      * <LI> {@link #getStringValue()} != ""
      *</UL>
+     * To check against {@link #defaultIntValue} instead, use {@link #isSet()}.
      *
      * @return true if any value field is set
      * @since 2.5.00
@@ -971,9 +973,61 @@ public class SOCGameOption
     }
 
     /**
+     * Is a value currently stored in this option, besides {@link #defaultIntValue}?
+     *<P>
+     * By option type:
+     *<UL>
+     * <LI> {@link #OTYPE_BOOL}: True if {@link #getBoolValue()}
+     * <LI> {@link #OTYPE_STR}, {@link #OTYPE_STRHIDE}: If {@link #getStringValue()} not null and not {@link String#isEmpty()}
+     * <LI> {@link #OTYPE_INT}, {@link #OTYPE_ENUM}: If {@link #getIntValue()} != {@link #defaultIntValue}
+     * <LI> {@link #OTYPE_INTBOOL}, {@link #OTYPE_ENUMBOOL}: Same as int/enum, or if {@link #getBoolValue()}
+     *</UL>
+     * To check for non-empty/nonzero fields instead, ignoring {@link #defaultIntValue}, use {@link #hasValue()}.
+     *
+     * @return true if any value field is set, as detailed above
+     * @since 2.7.00
+     */
+    public boolean isSet()
+    {
+        boolean isSet = false;
+
+        switch (optType)  // OTYPE_*
+        {
+        case OTYPE_INT:
+        case OTYPE_INTBOOL:
+        case OTYPE_ENUM:
+        case OTYPE_ENUMBOOL:
+            isSet = true;
+            if (intValue == defaultIntValue)
+            {
+                // ignore boolValue unless also boolean-type: OTYPE_INTBOOL and OTYPE_ENUMBOOL.
+                if ((optType == OTYPE_INT) || (optType == OTYPE_ENUM)
+                    || ! boolValue)
+                    isSet = false;
+            }
+            break;
+
+        case OTYPE_BOOL:
+            isSet = boolValue;
+            break;
+
+        case OTYPE_STR:
+        case OTYPE_STRHIDE:
+            isSet = (strValue != null) && ! strValue.isEmpty();
+            break;
+
+        // no default: all types should be handled above.
+
+        }
+
+        return isSet;
+    }
+
+    /**
      * Is this option set, if this option's type has a boolean component?
      * @return current boolean value of this option
      * @see #hasValue()
+     * @see #isSet()
      * @see SOCGame#isGameOptionSet(String)
      * @see SOCGameOptionSet#isOptionSet(String)
      */
@@ -985,6 +1039,7 @@ public class SOCGameOption
      * This option's integer value, if this option's type has an integer component.
      * @return current integer value of this option
      * @see #hasValue()
+     * @see #isSet()
      * @see SOCGame#getGameOptionIntValue(String)
      * @see SOCGame#getGameOptionIntValue(String, int, boolean)
      * @see SOCGameOptionSet#getOptionIntValue(String)
@@ -1010,6 +1065,7 @@ public class SOCGameOption
      * @return current string value of this option, or "" (empty string) if not set.
      * Will not contain newlines or otherwise fail {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @see #hasValue()
+     * @see #isSet()
      * @see SOCGame#getGameOptionStringValue(String)
      * @see SOCGameOptionSet#getOptionStringValue(String)
      */

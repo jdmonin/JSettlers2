@@ -100,6 +100,92 @@ public class TestGameOptions
     }
 
     /**
+     * Test {@link SOCGameOptionSet#getKnownOption(String, boolean)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testGetKnownOption()
+    {
+        assertNull(knownOpts.get("ZZ"));
+        assertNull(knownOpts.getKnownOption("ZZ", false));
+
+        final SOCGameOption knownOptVP = knownOpts.get("VP");
+        assertNotNull(knownOptVP);
+        SOCGameOption opt = knownOpts.getKnownOption("VP", false);
+        assertNotNull(opt);
+        assertTrue("same reference", opt == knownOptVP);
+
+        // check type, range, default
+        assertEquals(SOCGameOption.OTYPE_INTBOOL, opt.optType);
+        assertEquals(10, opt.minIntValue);
+        assertEquals(10, opt.defaultIntValue);
+        assertEquals(20, opt.maxIntValue);
+        assertEquals(10, opt.getIntValue());
+        assertFalse(opt.defaultBoolValue);
+        assertFalse(opt.getBoolValue());
+
+        // copy, should still have same range
+        opt = knownOpts.getKnownOption("VP", true);
+        assertNotNull(opt);
+        assertTrue("new reference", opt != knownOptVP);
+        assertEquals(SOCGameOption.OTYPE_INTBOOL, opt.optType);
+        assertEquals(10, opt.minIntValue);
+        assertEquals(10, opt.defaultIntValue);
+        assertEquals(20, opt.maxIntValue);
+        assertEquals(10, opt.getIntValue());
+        assertFalse(opt.defaultBoolValue);
+        assertFalse(opt.getBoolValue());
+
+        // get from parsed set, should still have same range
+        Map<String, SOCGameOption> opts = SOCGameOption.parseOptionsToMap("VP=t11", knownOpts);
+        assertNotNull(opts);
+        assertEquals(1, opts.size());
+        opt = opts.get("VP");
+        assertNotNull(opt);
+        assertTrue("new reference", opt != knownOptVP);
+        assertEquals(SOCGameOption.OTYPE_INTBOOL, opt.optType);
+        assertEquals(10, opt.minIntValue);
+        assertEquals(10, opt.defaultIntValue);
+        assertEquals(20, opt.maxIntValue);
+        assertEquals(11, opt.getIntValue());
+        assertFalse(opt.defaultBoolValue);
+        assertTrue(opt.getBoolValue());
+
+        // get all option types from larger parsed set; should still have same range as known opt
+        opts = SOCGameOption.parseOptionsToMap("RD=t,VP=t11,PL=3,SC=xyz,BLL=t", knownOpts);
+        assertNotNull(opts);
+        assertEquals(5, opts.size());
+        opt = opts.get("VP");
+        assertNotNull(opt);
+        assertTrue("new reference", opt != knownOptVP);
+        assertEquals(SOCGameOption.OTYPE_INTBOOL, opt.optType);
+        assertEquals(10, opt.minIntValue);
+        assertEquals(10, opt.defaultIntValue);
+        assertEquals(20, opt.maxIntValue);
+        assertEquals(11, opt.getIntValue());
+        assertFalse(opt.defaultBoolValue);
+        assertTrue(opt.getBoolValue());
+        opt = opts.get("RD");
+        assertNotNull(opt);
+        assertTrue("new reference", opt != knownOpts.getKnownOption("RD", false));
+        assertEquals(SOCGameOption.OTYPE_BOOL, opt.optType);
+        assertFalse(opt.defaultBoolValue);
+        assertTrue(opt.getBoolValue());
+        opt = opts.get("PL");
+        assertNotNull(opt);
+        assertEquals(SOCGameOption.OTYPE_INT, opt.optType);
+        assertEquals(2, opt.minIntValue);
+        assertEquals(4, opt.defaultIntValue);
+        assertEquals(6, opt.maxIntValue);
+        assertEquals(3, opt.getIntValue());
+        opt = opts.get("SC");
+        assertNotNull(opt);
+        assertEquals(SOCGameOption.OTYPE_STR, opt.optType);
+        assertEquals("xyz", opt.getStringValue());
+        // OTYPE_*: check new type from that set
+    }
+
+    /**
      * Test {@link SOCGameOption#copyDefaults(SOCGameOption)}.
      * @since 2.5.00
      */
@@ -111,7 +197,7 @@ public class TestGameOptions
         final SOCGameOption optStr = new SOCGameOption("ZZ", 1000, 2500, 99, false, 0, "ZZ");
         assertTrue("optStr unchanged", optStr == SOCGameOption.copyDefaults(optStr));  // no int/bool fields
 
-        final SOCGameOption opt = new SOCGameOption("ZZ", 1000, 2500, true, 7, 0, 9, 0, "ZZ");
+        final SOCGameOption opt = new SOCGameOption("ZZ", 1000, 2500, true, 7, 0, 9, 0, "ZZ");  // is OTYPE_INTBOOL
         assertTrue(opt.defaultBoolValue);
         assertTrue(opt.getBoolValue());
         assertEquals(7, opt.defaultIntValue);
@@ -1295,6 +1381,90 @@ public class TestGameOptions
     }
 
     /**
+     * Test a few things for {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)},
+     * which is also partially tested in {@link #testAdjustOptionsToKnown_doServerPreadjust()} and others.
+     * @since 2.7.00
+     */
+    @Test
+    public void testAdjustOptionsToKnown()
+    {
+        final SOCGameOptionSet knownOptsPlus = SOCGameOptionSet.getAllKnownOptions();
+        knownOptsPlus.addKnownOption(new SOCGameOption("ZZ", 1000, 2500, 7, 0, 9, SOCGameOption.FLAG_DROP_IF_UNUSED, "ZZ"));
+            // none of the known options with FLAG_DROP_IF_UNUSED is OTYPE_INT, 0 so make one
+
+        // FLAG_DROP_IF_UNUSED:
+        // will test as non-default, default.
+
+        Map<String, SOCGameOption> optsMap = SOCGameOption.parseOptionsToMap("VP=t11,PLB=t,SC=xyz,ZZ=3", knownOptsPlus);
+        assertNotNull(optsMap);
+        SOCGameOptionSet opts = new SOCGameOptionSet(optsMap);
+        assertEquals(4, opts.size());
+        // - OTYPE_INTBOOL, OTYPE_ENUMBOOL: VP
+        SOCGameOption optVP = opts.get("VP");
+        assertNotNull(optVP);
+        assertTrue(optVP.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED));
+        assertEquals(SOCGameOption.OTYPE_INTBOOL, optVP.optType);
+        assertEquals(11, optVP.getIntValue());
+        assertTrue(optVP.getBoolValue());
+        // - OTYPE_BOOL: PLB
+        SOCGameOption optPLB = opts.get("PLB");
+        assertNotNull(optPLB);
+        assertTrue(optPLB.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED));
+        assertEquals(SOCGameOption.OTYPE_BOOL, optPLB.optType);
+        assertTrue(optPLB.getBoolValue());
+        // - OTYPE_STR: SC
+        SOCGameOption optSC = opts.get("SC");
+        assertNotNull(optSC);
+        assertTrue(optSC.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED));
+        assertEquals(SOCGameOption.OTYPE_STR, optSC.optType);
+        assertEquals("xyz", optSC.getStringValue());
+        // - OTYPE_INT, OTYPE_ENUM: ignore boolValue since not also boolean-type (OTYPE_INTBOOL nor OTYPE_ENUMBOOL)
+        SOCGameOption optZZ = opts.get("ZZ");
+        assertNotNull(optZZ);
+        assertTrue(optZZ.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED));
+        assertEquals(SOCGameOption.OTYPE_INT, optZZ.optType);
+        assertEquals(3, optZZ.getIntValue());
+        // - OTYPE_*: Test the new type's FLAG_DROP_IF_UNUSED behavior
+
+        final SOCFeatureSet emptyFeats = new SOCFeatureSet("");
+        Map<String, String> optProblems = opts.adjustOptionsToKnown(knownOptsPlus, false, emptyFeats);
+        assertNull(optProblems);
+        assertEquals(4, opts.size());  // since none are default values
+
+        // now test whether drops at default:
+        assertEquals(10, optVP.defaultIntValue);
+        assertFalse(optVP.defaultBoolValue);
+        optVP.setIntValue(optVP.defaultIntValue);  // int to default; keep its bool value non-default for now
+        assertFalse(optPLB.defaultBoolValue);
+        optPLB.setBoolValue(false);
+        optSC.setStringValue("");
+        assertEquals(7, optZZ.defaultIntValue);
+        optZZ.setIntValue(optZZ.defaultIntValue);
+        optProblems = opts.adjustOptionsToKnown(knownOptsPlus, false, emptyFeats);
+        assertNull(optProblems);
+        assertEquals(1, opts.size());  // since most are default values
+        assertNotNull(opts.get("VP"));
+
+        // VP: default bool value, non-default int
+        optVP.setIntValue(11);
+        optVP.setBoolValue(false);
+        optProblems = opts.adjustOptionsToKnown(knownOptsPlus, false, emptyFeats);
+        assertNull(optProblems);
+        assertEquals(1, opts.size());
+        assertNotNull(opts.get("VP"));
+
+        // finally, set both fields to default; should drop VP
+        optVP.setIntValue(10);
+        optVP.setBoolValue(false);
+        optProblems = opts.adjustOptionsToKnown(knownOptsPlus, false, emptyFeats);
+        assertNull(optProblems);
+        assertEquals(0, opts.size());
+
+        // - TODO what else?
+
+    }
+
+    /**
      * Test a few things for {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      * with doServerPreadjust=true.
      * @since 2.7.00
@@ -1307,36 +1477,129 @@ public class TestGameOptions
         SOCGameOptionSet opts = new SOCGameOptionSet();
         final SOCFeatureSet emptyFeats = new SOCFeatureSet("");
 
-        final SOCGameOption optUB = knownOpts.getKnownOption("UB", true);
-        assertNotNull(optUB);
-        opts.add(optUB);
+        // - Parent is bool w/ FLAG_DROP_IF_UNUSED:
+        {
+            final SOCGameOption optUB = knownOpts.getKnownOption("UB", true);
+            assertNotNull(optUB);
+            assertEquals(SOCGameOption.OTYPE_BOOL, optUB.optType);
+            assertTrue(optUB.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED));
+            opts.add(optUB);
 
-        final SOCGameOption optUBL = knownOpts.getKnownOption("UBL", true);
-        assertNotNull(optUBL);
-        opts.add(optUBL);
-        optUBL.setBoolValue(true);
-        assertTrue(optUBL.hasFlag(SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED));
-        assertEquals("UB", SOCGameOption.getGroupParentKey(optUBL.key));
+            final SOCGameOption optUBL = knownOpts.getKnownOption("UBL", true);
+            assertNotNull(optUBL);
+            opts.add(optUBL);
+            optUBL.setBoolValue(true);
+            assertTrue(optUBL.hasFlag(SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED));
+            assertEquals("UB", SOCGameOption.getGroupParentKey(optUBL.key));
 
-        optUB.setBoolValue(true);
-        assertNull(opts.adjustOptionsToKnown(knownOpts, true, emptyFeats));
-        assertNotNull(opts.get("UBL"));
+            optUB.setBoolValue(true);
+            assertNull(opts.adjustOptionsToKnown(knownOpts, true, emptyFeats));
+            assertNotNull(opts.get("UBL"));
 
-        optUB.setBoolValue(false);
-        assertNull(opts.adjustOptionsToKnown(knownOpts, true, emptyFeats));
-        assertNull(opts.get("UBL"));
-        assertNull(opts.get("UB"));
+            optUB.setBoolValue(false);
+            assertNull(opts.adjustOptionsToKnown(knownOpts, true, emptyFeats));
+            assertNull(opts.get("UBL"));
+            assertNull(opts.get("UB"));
 
-        opts.add(optUBL);
-        optUB.setBoolValue(true);
-        opts.add(optUB);
-        assertNull(opts.adjustOptionsToKnown(knownOpts, true, emptyFeats));
-        assertNotNull(opts.get("UBL"));
-        opts.remove("UB");
-        assertNull(opts.adjustOptionsToKnown(knownOpts, true, emptyFeats));
-        assertNull(opts.get("UBL"));
+            opts.add(optUBL);
+            optUB.setBoolValue(true);
+            opts.add(optUB);
+            assertNull(opts.adjustOptionsToKnown(knownOpts, true, emptyFeats));
+            assertNotNull(opts.get("UBL"));
+            opts.remove("UB");
+            assertNull(opts.adjustOptionsToKnown(knownOpts, true, emptyFeats));
+            assertNull(opts.get("UBL"));
+        }
+
+        // - Parent is bool par which doesn't have FLAG_DROP_IF_UNUSED:
+
+        final SOCGameOptionSet knownOptsPlus = SOCGameOptionSet.getAllKnownOptions();
+        opts = new SOCGameOptionSet();
+        {
+            final SOCGameOption optRD = knownOpts.getKnownOption("RD", true);
+            assertNotNull(optRD);
+            assertEquals(SOCGameOption.OTYPE_BOOL, optRD.optType);
+            assertFalse(optRD.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED));
+            assertFalse(optRD.defaultBoolValue);
+            optRD.setBoolValue(true);
+            opts.add(optRD);
+
+            final SOCGameOption optRDZ = new SOCGameOption
+                ("RDZ", 1000, 2500, 7, 0, 9, SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED, "RDZ");
+            knownOptsPlus.addKnownOption(optRDZ);
+            optRDZ.setIntValue(3);
+            opts.add(optRDZ);
+
+            // drop only if parent not set
+            assertNull(opts.adjustOptionsToKnown(knownOptsPlus, true, emptyFeats));
+            assertNotNull(opts.get("RDZ"));
+            optRD.setBoolValue(false);
+            assertNull(opts.adjustOptionsToKnown(knownOptsPlus, true, emptyFeats));
+            assertNull(opts.get("RDZ"));
+        }
+
+        // - Parent is a intbool which doesn't have FLAG_DROP_IF_UNUSED:
+
+        opts = new SOCGameOptionSet();
+        {
+            final SOCGameOption optN7 = knownOptsPlus.get("N7");
+            assertNotNull(optN7);
+            assertEquals(SOCGameOption.OTYPE_INTBOOL, optN7.optType);
+            assertFalse(optN7.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED));
+            assertEquals(7, optN7.defaultIntValue);
+            assertFalse(optN7.defaultBoolValue);
+            optN7.setIntValue(8);
+            opts.add(optN7);
+
+            final SOCGameOption optN7Z = new SOCGameOption
+                ("N7Z", 1000, 2500, 7, 0, 9, SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED, "N7Z");
+            knownOptsPlus.addKnownOption(optN7Z);
+            optN7Z.setIntValue(3);
+            opts.add(optN7Z);
+
+            // drop only if parent not set
+            assertNull(opts.adjustOptionsToKnown(knownOptsPlus, true, emptyFeats));
+            assertNotNull(opts.get("N7Z"));
+            optN7.setBoolValue(true);
+            optN7.setIntValue(optN7.defaultIntValue);
+            assertNull(opts.adjustOptionsToKnown(knownOptsPlus, true, emptyFeats));
+            assertNotNull(opts.get("N7Z"));
+            optN7.setBoolValue(false);
+            optN7.setIntValue(optN7.defaultIntValue);
+            assertNull(opts.adjustOptionsToKnown(knownOptsPlus, true, emptyFeats));
+            assertNull(opts.get("N7Z"));
+        }
+
+        // - Parent is str:
+
+        opts = new SOCGameOptionSet();
+        {
+            final SOCGameOption optSC = knownOptsPlus.get("SC");
+            assertNotNull(optSC);
+            assertEquals(SOCGameOption.OTYPE_STR, optSC.optType);
+            assertTrue(optSC.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED));
+            optSC.setStringValue(SOCScenario.K_SC_NSHO);  // avoid "unknown scenario" from adjustOptionsToKnown
+            opts.add(optSC);
+
+            final SOCGameOption optSCZ = new SOCGameOption
+                ("SCZ", 1000, 2500, 7, 0, 9, SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED, "SCZ");
+            knownOptsPlus.addKnownOption(optSCZ);
+            optSCZ.setIntValue(3);
+            opts.add(optSCZ);
+
+            // drop only if parent not set
+            final SOCFeatureSet cliSeaFeats = new SOCFeatureSet(";sb;sc=2500;");
+            assertNull(opts.adjustOptionsToKnown(knownOptsPlus, true, cliSeaFeats));
+            assertNotNull(opts.get("SCZ"));
+            optSC.setStringValue("");
+            assertNull(opts.adjustOptionsToKnown(knownOptsPlus, true, cliSeaFeats));
+            assertNull(opts.get("SCZ"));
+        }
+
+        // end of FLAG_DROP_IF_PARENT_UNUSED testing.
 
         // TODO test other work done when doServerPreadjust=true
+        // (some is tested in other methods already)
     }
 
     /**
@@ -1412,6 +1675,114 @@ public class TestGameOptions
         assertEquals("_Y", SOCGameOption.getGroupParentKey("_YZ"));  // length 3 & starts with '_'
         assertEquals("ABC", SOCGameOption.getGroupParentKey("ABC_"));  // length > 3 & ends with '_'
         assertEquals("ABC", SOCGameOption.getGroupParentKey("ABC_DEF"));
+    }
+
+    /**
+     * Test {@link SOCGameOption#isSet()} and {@link SOCGameOption#hasValue()}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testIsSetHasValue()
+    {
+        // OTYPE_BOOL
+        SOCGameOption opt = knownOpts.getKnownOption("RD", true);
+        assertNotNull(opt);
+        assertEquals(SOCGameOption.OTYPE_BOOL, opt.optType);
+        assertFalse(opt.getBoolValue());
+        assertEquals(0, opt.getIntValue());
+        assertFalse(opt.isSet());
+        assertFalse(opt.hasValue());
+        opt.setBoolValue(true);
+        assertTrue(opt.isSet());
+        assertTrue(opt.hasValue());
+
+        // OTYPE_INTBOOL, OTYPE_ENUMBOOL
+        opt = knownOpts.getKnownOption("VP", true);
+        assertNotNull(opt);
+        assertEquals(SOCGameOption.OTYPE_INTBOOL, opt.optType);
+        // int default, bool false
+        assertEquals(10, opt.defaultIntValue);
+        assertEquals(10, opt.getIntValue());
+        assertFalse(opt.getBoolValue());
+        assertFalse(opt.isSet());
+        assertTrue("default OTYPE_INTBOOL value", opt.hasValue());
+        // int default, bool true
+        opt.setBoolValue(true);
+        assertTrue(opt.isSet());
+        assertTrue(opt.hasValue());
+        // int != default, bool false
+        opt.setIntValue(13);
+        opt.setBoolValue(false);
+        assertTrue(opt.isSet());
+        assertTrue(opt.hasValue());
+        // int 0, bool true, but none of the INTBOOL known options has min value 0 so make one
+        opt = new SOCGameOption("ZZ", 1000, 2500, false, 0, 0, 9, 0, "ZZ");
+        assertEquals(SOCGameOption.OTYPE_INTBOOL, opt.optType);
+        assertFalse(opt.defaultBoolValue);
+        assertFalse(opt.getBoolValue());
+        assertEquals(0, opt.defaultIntValue);
+        assertEquals(0, opt.getIntValue());
+        assertFalse(opt.isSet());
+        assertFalse(opt.hasValue());
+        opt.setBoolValue(true);
+        assertTrue(opt.isSet());
+        assertTrue(opt.hasValue());
+        opt.setBoolValue(false);
+        assertFalse(opt.isSet());
+        assertFalse(opt.hasValue());
+        // unrealistic test to delineate the 2 methods; no reason to set an intbool's string value
+        opt.setStringValue("x");
+        assertFalse(opt.isSet());
+        assertTrue(opt.hasValue());
+
+        // OTYPE_INT, OTYPE_ENUM
+        opt = knownOpts.getKnownOption("PL", true);
+        assertNotNull(opt);
+        assertEquals(SOCGameOption.OTYPE_INT, opt.optType);
+        assertEquals(2, opt.minIntValue);
+        assertEquals(4, opt.defaultIntValue);
+        assertEquals(6, opt.maxIntValue);
+        assertEquals(4, opt.getIntValue());
+        assertTrue(opt.hasValue());
+        assertFalse("default OTYPE_INT value", opt.isSet());
+        opt.setIntValue(3);
+        assertTrue(opt.hasValue());
+        assertTrue(opt.isSet());
+        opt.setIntValue(4);
+        assertTrue(opt.hasValue());
+        assertFalse("back to default", opt.isSet());
+        assertFalse(opt.getBoolValue());
+        opt.setBoolValue(true);  // unrealistic; no reason to set an int's bool value
+        assertTrue(opt.hasValue());
+        assertFalse("ignore OTYPE_INT's bool value", opt.isSet());
+
+        // OTYPE_STR, OTYPE_STRHIDE
+        opt = knownOpts.getKnownOption("SC", true);
+        assertNotNull(opt);
+        assertEquals(SOCGameOption.OTYPE_STR, opt.optType);
+        assertEquals("", opt.getStringValue());
+        assertFalse(opt.isSet());
+        assertFalse(opt.hasValue());
+        opt.setBoolValue(true);  // unrealistic; no reason to set a string's bool value
+        assertTrue(opt.hasValue());
+        assertFalse("ignore OTYPE_STR bool value", opt.isSet());
+        opt.setBoolValue(false);
+        assertFalse(opt.isSet());
+        assertFalse(opt.hasValue());
+        opt.setStringValue("x");
+        assertTrue(opt.isSet());
+        assertTrue(opt.hasValue());
+        opt.setStringValue(null);
+        assertEquals("stores null as empty string", "", opt.getStringValue());
+        assertFalse(opt.isSet());
+        assertFalse(opt.hasValue());
+        assertEquals(0, opt.getIntValue());
+        opt.setIntValue(2);  // unrealistic; no reason to set a string's int value
+        assertEquals(2, opt.getIntValue());
+        assertTrue(opt.hasValue());
+        assertFalse("ignore OTYPE_STR int value", opt.isSet());
+
+        // OTYPE_*: Test the new type's fields
     }
 
     /**

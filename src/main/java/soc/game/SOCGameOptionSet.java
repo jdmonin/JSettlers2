@@ -529,6 +529,11 @@ public class SOCGameOptionSet
             ("UBL", 2700, 2700, true, 7, 1, 999, SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED,
              "Limit undos to # per player"));
 
+        // NEW_OPTION - Add opt.put here at end of list, and update the
+        //       list of "current known options" in javadoc just above.
+        // If the new option calls setClientFeature here,
+        // consider updating TestSOCGameHandler.testCalcGameClientFeaturesRequired.
+
         final SOCGameOption optSC = new SOCGameOption
             ("SC", 2000, 2000, 8, false, FLAG_DROP_IF_UNUSED, "Game Scenario: #");
         optSC.setClientFeature(SOCFeatureSet.CLIENT_SCENARIO_VERSION);
@@ -570,9 +575,6 @@ public class SOCGameOptionSet
         opts.add(new SOCGameOption
             (K_SC_WOND, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
              "Scenarios: Wonders"));
-
-        // NEW_OPTION - Add opt.put here at end of list, and update the
-        //       list of "current known options" in javadoc just above.
 
         // "Extra" options for third-party developers
 
@@ -1812,14 +1814,8 @@ public class SOCGameOptionSet
                             op.setIntValue(iv);
                         }
 
-                        if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED)
-                            && (iv == knownOp.defaultIntValue))
-                        {
-                            // ignore boolValue unless also boolean-type: OTYPE_INTBOOL and OTYPE_ENUMBOOL.
-                            if ((op.optType == SOCGameOption.OTYPE_INT) || (op.optType == SOCGameOption.OTYPE_ENUM)
-                                || ! op.getBoolValue())
-                                ikv.remove();
-                        }
+                        if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED) && ! op.isSet())
+                            ikv.remove();
                     }
                     break;
 
@@ -1830,12 +1826,8 @@ public class SOCGameOptionSet
 
                 case SOCGameOption.OTYPE_STR:
                 case SOCGameOption.OTYPE_STRHIDE:
-                    if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED))
-                    {
-                        String sval = op.getStringValue();
-                        if ((sval == null) || (sval.length() == 0))
-                            ikv.remove();
-                    }
+                    if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED) && ! op.isSet())
+                        ikv.remove();
                     break;
 
                 // no default: all types should be handled above.
@@ -1864,51 +1856,10 @@ public class SOCGameOptionSet
                 final String parentKey = SOCGameOption.getGroupParentKey(op.key);
                 if (parentKey == null)
                     continue;
-                final SOCGameOption parKnownOpt = knownOpts.getKnownOption(parentKey, false);
-                if (parKnownOpt == null)
-                    continue;
 
                 final SOCGameOption par = options.get(parentKey);
-                if (par == null)
-                {
+                if ((par == null) || ! par.isSet())
                     ikv.remove();
-                    continue;
-                }
-
-                // If parent is unset or at default value, drop this option
-                switch (par.optType)  // OTYPE_*
-                {
-                case SOCGameOption.OTYPE_INT:
-                case SOCGameOption.OTYPE_INTBOOL:
-                case SOCGameOption.OTYPE_ENUM:
-                case SOCGameOption.OTYPE_ENUMBOOL:
-                    {
-                        int iv = par.getIntValue();
-                        if (iv == parKnownOpt.defaultIntValue)
-                        {
-                            // ignore boolValue unless also boolean-type: OTYPE_INTBOOL and OTYPE_ENUMBOOL.
-                            if ((par.optType == SOCGameOption.OTYPE_INT) || (par.optType == SOCGameOption.OTYPE_ENUM)
-                                || ! par.getBoolValue())
-                                ikv.remove();
-                        }
-                    }
-                    break;
-
-                case SOCGameOption.OTYPE_BOOL:
-                    if (! par.getBoolValue())
-                        ikv.remove();
-                    break;
-
-                case SOCGameOption.OTYPE_STR:
-                case SOCGameOption.OTYPE_STRHIDE:
-                    String sval = par.getStringValue();
-                    if ((sval == null) || (sval.length() == 0))
-                        ikv.remove();
-                    break;
-
-                // no default: all types should be handled above.
-
-                }
             }
 
         }
