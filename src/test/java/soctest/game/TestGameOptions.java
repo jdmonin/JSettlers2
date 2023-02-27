@@ -1295,6 +1295,51 @@ public class TestGameOptions
     }
 
     /**
+     * Test a few things for {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
+     * with doServerPreadjust=true.
+     * @since 2.7.00
+     */
+    @Test
+    public void testAdjustOptionsToKnown_doServerPreadjust()
+    {
+        // FLAG_DROP_IF_PARENT_UNUSED:
+
+        SOCGameOptionSet opts = new SOCGameOptionSet();
+        final SOCFeatureSet emptyFeats = new SOCFeatureSet("");
+
+        final SOCGameOption optUB = knownOpts.getKnownOption("UB", true);
+        assertNotNull(optUB);
+        opts.add(optUB);
+
+        final SOCGameOption optUBL = knownOpts.getKnownOption("UBL", true);
+        assertNotNull(optUBL);
+        opts.add(optUBL);
+        optUBL.setBoolValue(true);
+        assertTrue(optUBL.hasFlag(SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED));
+        assertEquals("UB", SOCGameOption.getGroupParentKey(optUBL.key));
+
+        optUB.setBoolValue(true);
+        assertNull(opts.adjustOptionsToKnown(knownOpts, true, emptyFeats));
+        assertNotNull(opts.get("UBL"));
+
+        optUB.setBoolValue(false);
+        assertNull(opts.adjustOptionsToKnown(knownOpts, true, emptyFeats));
+        assertNull(opts.get("UBL"));
+        assertNull(opts.get("UB"));
+
+        opts.add(optUBL);
+        optUB.setBoolValue(true);
+        opts.add(optUB);
+        assertNull(opts.adjustOptionsToKnown(knownOpts, true, emptyFeats));
+        assertNotNull(opts.get("UBL"));
+        opts.remove("UB");
+        assertNull(opts.adjustOptionsToKnown(knownOpts, true, emptyFeats));
+        assertNull(opts.get("UBL"));
+
+        // TODO test other work done when doServerPreadjust=true
+    }
+
+    /**
      * Test {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}
      * with doServerPreadjust=true and limited client {@link SOCFeatureSet}.
      *<P>

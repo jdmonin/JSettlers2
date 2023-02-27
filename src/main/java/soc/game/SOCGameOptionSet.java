@@ -1142,7 +1142,8 @@ public class SOCGameOptionSet
     // For Known Options:
 
     /**
-     * Get information about a known option. See {@link #getAllKnownOptions()} for a summary of each known option.
+     * Get information about an option within this set of Known Options.
+     * See {@link #getAllKnownOptions()} for a summary of each known option.
      * Will return the info if known, even if option has {@link #FLAG_INACTIVE_HIDDEN}.
      *<P>
      * Before v2.5.00 this method was {@code SOCGameOption.getOption(key, clone)}.
@@ -1736,8 +1737,6 @@ public class SOCGameOptionSet
                 || ((optPLP != null) && optPLP.getBoolValue()))
                 setBoolOption("PLB", knownOpts);
 
-            // TODO: check for FLAG_DROP_IF_PARENT_UNUSED
-
         }  // if(doServerPreadjust)
 
         // OTYPE_* - adj javadoc above (re dropIfUnused) if a string-type or bool-type is added.
@@ -1843,6 +1842,75 @@ public class SOCGameOptionSet
 
                 }
             }
+        }
+
+        if (doServerPreadjust)
+        {
+            // Now that we've removed any FLAG_DROP_IF_UNUSED opts from set,
+            // check for FLAG_DROP_IF_PARENT_UNUSED
+
+            for (Iterator<Map.Entry<String, SOCGameOption>> ikv = options.entrySet().iterator();
+                 ikv.hasNext(); )
+            {
+                Map.Entry<String, SOCGameOption> okv = ikv.next();
+                SOCGameOption op;
+                try {
+                    op = okv.getValue();
+                } catch (ClassCastException ce) {
+                    throw new IllegalArgumentException("wrong class, expected gameoption");
+                }
+                if (! op.hasFlag(SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED))
+                    continue;
+                final String parentKey = SOCGameOption.getGroupParentKey(op.key);
+                if (parentKey == null)
+                    continue;
+                final SOCGameOption parKnownOpt = knownOpts.getKnownOption(parentKey, false);
+                if (parKnownOpt == null)
+                    continue;
+
+                final SOCGameOption par = options.get(parentKey);
+                if (par == null)
+                {
+                    ikv.remove();
+                    continue;
+                }
+
+                // If parent is unset or at default value, drop this option
+                switch (par.optType)  // OTYPE_*
+                {
+                case SOCGameOption.OTYPE_INT:
+                case SOCGameOption.OTYPE_INTBOOL:
+                case SOCGameOption.OTYPE_ENUM:
+                case SOCGameOption.OTYPE_ENUMBOOL:
+                    {
+                        int iv = par.getIntValue();
+                        if (iv == parKnownOpt.defaultIntValue)
+                        {
+                            // ignore boolValue unless also boolean-type: OTYPE_INTBOOL and OTYPE_ENUMBOOL.
+                            if ((par.optType == SOCGameOption.OTYPE_INT) || (par.optType == SOCGameOption.OTYPE_ENUM)
+                                || ! par.getBoolValue())
+                                ikv.remove();
+                        }
+                    }
+                    break;
+
+                case SOCGameOption.OTYPE_BOOL:
+                    if (! par.getBoolValue())
+                        ikv.remove();
+                    break;
+
+                case SOCGameOption.OTYPE_STR:
+                case SOCGameOption.OTYPE_STRHIDE:
+                    String sval = par.getStringValue();
+                    if ((sval == null) || (sval.length() == 0))
+                        ikv.remove();
+                    break;
+
+                // no default: all types should be handled above.
+
+                }
+            }
+
         }
 
         if (doServerPreadjust && allKnown && (limitedCliFeats != null))
