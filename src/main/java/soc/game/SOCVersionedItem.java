@@ -314,7 +314,7 @@ public abstract class SOCVersionedItem implements Cloneable
      *     depending on the item subclass.
      * @see #itemsMinimumVersion(Map)
      */
-    public int getMinVersion(Map<?, ? extends SOCVersionedItem> items)
+    public int getMinVersion(Map<String, ? extends SOCVersionedItem> items)
     {
         return minVersion;
     }
@@ -365,14 +365,14 @@ public abstract class SOCVersionedItem implements Cloneable
      * Calls at the client to {@code itemsMinimumVersion} should keep this in mind, especially if
      * a client's game option's {@link #lastModVersion} is newer than the server.
      *<P>
-     * Calls {@link #itemsMinimumVersion(Map, boolean, null) itemsMinimumVersion(items, false, null)}.
+     * Calls {@link #itemsMinimumVersion(Map, boolean, Map) itemsMinimumVersion(items, false, null)}.
      *
      * @param items  a set of items; may be empty or {@code null}
      * @return the highest 'minimum version' among these items, or -1
      * @see #itemsMinimumVersion(Map, boolean, Map)
      * @see #getMinVersion(Map)
      */
-    public static int itemsMinimumVersion(final Map<?, ? extends SOCVersionedItem> items)
+    public static int itemsMinimumVersion(final Map<String, ? extends SOCVersionedItem> items)
     {
         return itemsMinimumVersion(items, false, null);
     }
@@ -419,7 +419,7 @@ public abstract class SOCVersionedItem implements Cloneable
      * @see #getMinVersion(Map)
      */
     public static int itemsMinimumVersion
-        (final Map<?, ? extends SOCVersionedItem> items, final boolean calcMinVersionForUnchanged,
+        (final Map<String, ? extends SOCVersionedItem> items, final boolean calcMinVersionForUnchanged,
          final Map<String, Integer> itemsMins)
         throws IllegalArgumentException
     {
@@ -429,7 +429,7 @@ public abstract class SOCVersionedItem implements Cloneable
             throw new IllegalArgumentException("itemsMins");
 
         int minVers = -1;
-        final Map<?, ? extends SOCVersionedItem> itemsChk = calcMinVersionForUnchanged ? items : null;
+        final Map<String, ? extends SOCVersionedItem> itemsChk = calcMinVersionForUnchanged ? items : null;
 
         for (SOCVersionedItem itm : items.values())
         {

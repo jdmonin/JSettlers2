@@ -1976,7 +1976,7 @@ import soc.util.Version;
         if (allOK && checkOptionsMinVers && ! forPractice)
         {
             Map<String, Integer> optsMins = new HashMap<>();
-            int optsVers = SOCVersionedItem.itemsMinimumVersion(controlsOpts, false, optsMins);
+            int optsVers = SOCVersionedItem.itemsMinimumVersion(opts.getAll(), false, optsMins);
             if ((optsVers > -1) && (optsVers > Version.versionNumberMaximumNoWarn()))
             {
                 allOK = false;

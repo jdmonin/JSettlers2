@@ -1172,7 +1172,7 @@ public class SOCGameOption
      * @see #getMaxIntValueForVersion(String, int)
      */
     @Override
-    public int getMinVersion(final Map<?, ? extends SOCVersionedItem> opts)
+    public int getMinVersion(final Map<String, ? extends SOCVersionedItem> opts)
     {
         // Check for unset/droppable options
         switch (optType)
@@ -1237,9 +1237,9 @@ public class SOCGameOption
 
         if (key.equals("PL"))
         {
-            if ((opts != null) && (intValue <= 4) && opts.containsKey("PLB"))
+            if ((opts != null) && (intValue <= 4))
             {
-                // For clients below 1.1.13, if PLB is set,
+                // For clients below 1.1.13, if PLB is in opts and is set,
                 // PL must be changed to 5 or 6 to force use of the 6-player board.
                 // For clients 1.1.13 and newer, PLB is recognized at the client,
                 // so PL can be less than 5 and still use the 6-player board.

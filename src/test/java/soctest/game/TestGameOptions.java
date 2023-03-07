@@ -1031,7 +1031,7 @@ public class TestGameOptions
     }
 
     /**
-     * Test {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
+     * Test {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, Map)}.
      * @since 2.1.00
      */
     @Test
