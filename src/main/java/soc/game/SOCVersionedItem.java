@@ -392,6 +392,10 @@ public abstract class SOCVersionedItem implements Cloneable
      * Calls at the client to {@code itemsMinimumVersion} should keep this in mind, especially if
      * a client's game option's {@link #lastModVersion} is newer than the server.
      *<P>
+     * When {@code items} are {@link SOCGameOption}s, will check for {@link SOCGameOption#FLAG_DROP_IF_PARENT_UNUSED}:
+     * Items with that flag will be ignored unless their parent is part of {@code items}
+     * and parent's {@link SOCGameOption#isSet()} is true.
+     *<P>
      * <b>Backwards-compatibility support: {@code calcMinVersionForUnchanged} parameter:</b><br>
      * Occasionally, an older client version supports a new item, but only by changing
      * the value of some other items it recognizes.  If this parameter is true,
@@ -432,6 +436,18 @@ public abstract class SOCVersionedItem implements Cloneable
             int itmMin = itm.getMinVersion(itemsChk);  // includes any item-value checking for minVers
             if (itmMin == -1)
                 continue;
+
+            if ((itm instanceof SOCGameOption)
+                && ((SOCGameOption) itm).hasFlag(SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED))
+            {
+                final String parKey = SOCGameOption.getGroupParentKey(itm.key);
+                if (parKey != null)
+                {
+                    SOCVersionedItem par = items.get(parKey);
+                    if (! ((par instanceof SOCGameOption) && ((SOCGameOption) par).isSet()))
+                        continue;
+                }
+            }
 
             if (itmMin > minVers)
                 minVers = itmMin;

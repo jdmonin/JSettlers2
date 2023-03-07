@@ -195,6 +195,8 @@ public class SOCGameOption
      * or {@link #OTYPE_INTBOOL}; blank for {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE};
      * {@link #defaultIntValue} for {@link #OTYPE_INT} or {@link #OTYPE_ENUM})
      *<P>
+     * The {@link #isSet()} method checks the same field values.
+     *<P>
      * Only recommended for seldom-used options.
      * The removal is done in {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}.
      * Once this flag is set for an option, it should not be un-set if the
@@ -285,7 +287,8 @@ public class SOCGameOption
      *<H3>Details:</H3>
      *
      * Parent key is determined by {@link #getGroupParentKey(String)}.
-     * Parent has same criteria for "set" values as {@link #FLAG_DROP_IF_UNUSED}.
+     * Parent has same criteria for "set" values as {@link #FLAG_DROP_IF_UNUSED}
+     * and the {@link #isSet()} method.
      *<P>
      * When creating a new game at the client, {@code NewGameOptionsFrame} may use this flag as a hint
      * to auto-set the parent's value if possible when the user changes this option from default

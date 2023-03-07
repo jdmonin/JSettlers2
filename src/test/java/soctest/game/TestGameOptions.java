@@ -1043,11 +1043,12 @@ public class TestGameOptions
 
         assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(new HashMap<String, SOCGameOption>(), false, null));
 
-        Map<String, SOCGameOption> optsUB = SOCGameOption.parseOptionsToMap("UB=t", knowns);
-
-        assertEquals(2700, SOCVersionedItem.itemsMinimumVersion(optsUB, false, null));
+        // Min vers is 2700 when gameopt UB is set:
 
         {
+            Map<String, SOCGameOption> optsUB = SOCGameOption.parseOptionsToMap("UB=t", knowns);
+            assertEquals(2700, SOCVersionedItem.itemsMinimumVersion(optsUB, false, null));
+
             Map<String, Integer> optsMins = new HashMap<>();
             assertEquals(2700, SOCVersionedItem.itemsMinimumVersion(optsUB, false, optsMins));
             assertEquals(1, optsMins.size());
@@ -1055,12 +1056,42 @@ public class TestGameOptions
             assertNotNull(minUB);
             assertEquals(2700, minUB.intValue());
 
-            // now optsMins isn't empty, so itemsMinimumVersion should reject it as incoming itemsMins
+            // now optsMins isn't empty, but itemsMinimumVersion requires its incoming itemsMins to be empty
             try
             {
                 SOCVersionedItem.itemsMinimumVersion(optsUB, false, optsMins);
                 fail("should reject non-empty itemsMins arg");
             } catch (IllegalArgumentException e) {}
+        }
+
+        // Min vers is 2700 when gameopt UBL and UB are both set,
+        // but not when only UBL is set (it has FLAG_DROP_IF_PARENT_UNUSED):
+
+        {
+            Map<String, SOCGameOption> optsUBL = SOCGameOption.parseOptionsToMap("UBL=t3", knowns);
+            assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsUBL, false, null));
+
+            Map<String, Integer> optsMins = new HashMap<>();
+            assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsUBL, false, optsMins));
+            assertTrue(optsMins.isEmpty());
+
+            // now add UB=f to opts
+            SOCGameOption optUB = knowns.getKnownOption("UB", true);
+            optsUBL.put("UB", optUB);
+            optUB.setBoolValue(false);
+            assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsUBL, false, optsMins));
+            assertTrue(optsMins.isEmpty());
+
+            // now set UB=t
+            optUB.setBoolValue(true);
+            assertEquals(2700, SOCVersionedItem.itemsMinimumVersion(optsUBL, false, optsMins));
+            assertEquals(2, optsMins.size());
+            Integer minVers = optsMins.get("UB");
+            assertNotNull(minVers);
+            assertEquals(2700, minVers.intValue());
+            minVers = optsMins.get("UBL");
+            assertNotNull(minVers);
+            assertEquals(2700, minVers.intValue());
         }
 
         // TODO expand beyond those simple tests
