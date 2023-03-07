@@ -369,6 +369,43 @@ As a non-admin non-debug user, start playing a game. These should all work:
   - Building more levels of that Wonder doesn't deduct a ship
   - If observer joins after Wonder started, sees accurate ship count
 
+### New Game minimum version warning
+
+Setup:
+
+- View contents of [src/main/resources/resources/version.info](../src/main/resources/resources/version.info)
+- If `project.versionnumMaxNoWarn` is `2700` or higher: Temporarily change it to 2000, recompile client
+
+Test:
+
+- Start the client
+- Use its "Start a Server" button to do so
+- Enter any nickname, click "New Game"
+    - Type any game name (continue to do so for each game created during this test)
+    - Make sure "Limit undos to 7 per player" checkbox is set, but "Allow undo piece builds and moves" is not
+    - Click "Create Game"; should create game without seeing any version popup dialog
+    - In the new game's window, click "Options"; the list of options should not include "Limit undos" or "Allow undo"
+    - Close that game
+- Click "New Game"
+    - Set checkboxes for both "Limit undos" and "Allow undo piece builds"
+    - Click "Create Game": Should see a "Confirm options minimum version" dialog
+        - Should say 2.7.00 or newer is required for these tests
+        - Should list both of those options, each preceded by "2.7.00:"
+	- Click "Create with these options"
+    - In the new game's window, click "Options"; the list of options should include both of those listed ones
+    - Close that game
+- Click "New Game"
+    - Set checkbox for "Allow undo piece builds" but not "Limit undos"
+    - Click "Create Game": Should see a "Confirm options minimum version" dialog
+        - Should say 2.7.00 or newer is required for these tests
+        - Should list "Allow undo", preceded by "2.7.00:"
+	- Click "Change options"
+    - Un-set checkbox for "Allow undo piece builds"
+    - Click "Create Game"; should create game without seeing any version popup dialog
+    - In the new game's window, click "Options"; the list of options should not include "Allow undo" or "Limit undos"
+- Exit client
+- If `project.versionnumMaxNoWarn` was changed, revert it back and recompile client
+
 ### Client preferences
 
 - Auto-reject bot trade offers:
