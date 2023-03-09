@@ -288,6 +288,9 @@ public class SOCPlayerElement extends SOCMessage
 
         /**
          * Number of remaining undos: Value of {@link SOCPlayer#getUndosRemaining()}.
+         * When joining a game in progress, send only after the board layout message:
+         * Client may use layout message as a cue to set each player's {@code getUndosRemaining()}
+         * to the initial value in the game's {@code "UBL"} SOCGameOption.
          * @since 2.7.00
          */
         NUM_UNDOS_REMAINING(25),

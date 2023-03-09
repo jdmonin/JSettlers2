@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -441,6 +441,20 @@ import javax.swing.UIManager;
      * @since 2.0.00
      */
     private JLabel wonderLab;
+
+    /**
+     * Number of remaining undos, when using game option {@code "UBL"}; null otherwise.
+     * Hidden until start of first regular turn (gameState {@link SOCGame#ROLL_OR_CARD}).
+     * Label is {@link #undosLab}.
+     * @since 2.7.00
+     */
+    private ColorSquare undosSq;
+
+    /**
+     * Label for {@link #undosSq}, or null.
+     * @since 2.7.00
+     */
+    private JLabel undosLab;
 
     // Trading interface
 
@@ -936,6 +950,19 @@ import javax.swing.UIManager;
             add(shipLab);
         } else {
             // shipSq, shipLab already null
+        }
+
+        if (game.isGameOptionSet("UBL"))
+        {
+            undosSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
+                // value must remain 0 until start of 1st turn; other handpanel code relies on that assumption
+            add(undosSq);
+            final String ttip = strings.get("hpan.undos.tt");  // "Number of remaining undos"
+            undosSq.setToolTipText(ttip);
+            undosLab = new JLabel(strings.get("hpan.undos"));  // "Undos:"
+            undosLab.setFont(DIALOG_PLAIN_10);
+            add(undosLab);
+            undosLab.setToolTipText(ttip);
         }
 
         if (game.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
@@ -2135,6 +2162,11 @@ import javax.swing.UIManager;
         }
         knightsSq.setVisible(false);
         knightsLab.setVisible(false);
+        if (undosSq != null)
+        {
+            undosLab.setVisible(false);
+            undosSq.setVisible(false);
+        }
         if (clothSq != null)
         {
             clothLab.setVisible(false);
@@ -2382,6 +2414,8 @@ import javax.swing.UIManager;
             blankStandIn.setVisible(true);
         setVisible(false);
 
+        final int gameState = game.getGameState();
+
         /* Items which are visible for any hand, client player or opponent */
 
         if (! game.isBoardReset())
@@ -2409,6 +2443,13 @@ import javax.swing.UIManager;
         }
         knightsLab.setVisible(true);
         knightsSq.setVisible(true);
+        if (undosSq != null)
+        {
+            final boolean isNormalPlay = (gameState >= SOCGame.ROLL_OR_CARD);
+            undosLab.setVisible(isNormalPlay);
+            undosSq.setVisible(isNormalPlay);
+        }
+
         if (clothSq != null)
         {
             clothLab.setVisible(true);
@@ -2448,7 +2489,7 @@ import javax.swing.UIManager;
             vpSq.setToolTipText(strings.get("hpan.points.total.yours"));  // "Your victory point total"
 
             // show 'Victory Points' and hide "Start Button" if game in progress
-            if (game.getGameState() == SOCGame.NEW)
+            if (gameState == SOCGame.NEW)
             {
                 startBut.setVisible(true);
             }
@@ -2508,8 +2549,8 @@ import javax.swing.UIManager;
                 }
             }
             rollBut.setVisible(true);
-            doneButIsRestart = ((game.getGameState() <= SOCGame.START3B)
-                 || (game.getGameState() == SOCGame.OVER));
+            doneButIsRestart = ((gameState <= SOCGame.START3B)
+                 || (gameState == SOCGame.OVER));
             if (doneButIsRestart)
                 doneBut.setText(DONE_RESTART);
             else
@@ -2519,7 +2560,7 @@ import javax.swing.UIManager;
 
             // Remove all of the sit and take over buttons.
             // If game still forming, can lock seats (for fewer players/robots).
-            boolean gameForming = (game.getGameState() == SOCGame.NEW);
+            boolean gameForming = (gameState == SOCGame.NEW);
             for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
                 final SOCHandPanel hpan = playerInterface.getPlayerHandPanel(pn);
@@ -2689,9 +2730,9 @@ import javax.swing.UIManager;
         }
 
         updateTakeOverButton();
+        final int gs = game.getGameState();
         if (playerIsClient)
         {
-            final int gs = game.getGameState();
             boolean normalTurnStarting = (gs == SOCGame.ROLL_OR_CARD || gs == SOCGame.PLAY1);
             clearOffer(normalTurnStarting);  // Zero the square panel numbers, etc. (TODO) better descr.
                 // at any player's turn, not just when playerIsCurrent.
@@ -2713,6 +2754,18 @@ import javax.swing.UIManager;
             }
             normalTurnStarting = normalTurnStarting && playerIsCurrent;
             playCardBut.setEnabled(normalTurnStarting && ! ((DefaultListModel<?>) inventory.getModel()).isEmpty());
+        }
+
+        if ((undosSq != null) && (gs >= SOCGame.ROLL_OR_CARD)
+            && (game.getRoundCount() <= 1) && (undosSq.getIntValue() == 0))
+        {
+            // Set actual value and un-hide at start of first regular turn,
+            // unless is hidden because this non-client player's panel isn't tall enough
+
+            updateValue(PlayerClientListener.UpdateType.UndosRemaining);
+            final boolean shouldShow = playerIsClient || roadSq.isVisible();
+            undosSq.setVisible(shouldShow);
+            undosLab.setVisible(shouldShow);
         }
 
         bankGive = null;
@@ -3250,6 +3303,12 @@ import javax.swing.UIManager;
         {
             knightsLab.setVisible(hideTradeMsg);
             knightsSq.setVisible(hideTradeMsg);
+            if (undosSq != null)
+            {
+                final boolean show = (hideTradeMsg && (game.getGameState() >= SOCGame.ROLL_OR_CARD));
+                undosLab.setVisible(show);
+                undosSq.setVisible(show);
+            }
             if (clothSq != null)
             {
                 clothLab.setVisible(hideTradeMsg);
@@ -3885,6 +3944,11 @@ import javax.swing.UIManager;
             knightsSq.setIntValue(player.getNumKnights());
             break;
 
+        case UndosRemaining:
+            if (undosSq != null)
+                undosSq.setIntValue(player.getUndosRemaining());
+            break;
+
         case Cloth:
             if (clothSq != null)
                 clothSq.setIntValue(player.getCloth());
@@ -4231,7 +4295,6 @@ import javax.swing.UIManager;
             // If nonzero, should lay out per-resource count squares & dev card inventory starting at this Y-position
             int resourceInventoryTop = 0;
 
-            //if (true) {
             if (playerIsClient)
             {
                 /* This is our hand */
@@ -4248,7 +4311,7 @@ import javax.swing.UIManager;
                 //   (Clay, Ore, Sheep, Wheat, Wood, Total)
                 // To right below top area: Piece counts
                 //   (Soldiers, Roads, Settlements, Cities, Ships)
-                // To right below piece counts: Dev card list, Play button
+                // To right below piece counts: Dev card list, undo count, Play button
                 // Bottom of panel: 1 button row: Quit to left; Roll, Restart to right
 
                 final Dimension sqpDim = sqPanel.getSize();  // Trading SquaresPanel (doesn't include Give/Get labels)
@@ -4361,6 +4424,7 @@ import javax.swing.UIManager;
 
                 // Position the player's resource counts and dev card inventory
                 // in middle vertical area between bottom of Clear button, top of Quit button
+                // Layout is done later, at "if (resourceInventoryTop != 0)"
                 resourceInventoryTop = devCardsY;
 
                 // Bottom of panel:
@@ -4389,7 +4453,7 @@ import javax.swing.UIManager;
                 // MessagePanel or Trade offer/counteroffer appears in center when a trade is active
                 // Bottom has columns of item counts on left, right, having 3 or 4 rows:
                 //   Cloth (if that scenario), Soldiers, Res, Dev Cards to left;
-                //   Ships (if sea board), Roads, Settlements, Cities to right
+                //   Undos (if using gameopt UBL), Ships (if sea board), Roads, Settlements, Cities to right
                 //   Robot lock button (during play) in bottom center
 
                 final boolean wasHidesControls = offerHidesControls;  // if changes here, will call hideTradeMsgShowOthers
@@ -4569,7 +4633,7 @@ import javax.swing.UIManager;
                 final int stlmtsW;
                 {
                     int wmax = 0, w;
-                    JLabel[] labs = new JLabel[]{shipLab, roadLab, settlementLab, cityLab};
+                    JLabel[] labs = new JLabel[]{shipLab, roadLab, settlementLab, cityLab, undosLab};
                     for (JLabel L : labs)
                     {
                         if (L == null)
@@ -4636,11 +4700,30 @@ import javax.swing.UIManager;
                 }
 
                 // Lower-right: Column of piece counts:
-                // Roads, Settlements, Cities, Ships
+                // Undos, Roads, Settlements, Cities, Ships
                 int x = dim.width - inset - sqSize;  // squares' x-pos; labels will be to their left
                 y = lowerY;
                 if (shipSq == null)
                     y += (lineH + space);
+                if (undosSq != null)
+                {
+                    // goes above roadSq
+                    y -= (lineH + space);
+                    undosLab.setBounds(x - stlmtsW - space, y, stlmtsW, lineH);
+                    undosSq.setLocation(x, y);
+                    y += (lineH + space);
+
+                    // undosSq puts this column on same row as takeover/unlock button, so make that less wide
+                    // and align it flush left
+                    JButton btn = null;
+                    if (hasTakeoverBut)
+                        btn = takeOverBut;
+                    else if (hasSittingRobotLockBut)
+                        btn = sittingRobotLockBut;
+
+                    if (btn != null)
+                        btn.setBounds(inset, btn.getY(), x - stlmtsW - (3 * space) - inset, btn.getHeight());
+                }
                 roadLab.setBounds(x - stlmtsW - space, y, stlmtsW, lineH);
                 roadSq.setLocation(x, y);
                 y += (lineH + space);
@@ -4724,15 +4807,29 @@ import javax.swing.UIManager;
                 }
 
                 // To the right of resource counts:
-                // Development Card list, Play button below
+                // Development Card list, with Undo count and Play button below
                 final int clW = dim.width - (inset + sheepW + space + sqSize + (4 * space) + inset);
                 final int clX = inset + sheepW + space + sqSize + (4 * space);
                 final int pcW = 10 * displayScale + fm.stringWidth(CARD.replace(' ','_')); // Play Card; bug in stringWidth(" ")
                 tbY = resourceInventoryTop + ((lineH + space) / 2);
                 inventoryScroll.setBounds
                     (clX, tbY, clW, (4 * (lineH + space)) - 2 * displayScale);
-                playCardBut.setBounds
-                    (((clW - pcW) / 2) + clX, tbY + (4 * (lineH + space)), pcW, lineH);
+                y = tbY + (4 * (lineH + space));
+                int btnX;
+                if (undosSq != null)
+                {
+                    final int txtW = fm.stringWidth(undosLab.getText());
+                    btnX = clW - pcW + clX;  // playCardBut at right margin
+                    int sqX = clX + txtW + space;  // assume undosLab will be at clX,
+                        // but if undosSq needs to move left to avoid overlap, will also move undosLab
+                    if (sqX + sqSize + space > btnX)
+                        sqX = btnX - (sqSize + space);
+                    undosLab.setBounds(sqX - txtW - space, y, txtW + 2 * displayScale, lineH);
+                    undosSq.setLocation(sqX, y);
+                } else {
+                    btnX = ((clW - pcW) / 2) + clX;  // playCardBut centered
+                }
+                playCardBut.setBounds(btnX, y, pcW, lineH);
             }
         }
     }
