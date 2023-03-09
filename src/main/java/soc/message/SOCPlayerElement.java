@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2014,2017-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2014,2017-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -285,6 +285,12 @@ public class SOCPlayerElement extends SOCMessage
          * @since 2.5.00
          */
         NUM_PLAYED_DEV_CARD_ROADS(24),
+
+        /**
+         * Number of remaining undos: Value of {@link SOCPlayer#getUndosRemaining()}.
+         * @since 2.7.00
+         */
+        NUM_UNDOS_REMAINING(25),
 
         //
         // Elements related to scenarios and sea boards:

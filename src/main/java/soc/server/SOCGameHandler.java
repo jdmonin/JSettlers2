@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2022 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2023 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -1409,6 +1409,9 @@ public class SOCGameHandler extends GameHandler
         /**
          * send the per-player information
          */
+
+        final boolean doSendUBL = (gameState >= SOCGame.ROLL_OR_CARD) && gameData.isGameOptionSet("UBL");
+
         for (int i = 0; i < gameData.maxPlayers; i++)
         {
             final SOCPlayer pl = gameData.getPlayer(i);
@@ -1496,6 +1499,11 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
                     new SOCPlayerElement
                         (gameName, i, SOCPlayerElement.SET, PEType.SCENARIO_WARSHIP_COUNT, itm));
+
+            if (doSendUBL && (pl.getPublicVP() > 0))
+                srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
+                    new SOCPlayerElement
+                        (gameName, i, SOCPlayerElement.SET, PEType.NUM_UNDOS_REMAINING, pl.getUndosRemaining()));
 
             /**
              * send node coord of the last settlement, resources,

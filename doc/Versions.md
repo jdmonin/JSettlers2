@@ -38,7 +38,9 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Client is sent every game's list of options; previous versions omitted options of any unjoinable game
 	    - If asked for info about a game option not compatible with client,
 	      server's "unknown option" `SOCGameOptionInfo` reply includes that option's description
-	    - When joining game, server sends `SOCGameStats(TYPE_TIMING)` with info on game duration
+	    - When joining game:
+	        - Server sends `SOCGameStats(TYPE_TIMING)` with info on game duration
+	        - If game has started and has game option `UBL`, sends each player's getUndosRemaining()
 - For developers:
 	- Enhanced GameAction class to start unifying info about actions and their side-effects
 	- Save/load games:

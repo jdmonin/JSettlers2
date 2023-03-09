@@ -378,6 +378,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int finalTotalVP;
 
     /**
+     * This player's number of undos remaining in the game,
+     * which starts at game option {@code "UBL"}'s value,
+     * or 0 if not using that option.
+     * @since 2.7.00
+     */
+    private int undosRemaining;
+
+    /**
      * For some game scenarios, how many cloth does this player have?
      * Every 2 pieces of cloth is worth 1 VP.
      * @see #specialVP
@@ -777,6 +785,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         buildingVP = player.buildingVP;
         specialVP = player.specialVP;
         finalTotalVP = 0;
+        undosRemaining = player.undosRemaining;
         numRBCards = player.numRBCards;
         numDISCCards = player.numDISCCards;
         numMONOCards = player.numMONOCards;
@@ -2560,6 +2569,32 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             return false;
 
         return p.getPlayerNumber() == playerNumber;
+    }
+
+    /**
+     * This player's number of undos remaining in the game,
+     * which at start of game is game option {@code "UBL"}'s value,
+     * or 0 if not using that option.
+     *<P>
+     * Is 0 before game starts; initialized in {@link SOCGame#updateAtBoardLayout()}.
+     *
+     * @return  Number of undos remaining, or 0 if none
+     * @since 2.7.00
+     */
+    public int getUndosRemaining()
+    {
+        return undosRemaining;
+    }
+
+    /**
+     * Set the player's {@link #getUndosRemaining()}.
+     * Game ignores this field if game option {@code "UBL"} not set.
+     * @param newRemain Number of undos remaining, or 0 if none
+     * @since 2.7.00
+     */
+    public void setUndosRemaining(final int newRemain)
+    {
+        undosRemaining = newRemain;
     }
 
     /**
