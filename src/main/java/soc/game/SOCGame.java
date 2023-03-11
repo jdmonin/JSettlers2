@@ -4607,6 +4607,7 @@ public class SOCGame implements Serializable, Cloneable
      * {@link #getLastAction()} must be a move of this piece ({@link ActionType#MOVE_PIECE}).
      * Must be current player. Game state must be {@link #PLAY1}.
      * {@link SOCGameOption} {@code "UB"} must be set.
+     * If using game option {@code "UBL"}, player's {@link SOCPlayer#getUndosRemaining()} must be &gt; 0.
      * @param pn  Player number
      * @param sh  Their ship to undo moving
      * @return  True if can undo that move now
@@ -4617,11 +4618,15 @@ public class SOCGame implements Serializable, Cloneable
     public boolean canUndoMoveShip(final int pn, final SOCShip sh)
     {
         final GameAction moveAct = lastAction;
-        return (pn == currentPlayerNumber) && (gameState == PLAY1)  // rules reminder: can't move ships during SBP
+        boolean ok = (pn == currentPlayerNumber) && (gameState == PLAY1)  // rules reminder: can't move ships during SBP
             && (moveAct != null) && (moveAct.actType == ActionType.MOVE_PIECE)
             && (moveAct.param1 == SOCPlayingPiece.SHIP)
             && (moveAct.param3 == sh.getCoordinates())
             && isGameOptionSet("UB");
+        if (ok && isGameOptionSet("UBL") && (players[currentPlayerNumber].getUndosRemaining() <= 0))
+            ok = false;
+
+        return ok;
     }
 
     /**
@@ -4629,6 +4634,7 @@ public class SOCGame implements Serializable, Cloneable
      * Temporarily sets gameState to {@link #UNDOING_ACTION} while it does so,
      * then restores the actual gameState to what it was at start of the method.
      * Sets {@link #getLastAction()} to {@link ActionType#UNDO_MOVE_PIECE}.
+     * Decrements current player's {@link SOCPlayer#getUndosRemaining()} if using game option {@code "UBL"}.
      *<P>
      * For validity checks, please call {@link #canUndoMoveShip(int, SOCShip)} before this method.
      *
@@ -4666,6 +4672,9 @@ public class SOCGame implements Serializable, Cloneable
             undoActionSideEffects_post(moveAct, SOCPlayingPiece.SHIP);
         gameState = actualGS;
 
+        if (isGameOptionSet("UBL"))
+            players[currentPlayerNumber].decrementUndosRemaining();
+
         final GameAction undoAct = new GameAction
             (moveAct, ActionType.UNDO_MOVE_PIECE, SOCPlayingPiece.SHIP, wasMovedFromEdge, wasMovedToEdge);
         lastAction = undoAct;
@@ -4696,6 +4705,7 @@ public class SOCGame implements Serializable, Cloneable
      * {@link #getLastAction()} must be the placement of this piece ({@link ActionType#BUILD_PIECE}).
      * Must be current player. Game state must be {@link #PLAY1} or {@link #SPECIAL_BUILDING}.
      * {@link SOCGameOption} {@code "UB"} must be set.
+     * If using game option {@code "UBL"}, player's {@link SOCPlayer#getUndosRemaining()} must be &gt; 0.
      * @param pn  Player number
      * @param pp  Their piece to undo placing
      * @return  True if can undo that placement now
@@ -4707,13 +4717,17 @@ public class SOCGame implements Serializable, Cloneable
     {
         final GameAction buildAct = lastAction;
         final int ptype = pp.getType();
-        return (pn == currentPlayerNumber) && ((gameState == PLAY1) || (gameState == SPECIAL_BUILDING))
+        boolean ok = (pn == currentPlayerNumber) && ((gameState == PLAY1) || (gameState == SPECIAL_BUILDING))
             && (ptype >= SOCPlayingPiece.ROAD) && (ptype <= SOCPlayingPiece.SHIP)
             && (buildAct != null) && (buildAct.actType == ActionType.BUILD_PIECE)
             && (buildAct.param1 == ptype)
             && (buildAct.param2 == pp.getCoordinates())
             && (buildAct.param3 == pn)
             && isGameOptionSet("UB");
+        if (ok && isGameOptionSet("UBL") && (players[currentPlayerNumber].getUndosRemaining() <= 0))
+            ok = false;
+
+        return ok;
     }
 
     /**
@@ -4721,6 +4735,7 @@ public class SOCGame implements Serializable, Cloneable
      * Temporarily sets gameState to {@link #UNDOING_ACTION} while it does so,
      * then restores the actual gameState to what it was at start of the method.
      * Sets {@link #getLastAction()} to {@link ActionType#UNDO_BUILD_PIECE}.
+     * Decrements current player's {@link SOCPlayer#getUndosRemaining()} if using game option {@code "UBL"}.
      *<P>
      * For validity checks, please call {@link #canUndoPutPiece(int, SOCPlayingPiece)} before this method.
      *<P>
@@ -4773,6 +4788,9 @@ public class SOCGame implements Serializable, Cloneable
         if (isAtServer)
             undoActionSideEffects_post(buildAct, ptype);
         gameState = actualGS;
+
+        if (isGameOptionSet("UBL"))
+            players[currentPlayerNumber].decrementUndosRemaining();
 
         final GameAction undoAct = new GameAction(buildAct, ActionType.UNDO_BUILD_PIECE, ptype, coord, 0);
         lastAction = undoAct;

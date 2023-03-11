@@ -29,6 +29,7 @@ import java.util.Map;
 
 import soc.game.ResourceSet;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;  // for javadocs only
 import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCInventory;   // for javadocs only
 import soc.game.SOCInventoryItem;
@@ -786,7 +787,10 @@ public interface PlayerClientListener
         LongestRoad,
         LargestArmy,
 
-        /** Number of undos remaining, from {@link SOCPlayer#getUndosRemaining() */
+        /**
+         * Number of undos remaining, from {@link SOCPlayer#getUndosRemaining()}.
+         * If not using {@link SOCGameOption} {@code "UBL"}, updating this has no effect.
+         */
         UndosRemaining
     }
 

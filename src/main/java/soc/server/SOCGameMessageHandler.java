@@ -3,7 +3,7 @@
  * This file Copyright (C) 2016 Alessandro D'Ottavio
  * Some contents were formerly part of SOCServer.java and SOCGameHandler.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -2867,8 +2867,14 @@ public class SOCGameMessageHandler
             }
 
             if (sendDenyReply)
+            {
+                if (player.getUndosRemaining() <= 0)
+                    srv.messageToPlayer
+                        (c, gaName, pn, new SOCPlayerElement
+                            (gaName, pn, SOCPlayerElement.SET, PEType.NUM_UNDOS_REMAINING, 0));
                 srv.messageToPlayer
                     (c, gaName, pn, new SOCUndoPutPiece(gaName, -1, pieceType, coord));
+            }
         } finally {
             ga.releaseMonitor();
         }

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2022-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +33,9 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  * <LI> If undo is allowed, server announces {@code SOCUndoPutPiece} to the game along with any related messages:
  *      See below.
  * <LI> Otherwise server replies with {@code SOCUndoPutPiece}(pn = -1).
+ *      If was not allowed because game has option {@code "UBL"} and {@link soc.game.SOCPlayer#getUndosRemaining()} is 0,
+ *      that reply is preceded by a {@link SOCPlayerElement}(SET, {@link SOCPlayerElement.PEType#NUM_UNDOS_REMAINING}, 0)
+ *      in case player's client had an inaccurate count.
  *</UL>
  *
  *<H3>Announcement from Server</H3>

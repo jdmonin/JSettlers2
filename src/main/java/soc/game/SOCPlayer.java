@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -2579,6 +2579,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Is 0 before game starts; initialized in {@link SOCGame#updateAtBoardLayout()}.
      *
      * @return  Number of undos remaining, or 0 if none
+     * @see #decrementUndosRemaining()
      * @since 2.7.00
      */
     public int getUndosRemaining()
@@ -2590,11 +2591,28 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Set the player's {@link #getUndosRemaining()}.
      * Game ignores this field if game option {@code "UBL"} not set.
      * @param newRemain Number of undos remaining, or 0 if none
+     * @see #decrementUndosRemaining()
      * @since 2.7.00
      */
     public void setUndosRemaining(final int newRemain)
     {
         undosRemaining = newRemain;
+    }
+
+    /**
+     * Reduce the player's {@link #getUndosRemaining()} by 1.
+     * Game ignores this field if game option {@code "UBL"} not set.
+     * @throws IllegalStateException if undosRemaining is already &lt;= 0
+     * @see #setUndosRemaining(int)
+     * @since 2.7.00
+     */
+    public void decrementUndosRemaining()
+        throws IllegalStateException
+    {
+        if (undosRemaining <= 0)
+            throw new IllegalStateException("undosRemaining");
+
+        --undosRemaining;
     }
 
     /**

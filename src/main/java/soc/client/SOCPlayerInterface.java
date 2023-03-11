@@ -3562,6 +3562,8 @@ public class SOCPlayerInterface extends JFrame
         if (hpan != null)
         {
             hpan.updateResourcesVP();
+            hpan.updateValue(PlayerClientListener.UpdateType.UndosRemaining);
+
             if (movedFromCoordinate == 0)
                 switch (pieceType)
                 {
