@@ -560,6 +560,14 @@ import javax.swing.UIManager;
     protected final SOCGame game;
 
     /**
+     * True if normal gameplay has started ({@link #game} state &gt;= {@link SOCGame#ROLL_OR_CARD}).
+     * Also used when observing, not only when {@link #inPlay}.
+     * Used by {@link #updateAtNormalGameplay()}.
+     * @since 2.7.00
+     */
+    private boolean hasStartedNormalGameplay;
+
+    /**
      * Our player; should use only when {@link #inPlay} and {@link SOCPlayer#getName()} is not null.
      * See {@link #getPlayer()}.
      * @see #playerNumber
@@ -955,8 +963,14 @@ import javax.swing.UIManager;
         if (game.isGameOptionSet("UBL"))
         {
             undosSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
-                // value must remain 0 until start of 1st turn; other handpanel code relies on that assumption
+                // actual value will be set after initial placement or when joining game in progress
             add(undosSq);
+            final int nStart = game.getGameOptionIntValue("UBL");
+            undosSq.setLowWarningLevel
+                ((nStart <= 6) ? 1
+                 : (nStart < 15) ? 2
+                 : (nStart < 30) ? (nStart / 5)  // 3 - 5
+                 : 5);
             final String ttip = strings.get("hpan.undos.tt");  // "Number of remaining undos"
             undosSq.setToolTipText(ttip);
             undosLab = new JLabel(strings.get("hpan.undos"));  // "Undos:"
@@ -2689,11 +2703,43 @@ import javax.swing.UIManager;
     }
 
     /**
+     * When normal gameplay starts or has started,
+     * do any UI element updates which are needed exactly once.
+     * Does nothing if {@link #hasStartedNormalGameplay} is already true.
+     *<UL>
+     * <LI> If using gameopt {@code "UBL"}, shows the hidden {@link #undosSq} and {@link #undosLab}
+     * <LI> Sets {@link #hasStartedNormalGameplay}
+     *</UL>
+     * Called from {@link #updateAtTurn()}.
+     * @since 2.7.00
+     */
+    private void updateAtNormalGameplay()
+    {
+        if (hasStartedNormalGameplay)
+            return;
+
+        if (undosSq != null)
+        {
+            // Set actual value and un-hide at start of first regular turn,
+            // unless is hidden because this non-client player's panel isn't tall enough
+
+            if (undosSq.getIntValue() == 0)
+                updateValue(PlayerClientListener.UpdateType.UndosRemaining);
+            final boolean shouldShow = playerIsClient || roadSq.isVisible();
+            undosSq.setVisible(shouldShow);
+            undosLab.setVisible(shouldShow);
+        }
+
+        hasStartedNormalGameplay = true;
+    }
+
+    /**
      * Handpanel interface updates at start of each turn (not just our turn).
      * Calls {@link #updateTakeOverButton()}, and checks if current player (for hilight).
      * Called from client when server sends {@link soc.message.SOCMessage#TURN}.
      *<P>
-     * Called also at start of game by {@link SOCPlayerInterface#updateAtGameState()},
+     * Also called by {@link SOCPlayerInterface#updateAtGameState()}
+     * at start of game or when joining a game in progress,
      * because servers older than v2.5.00 sometimes send no TURN between the last road (gamestate START2B)
      * and the first player's turn (state ROLL_OR_CARD).
      * @since 1.1.00
@@ -2756,22 +2802,13 @@ import javax.swing.UIManager;
             playCardBut.setEnabled(normalTurnStarting && ! ((DefaultListModel<?>) inventory.getModel()).isEmpty());
         }
 
-        if ((undosSq != null) && (gs >= SOCGame.ROLL_OR_CARD)
-            && (game.getRoundCount() <= 1) && (undosSq.getIntValue() == 0))
-        {
-            // Set actual value and un-hide at start of first regular turn,
-            // unless is hidden because this non-client player's panel isn't tall enough
-
-            updateValue(PlayerClientListener.UpdateType.UndosRemaining);
-            final boolean shouldShow = playerIsClient || roadSq.isVisible();
-            undosSq.setVisible(shouldShow);
-            undosLab.setVisible(shouldShow);
-        }
-
         bankGive = null;
         bankGet = null;
         if (bankUndoBut.isEnabled())
             bankUndoBut.setEnabled(false);
+
+        if ((gs >= SOCGame.ROLL_OR_CARD) && ! hasStartedNormalGameplay)
+            updateAtNormalGameplay();
 
         // Although this method is called at the start of our turn,
         // the call to autoRollOrPromptPlayer() is not made here.

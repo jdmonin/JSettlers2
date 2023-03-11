@@ -2739,9 +2739,14 @@ public class SOCPlayerInterface extends JFrame
     }
 
     /**
-     * Game play is starting (leaving state {@link SOCGame#NEW}).
+     * Game play is starting (leaving game state {@link SOCGame#NEW}) or already started.
      * Remove the start buttons and robot-lockout buttons.
-     * Next move is for players to make their starting placements.
+     * Hide the "<em>n</em> seats available" overlay if shown.
+     *<P>
+     * If {@link SOCGame#getGameState()} is now {@link SOCGame#START1A},
+     * next move is for players to make their starting placements.
+     *<P>
+     * Also called when joining a game that's already in normal gameplay (state &gt;= {@link SOCGame#ROLL_OR_CARD}).
      *<P>
      * Call {@link SOCGame#setGameState(int)} before calling this method.
      * Call this method before calling {@link #updateAtGameState()}.
@@ -3295,8 +3300,8 @@ public class SOCPlayerInterface extends JFrame
         if (gameIsStarting && (gs >= SOCGame.ROLL_OR_CARD))
         {
             gameIsStarting = false;
-            if (clientHand != null)
-                clientHand.updateAtTurn();
+            for (int pn = 0; pn < game.maxPlayers; ++pn)
+                hands[pn].updateAtTurn();
         }
 
         buildingPanel.updateButtonStatus();
