@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007,2010-2013,2017-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007,2010-2013,2017-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@ import java.util.StringTokenizer;
 import soc.game.SOCDevCardConstants;
 
 /**
- *  This message type has five possible meanings, depending on game state and direction sent:
+ *  This message type has several possible meanings, depending on game state and direction sent:
  *
  *<UL>
  *
@@ -54,6 +54,13 @@ import soc.game.SOCDevCardConstants;
  *   {@link SOCPlayerElement.PEType#PLAYED_DEV_CARD_FLAG PLAYED_DEV_CARD_FLAG}, false)</tt>
  *   so they can still play a dev card this turn.
  *
+ *<LI> While playing a dev card and choosing free resources, a resource type to monopolize, or placing the robber: <BR>
+ *   CANCELBUILDREQUEST means the player has changed their mind about playing that card,
+ *   sent with {@code pieceType} == {@link #CARD}.
+ *   Server will reply by returning the card to the player's inventory, with the same sequence
+ *   of messages as above for Road Building.
+ *   (This was added in 2.7.00 ({@link soc.game.SOCGame#VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD}.)
+ *
  *<LI> Shouldn't be sent from client during other game states.
  *   Server will reply with {@link SOCDeclinePlayerRequest} or {@link SOCGameServerText}.
  *
@@ -74,10 +81,10 @@ import soc.game.SOCDevCardConstants;
  *   In some of those cases it's sent only to robot clients, not to humans.
  *   (Humans get a textual error message, and can understand that instead.)
  *
- *<LI> Piece type -2 is sent only from server to robot client, as a way to tell robots
+ *<LI> Piece type -2 ({@link #CARD}) is never sent from server to the entire game;
+ *   it's sent as reply to a robot client as a way to tell robots
  *   they can't buy a development card (insufficient resources, or no cards left).
  *   (This was added in 1.1.09.)
- *   -2 == soc.robot.SOCPossiblePiece.CARD.
  *
  *</UL>
  *
@@ -86,6 +93,17 @@ import soc.game.SOCDevCardConstants;
 public class SOCCancelBuildRequest extends SOCMessage
     implements SOCMessageForGame
 {
+    /**
+     * pieceType for client to cancel playing a dev card that isn't Road Building,
+     * or for server to tell clients they can't buy a development card;
+     * see {@link SOCCancelBuildRequest class javadoc}.
+     * Same value as {@link soc.robot.SOCPossiblePiece#CARD}.
+     * Exception: When canceling Road Building, client sends piece type
+     * {@link soc.game.SOCPlayingPiece#ROAD} or {@link soc.game.SOCPlayingPiece#SHIP} instead.
+     * @since 2.7.00
+     */
+    public static final int CARD = -2;
+
     /**
      * pieceType to cancel special {@code SOCInventoryItem} placement; see {@link SOCCancelBuildRequest class javadoc}.
      * @since 2.0.00
@@ -130,7 +148,8 @@ public class SOCCancelBuildRequest extends SOCMessage
     /**
      * Get the type of piece to cancel build.
      * @return the type of piece to cancel build, such as {@link soc.game.SOCPlayingPiece#CITY}.
-     *   -2 is used from server to reject request to buy a Development Card.
+     *   -2 ({@link #CARD}) is used from client to cancel playing most Dev Cards,
+     *      and from server to reject request to buy a Development Card.
      *   -3 ({@link #INV_ITEM_PLACE_CANCEL}) is used from client to request canceling placement of a
      *      special SOCInventoryItem if possible.
      */

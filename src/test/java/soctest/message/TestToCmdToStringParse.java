@@ -521,6 +521,7 @@ public class TestToCmdToStringParse
             // v1.x was SOCBuyCardRequest:
         {new SOCBuyDevCardRequest("ga"), "1045|ga", "SOCBuyCardRequest:game=ga", OPT_PARSE_ONLY},
         {new SOCCancelBuildRequest("ga", SOCPlayingPiece.CITY), "1044|ga,2", "SOCCancelBuildRequest:game=ga|pieceType=2"},
+        {new SOCCancelBuildRequest("ga", SOCCancelBuildRequest.CARD), "1044|ga,-2", "SOCCancelBuildRequest:game=ga|pieceType=-2"},
         {new SOCChangeFace("ga", 3, 7), "1058|ga,3,7", "SOCChangeFace:game=ga|playerNumber=3|faceId=7"},
         {new SOCChannelMembers("cha", Arrays.asList("player0", "droid 1", "robot 2", "debug")), "1002|cha,player0,droid 1,robot 2,debug", "SOCChannelMembers:channel=cha|members=[player0, droid 1, robot 2, debug]"},
         {new SOCChannelMembers("cha", Arrays.asList("m")), "1002|cha,m", "SOCChannelMembers:channel=cha|members=[m]"},  // shortest list

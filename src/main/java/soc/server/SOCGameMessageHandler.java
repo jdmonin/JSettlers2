@@ -2069,6 +2069,8 @@ public class SOCGameMessageHandler
 
                 int sendDeclineReason = -1;  // send SOCDeclinePlayerRequest if != -1
                 String sendDeclineTextKey = null;
+                int cardTypeRet = -1;  // send SOCDevCardAction if != -1
+                String cardTypeRetTextKey = null;
                 boolean noAction = false;  // If true, there was nothing cancelable: Don't call handler.sendGameState
 
                 switch (mes.getPieceType())
@@ -2087,14 +2089,9 @@ public class SOCGameMessageHandler
                         }
                         else if (wasDevCardRet)
                         {
-                            srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.cancel", player.getName());
+                            cardTypeRet = SOCDevCardConstants.ROADS;
+                            cardTypeRetTextKey = "action.card.roadbuilding.cancel";
                                 // "{0} cancelled the Road Building card."
-                            srv.messageToGame
-                                (gaName, true, new SOCDevCardAction
-                                    (gaName, pn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.ROADS));
-                            srv.messageToGame
-                                (gaName, true, new SOCPlayerElement
-                                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG, 0));
                         }
                         else
                         {
@@ -2161,11 +2158,9 @@ public class SOCGameMessageHandler
                         }
                         else if (wasDevCardRet)
                         {
-                            srv.messageToGameKeyed(ga, true, true, "action.card.roadbuilding.cancel", player.getName());
+                            cardTypeRet = SOCDevCardConstants.ROADS;
+                            cardTypeRetTextKey = "action.card.roadbuilding.cancel";
                                 // "{0} cancelled the Road Building card."
-                            srv.messageToGame
-                                (gaName, true, new SOCDevCardAction
-                                    (gaName, pn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.ROADS));
                         }
                         else
                         {
@@ -2178,6 +2173,36 @@ public class SOCGameMessageHandler
                         noAction = true;
                     }
 
+                    break;
+
+                case SOCCancelBuildRequest.CARD:
+                    if (ga.canCancelPlayCurrentDevCard())
+                    {
+                        cardTypeRet = ga.cancelPlayCurrentDevCard();
+                        switch (cardTypeRet)
+                        {
+                        case SOCDevCardConstants.DISC:
+                            cardTypeRetTextKey = "action.card.discov.cancel";
+                                // "{0} cancelled the Year of Plenty card."
+                            break;
+                        case SOCDevCardConstants.KNIGHT:
+                            cardTypeRetTextKey = "action.card.soldier.cancel";
+                                // "{0} cancelled the Soldier card."
+                            break;
+                        case SOCDevCardConstants.MONO:
+                            cardTypeRetTextKey = "action.card.mono.cancel";
+                                // "{0} cancelled the Monopoly card."
+                            break;
+                        default:
+                            cardTypeRetTextKey = "action.card.play.cancel";
+                                // "{0} cancelled the development card."
+                        }
+                    } else {
+                        sendDeclineReason = SOCDeclinePlayerRequest.REASON_NOT_NOW;
+                        sendDeclineTextKey = "action.card.play.cancel.cant._nolocaliz";
+                            // "Can't cancel that development card now."
+                        noAction = true;
+                    }
                     break;
 
                 case SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL:
@@ -2212,8 +2237,20 @@ public class SOCGameMessageHandler
                 }
 
                 if (sendDeclineReason != -1)
+                {
                     handler.sendDecline(c, ga, true, pn, sendDeclineReason, 0, 0, sendDeclineTextKey);
                         // includes gamestate: the bot is waiting for one
+                }
+                else if (cardTypeRet != -1)
+                {
+                    srv.messageToGameKeyed(ga, true, true, cardTypeRetTextKey, player.getName());
+                    srv.messageToGame
+                        (gaName, true, new SOCDevCardAction
+                            (gaName, pn, SOCDevCardAction.ADD_OLD, cardTypeRet));
+                    srv.messageToGame
+                        (gaName, true, new SOCPlayerElement
+                            (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG, 0));
+                }
 
                 if (! noAction)
                     handler.sendGameState(ga);

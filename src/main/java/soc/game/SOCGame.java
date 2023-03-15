@@ -644,11 +644,12 @@ public class SOCGame implements Serializable, Cloneable
     private static final int NUM_DEVCARDS_6PLAYER = 9 + NUM_DEVCARDS_STANDARD;
 
     /**
-     * Minimum version (2.5.00) that supports canceling the second free road or ship placement
-     * without ending player's turn.
+     * Minimum version (2.5.00) that supports canceling the first free road or ship placement
+     * without having to end player's turn.
      * @see #cancelBuildRoad(int)
      * @see #cancelBuildShip(int)
      * @see #VERSION_FOR_CANCEL_FREE_ROAD2
+     * @see #VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD
      * @since 2.5.00
      */
     public static final int VERSION_FOR_CANCEL_FREE_ROAD1 = 2500;
@@ -658,9 +659,18 @@ public class SOCGame implements Serializable, Cloneable
      * @see #cancelBuildRoad(int)
      * @see #cancelBuildShip(int)
      * @see #VERSION_FOR_CANCEL_FREE_ROAD1
+     * @see #VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD
      * @since 1.1.17
      */
     public static final int VERSION_FOR_CANCEL_FREE_ROAD2 = 1117;
+
+    /**
+     * Minimum version (2.7.00) that supports canceling the dev card being currently played, beyond Road Building:
+     * Knight/Soldier, Discovery/Year of Plenty, Monopoly.
+     * @see #VERSION_FOR_CANCEL_FREE_ROAD1
+     * @since 2.7.00
+     */
+    public static final int VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD = 2700;
 
     /**
      * Minimum version (2.4.00) where {@link #getPlayerWithLongestRoad()} and {@link #getPlayerWithLargestArmy()}
@@ -8996,6 +9006,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Called only at server; client is instead sent messages with effects of playing the card.
      *
+     * @see #cancelPlayCurrentDevCard()
      * @see SOCPlayer#getDevCardsPlayed()
      */
     public void playDiscovery()
@@ -9018,6 +9029,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Called only at server; client is instead sent messages with effects of playing the card.
      *
+     * @see #cancelPlayCurrentDevCard()
      * @see SOCPlayer#getDevCardsPlayed()
      */
     public void playMonopoly()
@@ -9030,6 +9042,66 @@ public class SOCGame implements Serializable, Cloneable
         pl.updateDevCardsPlayed(SOCDevCardConstants.MONO, false);
         oldGameState = gameState;
         gameState = WAITING_FOR_MONOPOLY;
+    }
+
+    /**
+     * Can the current player cancel the dev card they're currently playing
+     * (Knight/Soldier, Discovery/Year of Plenty, Monopoly)?
+     * See {@link #cancelPlayCurrentDevCard()} for details.
+     * For Road Building, call {@link #canCancelBuildPiece(int)} instead.
+     * @return true if game state is {@link #WAITING_FOR_DISCOVERY} or {@link #WAITING_FOR_MONOPOLY}
+     * @since 2.7.00
+     */
+    public boolean canCancelPlayCurrentDevCard()
+    {
+        return (gameState == WAITING_FOR_DISCOVERY) || (gameState == WAITING_FOR_MONOPOLY);
+        // TODO handle knight/soldier
+    }
+
+    /**
+     * The current player is canceling the dev card they're currently playing
+     * (Knight/Soldier, Discovery/Year of Plenty, Monopoly)
+     * before choosing a resource, resource type, or robbery victim.
+     * Assumes {@link #canCancelPlayCurrentDevCard()} has already been called.
+     *<P>
+     * For Road Building, call {@link #cancelBuildRoad(int)} instead.
+     *<P>
+     * Actions taken:
+     *<UL>
+     * <LI> Clear {@link SOCPlayer#hasPlayedDevCard()}
+     * <LI> Return the card to player's inventory
+     * <LI> Remove card from {@link SOCPlayer#getDevCardsPlayed()}
+     * <LI> Set game state back to {@link #ROLL_OR_CARD} or {@link #PLAY1}
+     *</UL>
+     * Added in v2.7.00 ({@link #VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD}).
+     *
+     * @return the development card type canceled and returned to player's hand:
+     *     {@link SOCDevCardConstants#DISC}, {@link SOCDevCardConstants#MONO},
+     *     or {@link {@link SOCDevCardConstants#KNIGHT}
+     * @throws IllegalStateException if current game state isn't a recognized dev card playing state
+     * @since 2.7.00
+     */
+    public int cancelPlayCurrentDevCard()
+        throws IllegalStateException
+    {
+        final int devCardType;
+        switch (gameState)
+        {
+        case WAITING_FOR_DISCOVERY:  devCardType = SOCDevCardConstants.DISC;  break;
+        case WAITING_FOR_MONOPOLY:   devCardType = SOCDevCardConstants.MONO;  break;
+        default:
+            throw new IllegalStateException("gameState: " + gameState);
+        }
+
+        final SOCPlayer currPl = players[currentPlayerNumber];
+        currPl.setPlayedDevCard(false);
+        currPl.getInventory().addDevCard(1, SOCInventory.OLD, devCardType);
+        currPl.updateDevCardsPlayed(devCardType, true);
+        gameState = oldGameState;
+
+        // TODO handle knight/soldier
+
+        return devCardType;
     }
 
     /**

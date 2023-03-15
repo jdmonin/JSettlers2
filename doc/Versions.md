@@ -16,6 +16,7 @@ JARs for recent JSettlers versions can be downloaded from
 ## `2.7.00` (build JM2022xxxx)
 - Currently being developed
 - Gameplay:
+	- Monopoly, Year of Plenty: Player can cancel while choosing resources; dev card is returned to their hand (client v2.7.00 or newer)
 	- New optional house rule: Allow undo building and moving pieces (new game option `UB`; requires client v2.7.00 or newer)
 - Client:
 	- Game window:
@@ -33,6 +34,8 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Show game duration and status (not started yet, in progress, finished)
 	    - Even if client can't join game, show its options (with server v2.7.00 or newer)
 	- Don't set gotPassword field while joining a practice game
+- Server:
+	- Bugfix: If player cancels Road Building with Cancel Ship button, server now clears player's hasPlayedDevCard() so another can be played
 - Network/Message traffic:
 	- When client is this version or newer:
 	    - Client is sent every game's list of options; previous versions omitted options of any unjoinable game
@@ -41,6 +44,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - When joining game:
 	        - Server sends `SOCGameStats(TYPE_TIMING)` with info on game duration
 	        - If game has started and has game option `UBL`, sends each player's getUndosRemaining()
+	    - Can send `SOCCancelBuildRequest(CARD)` to cancel the dev card being played
 - For developers:
 	- Enhanced GameAction class to start unifying info about actions and their side-effects
 	- Save/load games:
