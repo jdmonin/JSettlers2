@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2012-2014,2018-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2014,2018-2020,2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +29,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import soc.message.SOCCancelBuildRequest;
+
 /**
  * Dialog to prompt player to pick a resource to monopolize,
  * with buttons for the 5 resource types.
@@ -40,11 +42,18 @@ import javax.swing.JPanel;
     final JButton[] rsrcBut;
 
     /**
+     * Cancel if server is new enough, otherwise null.
+     * @since 2.7.00
+     */
+    final JButton cancelBut;
+
+    /**
      * Creates a new SOCMonopolyDialog object.
      *
      * @param pi Parent window
+     * @param withCancel  If true, have Cancel button at bottom (server is new enough to cancel playing the card)
      */
-    public SOCMonopolyDialog(SOCPlayerInterface pi)
+    public SOCMonopolyDialog(final SOCPlayerInterface pi, final boolean withCancel)
     {
         super(pi, strings.get("spec.dcards.monopoly"), strings.get("dialog.mono.please.pick.resource"), false);
             // title: "Monopoly"  prompt: "Please pick a resource to monopolize."
@@ -91,6 +100,17 @@ import javax.swing.JPanel;
             btnsPane.add(b);
         }
 
+        if (withCancel)
+        {
+            JPanel pane = getSouthPanel();
+            cancelBut = new JButton(strings.get("base.cancel"));
+            cancelBut.addActionListener(this);
+            pane.add(cancelBut);
+            styleButtonsAndLabels(pane);
+        } else {
+            cancelBut = null;
+        }
+
         pack();
     }
 
@@ -106,12 +126,21 @@ import javax.swing.JPanel;
     }
 
     /**
-     * Handle resource button clicks.
+     * Handle resource button and cancel button clicks.
      */
     public void actionPerformed(ActionEvent e)
     {
         try {
         Object target = e.getSource();
+
+        if (target == cancelBut)
+        {
+            playerInterface.getClient().getGameMessageSender().cancelBuildRequest
+                (playerInterface.getGame(), SOCCancelBuildRequest.CARD);
+            dispose();
+
+            return;
+        }
 
         for (int i = 0; i < 5; i++)
         {

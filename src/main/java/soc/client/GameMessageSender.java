@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2023 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -170,10 +170,10 @@ import soc.message.SOCUndoPutPiece;
     }
 
     /**
-     * request to cancel building something
+     * Request to cancel building something or playing a dev card.
      *
      * @param ga     the game
-     * @param piece  the type of piece, from SOCPlayingPiece constants
+     * @param piece  the type of piece, from {@link SOCPlayingPiece} or {@link SOCCancelBuildRequest} constants
      */
     public void cancelBuildRequest(SOCGame ga, int piece)
     {
@@ -476,6 +476,7 @@ import soc.message.SOCUndoPutPiece;
      *
      * @param ga  the game
      * @param dc  the type of development card
+     * @see #cancelBuildRequest(SOCGame, int)
      */
     public void playDevCard(SOCGame ga, int dc)
     {

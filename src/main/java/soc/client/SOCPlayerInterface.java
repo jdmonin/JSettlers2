@@ -3088,7 +3088,8 @@ public class SOCPlayerInterface extends JFrame
      */
     public void showMonopolyDialog()
     {
-        monopolyDialog = new SOCMonopolyDialog(this);
+        monopolyDialog = new SOCMonopolyDialog
+            (this, client.getServerVersion(game) >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD);
         EventQueue.invokeLater(monopolyDialog);  // dialog's run() calls setVisible(true)
     }
 

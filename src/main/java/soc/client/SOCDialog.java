@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2020,2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -209,6 +209,8 @@ public abstract class SOCDialog
      *<P>
      * You are free to add any type of component in here and change the layout manager.
      * After adding all buttons and labels, you can call {@link #styleButtonsAndLabels(Container)}.
+     *
+     * @see #getSouthPanel()
      */
     protected JPanel getMiddlePanel()
     {
@@ -226,6 +228,7 @@ public abstract class SOCDialog
      * You might also want to call {@link JRootPane#setDefaultButton(JButton) getRootPane().setDefaultButton(...)}.
      *
      * @return the optional south panel
+     * @see #getMiddlePanel()
      */
     protected JPanel getSouthPanel()
     {
