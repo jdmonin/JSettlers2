@@ -5005,12 +5005,13 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
+     * @throws NullPointerException if {@code ga} or {@code key} is null
      * @deprecated Use {@link #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)} instead,
      *     starting at v2.5.00
      * @since 2.0.00
      */
     public void messageToGameKeyed(SOCGame ga, final boolean takeMon, final String key, final Object ... params)
-        throws MissingResourceException
+        throws NullPointerException, MissingResourceException
     {
         impl_messageToGameKeyedSpecial
             (ga, false, null, takeMon, gameList.getMembers(ga.getName()), null, false, key, params);
@@ -5041,6 +5042,7 @@ public class SOCServer extends Server
      *            (See {@link #messageToGameUrgent(String, boolean, String)})
      * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
      *             by calling {@link MessageFormat#format(String, Object...)}.
+     * @throws NullPointerException if {@code ga} or {@code key} is null
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
@@ -5051,7 +5053,7 @@ public class SOCServer extends Server
      */
     public void messageToGameKeyed
         (SOCGame ga, final boolean isEvent, final boolean takeMon, final String key, final Object ... params)
-        throws MissingResourceException
+        throws NullPointerException, MissingResourceException
     {
         impl_messageToGameKeyedSpecial
             (ga, isEvent, null, takeMon, gameList.getMembers(ga.getName()), null, false, key, params);
@@ -5089,6 +5091,7 @@ public class SOCServer extends Server
      *             <P>
      *             These objects can include {@link SOCResourceSet} or pairs of
      *             Integers for a resource count and type; see {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
+     * @throws NullPointerException if {@code ga} or {@code key} is null
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
@@ -5098,7 +5101,7 @@ public class SOCServer extends Server
      */
     public final void messageToGameKeyedSpecial
         (SOCGame ga, final boolean isEvent, final boolean takeMon, final String key, final Object ... params)
-        throws MissingResourceException, IllegalArgumentException
+        throws NullPointerException, MissingResourceException, IllegalArgumentException
     {
         impl_messageToGameKeyedSpecial
             (ga, isEvent, null, takeMon, gameList.getMembers(ga.getName()), null, true, key, params);
@@ -5132,6 +5135,7 @@ public class SOCServer extends Server
      *             <P>
      *             These objects can include {@link SOCResourceSet} or pairs of
      *             Integers for a resource count and type; see {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
+     * @throws NullPointerException if {@code ga} or {@code key} is null
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int[], boolean, List, String, Object...)
@@ -5142,7 +5146,7 @@ public class SOCServer extends Server
     public final void messageToGameKeyedSpecialExcept
         (SOCGame ga, final int eventExclPN, final boolean takeMon,
          Connection ex, final String key, final Object ... params)
-        throws MissingResourceException, IllegalArgumentException
+        throws NullPointerException, MissingResourceException, IllegalArgumentException
     {
         int[] excl = (eventExclPN != PN_NON_EVENT) ? new int[]{eventExclPN} : null;
         impl_messageToGameKeyedSpecial
@@ -5174,6 +5178,7 @@ public class SOCServer extends Server
      *             <P>
      *             These objects can include {@link SOCResourceSet} or pairs of
      *             Integers for a resource count and type; see {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
+     * @throws NullPointerException if {@code ga} or {@code key} is null
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
@@ -5183,7 +5188,7 @@ public class SOCServer extends Server
     public final void messageToGameKeyedSpecialExcept
         (SOCGame ga, final int[] eventExclPNs, final boolean takeMon,
          List<Connection> ex, final String key, final Object ... params)
-        throws MissingResourceException, IllegalArgumentException
+        throws NullPointerException, MissingResourceException, IllegalArgumentException
     {
         List<Connection> sendTo = gameList.getMembers(ga.getName());
         if ((ex != null) && ! ex.isEmpty())
@@ -5230,6 +5235,7 @@ public class SOCServer extends Server
      *             <P>
      *             If {@code fmtSpecial}, these objects can include {@link SOCResourceSet} or pairs of
      *             Integers for a resource count and type; see {@link SOCStringManager#getSpecial(SOCGame, String, Object...)}.
+     * @throws NullPointerException if {@code ga} or {@code key} is null
      * @throws MissingResourceException if no string can be found for {@code key}; this is a RuntimeException
      * @throws IllegalArgumentException if the localized pattern string has a parse error (closing '}' brace without opening '{' brace, etc)
      * @since 2.0.00
@@ -5238,10 +5244,13 @@ public class SOCServer extends Server
         (SOCGame ga, final boolean isEvent, final int[] eventExclPNs,
          final boolean takeMon, final List<Connection> members, final Connection ex,
          final boolean fmtSpecial, final String key, final Object ... params)
-        throws MissingResourceException, IllegalArgumentException
+        throws NullPointerException, MissingResourceException, IllegalArgumentException
     {
         if (members == null)
             return;
+        if (key == null)
+            throw new NullPointerException("key");  // check now, instead of a misleading throw from a method called from here
+        // null ga will throw soon at getName, no need to check here too
 
         // Very similar code to messageToGameKeyedType, messageToGameForVersionsKeyedExcept:
         // If you change code here, change it there too.
