@@ -3016,13 +3016,21 @@ public class SOCPlayerInterface extends JFrame
     /**
      * Show the discard dialog or the gain-resources dialog.
      * Used for discards, gold hexes, and the Discovery/Year of Plenty dev card.
+     *<P>
+     * If state is {@link SOCGame#WAITING_FOR_DISCOVERY} and server is new enough,
+     * can cancel playing that dev card; dialog will have a Cancel button.
      *
      * @param nd  the number of resources to discard or gain
      * @param isDiscard  True for discard (after 7), false for gain (after gold hex)
      */
     public void showDiscardOrGainDialog(final int nd, final boolean isDiscard)
     {
-        discardOrGainDialog = new SOCDiscardOrGainResDialog(this, nd, isDiscard);
+        final boolean withCancel =
+            (! isDiscard)
+            && (game.getGameState() == SOCGame.WAITING_FOR_DISCOVERY)
+            && (client.getServerVersion(game) >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD);
+
+        discardOrGainDialog = new SOCDiscardOrGainResDialog(this, nd, isDiscard, withCancel);
         EventQueue.invokeLater(discardOrGainDialog);  // calls setVisible(true)
     }
 
