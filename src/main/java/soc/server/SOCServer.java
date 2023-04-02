@@ -84,6 +84,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -1348,7 +1349,7 @@ public class SOCServer extends Server
      *
      * @since 1.1.19
      */
-    protected HashMap<Integer, AtomicInteger> clientPastVersionStats;
+    protected TreeMap<Integer, AtomicInteger> clientPastVersionStats;
 
     /**
      * Number of robot-only games not yet started (optional feature).
@@ -2017,7 +2018,7 @@ public class SOCServer extends Server
         numberOfGamesStarted = 0;
         numberOfGamesFinished = 0;
         numberOfUsers = 0;
-        clientPastVersionStats = new HashMap<Integer, AtomicInteger>();
+        clientPastVersionStats = new TreeMap<>();
         numRobotOnlyGamesRemaining = getConfigIntProperty(PROP_JSETTLERS_BOTS_BOTGAMES_TOTAL, 0);
         if (numRobotOnlyGamesRemaining > 0)
         {

@@ -37,6 +37,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- Don't set gotPassword field while joining a practice game
 - Server:
 	- Bugfix: If player cancels Road Building with Cancel Ship button, server now clears player's hasPlayedDevCard() so another can be played
+	- `*STATS*`: Sort the client version list
 - Network/Message traffic:
 	- When client is this version or newer:
 	    - Client is sent every game's list of options; previous versions omitted options of any unjoinable game

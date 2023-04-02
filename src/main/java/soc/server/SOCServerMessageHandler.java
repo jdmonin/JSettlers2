@@ -41,6 +41,7 @@ import java.util.MissingResourceException;
 import java.util.NoSuchElementException;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import soc.debug.D;
@@ -1628,11 +1629,10 @@ public class SOCServerMessageHandler
                     (li, "Client versions since startup",
                      "all " + Version.version(srv.clientPastVersionStats.keySet().iterator().next()));
             } else {
-                // TODO sort it
                 listAddStat(li, "Client versions since startup", "(includes bots)");
-                for (Integer v : srv.clientPastVersionStats.keySet())
+                for (Map.Entry<Integer, AtomicInteger> e : srv.clientPastVersionStats.entrySet())
                     listAddStat
-                        (li, "  ", Version.version(v) + ": " + srv.clientPastVersionStats.get(v));
+                        (li, "  ", Version.version(e.getKey()) + ": " + e.getValue());
             }
         }
 
