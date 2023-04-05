@@ -119,7 +119,7 @@ import javax.swing.SwingConstants;
                  // "Discard [{0}]" or "Gain Resources [{0}]"
             strings.get((isDiscard) ? "dialog.discard.please.discard.n" : "dialog.discard.please.pick.n", numPickNeeded),
                  // "Please discard {0} resources." or "Please pick {0} resources.",
-            false);
+            withCancel, false);
 
         this.isDiscard = isDiscard;
         this.numPickNeeded = numPickNeeded;
@@ -289,14 +289,38 @@ import javax.swing.SwingConstants;
         }
         else if ((cancelBut != null) && (target == cancelBut))
         {
-            playerInterface.getClient().getGameMessageSender().cancelBuildRequest
-                (playerInterface.getGame(), SOCCancelBuildRequest.CARD);
-
-            dispose();
+            clickedCancel();
         }
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
         }
+    }
+
+    /**
+     * Handle cancel button or window close:
+     * Ask server to cancel play-card request, dispose the dialog.
+     * Does nothing if no cancel button.
+     * @since 2.7.00
+     */
+    public void clickedCancel()
+    {
+        if (cancelBut == null)
+            return;
+
+        playerInterface.getClient().getGameMessageSender().cancelBuildRequest
+            (playerInterface.getGame(), SOCCancelBuildRequest.CARD);
+
+        dispose();
+    }
+
+    /**
+     * If window is closed or ESC key pressed, call {@link #clickedCancel()}.
+     * @since 2.7.00
+     */
+    @Override
+    public void windowCloseChosen()
+    {
+        clickedCancel();
     }
 
     /**

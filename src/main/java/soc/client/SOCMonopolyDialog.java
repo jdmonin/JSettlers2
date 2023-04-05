@@ -55,8 +55,10 @@ import soc.message.SOCCancelBuildRequest;
      */
     public SOCMonopolyDialog(final SOCPlayerInterface pi, final boolean withCancel)
     {
-        super(pi, strings.get("spec.dcards.monopoly"), strings.get("dialog.mono.please.pick.resource"), false);
-            // title: "Monopoly"  prompt: "Please pick a resource to monopolize."
+        super
+            (pi, strings.get("spec.dcards.monopoly"), strings.get("dialog.mono.please.pick.resource"),
+                // title: "Monopoly"  prompt: "Please pick a resource to monopolize."
+             withCancel, false);
 
         getRootPane().setBorder(BorderFactory.createEmptyBorder(5, 20, 20, 20));
 
@@ -135,10 +137,7 @@ import soc.message.SOCCancelBuildRequest;
 
         if (target == cancelBut)
         {
-            playerInterface.getClient().getGameMessageSender().cancelBuildRequest
-                (playerInterface.getGame(), SOCCancelBuildRequest.CARD);
-            dispose();
-
+            clickedCancel();
             return;
         }
 
@@ -158,6 +157,32 @@ import soc.message.SOCCancelBuildRequest;
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
         }
+    }
+
+    /**
+     * Handle cancel button or window close:
+     * Ask server to cancel play-card request, dispose the dialog.
+     * Does nothing if no cancel button.
+     * @since 2.7.00
+     */
+    public void clickedCancel()
+    {
+        if (cancelBut == null)
+            return;
+
+        playerInterface.getClient().getGameMessageSender().cancelBuildRequest
+            (playerInterface.getGame(), SOCCancelBuildRequest.CARD);
+        dispose();
+    }
+
+    /**
+     * If window is closed or ESC key pressed, call {@link #clickedCancel()}.
+     * @since 2.7.00
+     */
+    @Override
+    public void windowCloseChosen()
+    {
+        clickedCancel();
     }
 
 }
