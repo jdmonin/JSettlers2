@@ -16,7 +16,9 @@ JARs for recent JSettlers versions can be downloaded from
 ## `2.7.00` (build JM2022xxxx)
 - Currently being developed
 - Gameplay:
-	- Monopoly, Year of Plenty: Player can cancel while choosing resources; dev card is returned to their hand
+	- Player can cancel Monopoly, Year of Plenty cards while choosing resources,
+	  or Knight card while moving the robber or pirate
+	    - Dev card is returned to their hand
 	    - That player's client must be v2.7.00 or newer; other players can use older clients
 	- New optional house rule: Allow undo building and moving pieces (new game option `UB`; requires client v2.7.00 or newer)
 - Client:

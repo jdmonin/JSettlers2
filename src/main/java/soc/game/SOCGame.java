@@ -8914,8 +8914,11 @@ public class SOCGame implements Serializable, Cloneable
      * gameState becomes either {@link #PLACING_ROBBER}
      * or {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
      *<P>
+     * Updates Largest Army.
      * See note at {@link #moveRobber(int, int)} or {@link #movePirate(int, int)}
      * about when Largest Army can win the game.
+     * Since {@link #cancelPlayCurrentDevCard()} can return this card to player's inventory,
+     * calls {@link #saveLargestArmyState()} before {@link #updateLargestArmy()}.
      *<P>
      * <b>In scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},</b> instead the player
      * converts a normal ship to a warship.  There is no robber piece in this scenario.
@@ -9049,19 +9052,39 @@ public class SOCGame implements Serializable, Cloneable
      * (Knight/Soldier, Discovery/Year of Plenty, Monopoly)?
      * See {@link #cancelPlayCurrentDevCard()} for details.
      * For Road Building, call {@link #canCancelBuildPiece(int)} instead.
-     * @return true if game state is {@link #WAITING_FOR_DISCOVERY} or {@link #WAITING_FOR_MONOPOLY}
+     * @return true if game state is {@link #WAITING_FOR_DISCOVERY} or {@link #WAITING_FOR_MONOPOLY},
+     *     or is placing robber/pirate For Knight card and state is
+     *     {@link #WAITING_FOR_ROBBER_OR_PIRATE}, {@link #PLACING_ROBBER}, or {@link #PLACING_PIRATE}.
      * @since 2.7.00
      */
     public boolean canCancelPlayCurrentDevCard()
     {
-        return (gameState == WAITING_FOR_DISCOVERY) || (gameState == WAITING_FOR_MONOPOLY);
-        // TODO handle knight/soldier
+        final boolean ok;
+
+        switch (gameState)
+        {
+        case WAITING_FOR_DISCOVERY:
+        case WAITING_FOR_MONOPOLY:
+            ok = true;
+            break;
+
+        case WAITING_FOR_ROBBER_OR_PIRATE:
+        case PLACING_ROBBER:
+        case PLACING_PIRATE:
+            ok = placingRobberForKnightCard;
+            break;
+
+        default:
+            ok = false;
+        }
+
+        return ok;
     }
 
     /**
      * The current player is canceling the dev card they're currently playing
      * (Knight/Soldier, Discovery/Year of Plenty, Monopoly)
-     * before choosing a resource, resource type, or robbery victim.
+     * while choosing a resource, resource type, or moving the robber or pirate.
      * Assumes {@link #canCancelPlayCurrentDevCard()} has already been called.
      *<P>
      * For Road Building, call {@link #cancelBuildRoad(int)} instead.
@@ -9072,6 +9095,8 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> Return the card to player's inventory
      * <LI> Remove card from {@link SOCPlayer#getDevCardsPlayed()}
      * <LI> Set game state back to {@link #ROLL_OR_CARD} or {@link #PLAY1}
+     * <LI> For {@link SOCDevCardConstants#KNIGHT}, call {@link #restoreLargestArmyState()}
+     *      (save was called in {@link #playKnight()})
      *</UL>
      * Added in v2.7.00 ({@link #VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD}).
      *
@@ -9085,10 +9110,23 @@ public class SOCGame implements Serializable, Cloneable
         throws IllegalStateException
     {
         final int devCardType;
+
         switch (gameState)
         {
-        case WAITING_FOR_DISCOVERY:  devCardType = SOCDevCardConstants.DISC;  break;
-        case WAITING_FOR_MONOPOLY:   devCardType = SOCDevCardConstants.MONO;  break;
+        case WAITING_FOR_DISCOVERY:
+            devCardType = SOCDevCardConstants.DISC;
+            break;
+
+        case WAITING_FOR_MONOPOLY:
+            devCardType = SOCDevCardConstants.MONO;
+            break;
+
+        case WAITING_FOR_ROBBER_OR_PIRATE:
+        case PLACING_ROBBER:
+        case PLACING_PIRATE:
+            devCardType = SOCDevCardConstants.KNIGHT;
+            break;
+
         default:
             throw new IllegalStateException("gameState: " + gameState);
         }
@@ -9097,9 +9135,11 @@ public class SOCGame implements Serializable, Cloneable
         currPl.setPlayedDevCard(false);
         currPl.getInventory().addDevCard(1, SOCInventory.OLD, devCardType);
         currPl.updateDevCardsPlayed(devCardType, true);
+
         gameState = oldGameState;
 
-        // TODO handle knight/soldier
+        if (devCardType == SOCDevCardConstants.KNIGHT)
+            restoreLargestArmyState();
 
         return devCardType;
     }
@@ -9220,6 +9260,9 @@ public class SOCGame implements Serializable, Cloneable
      * Save the state of who has largest army.
      * This is a field, not a stack, so do not call twice
      * unless you call {@link #restoreLargestArmyState()} between them.
+     *<P>
+     * Called internally by {@link #playKnight()} for {@link #cancelPlayCurrentDevCard()}.
+     * Is not otherwise called by any game code.
      */
     public void saveLargestArmyState()
     {
@@ -9230,6 +9273,9 @@ public class SOCGame implements Serializable, Cloneable
      * Restore the state of who had largest army.
      * This is a field, not a stack, so do not call twice
      * unless you call {@link #saveLargestArmyState()} between them.
+     *<P>
+     * Called internally by {@link #cancelPlayCurrentDevCard()} after a {@link #playKnight()}.
+     * Is not otherwise called by any game code.
      */
     public void restoreLargestArmyState()
     {
