@@ -312,6 +312,9 @@ public class SOCGame implements Serializable, Cloneable
      * Player is placing the robber on a new land hex.
      * May follow state {@link #WAITING_FOR_ROBBER_OR_PIRATE} if the game {@link #hasSeaBoard}.
      *<P>
+     * This state can occur after rolling a 7 or playing a {@link SOCDevCardConstants#KNIGHT KNIGHT};
+     * call {@link #canCancelPlayCurrentDevCard()} to distinguish.
+     *<P>
      * Possible next game states:
      *<UL>
      * <LI> {@link #PLAY1}, after robbing no one or the single possible victim; from {@code oldGameState}
@@ -332,6 +335,10 @@ public class SOCGame implements Serializable, Cloneable
      * in a game which {@link #hasSeaBoard}.
      * May follow state {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
      * Has the same possible next game states as {@link #PLACING_ROBBER}.
+     *<P>
+     * This state can occur after rolling a 7 or playing a {@link SOCDevCardConstants#KNIGHT KNIGHT};
+     * call {@link #canCancelPlayCurrentDevCard()} to distinguish.
+     *
      * @see #canMovePirate(int, int)
      * @see #movePirate(int, int)
      * @since 2.0.00
@@ -436,7 +443,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Waiting for player to choose the robber or the pirate ship,
-     * after {@link #rollDice()} or {@link #playKnight()}.
+     * after {@link #rollDice()} or {@link #playKnight()};
+     * call {@link #canCancelPlayCurrentDevCard()} to distinguish.
+     *<P>
      * Next game state is {@link #PLACING_ROBBER} or {@link #PLACING_PIRATE}.
      *<P>
      * Moving from {@code WAITING_FOR_ROBBER_OR_PIRATE} to those states preserves {@code oldGameState}.
@@ -9053,7 +9062,7 @@ public class SOCGame implements Serializable, Cloneable
      * See {@link #cancelPlayCurrentDevCard()} for details.
      * For Road Building, call {@link #canCancelBuildPiece(int)} instead.
      * @return true if game state is {@link #WAITING_FOR_DISCOVERY} or {@link #WAITING_FOR_MONOPOLY},
-     *     or is placing robber/pirate For Knight card and state is
+     *     or is placing robber/pirate for a {@link SOCDevCardConstants#KNIGHT KNIGHT} card and state is
      *     {@link #WAITING_FOR_ROBBER_OR_PIRATE}, {@link #PLACING_ROBBER}, or {@link #PLACING_PIRATE}.
      * @since 2.7.00
      */

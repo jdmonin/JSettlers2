@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014,2016-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014,2016-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.message.SOCCancelBuildRequest;  // for CARD constant
 
 import java.awt.Color;
 import java.awt.Component;
@@ -930,7 +931,11 @@ import javax.swing.SwingConstants;
         }
         else if (target == CARD)
         {
-            if (pieceButtonsState == 0)
+            if ((gstate == SOCGame.PLACING_ROBBER) || (gstate == SOCGame.PLACING_PIRATE))
+            {
+                messageSender.cancelBuildRequest(game, SOCCancelBuildRequest.CARD);
+            }
+            else if (pieceButtonsState == 0)
             {
                 if (stateBuyOK || canAskSBP)
                 {
@@ -1019,10 +1024,11 @@ import javax.swing.SwingConstants;
             final int gstate = game.getGameState();
             boolean currentCanBuy = (! isDebugFreePlacement)
                 && game.canBuyOrAskSpecialBuild(pnum);
+            final SOCPlayerClient pcli = pi.getClient();
 
             if (isCurrent && (gstate == SOCGame.PLACING_FREE_ROAD1)
                 && (game.isPractice
-                    || pi.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))
+                    || pcli.sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))
             {
                 roadBut.setEnabled(true);
                 roadBut.setText(strings.get("base.cancel"));  // "Cancel"
@@ -1031,7 +1037,7 @@ import javax.swing.SwingConstants;
             else if (isCurrent && ((gstate == SOCGame.PLACING_ROAD)
                     || ((gstate == SOCGame.PLACING_FREE_ROAD2)
                         && (game.isPractice
-                            || pi.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))))
+                            || pcli.sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))))
             {
                 roadBut.setEnabled(true);
                 roadBut.setText(strings.get("base.cancel"));  // "Cancel"
@@ -1089,6 +1095,14 @@ import javax.swing.SwingConstants;
                 cardBut.setEnabled(currentCanBuy);
                 cardBut.setText(strings.get("build.buy"));
             }
+            else if (isCurrent
+                && ((gstate == SOCGame.PLACING_ROBBER) || (gstate == SOCGame.PLACING_PIRATE))
+                && game.canCancelPlayCurrentDevCard()  // is false if placing because rolled 7
+                && (pcli.getServerVersion(game) >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD))
+            {
+                cardBut.setEnabled(true);
+                cardBut.setText(strings.get("base.cancel"));
+            }
             else
             {
                 cardBut.setEnabled(false);
@@ -1101,7 +1115,7 @@ import javax.swing.SwingConstants;
                     ((gstate == SOCGame.PLACING_SHIP)
                      || (gstate == SOCGame.PLACING_FREE_ROAD2)
                      || ((gstate == SOCGame.PLACING_FREE_ROAD1)
-                         && (game.isPractice || pi.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))))
+                         && (game.isPractice || pcli.sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))))
                 {
                     shipBut.setEnabled(true);
                     shipBut.setText(strings.get("base.cancel"));

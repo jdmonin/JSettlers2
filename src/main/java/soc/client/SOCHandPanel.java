@@ -34,7 +34,7 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
-import soc.message.SOCCancelBuildRequest;  // for INV_ITEM_PLACE_CANCEL constant
+import soc.message.SOCCancelBuildRequest;  // for CARD, INV_ITEM_PLACE_CANCEL constants
 import soc.util.SOCStringManager;
 
 import java.awt.Color;
@@ -1669,9 +1669,15 @@ import javax.swing.UIManager;
     public void clickPlayCardButton()
     {
         // Check first for "Cancel"
-        if (game.getGameState() == SOCGame.PLACING_INV_ITEM)
+        final int gstate = game.getGameState();
+        if (gstate == SOCGame.PLACING_INV_ITEM)
         {
             messageSender.cancelBuildRequest(game, SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL);
+            return;
+        }
+        else if ((gstate == SOCGame.PLACING_ROBBER) || (gstate == SOCGame.PLACING_PIRATE))
+        {
+            messageSender.cancelBuildRequest(game, SOCCancelBuildRequest.CARD);
             return;
         }
 
@@ -3705,6 +3711,15 @@ import javax.swing.UIManager;
         {
             inventory.setEnabled(false);
             playCardBut.setEnabled(false);
+        }
+        else if ((gs == SOCGame.PLACING_ROBBER) || (gs == SOCGame.PLACING_PIRATE))
+        {
+            final boolean canCancel =
+                (client.getServerVersion(game) >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD)
+                && game.canCancelPlayCurrentDevCard();  // is false if placing because rolled 7
+            playCardBut.setEnabled(canCancel);
+            if (canCancel)
+                playCardBut.setText(CANCEL);
         }
         else
         {

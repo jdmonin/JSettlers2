@@ -49,6 +49,7 @@ import soc.game.SOCTradeOffer;
 import soc.game.SOCVillage;
 import soc.message.SOCMessage;
 import soc.message.SOCPlayerElement.PEType;
+import soc.message.SOCCancelBuildRequest;  // for cancel CARD constant
 import soc.message.SOCDeclinePlayerRequest;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCPickResources;  // for reason code constants
@@ -3374,7 +3375,9 @@ public class SOCPlayerInterface extends JFrame
             break;
 
         case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
-            java.awt.EventQueue.invokeLater(new ChooseMoveRobberOrPirateDialog());
+            java.awt.EventQueue.invokeLater
+                (new ChooseMoveRobberOrPirateDialog
+                    ((client.getServerVersion(game) >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD)));
             break;
 
         default:
@@ -5104,27 +5107,38 @@ public class SOCPlayerInterface extends JFrame
      * Use the AWT event thread to show, so message treating can continue while the dialog is showing.
      * When the choice is made, calls {@link GameMessageSender#chooseRobber(SOCGame)}
      * or {@link GameMessageSender#choosePirate(SOCGame)}.
+     *<P>
+     * If server version &gt;= 2.7.00, has Cancel button (or close dialog) to return the dev card.
+     * In earlier versions, closing the dialog chose Move Robber as the default.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
      */
     private class ChooseMoveRobberOrPirateDialog extends AskDialog implements Runnable
     {
-        private static final long serialVersionUID = 2000L;
+        private static final long serialVersionUID = 2700L;
+
+        private final boolean withCancel;
 
         /**
          * Creates a new ChooseMoveRobberOrPirateDialog.
          * To display the dialog without tying up the client's message-treater thread,
          * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
+         *<P>
+         * @param withCancel  If true, have Cancel button instead of Clear
+         *     (server is new enough to cancel playing Discovery dev card)
          */
-        private ChooseMoveRobberOrPirateDialog()
+        private ChooseMoveRobberOrPirateDialog(final boolean withCancel)
         {
             super(getMainDisplay(), SOCPlayerInterface.this,
                 strings.get("dialog.choosemove.robber.or.pirate"), // "Move robber or pirate?"
                 strings.get("dialog.choosemove.ask.rob.pirate"),   // "Do you want to move the robber or the pirate ship?"
                 strings.get("dialog.base.move.robber"),  // "Move Robber"
                 strings.get("dialog.base.move.pirate"),  // "Move Pirate"
-                null, 1);
+                (withCancel) ? strings.get("base.cancel") : null,  // "Cancel"
+                (withCancel) ? 3 : 1);
+
+            this.withCancel = withCancel;
         }
 
         /**
@@ -5148,10 +5162,27 @@ public class SOCPlayerInterface extends JFrame
         }
 
         /**
-         * React to the dialog window closed by user. (Default is move the robber)
+         * React to the Cancel button.
+         * Call {@link GameMessageSender#cancelBuildRequest(SOCGame, int) gms.cancelBuildRequest(CARD)}
          */
         @Override
-        public void windowCloseChosen() { button1Chosen(); }
+        public void button3Chosen()
+        {
+            md.getGameMessageSender().cancelBuildRequest(game, SOCCancelBuildRequest.CARD);
+        }
+
+        /**
+         * React to the dialog window closed by user:
+         * Cancel playing the card if server is new enough, otherwise pick "Move the robber".
+         */
+        @Override
+        public void windowCloseChosen()
+        {
+            if (withCancel)
+                button3Chosen();
+            else
+                button1Chosen();
+        }
 
     }  // nested class ChooseMoveRobberOrPirateDialog
 
