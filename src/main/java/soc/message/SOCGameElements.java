@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -150,7 +150,21 @@ public class SOCGameElements extends SOCMessageTemplateMi
          *
          * @since 2.7.00
          */
-        SHIP_PLACED_THIS_TURN_EDGE(8);
+        SHIP_PLACED_THIS_TURN_EDGE(8),
+
+        /**
+         * Value of {@link SOCGame#isPlacingRobberForKnightCard()}:
+         * Is 1 when the robber/pirate is currently being moved because the player
+         * played a Knight/Soldier card (not because 7 was rolled), 0 otherwise.
+         *<P>
+         * Sent when client joins a game while that flag is set, and used by {@link soc.server.savegame.SavedGameModel},
+         * v2.7.00 and newer ({@link SOCGame#VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD}).
+         * Not sent during normal gameplay: Instead, client sets or clears that flag based on various gameplay messages
+         * like {@link SOCDevCardAction}.
+         *
+         * @since 2.7.00
+         */
+        IS_PLACING_ROBBER_FOR_KNIGHT_CARD_FLAG(9);
 
         /**
          * Minimum version (2.7.00) of server and client which send and recognize {@link #SHIP_PLACED_THIS_TURN_EDGE}.

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2021,2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,6 +36,10 @@ import soc.game.SOCDevCardConstants;  // for javadocs only
  *<P>
  * If a robot asks to play a dev card that they can't right now,
  * the server replies to that bot with DevCardAction(-1, {@link #CANNOT_PLAY}, cardtype).
+ *<P>
+ * When receiving {@code PLAY} for a {@link SOCDevCardConstants#KNIGHT} card, client should call
+ * {@link soc.game.SOCGame#setPlacingRobberForKnightCard(boolean) game.setPlacingRobberForKnightCard(true)}
+ * unless game option {@link soc.game.SOCGameOptionSet#K_SC_PIRI} is set.
  *<P>
  * Not sent from client, which sends {@link SOCBuyDevCardRequest} or {@link SOCPlayDevCardRequest} instead.
  * See those message types' javadocs for server's complete response sequences.

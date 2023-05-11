@@ -3377,7 +3377,8 @@ public class SOCPlayerInterface extends JFrame
         case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
             java.awt.EventQueue.invokeLater
                 (new ChooseMoveRobberOrPirateDialog
-                    ((client.getServerVersion(game) >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD)));
+                    (game.isPlacingRobberForKnightCard()
+                     && (client.getServerVersion(game) >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD)));
             break;
 
         default:

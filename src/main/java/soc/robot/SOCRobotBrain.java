@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -2644,6 +2644,7 @@ public class SOCRobotBrain extends Thread
     {
         moveRobberOnSeven = false;
 
+        game.setPlacingRobberForKnightCard(false);
         if (newHex > 0)
             game.getBoard().setRobberHex(newHex, true);
         else
@@ -3806,6 +3807,9 @@ public class SOCRobotBrain extends Thread
      */
     protected void handleDEVCARDACTION(SOCDevCardAction mes)
     {
+        // if you change this method, consider changing SOCDisplaylessPlayerClient.handleDEVCARDACTION
+        // and soc.client.MessageHandler.handleDEVCARDACTION too
+
         if (mes.getCardTypes() != null)
             return;  // <--- ignore: bots don't care about game-end VP card reveals ---
 
@@ -3822,6 +3826,8 @@ public class SOCRobotBrain extends Thread
         case SOCDevCardAction.PLAY:
             cardsInv.removeDevCard(SOCInventory.OLD, cardType);
             pl.updateDevCardsPlayed(cardType, false);
+            if ((cardType == SOCDevCardConstants.KNIGHT) && ! game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
+                game.setPlacingRobberForKnightCard(true);
             break;
 
         case SOCDevCardAction.ADD_OLD:

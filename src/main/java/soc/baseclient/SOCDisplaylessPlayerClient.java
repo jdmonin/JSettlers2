@@ -1814,10 +1814,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
             {
                 final boolean changeTo = (val != 0);
                 if (pn != -1)
+                {
                     pl.setPlayedDevCard(changeTo);
-                else
+                    if (! changeTo)
+                        ga.setPlacingRobberForKnightCard(false);
+                } else {
                     for (int p = 0; p < ga.maxPlayers; ++p)
                         ga.getPlayer(p).setPlayedDevCard(changeTo);
+                }
             }
             break;
 
@@ -2072,6 +2076,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
             ga.addShipPlacedThisTurn(value);
             break;
 
+        case IS_PLACING_ROBBER_FOR_KNIGHT_CARD_FLAG:
+            ga.setPlacingRobberForKnightCard(value != 0);
+            break;
+
         case UNKNOWN_TYPE:
             ;  // no action needed, UNKNOWN_TYPE is mentioned only to avoid compiler warning
         }
@@ -2275,6 +2283,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
          * functions to do the stealing.  We just want to say where
          * the robber moved without seeing if something was stolen.
          */
+        ga.setPlacingRobberForKnightCard(false);
         final int newHex = mes.getCoordinates();
         if (newHex > 0)
             ga.getBoard().setRobberHex(newHex, true);
@@ -2533,7 +2542,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleDEVCARDACTION
         (final SOCGame ga, final SOCPlayer player, final int act, final int ctype)
     {
-        // if you change this method, consider changing MessageHandler.handleDEVCARDACTION too
+        // if you change this method, consider changing MessageHandler.handleDEVCARDACTION
+        // and SOCRobotBrain.handleDEVCARDACTION too
 
         switch (act)
         {
@@ -2544,6 +2554,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
         case SOCDevCardAction.PLAY:
             player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
             player.updateDevCardsPlayed(ctype, false);
+            if ((ctype == SOCDevCardConstants.KNIGHT) && ! ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
+                ga.setPlacingRobberForKnightCard(true);
             break;
 
         case SOCDevCardAction.ADD_OLD:

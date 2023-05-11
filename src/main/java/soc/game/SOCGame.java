@@ -1168,8 +1168,8 @@ public class SOCGame implements Serializable, Cloneable
      * or {@link #WAITING_FOR_ROBBER_OR_PIRATE},
      * the robber or pirate is being moved because a knight card
      * has just been played: {@link #playKnight()}.
-     * If {@link #forceEndTurn()} is called, the knight card
-     * should be returned to the player's inventory.
+     *<P>
+     * See {@link #isPlacingRobberForKnightCard()} for details.
      *
      * @see #robberyWithPirateNotRobber
      * @see #playingRoadBuildingCardForLastRoad
@@ -5551,6 +5551,7 @@ public class SOCGame implements Serializable, Cloneable
             shipsPlacedThisTurn.clear();
         }
         placingItem = null;
+        placingRobberForKnightCard = false;
 
         if (gameState == ROLL_OR_CARD)
         {
@@ -5731,7 +5732,7 @@ public class SOCGame implements Serializable, Cloneable
         case PLACING_ROBBER:
         case PLACING_PIRATE:
             {
-                boolean isFromDevCard = placingRobberForKnightCard;
+                final boolean isFromDevCard = placingRobberForKnightCard;
                 gameState = PLAY1;
                 if (isFromDevCard)
                 {
@@ -6872,6 +6873,7 @@ public class SOCGame implements Serializable, Cloneable
             robberResult.clear();
 
         board.setRobberHex(rh, true);  // if rh coord invalid, throws IllegalArgumentException
+        placingRobberForKnightCard = false;  // since the move is now complete
         robberyWithPirateNotRobber = false;
         lastActionTime = System.currentTimeMillis();
         lastAction = null;
@@ -7034,6 +7036,7 @@ public class SOCGame implements Serializable, Cloneable
             robberResult.clear();
 
         ((SOCBoardLarge) board).setPirateHex(ph, true);  // if ph invalid, throws IllegalArgumentException
+        placingRobberForKnightCard = false;  // since the move is now complete
         robberyWithPirateNotRobber = true;
         lastActionTime = System.currentTimeMillis();
         lastAction = null;
@@ -7567,6 +7570,41 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * If true, and if state is {@link #PLACING_ROBBER}, {@link #PLACING_PIRATE},
+     * or {@link #WAITING_FOR_ROBBER_OR_PIRATE},
+     * the robber or pirate is being moved because a knight card
+     * has just been played (not because 7 was rolled): {@link #playKnight()}.
+     *<P>
+     * If {@link #forceEndTurn()} is called, the knight card
+     * should be returned to the player's inventory.
+     *<P>
+     * Is cleared after placement or canceling the move. Also cleared in {@link #updateAtTurn()}.
+     *<P>
+     * Was server-only before v2.7.00 ({@link #VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD}).
+     * At that version and newer, client also updates this flag when various card-related messages are received
+     * by calling {@link #setPlacingRobberForKnightCard(boolean)}.
+     *
+     * @return true if knight card has just been played
+     * @see #setPlacingRobberForKnightCard(boolean)
+     * @see #getRobberyPirateFlag()
+     * @since 2.7.00
+     */
+    public boolean isPlacingRobberForKnightCard()
+    {
+        return placingRobberForKnightCard;
+    }
+
+    /**
+     * At client, set the value of {@link #isPlacingRobberForKnightCard()}.
+     * @param value  True to set, false to clear, that flag
+     * @since 2.7.00
+     */
+    public void setPlacingRobberForKnightCard(final boolean value)
+    {
+        placingRobberForKnightCard = value;
+    }
+
+    /**
      * Get the results of the most recent {@link #moveRobber(int, int)} or {@link #movePirate(int, int)}.
      * Is set at server only.
      * @return Robbery results at server, or {@code null} if none so far or at client
@@ -7583,6 +7621,7 @@ public class SOCGame implements Serializable, Cloneable
      * If true, victims will be based on adjacent ships, not settlements/cities.
      * @return true for pirate ship, false for robber
      * @see #getRobberyResult()
+     * @see #isPlacingRobberForKnightCard()
      * @since 2.0.00
      */
     public boolean getRobberyPirateFlag()
@@ -8923,6 +8962,7 @@ public class SOCGame implements Serializable, Cloneable
      * gameState becomes either {@link #PLACING_ROBBER}
      * or {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
      *<P>
+     * Sets {@link #isPlacingRobberForKnightCard()}.
      * Updates Largest Army.
      * See note at {@link #moveRobber(int, int)} or {@link #movePirate(int, int)}
      * about when Largest Army can win the game.
@@ -9062,7 +9102,8 @@ public class SOCGame implements Serializable, Cloneable
      * See {@link #cancelPlayCurrentDevCard()} for details.
      * For Road Building, call {@link #canCancelBuildPiece(int)} instead.
      * @return true if game state is {@link #WAITING_FOR_DISCOVERY} or {@link #WAITING_FOR_MONOPOLY},
-     *     or is placing robber/pirate for a {@link SOCDevCardConstants#KNIGHT KNIGHT} card and state is
+     *     or is placing robber/pirate for a {@link SOCDevCardConstants#KNIGHT KNIGHT} card
+     *     ({@link #isPlacingRobberForKnightCard()} true) and state is
      *     {@link #WAITING_FOR_ROBBER_OR_PIRATE}, {@link #PLACING_ROBBER}, or {@link #PLACING_PIRATE}.
      * @since 2.7.00
      */
@@ -9100,11 +9141,11 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Actions taken:
      *<UL>
-     * <LI> Clear {@link SOCPlayer#hasPlayedDevCard()}
-     * <LI> Return the card to player's inventory
-     * <LI> Remove card from {@link SOCPlayer#getDevCardsPlayed()}
-     * <LI> Set game state back to {@link #ROLL_OR_CARD} or {@link #PLAY1}
-     * <LI> For {@link SOCDevCardConstants#KNIGHT}, call {@link #restoreLargestArmyState()}
+     * <LI> Clears {@link SOCPlayer#hasPlayedDevCard()}
+     * <LI> Returns the card to player's inventory
+     * <LI> Removes card from {@link SOCPlayer#getDevCardsPlayed()}
+     * <LI> Sets game state back to {@link #ROLL_OR_CARD} or {@link #PLAY1}
+     * <LI> For {@link SOCDevCardConstants#KNIGHT}, calls {@link #restoreLargestArmyState()}
      *      (save was called in {@link #playKnight()})
      *</UL>
      * Added in v2.7.00 ({@link #VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD}).

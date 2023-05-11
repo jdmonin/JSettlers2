@@ -2181,6 +2181,7 @@ public class MessageHandler
          * functions to do the stealing.  We just want to say where
          * the robber moved without seeing if something was stolen.
          */
+        ga.setPlacingRobberForKnightCard(false);
         int newHex = mes.getCoordinates();
         final boolean isPirate = (newHex <= 0);
         if (! isPirate)
@@ -2471,7 +2472,8 @@ public class MessageHandler
     protected void handleDEVCARDACTION
         (final SOCGame ga, final SOCPlayer player, final boolean isClientPlayer, final int act, final int ctype)
     {
-        // if you change this method, consider changing SOCDisplaylessPlayerClient.handleDEVCARDACTION too
+        // if you change this method, consider changing SOCDisplaylessPlayerClient.handleDEVCARDACTION
+        // and SOCRobotBrain.handleDEVCARDACTION too
 
         switch (act)
         {
@@ -2482,6 +2484,8 @@ public class MessageHandler
         case SOCDevCardAction.PLAY:
             player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
             player.updateDevCardsPlayed(ctype, false);
+            if ((ctype == SOCDevCardConstants.KNIGHT) && ! ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
+                ga.setPlacingRobberForKnightCard(true);
             break;
 
         case SOCDevCardAction.ADD_OLD:

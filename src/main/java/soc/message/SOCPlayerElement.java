@@ -233,6 +233,12 @@ public class SOCPlayerElement extends SOCMessage
          * This element is sent as part of start-of-turn sequence, preceding {@link SOCTurn},
          * by servers older than v2.5.00 ({@link SOCTurn#VERSION_FOR_FLAG_CLEAR_AND_SBP_TEXT}).
          * Clients of that version and newer must instead clear the dev card flag when they receive {@link SOCTurn}.
+         *<P>
+         * This element is sent as part of sequence canceling the dev card currently being played
+         * by server v2.7.00 and newer (and v2.5.00 and newer for Road Building if no roads already placed).
+         * So when receiving a message to {@code SET} this element to 0 for the current player,
+         * or {@link SOCSetPlayedDevCard}(0), clients should also call
+         * {@link SOCGame#setPlacingRobberForKnightCard(boolean) game.setPlacingRobberForKnightCard(false)}.
          *
          * @since 2.0.00
          */
