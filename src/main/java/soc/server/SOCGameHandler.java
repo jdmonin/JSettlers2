@@ -1693,6 +1693,11 @@ public class SOCGameHandler extends GameHandler
                         (gameName, -1, SOCPlayerElement.SET,
                          PEType.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
 
+            if ((cliVers >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD)
+                && gameData.isPlacingRobberForKnightCard())
+                srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
+                    new SOCGameElements(gameName, GEType.IS_PLACING_ROBBER_FOR_KNIGHT_CARD_FLAG, 1));
+
             if (cliVers >= SOCSetLastAction.VERSION_FOR_SETLASTACTION)
             {
                 final GameAction act = gameData.getLastAction();

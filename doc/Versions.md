@@ -48,6 +48,8 @@ JARs for recent JSettlers versions can be downloaded from
 	    - When joining game:
 	        - Server sends `SOCGameStats(TYPE_TIMING)` with info on game duration
 	        - If game has started and has game option `UBL`, sends each player's getUndosRemaining()
+	        - If current player is playing a Knight/Soldier now, sends SOCGameElement(IS_PLACING_ROBBER_FOR_KNIGHT_CARD_FLAG)
+	    - When client is sent `SOCDevCardAction(PLAY, KNIGHT)`, should set game's isPlacingRobberForKnightCard flag, then clear it after placement or cancellation
 	    - Can send `SOCCancelBuildRequest(CARD)` to cancel the dev card being played
 - For developers:
 	- Enhanced GameAction class to start unifying info about actions and their side-effects
