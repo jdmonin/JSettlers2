@@ -2243,13 +2243,28 @@ public class SOCGameMessageHandler
                 }
                 else if (cardTypeRet != -1)
                 {
+                    final boolean isKnight = (cardTypeRet == SOCDevCardConstants.KNIGHT);
+
                     srv.messageToGameKeyed(ga, true, true, cardTypeRetTextKey, player.getName());
+
                     srv.messageToGame
                         (gaName, true, new SOCDevCardAction
                             (gaName, pn, SOCDevCardAction.ADD_OLD, cardTypeRet));
+                    // TODO ^ if KNIGHT and some v1.x cli, send KNIGHT_OLD instead, but still record game event as KNIGHT
+
+                    if (isKnight)
+                    {
+                        srv.messageToGame
+                            (gaName, true, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.LOSE, PEType.NUMKNIGHTS, 1));
+
+                        // TODO chk for largest-army player change
+                    }
+
                     srv.messageToGame
                         (gaName, true, new SOCPlayerElement
                             (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG, 0));
+                    // TODO if v1.x cli: send SOCSetPlayedDevCard(false)
                 }
 
                 if (! noAction)

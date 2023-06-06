@@ -167,7 +167,8 @@ public class SOCPlayerElement extends SOCMessage
         SHIPS(13),
 
         /**
-         * Number of knights in player's army; sent after a Soldier card is played.
+         * Number of knights in player's army; sent after a Soldier card is played
+         * or (from server v2.7.00 or newer) cancelled.
          *<P>
          * If playing a {@code KNIGHT} card leads to Largest Army, server announces with
          * {@link SOCGameElements}({@link SOCGameElements.GEType#LARGEST_ARMY_PLAYER LARGEST_ARMY_PLAYER})
