@@ -2247,24 +2247,51 @@ public class SOCGameMessageHandler
 
                     srv.messageToGameKeyed(ga, true, true, cardTypeRetTextKey, player.getName());
 
-                    srv.messageToGame
-                        (gaName, true, new SOCDevCardAction
-                            (gaName, pn, SOCDevCardAction.ADD_OLD, cardTypeRet));
-                    // TODO ^ if KNIGHT and some v1.x cli, send KNIGHT_OLD instead, but still record game event as KNIGHT
-
-                    if (isKnight)
+                    if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES)  // v2.0.00
                     {
                         srv.messageToGame
+                            (gaName, true, new SOCDevCardAction
+                                (gaName, pn, SOCDevCardAction.ADD_OLD, cardTypeRet));
+
+                        if (isKnight)
+                        {
+                            srv.messageToGame
+                                (gaName, true, new SOCPlayerElement
+                                    (gaName, pn, SOCPlayerElement.LOSE, PEType.NUMKNIGHTS, 1));
+
+                            // TODO chk for largest-army player change
+                        }
+                        srv.messageToGame
                             (gaName, true, new SOCPlayerElement
-                                (gaName, pn, SOCPlayerElement.LOSE, PEType.NUMKNIGHTS, 1));
+                                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG, 0));
+                    } else {
+                        // Client version range includes v1.x and also v2.7 or newer
+                        // (version which added ability to cancel the card being played)
 
-                        // TODO chk for largest-army player change
+                        final SOCDevCardAction actmsg = new SOCDevCardAction
+                            (gaName, pn, SOCDevCardAction.ADD_OLD, cardTypeRet);
+                        if (! isKnight) {
+                            srv.messageToGame(gaName, true, actmsg);
+                        } else {
+                            srv.recordGameEvent(gaName, actmsg);
+                            srv.messageToGameForVersions
+                                (ga, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES, Integer.MAX_VALUE,
+                                 actmsg, true);
+                            srv.messageToGameForVersions
+                                (ga, -1, SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES - 1,
+                                 new SOCDevCardAction
+                                     (gaName, pn, SOCDevCardAction.ADD_OLD, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), true);
+
+                            srv.messageToGame
+                                (gaName, true, new SOCPlayerElement
+                                    (gaName, pn, SOCPlayerElement.LOSE, PEType.NUMKNIGHTS, 1));
+
+                            // TODO chk for largest-army player change
+                        }
+
+                        srv.messageToGame
+                            (gaName, true, new SOCSetPlayedDevCard(gaName, pn, false));
                     }
-
-                    srv.messageToGame
-                        (gaName, true, new SOCPlayerElement
-                            (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG, 0));
-                    // TODO if v1.x cli: send SOCSetPlayedDevCard(false)
                 }
 
                 if (! noAction)
