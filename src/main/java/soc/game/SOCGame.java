@@ -9189,7 +9189,10 @@ public class SOCGame implements Serializable, Cloneable
         gameState = oldGameState;
 
         if (devCardType == SOCDevCardConstants.KNIGHT)
+        {
+            currPl.setNumKnights(currPl.getNumKnights() - 1);
             restoreLargestArmyState();
+        }
 
         return devCardType;
     }
