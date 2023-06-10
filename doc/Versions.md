@@ -59,6 +59,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - `*LOADGAME*`: If SavedGameModel.devCardDeck has an unknown card type, give card's index in warning to user
 	    - TestRecorder.connectLoadJoinResumeGame: Resume any loaded game file
 	- Gradle 7 compatibility
+	- Robots: If SOCGame.restoreLargestArmyState called before saveLargestArmyState, do nothing
 - Code internals:
 	- Refactored soc.game.GameAction out of soc.extra.robot.GameActionLog.Action
 	- Refactored SOCGame.lastAction out of SOCPlayer.lastActionBankTrade_give, _get

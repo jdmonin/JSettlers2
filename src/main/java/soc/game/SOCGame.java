@@ -1226,6 +1226,11 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * To remember last {@link #playerWithLargestArmy} during
      * {@link #saveLargestArmyState()} / {@link #restoreLargestArmyState()}.
+     *<P>
+     * Initialized to invalid -2 in case {@link #restoreLargestArmyState()} is called before save;
+     * see that method for details.
+     *
+     * @see #oldPlayerWithLongestRoad
      */
     private int oldPlayerWithLargestArmy;
 
@@ -1236,6 +1241,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * used to restore the LR player
+     * by {@link #putTempPiece(SOCPlayingPiece)} / {@link #undoPutTempPiece(SOCPlayingPiece)}.
+     *
+     * @see #oldPlayerWithLargestArmy
      */
     Stack<SOCOldLRStats> oldPlayerWithLongestRoad;
 
@@ -1569,6 +1577,7 @@ public class SOCGame implements Serializable, Cloneable
         forcingEndTurn = false;
         askedSpecialBuildPhase = false;
         placingRobberForKnightCard = false;
+        oldPlayerWithLargestArmy = -2;
         oldPlayerWithLongestRoad = new Stack<SOCOldLRStats>();
         movedShipThisTurn = false;
         if (hasSeaBoard)
@@ -3045,7 +3054,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return the player with the largest army
+     * @return the player with the largest army, or null if none
      */
     public SOCPlayer getPlayerWithLargestArmy()
     {
@@ -3058,7 +3067,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * set the player with the largest army
      *
-     * @param pl  the player
+     * @param pl  the player, or null if none
      */
     public void setPlayerWithLargestArmy(SOCPlayer pl)
     {
@@ -9310,12 +9319,13 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Save the state of who has largest army.
+     * Save the state of who has largest army ({@link #getPlayerWithLargestArmy()}).
      * This is a field, not a stack, so do not call twice
      * unless you call {@link #restoreLargestArmyState()} between them.
      *<P>
      * Called internally by {@link #playKnight()} for {@link #cancelPlayCurrentDevCard()}.
      * Is not otherwise called by any game code.
+     * Useful for robots who are simulating or predicting game actions.
      */
     public void saveLargestArmyState()
     {
@@ -9323,16 +9333,23 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Restore the state of who had largest army.
+     * Restore the state of who had largest army ({@link #getPlayerWithLargestArmy()}).
      * This is a field, not a stack, so do not call twice
      * unless you call {@link #saveLargestArmyState()} between them.
      *<P>
+     * If {@code saveLargestArmyState()} has not yet been called,
+     * does not change {@link #getPlayerWithLargestArmy()}.
+     * The other possible response would be throwing an exception,
+     * which is harsher than necessary to a buggy robot caller.
+     *<P>
      * Called internally by {@link #cancelPlayCurrentDevCard()} after a {@link #playKnight()}.
      * Is not otherwise called by any game code.
+     * Useful for robots who are simulating or predicting game actions.
      */
     public void restoreLargestArmyState()
     {
-        playerWithLargestArmy = oldPlayerWithLargestArmy;
+        if (oldPlayerWithLargestArmy >= -1)
+            playerWithLargestArmy = oldPlayerWithLargestArmy;
     }
 
     /**
