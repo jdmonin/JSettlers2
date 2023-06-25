@@ -8999,6 +8999,7 @@ public class SOCGame implements Serializable, Cloneable
 
         if (! isWarshipConvert)
         {
+            saveLargestArmyState();
             pl.incrementNumKnights();
             updateLargestArmy();
             checkForWinner();

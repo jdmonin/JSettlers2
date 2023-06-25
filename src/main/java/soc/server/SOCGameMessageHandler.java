@@ -2063,7 +2063,8 @@ public class SOCGameMessageHandler
             final String gaName = ga.getName();
             if (handler.checkTurn(c, ga))
             {
-                final SOCPlayer player = ga.getPlayer(c.getData());
+                final SOCPlayer player = ga.getPlayer(c.getData()),
+                    playerWithLargestArmy = ga.getPlayerWithLargestArmy();
                 final int pn = player.getPlayerNumber();
                 final int gstate = ga.getGameState();
 
@@ -2259,8 +2260,16 @@ public class SOCGameMessageHandler
                                 (gaName, true, new SOCPlayerElement
                                     (gaName, pn, SOCPlayerElement.LOSE, PEType.NUMKNIGHTS, 1));
 
-                            // TODO chk for largest-army player change
+                            final SOCPlayer newPlayerWithLargestArmy = ga.getPlayerWithLargestArmy();
+                            if (newPlayerWithLargestArmy != playerWithLargestArmy)
+                            {
+                                final int newPNwithLargestArmy =
+                                    (newPlayerWithLargestArmy != null) ? newPlayerWithLargestArmy.getPlayerNumber() : -1;
+                                srv.messageToGame(gaName, true, new SOCGameElements
+                                    (gaName, GEType.LARGEST_ARMY_PLAYER, newPNwithLargestArmy));
+                            }
                         }
+
                         srv.messageToGame
                             (gaName, true, new SOCPlayerElement
                                 (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.PEType.PLAYED_DEV_CARD_FLAG, 0));
@@ -2286,7 +2295,14 @@ public class SOCGameMessageHandler
                                 (gaName, true, new SOCPlayerElement
                                     (gaName, pn, SOCPlayerElement.LOSE, PEType.NUMKNIGHTS, 1));
 
-                            // TODO chk for largest-army player change
+                            final SOCPlayer newPlayerWithLargestArmy = ga.getPlayerWithLargestArmy();
+                            if (newPlayerWithLargestArmy != playerWithLargestArmy)
+                            {
+                                final int newPNwithLargestArmy =
+                                    (newPlayerWithLargestArmy != null) ? newPlayerWithLargestArmy.getPlayerNumber() : -1;
+                                srv.messageToGame(gaName, true, new SOCLargestArmy
+                                    (gaName, newPNwithLargestArmy));
+                            }
                         }
 
                         srv.messageToGame
