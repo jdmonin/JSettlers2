@@ -97,6 +97,7 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
 
 ### Basic rules and game play
 
+- Start a game with default options + "Allow undo piece builds and moves"
 - Can build pieces by right-clicking board or with the Build Panel
     - Most recently placed piece is highlighted until end of turn or another build
 - Can trade with ports by right-clicking board or using Trade Offer Bank/Port button
@@ -107,11 +108,29 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
 - Can play dev card before dice roll
 - Sea board: Can move a ship, but not a ship placed this turn
     - After move, ship gets highlighted since it's most recently placed piece
+- Year of Plenty dev card
+    - Give that card to Debug player:  
+      `dev: 2 debug`
+    - Play card, hit Cancel in dialog
+    - Card should return to inventory, be able to play same turn
+    - Play it again
+    - Choose 2 resources, should appear in hand
+    - Other players should see your + 2 resources
+- Monopoly dev card
+    - Give that card to Debug player:  
+      `dev: 3 debug`
+    - Play card, hit Cancel in dialog
+    - Card should return to inventory, be able to play same turn
+    - Play it again
+    - Choose a resource type, should take from all players who have it
 - Can win only on your own turn
     - This can be tested using the 6-player board's Special Building Phase
 - Move robber/steal resources
     - For these tests, can use the `debug` player and debug command `*FREEPLACE* 1`
       to quickly build players' pieces, and `dev: 9 debug` to get each Soldier card
+    - Play Soldier card, but then Cancel the move with button in hand panel
+      - Before roll dice, and after, on same turn
+      - Card should return to inventory and be able to play again same turn
     - Move robber to an unoccupied hex
     - Move to steal from 1 player
     - Move to a hex with 2 players' settlements, choose a player to steal from
@@ -123,7 +142,12 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
       - Move pirate to a hex with 2 players' ships, choose 1, steal cloth or resources
       - Move pirate to a hex with 2 players' ships, choose 1 who has only resources not cloth;
         shouldn't be asked whether to steal cloth or resources
+    - When your army size is 2, play Soldier card to take Largest Army
+      - Cancel moving the soldier; should revoke Largest Army so no one has it
     - Make sure another player has Largest Army, then play enough Soldier cards to take it from them
+      - When you play the card, Largest Army should change for all player clients & observers
+      - Cancel playing/moving: Largest Army player should change back
+      - Play again, move the robber instead of canceling
     - Move robber next to your settlement/city
       - Give your player 4 Soldier cards
       - Build a settlement at a desert hex
@@ -633,6 +657,12 @@ Test these specific things for each version:
             - Cloth Trade: Roll, distribute cloth; game ends at roll because distributed/depleted half of villages' cloth
             - Pirate Islands: Roll, fleet battle lost (discard), won (pick free resource);
               if 7, battle results should be shown at client by the time they're asked to discard or choose a player to rob
+- When testing new server with client 2.7.00 or newer, and older client in same game:
+    - Play and cancel each dev card type, as described in "Basic rules and game play" section
+        - v2.7.00 clients and newer can cancel dev card plays (Road Building is v2.5.00 and newer)
+        - Road Building, Monopoly, Year of Plenty, Soldier
+        - Clients should see the cancel, see the card return to client player's hand/inventory
+        - For Soldier, clients should see changes to Largest Army when card is canceled
 
 ### Server robustness: Bot disconnect/reconnect during game start
 
