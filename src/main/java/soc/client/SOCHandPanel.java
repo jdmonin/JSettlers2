@@ -4037,7 +4037,6 @@ import javax.swing.UIManager;
             }
             break;
 
-        case GoldGains:
         case Warship:
         case Unknown:
             // do nothing (avoid compiler enum warning).

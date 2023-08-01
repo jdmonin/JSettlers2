@@ -23,7 +23,6 @@ package soc.client;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;  // for javadocs only
 
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -264,21 +263,12 @@ public interface PlayerClientListener
     void playerPickedResources(SOCPlayer player, SOCResourceSet resSet, int reasonCode);
 
     /**
-     * A player's game stats of type {@link SOCPlayerStats#STYPE_RES_ROLL},
-     * such as resource totals received from dice rolls, should be displayed.
-     * Called at end of game or when the player uses the *STATS* command.
-     * @param stats  Player statistic details
-     * @see #playerStats(int, int[])
-     */
-    void playerStats(EnumMap<PlayerClientListener.UpdateType, Integer> stats);
-
-    /**
      * Display one type of a player's stats, such as resource trades.
      * Called at end of game or when the player uses the *STATS* command.
-     * @param statsType  Type of statistics, such as {@link SOCPlayerStats#STYPE_TRADES}.
+     * @param statsType  Type of statistics, such as {@link SOCPlayerStats#STYPE_TRADES}
+     *     or {@link SOCPlayerStats#STYPE_RES_ROLL}.
      *     If type is unrecognized, do nothing.
      * @param stats  Player statistic details for {@code statsType}
-     * @see #playerStats(EnumMap)
      * @since 2.6.00
      */
     void playerStats(int statsType, int[] stats);
@@ -756,12 +746,12 @@ public interface PlayerClientListener
         Ship,
         Knight,
 
-        /**
+        /*
          * Total number of resources picked/gained from gold hex reveals
          * in sea board scenarios; announced in game window's activity pane and used in stats.
          * Update not sent if gain is 0.
          */
-        GoldGains,
+        // GoldGains -- removed in v2.7.00
 
         /** Number of Warships built, in {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} scenario */
         Warship,

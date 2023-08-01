@@ -25,7 +25,6 @@ package soc.client;
 
 import java.awt.EventQueue;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -2941,25 +2940,7 @@ public class MessageHandler
         switch (stype)
         {
         case SOCPlayerStats.STYPE_RES_ROLL:
-            {
-                final int[] rstat = mes.getParams();
-
-                EnumMap<PlayerClientListener.UpdateType, Integer> stats
-                    = new EnumMap<PlayerClientListener.UpdateType, Integer>(PlayerClientListener.UpdateType.class);
-                stats.put(PlayerClientListener.UpdateType.Clay, Integer.valueOf(rstat[SOCResourceConstants.CLAY]));
-                stats.put(PlayerClientListener.UpdateType.Ore, Integer.valueOf(rstat[SOCResourceConstants.ORE]));
-                stats.put(PlayerClientListener.UpdateType.Sheep, Integer.valueOf(rstat[SOCResourceConstants.SHEEP]));
-                stats.put(PlayerClientListener.UpdateType.Wheat, Integer.valueOf(rstat[SOCResourceConstants.WHEAT]));
-                stats.put(PlayerClientListener.UpdateType.Wood, Integer.valueOf(rstat[SOCResourceConstants.WOOD]));
-                if (rstat.length > SOCResourceConstants.GOLD_LOCAL)
-                {
-                    final int n = rstat[SOCResourceConstants.GOLD_LOCAL];
-                    if (n != 0)
-                        stats.put(PlayerClientListener.UpdateType.GoldGains, Integer.valueOf(n));
-                }
-                pcl.playerStats(stats);
-            }
-            break;
+            // fallthrough
 
         case SOCPlayerStats.STYPE_TRADES:
             pcl.playerStats(stype, mes.getParams());
