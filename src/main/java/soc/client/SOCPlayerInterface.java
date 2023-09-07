@@ -4414,6 +4414,8 @@ public class SOCPlayerInterface extends JFrame
 
         public void playerStats(final int statsType, final int[] stats)
         {
+            List<String> prints = new ArrayList<String>();
+
             switch(statsType)
             {
             case SOCPlayerStats.STYPE_RES_ROLL:
@@ -4423,22 +4425,24 @@ public class SOCPlayerInterface extends JFrame
                     for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; ++i)
                         total += stats[i];
 
-                    pi.printKeyed("stats.rolls.your");  // "Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)"
-                    pi.printKeyed("stats.rolls.n.total", stats[1], stats[2], stats[3], stats[4], stats[5], total);
+                    prints.add("* " + strings.get
+                        ("stats.rolls.your"));  // "Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)"
+                    prints.add("* " + strings.get
+                        ("stats.rolls.n.total", stats[1], stats[2], stats[3], stats[4], stats[5], total));
                         // "{0}, {1}, {2}, {3}, {4}. Total: {5}"
 
                     if (stats.length > SOCResourceConstants.GOLD_LOCAL)
                     {
                         final int gp = stats[SOCResourceConstants.GOLD_LOCAL];
                         if (gp != 0)
-                            pi.printKeyed("stats.gold_gains", gp);  // "Resources gained from gold hexes: {0}"
+                            prints.add("* " + strings.get("stats.gold_gains", gp));  // "Resources gained from gold hexes: {0}"
                     }
                 }
                 break;
 
             case SOCPlayerStats.STYPE_TRADES:
                 {
-                    pi.printKeyed("game.trade.stats.heading");
+                    prints.add("* " + strings.get("game.trade.stats.heading"));
                         // "Your trade stats: Give (clay, ore, sheep, wheat, wood) -> Get (clay, ore, sheep, wheat, wood):"
                     final String[] statLabels =
                         {
@@ -4496,7 +4500,7 @@ public class SOCPlayerInterface extends JFrame
                             sb.append(')');
                         }
 
-                        pi.print(sb.toString());
+                        prints.add(sb.toString());
                         sb.delete(0, sb.length());
                     }
                 }
@@ -4505,6 +4509,10 @@ public class SOCPlayerInterface extends JFrame
             default:
                 return;  // ignore unrecognized type
             }
+
+            for (String s : prints)
+                pi.print(s);
+            prints.clear();
         }
 
         public void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew)
