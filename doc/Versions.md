@@ -64,6 +64,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- Refactored soc.game.GameAction out of soc.extra.robot.GameActionLog.Action
 	- Refactored SOCGame.lastAction out of SOCPlayer.lastActionBankTrade_give, _get
 	- SOCVersionedItem.getMinVersion, itemsMinimumVersion map keys are now always String
+	- SOCPlayerInterface.print +addStarPrefix instead of calling print("* " + someText)
 
 
 ## `2.6.10` (build JM20220705)

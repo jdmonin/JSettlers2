@@ -573,8 +573,20 @@ public interface PlayerClientListener
     /**
      * Print a line of text in the game text area, like {@link SOCPlayerInterface#print(String)}.
      * @since 2.5.00
+     * @see #printText(String, boolean)
      */
     void printText(String txt);
+
+    /**
+     * Print a line of text in the game text area, like {@link SOCPlayerInterface#print(String, boolean)}.
+     * Optionally add a {@code "* "} prefix, as used in game actions and announcements from the server.
+     * @param txt  the text to print
+     * @param addStarPrefix  If true, print {@code "* "} before {@code txt}
+     *    unless {@code txt} already starts with a {@code '*'}
+     * @since 2.7.00
+     * @see #printText(String)
+     */
+    void printText(String txt, boolean addStarPrefix);
 
     /**
      * A game text message was received from server, or a chat message from another player.

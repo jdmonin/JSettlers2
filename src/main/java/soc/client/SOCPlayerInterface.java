@@ -1653,7 +1653,7 @@ public class SOCPlayerInterface extends JFrame
                     // "___ was lost by {0}."
             }
 
-            print("* " + msg);
+            print(msg, true);
         }
     }
 
@@ -2479,6 +2479,7 @@ public class SOCPlayerInterface extends JFrame
 
     /**
      * print text in the text window, followed by a new line (<tt>'\n'</tt>).
+     * To add a {@code "* "} prefix, call {@link #print(String, boolean)} instead.
      *
      * @param s  the text; you don't need to include "\n".
      * @see #chatPrint(String)
@@ -2487,6 +2488,26 @@ public class SOCPlayerInterface extends JFrame
      */
     public void print(String s)
     {
+        print(s, false);
+    }
+
+    /**
+     * Print text in the text window, followed by a new line (<tt>'\n'</tt>).
+     * Optionally add a {@code "* "} prefix, as used in game actions and announcements from the server.
+     * @param s  the text; you don't need to include "\n".
+     * @param addStarPrefix  If true, print {@code "* "} before {@code s}
+     *    unless {@code s} already starts with a {@code '*'}
+     * @see #print(String)
+     * @see #chatPrint(String)
+     * @see #printKeyed(String)
+     * @see #printKeyed(String, Object...)
+     * @since 2.7.00
+     */
+    public void print(String s, final boolean addStarPrefix)
+    {
+        if (addStarPrefix && (s.charAt(0) != '*'))
+            s = "* " + s;
+
         StringTokenizer st = new StringTokenizer(s, "\n", false);
         while (st.hasMoreElements())
         {
@@ -2607,7 +2628,7 @@ public class SOCPlayerInterface extends JFrame
             final String obsTxt = (obs.size() == 1)
                 ? strings.get("interface.observer.enter.one", obs.get(0))
                 : strings.getSpecial(game, "interface.observer.enter.many", obs);
-            textDisplay.append("* " + obsTxt + "\n");
+            print(obsTxt, true);
         }
     }
 
@@ -2890,7 +2911,7 @@ public class SOCPlayerInterface extends JFrame
     {
         if (reasonText != null)
         {
-            print("* " + reasonText);
+            print(reasonText, true);
             return;
         }
 
@@ -3596,9 +3617,9 @@ public class SOCPlayerInterface extends JFrame
 
         final String plName = player.getName(), aPieceType = "a " + SOCPlayingPiece.getTypeName(pieceType);
         if (movedFromCoordinate != 0)
-            print("* " + plName + " has undone moving " + aPieceType);
+            print(plName + " has undone moving " + aPieceType, true);
         else
-            print("* " + plName + " has undone building " + aPieceType);
+            print(plName + " has undone building " + aPieceType, true);
         // TODO i18n
     }
 
@@ -4624,7 +4645,12 @@ public class SOCPlayerInterface extends JFrame
 
         public void printText(String txt)
         {
-            pi.print(txt);
+            pi.print(txt, false);
+        }
+
+        public void printText(String txt, boolean addStarPrefix)
+        {
+            pi.print(txt, addStarPrefix);
         }
 
         public void messageReceived(String nickname, String message)
@@ -4842,7 +4868,7 @@ public class SOCPlayerInterface extends JFrame
                 // case 2 is "default" so resDesc is always set for compiler
             }
             resDesc = strings.get(resDesc, cplName);  // "Player 2 wins!"
-            pi.print("* " + resDesc);
+            pi.print(resDesc, true);
 
             final String resDesc2;
             if (resultShipsLost == 0)
@@ -4857,7 +4883,7 @@ public class SOCPlayerInterface extends JFrame
                     resDesc2 = strings.get("game.sc_piri.attfort.n.more.attacks", fort.getStrength());
                         // "That Fortress will be defeated after {0} more attack(s)."
                 }
-                pi.print("* " + resDesc2);
+                pi.print(resDesc2, true);
             } else {
                 resDesc2 = null;
             }

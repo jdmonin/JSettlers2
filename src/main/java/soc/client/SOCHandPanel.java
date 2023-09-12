@@ -1391,7 +1391,7 @@ import javax.swing.UIManager;
                     // msg = "The game is over; you are the winner!";
                     // msg = "The game is over; <someone> won.";
                     // msg = "The game is over; no one won.";
-                playerInterface.print("* " + msg);
+                playerInterface.print(msg, true);
             }
         }
         else if (target == BANK_UNDO)
@@ -1492,7 +1492,7 @@ import javax.swing.UIManager;
                     }
                 }
             } else {
-                getPlayerInterface().print("* " + strings.get("hpan.trade.msg.notnow") + "\n");
+                getPlayerInterface().print(strings.get("hpan.trade.msg.notnow"), true);
                     // "You cannot trade at this time."
             }
         }
