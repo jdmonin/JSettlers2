@@ -2329,14 +2329,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * On server, get the current totals of resources received by dice rolls by this player.
+     * Get the current totals of resources received by dice rolls by this player.
      * Each resource type's total includes resources picked from a rolled {@link SOCBoardLarge#GOLD_HEX}.
      * For the {@link SOCScenario#K_SC_FOG Fog Scenario}, includes resources picked when building
      * a road or ship revealed gold from a {@link SOCBoardLarge#FOG_HEX}.
      *<P>
      * Please treat this as read-only.
      *<P>
-     * Not currently tracked at client.
+     * Tracked at server, and at client v2.7.00 and newer when game's server is v2.0.00 and newer.
      *
      * @return array of resource counts from dice rolls;
      *   the used indexes are {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
@@ -2373,6 +2373,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Add to this player's resources and resource-roll totals.
+     * Sets {@link #getRolledResources()}.
      *<P>
      * If {@link SOCGame#hasSeaBoard}, treat {@link SOCResourceConstants#GOLD_LOCAL}
      * as the gold-hex resources they must pick, and set
@@ -2382,9 +2383,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * game should update this player's {@link #getResourceRollStats()}.
      *<P>
      * Otherwise ignores rolled {@link SOCResourceConstants#UNKNOWN} resources.
+     *<P>
+     * Before v2.7.00, this was called only at server. Call at client is done in response to
+     * a message which is sent from server v2.0.00 and newer.
      *
      * @param rolled The resources gained by this roll, as determined
-     *     by {@link SOCGame#rollDice()}
+     *     by {@link SOCGame#rollDice()} or message from server
      * @see #getRolledResources()
      * @since 1.1.09
      */
@@ -2408,7 +2412,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Resources gained from dice roll of the current turn.
-     * Valid at server only, not at client.
+     * Valid at server only; known at client only if server sends the proper message type
+     * (server v2.0.00 and newer do so).
      * Please treat the returned set as read-only.
      * See {@link SOCGame#rollDice()} for details on what is and isn't included here.
      * @return the resources, if any, gained by this player from the

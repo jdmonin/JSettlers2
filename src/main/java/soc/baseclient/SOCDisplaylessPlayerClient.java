@@ -1347,7 +1347,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             final int pn = mes.playerNum.get(p);
             final SOCPlayer pl = ga.getPlayer(pn);
 
-            pl.getResources().add(rs);
+            pl.addRolledResources(rs);
 
             if (! skipResourceCount)
                 handlePLAYERELEMENT_simple

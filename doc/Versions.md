@@ -37,6 +37,8 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Show game duration and status (not started yet, in progress, finished)
 	    - Even if client can't join game, show its options (with server v2.7.00 or newer)
 	- Don't set gotPassword field while joining a practice game
+	- Game stats:
+	    - Update players' rolled resource stats (previously done only at server)
 - Server:
 	- Bugfix: If player cancels Road Building with Cancel Ship button, server now clears player's hasPlayedDevCard() so another can be played
 	- `*STATS*`: Sort the client version list

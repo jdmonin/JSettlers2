@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2012,2014-2017,2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2012,2014-2017,2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -64,6 +64,7 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     public static final int STYPE_MIN = 1;
 
     /** Stats type 1: Resource roll stats.
+     *  Data is from {@link SOCPlayer#getResourceRollStats()}.
      *  Each resource's count includes resources picked from a rolled <tt>GOLD_HEX</tt>.
      *  For the Fog Scenario, includes resources picked when building
      *  a road or ship revealed gold from a fog hex.
@@ -84,14 +85,13 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
      *<P>
      * Check client version against {@link #VERSION_FOR_RES_ROLL}
      * before sending this type.
-     *
-     * @see SOCPlayer#getResourceRollStats()
      */
     public static final int STYPE_RES_ROLL = 1;
 
     /**
      * Stats type 2: Resource Trade stats.
-     * Same format as {@link SOCPlayer#getResourceTradeStats()},
+     * Data is from {@link SOCPlayer#getResourceTradeStats()}.
+     * Same format as returned from that method,
      * but with each {@link SOCResourceSet} changed to an array of 5 ints.
      * So, length is (5 * 2 * {@link SOCPlayer#TRADE_STATS_ARRAY_LEN}) + 2.
      *<P>
