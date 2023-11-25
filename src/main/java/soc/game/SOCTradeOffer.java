@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2014,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2014,2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -64,7 +64,8 @@ public class SOCTradeOffer implements Serializable, Cloneable
      * @param  to    a boolean array with the set of player numbers this offer is made to;
      *               see {@link #getTo()} for details. Not null.
      * @param  give  the set of resources being given (offered) by the {@code from} player; not null
-     * @param  get   the set of resources being asked for; not null
+     * @param  get   the set of resources being asked for
+     *               (would be given to the {@code from} player by the accepting player); not null
      */
     public SOCTradeOffer(String game, int from, boolean[] to, SOCResourceSet give, SOCResourceSet get)
     {
@@ -174,7 +175,7 @@ public class SOCTradeOffer implements Serializable, Cloneable
     }
 
     /**
-     * @return the set of resources offered
+     * @return the set of resources offered by the {@link #getFrom()} player
      */
     public SOCResourceSet getGiveSet()
     {
@@ -182,7 +183,8 @@ public class SOCTradeOffer implements Serializable, Cloneable
     }
 
     /**
-     * @return the set of resources wanted in exchange
+     * @return the set of resources wanted in exchange,
+     *     which would be given to the {@link #getFrom()} player by the accepting player
      */
     public SOCResourceSet getGetSet()
     {

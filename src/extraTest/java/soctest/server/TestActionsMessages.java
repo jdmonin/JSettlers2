@@ -64,6 +64,7 @@ import soc.server.SOCGameHandler;
 import soc.server.SOCServer;
 import soc.server.savegame.SavedGameModel;
 import soc.util.Version;
+import soctest.game.TestPlayer;
 import soctest.server.TestRecorder.StartedTestGameObjects;
 import soctest.server.savegame.TestLoadgame;
 
@@ -2083,15 +2084,21 @@ public class TestActionsMessages
         throws IOException
     {
         final String CLIENT_NAME = "testBankPortTrad_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+        final int CLIENT_PN = 3;
 
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
                 (srv, CLIENT_NAME, null, 0, null, true, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
-        final SOCGame ga = objs.gameAtServer;
+        final SOCGame ga = objs.gameAtServer, gaAtCli = tcli.getGame(ga.getName());
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
-        final SOCPlayer cliPl = objs.clientPlayer;
+        final SOCPlayer cliPl = objs.clientPlayer, cliPlAtCli = gaAtCli.getPlayer(CLIENT_PN);
         final Vector<EventEntry> records = objs.records;
+        assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
+
+        int[][][] plExpectedStats = new int[SOCPlayer.TRADE_STATS_ARRAY_LEN][2][5];  // [trType][give/get][resType]
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, cliPl);
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, cliPlAtCli);
 
         final SOCResourceSet SHEEP_1 = new SOCResourceSet(0, 0, 1, 0, 0, 0),
             WHEAT_4 = new SOCResourceSet(0, 0, 0, 4, 0, 0),
@@ -2109,6 +2116,11 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertArrayEquals(new int[]{3, 3, 4, 0, 4}, cliPl.getResources().getAmounts(false));
 
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][0] = new int[]{0, 0, 0, 4, 0};  // giving
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][1] = new int[]{0, 0, 1, 0, 0};  // getting
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, cliPl);
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, cliPlAtCli);
+
         StringBuilder compares_4_1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -2124,6 +2136,11 @@ public class TestActionsMessages
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPl.getResources().getAmounts(false));
+
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][0] = new int[5];
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][1] = new int[5];
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, cliPl);
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, cliPlAtCli);
 
         StringBuilder compares_undo_4_1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -2159,6 +2176,11 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertArrayEquals(new int[]{2, 3, 3, 1, 3}, cliPl.getResources().getAmounts(false));
 
+        plExpectedStats[SOCResourceConstants.WHEAT][0] = new int[]{0, 0, 0, 2, 0};
+        plExpectedStats[SOCResourceConstants.WHEAT][1] = new int[]{0, 0, 1, 0, 0};
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, cliPl);
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, cliPlAtCli);
+
         StringBuilder compares_2_1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -2174,6 +2196,11 @@ public class TestActionsMessages
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertArrayEquals(new int[]{2, 3, 2, 3, 3}, cliPl.getResources().getAmounts(false));
+
+        plExpectedStats[SOCResourceConstants.WHEAT][0] = new int[5];
+        plExpectedStats[SOCResourceConstants.WHEAT][1] = new int[5];
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, cliPl);
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, cliPlAtCli);
 
         StringBuilder compares_undo_2_1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -2227,6 +2254,7 @@ public class TestActionsMessages
      * send a counter-offer, first client accepts counter-offer. Also tests clear offer.
      * Then tests resource tracking when non-client trade partner has unknown resources
      * (indirectly tests {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}).
+     * Also checks client resource stat tracking via {@link SOCPlayer#getResourceTradeStats()}.
      * Declining a trade offer is tested by {@link TestRecorder#testTradeDecline2Clients()}.
      */
     @Test
@@ -2256,10 +2284,32 @@ public class TestActionsMessages
             TestRecorder.connectLoadJoinResumeGame
                 (srv, CLIENT1_NAME, CLIENT2_NAME, PN_C2, null, true, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli1 = objs.tcli, tcli2 = objs.tcli2;
-        final SOCGame ga = objs.gameAtServer;
+        final SOCGame ga = objs.gameAtServer, gaAtCli1 = tcli1.getGame(ga.getName()), gaAtCli2 = tcli2.getGame(ga.getName());
         final String gaName = ga.getName();
-        final SOCPlayer cli1Pl = objs.clientPlayer, cli2Pl = objs.client2Player;
+        assertNotNull("found " + gaName + " at cli1", gaAtCli1);
+        assertNotNull("found " + gaName + " at cli2", gaAtCli2);
+        final SOCPlayer cli1Pl = objs.clientPlayer, cli2Pl = objs.client2Player,
+            pl1AtCli1 = gaAtCli1.getPlayer(PN_C1), pl2AtCli1 = gaAtCli1.getPlayer(PN_C2),
+            pl1AtCli2 = gaAtCli2.getPlayer(PN_C1), pl2AtCli2 = gaAtCli2.getPlayer(PN_C2);
+        {
+            final String pname1 = cli1Pl.getName(), pname2 = cli2Pl.getName();
+            assertFalse(pname1.isEmpty());
+            assertFalse(pname2.isEmpty());
+            assertEquals("found " + pname1 + " in cli1 game", pname1, pl1AtCli1.getName());
+            assertEquals("found " + pname1 + " in cli2 game", pname1, pl1AtCli2.getName());
+            assertEquals("found " + pname2 + " in cli1 game", pname2, pl2AtCli1.getName());
+            assertEquals("found " + pname2 + " in cli2 game", pname2, pl2AtCli2.getName());
+        }
         final Vector<EventEntry> records = objs.records;
+
+        int[][][] pl1ExpectedStats = new int[SOCPlayer.TRADE_STATS_ARRAY_LEN][2][5],  // [trType][give/get][resType]
+            pl2ExpectedStats = new int[SOCPlayer.TRADE_STATS_ARRAY_LEN][2][5];
+        TestPlayer.assertTradeStatsEqual(pl1ExpectedStats, cli1Pl);
+        TestPlayer.assertTradeStatsEqual(pl2ExpectedStats, cli2Pl);
+        TestPlayer.assertTradeStatsEqual(pl1ExpectedStats, pl1AtCli1);
+        TestPlayer.assertTradeStatsEqual(pl2ExpectedStats, pl2AtCli1);
+        TestPlayer.assertTradeStatsEqual(pl1ExpectedStats, pl1AtCli2);
+        TestPlayer.assertTradeStatsEqual(pl2ExpectedStats, pl2AtCli2);
 
         records.clear();
 
@@ -2324,22 +2374,20 @@ public class TestActionsMessages
              new int[]{0, 2, 2, 1, 0}, cli2Pl.getResources().getAmounts(false));
         assertNull(cli2Pl.getCurrentOffer());
 
-        /* Test tracking unknown resources: */
+        pl1ExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][0] = new int[]{0, 1, 0, 1, 0};  // gives
+        pl1ExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][1] = new int[]{1, 0, 0, 0, 0};  // gets
+        assertArrayEquals(pl1ExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][0], COUNTER_GETTING.getAmounts(false));
+        assertArrayEquals(pl1ExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][1], COUNTER_GIVING.getAmounts(false));
+        pl2ExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][0] = new int[]{1, 0, 0, 0, 0};
+        pl2ExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][1] = new int[]{0, 1, 0, 1, 0};
+        TestPlayer.assertTradeStatsEqual(pl1ExpectedStats, cli1Pl);  // at server
+        TestPlayer.assertTradeStatsEqual(pl2ExpectedStats, cli2Pl);
+        TestPlayer.assertTradeStatsEqual(pl1ExpectedStats, pl1AtCli1);  // at cli 1; trades are public, so shouldn't differ from srv
+        TestPlayer.assertTradeStatsEqual(pl2ExpectedStats, pl2AtCli1);
+        TestPlayer.assertTradeStatsEqual(pl1ExpectedStats, pl1AtCli2);  // at cli 2
+        TestPlayer.assertTradeStatsEqual(pl2ExpectedStats, pl2AtCli2);
 
-        final SOCGame gaAtCli1 = tcli1.getGame(gaName), gaAtCli2 = tcli2.getGame(gaName);
-        assertNotNull("found " + gaName + " at cli1", gaAtCli1);
-        assertNotNull("found " + gaName + " at cli2", gaAtCli2);
-        final SOCPlayer pl1AtCli1 = gaAtCli1.getPlayer(PN_C1), pl2AtCli1 = gaAtCli1.getPlayer(PN_C2),
-            pl1AtCli2 = gaAtCli2.getPlayer(PN_C1), pl2AtCli2 = gaAtCli2.getPlayer(PN_C2);
-        {
-            final String pname1 = cli1Pl.getName(), pname2 = cli2Pl.getName();
-            assertFalse(pname1.isEmpty());
-            assertFalse(pname2.isEmpty());
-            assertEquals("found " + pname1 + " in cli1 game", pname1, pl1AtCli1.getName());
-            assertEquals("found " + pname1 + " in cli2 game", pname1, pl1AtCli2.getName());
-            assertEquals("found " + pname2 + " in cli1 game", pname2, pl2AtCli1.getName());
-            assertEquals("found " + pname2 + " in cli2 game", pname2, pl2AtCli2.getName());
-        }
+        /* Test tracking unknown resources: */
 
         /* set up known and unknown resources at clients and server */
 
@@ -2403,6 +2451,17 @@ public class TestActionsMessages
         assertArrayEquals
             (gaName + ": cli2 res at cli2 after trade",
              new int[]{0, 1, 2, 0, 0}, pl2AtCli2.getResources().getAmounts(false));
+
+        pl1ExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][0] = new int[]{0, 2, 0, 1, 0};  // gives
+        pl1ExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][1] = new int[]{1, 0, 0, 0, 2};  // gets
+        pl2ExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][0] = new int[]{1, 0, 0, 0, 2};
+        pl2ExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][1] = new int[]{0, 2, 0, 1, 0};
+        TestPlayer.assertTradeStatsEqual(pl1ExpectedStats, cli1Pl);
+        TestPlayer.assertTradeStatsEqual(pl2ExpectedStats, cli2Pl);
+        TestPlayer.assertTradeStatsEqual(pl1ExpectedStats, pl1AtCli1);
+        TestPlayer.assertTradeStatsEqual(pl2ExpectedStats, pl2AtCli1);
+        TestPlayer.assertTradeStatsEqual(pl1ExpectedStats, pl1AtCli2);
+        TestPlayer.assertTradeStatsEqual(pl2ExpectedStats, pl2AtCli2);
 
         StringBuilder compares = TestRecorder.compareRecordsToExpected
             (records, new String[][]

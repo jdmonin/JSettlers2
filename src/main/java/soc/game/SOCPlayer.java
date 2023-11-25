@@ -283,10 +283,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     int forcedEndTurnCount;
 
     /**
-     * server-only total count of how many of each known resource the player has received this game
+     * Total count of how many of each known resource the player has received this game
      * from dice rolls.
      * The used indexes are {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD},
      * and also (in v2.0.00+) {@link SOCResourceConstants#GOLD_LOCAL}.
+     * Tracked at server, and usually at recent clients.
      * See {@link #getResourceRollStats()} for details.
      * @see #tradeStatsGive
      * @since 1.1.09
@@ -295,7 +296,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Stats for resources {@link #tradeStatsGive given} and {@link #tradeStatsGet received} in trades this game.
-     * Tracked at server only. See {@link #getResourceTradeStats()} for details.
+     * Always tracked at server, and usually at recent clients. See {@link #getResourceTradeStats()} for details.
      * @see #resourceStats
      * @since 2.6.00
      */
@@ -2373,9 +2374,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Add to this player's resources and resource-roll totals.
-     * Sets {@link #getRolledResources()}.
+     * Sets {@link #getRolledResources()}, updates {@link #getResourceRollStats()}.
      *<P>
-     * If {@link SOCGame#hasSeaBoard}, treat {@link SOCResourceConstants#GOLD_LOCAL}
+     * At server, if {@link SOCGame#hasSeaBoard} treat {@link SOCResourceConstants#GOLD_LOCAL}
      * as the gold-hex resources they must pick, and set
      * {@link #getNeedToPickGoldHexResources()} to that amount.
      * This method updates {@link #getResourceRollStats()}[{@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL}].
@@ -2384,8 +2385,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Otherwise ignores rolled {@link SOCResourceConstants#UNKNOWN} resources.
      *<P>
-     * Before v2.7.00, this was called only at server. Call at client is done in response to
-     * a message which is sent from server v2.0.00 and newer.
+     * Before v2.7.00, this was called only at server. Call at client is done in handler for the
+     * {@link soc.message.SOCDiceResultResources SOCDiceResultResources} message which is sent from
+     * server v2.0.00 and newer.
      *
      * @param rolled The resources gained by this roll, as determined
      *     by {@link SOCGame#rollDice()} or message from server
@@ -2430,9 +2432,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get stats for resource totals given and received in trades this game.
-     * Tracked at server only.
      * Updated by {@link #makeTrade(ResourceSet, ResourceSet)}
      * and {@link #makeBankTrade(ResourceSet, ResourceSet)}.
+     *<P>
+     * Tracked at server, and at client v2.7.00 and newer when game's server is v2.5.00 and newer;
+     * not tracked by bots whose {@link soc.util.SOCRobotParameters#getTradeFlag()} is 0.
      *<P>
      * The stats are returned as an array indexed as {@code [give=0/get=1][trType]},
      * where the {@code trType} subarray indexes are:
@@ -2462,7 +2466,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * On server, set this player's {@link #getResourceTradeStats()}. Useful for reloading a saved game snapshot.
+     * Set this player's {@link #getResourceTradeStats()}. Useful for reloading a saved game snapshot
+     * and when joining a game in progress.
      * Copies contents of {@code stats} into player's stats, instead of copying a reference.
      * @param stats Stats to copy into player's data; see {@link #getResourceTradeStats()} for format; not null.
      *     Elements in can be null; will treat as {@link SOCResourceSet#EMPTY_SET}.
@@ -2937,6 +2942,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Update this player's data when completing a trade with another player.
      * Assumes trade is valid.
+     * Also updates {@link #getResourceTradeStats()}[{@link #TRADE_STATS_INDEX_PLAYER_ALL}].
+     *<P>
+     * At client, calls {@link SOCResourceSet#subtract(ResourceSet, boolean) resources.subtract(give, true)}
+     * to use unknown resources if needed since client has incomplete info about other players.
      *<P>
      * Called by {@link SOCGame#makeTrade(int, int)}.
      * @param give  Resources given by this player to the other player; not {@code null}
@@ -2946,7 +2955,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public void makeTrade(final ResourceSet give, final ResourceSet get)
     {
         resources.add(get);
-        resources.subtract(give);
+        resources.subtract(give, ! game.isAtServer);
 
         tradeStatsGive[TRADE_STATS_INDEX_PLAYER_ALL].add(give);
         tradeStatsGet[TRADE_STATS_INDEX_PLAYER_ALL].add(get);
@@ -2955,15 +2964,20 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Update this player's data when performing a bank trade, or undoing the last bank trade.
      * Assumes trade is valid.
+     * Also updates {@link #getResourceTradeStats()}.
      *<P>
-     * Called by {@link SOCGame#makeBankTrade(SOCResourceSet, SOCResourceSet)}.
+     * At client, calls {@link SOCResourceSet#subtract(ResourceSet, boolean) resources.subtract(give, true)}
+     * to use unknown resources if needed since client has incomplete info about other players.
+     *<P>
+     * Called by {@link SOCGame#makeBankTrade(SOCResourceSet, SOCResourceSet)} at server, and directly by client.
+     *
      * @param  give  What the player will give to the bank; not {@code null}
      * @param  get   What the player wants from the bank; not {@code null}
      * @since 2.6.00
      */
     public void makeBankTrade(final ResourceSet give, final ResourceSet get)
     {
-        resources.subtract(give);
+        resources.subtract(give, ! game.isAtServer);
         resources.add(get);
 
         /*

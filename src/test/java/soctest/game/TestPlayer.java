@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -462,7 +462,8 @@ public class TestPlayer
 
     /**
      * Check player's trade stats at a point in time
-     * for {@link #testTradeAndStats()} and {@link #testSetResourceTradeStats()}.
+     * for {@link #testTradeAndStats()}, {@link #testSetResourceTradeStats()},
+     * and some {@link soctest.server.TestActionsMessages} tests.
      * Assumes {@code plExpectedStats} was created there with correct lengths.
      * @param plExpectedStats  Stats arrays for resource trades: [trType 0..7][give=0/get=1][resType clay=0..wood=4]
      * @param pl  Will call {@link SOCPlayer#getResourceTradeStats() pl.getResourceTradeStats()}

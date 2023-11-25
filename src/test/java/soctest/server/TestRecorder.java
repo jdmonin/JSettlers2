@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1588,7 +1588,11 @@ public class TestRecorder
         /** {@link #gameAtServer}'s board; not null */
         public final SOCBoard board;
 
-        /** Player in {@link #gameAtServer} controlled by {@link #tcli}; not null */
+        /**
+         * The player at server in {@link #gameAtServer} controlled by {@link #tcli}; not null.
+         *<P>
+         * To get player objects at client, see {@link #gameAtServer} javadoc to get client's game object.
+         */
         public final SOCPlayer clientPlayer;
 
         /** Player in {@link #gameAtServer} controlled by {@link #tcli2}, or null if not using tcli2 */

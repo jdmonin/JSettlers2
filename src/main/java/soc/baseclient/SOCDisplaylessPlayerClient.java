@@ -1327,7 +1327,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Handle all players' dice roll result resources: static version to share with SOCPlayerClient.
-     * Game players gain resources.
+     * Calls players' {@link SOCPlayer#addRolledResources(SOCResourceSet)} to gain resources and
+     * update {@link SOCPlayer#getResourceRollStats()}.
      * @param mes  Message data
      * @param ga  Game to update
      * @param nickname  Our client player's nickname, needed only if {@code skipResourceCount} is false.
@@ -2417,6 +2418,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Update game data for a trade between players: static to share with SOCPlayerClient.
+     * Calls {@link SOCGame#makeTrade(int, int)} if trade details match current offer,
+     * to update player resources and {@link SOCPlayer#getResourceTradeStats()}.
+     * Otherwise directly updates player resources.
      *<P>
      * Added for v2.5.00, the first server version to include trade details in {@code SOCAcceptOffer} message.
      * Older servers send PLAYERELEMENT messages before ACCEPTOFFER instead, and their ACCEPTOFFER won't have
@@ -2436,17 +2440,29 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return;
 
-        final SOCResourceSet resToAcc = mes.getResToAcceptingPlayer();
-        if (resToAcc == null)
+        final SOCResourceSet resToAccPl = mes.getResToAcceptingPlayer();
+        if (resToAccPl == null)
             return;
 
-        final SOCResourceSet resToOff = mes.getResToOfferingPlayer();
-        final SOCResourceSet accRes = ga.getPlayer(mes.getAcceptingNumber()).getResources(),
-            offRes = ga.getPlayer(mes.getOfferingNumber()).getResources();
-        accRes.add(resToAcc);
-        accRes.subtract(resToOff, true);
-        offRes.add(resToOff);
-        offRes.subtract(resToAcc, true);
+        final int offPN = mes.getOfferingNumber(), accPN = mes.getAcceptingNumber();
+        final SOCResourceSet resToOffPl = mes.getResToOfferingPlayer();
+
+        // Sanity check message resources vs trade offer info;
+        // if everything matches, call ga.makeTrade to update stats too
+        final SOCPlayer offPl = ga.getPlayer(offPN);
+        final SOCTradeOffer offOffered = offPl.getCurrentOffer();
+        if ((offOffered != null)
+            && resToOffPl.equals(offOffered.getGetSet()) && resToAccPl.equals(offOffered.getGiveSet()))
+        {
+            ga.makeTrade(offPN, accPN);
+        } else {
+            final SOCResourceSet accPlRes = ga.getPlayer(accPN).getResources(), offPlRes = offPl.getResources();
+
+            accPlRes.add(resToAccPl);
+            accPlRes.subtract(resToOffPl, true);
+            offPlRes.add(resToOffPl);
+            offPlRes.subtract(resToAccPl, true);
+        }
     }
 
     /**
@@ -2457,7 +2473,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Update a player's resource data from a "bank trade" announcement from the server.
-     * Subtracts the resources given to the bank/port, then adds the resources received.
+     * Calls {@link SOCPlayer#makeBankTrade(ResourceSet, ResourceSet)} to update player resources
+     * and {@link SOCPlayer#getResourceTradeStats()}.
      * See {@link #handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)} for behavior
      * if subtracting more than the known amount of those resources
      * (which often happens for non-client players).
@@ -2481,9 +2498,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return false;
 
-        final SOCResourceSet plRes = ga.getPlayer(mes.getPlayerNumber()).getResources();
-        plRes.subtract(mes.getGiveSet(), true);
-        plRes.add(mes.getGetSet());
+        ga.getPlayer(mes.getPlayerNumber()).makeBankTrade(mes.getGiveSet(), mes.getGetSet());
 
         return true;
     }

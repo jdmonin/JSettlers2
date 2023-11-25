@@ -8227,12 +8227,13 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * perform a bank trade, or undo the last bank trade.
+     * perform a bank trade, or undo the last bank trade, for the current player.
      *<P>
-     * This method does not validate against game rules, so call
+     * This method checks for undo but otherwise does not validate against game rules, so call
      * {@link #canMakeBankTrade(ResourceSet, ResourceSet)} first.
      *<P>
-     * Called only at server. Client instead updates {@link SOCPlayer#getResources()} contents.
+     * Called only at server. Client instead updates {@link SOCPlayer#getResources()} contents or,
+     * when playing on server version 2.5.00 or newer, calls {@link SOCPlayer#makeBankTrade(ResourceSet, ResourceSet)}.
      *<P>
      * Undo was added in version 1.1.13; if the player's previous action
      * this turn was a bank trade, it can be undone by calling
