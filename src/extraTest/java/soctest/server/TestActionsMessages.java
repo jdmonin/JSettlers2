@@ -1604,7 +1604,7 @@ public class TestActionsMessages
                  null, false, observabilityMode, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli, tcli2 = objs.tcli2;
         final SavedGameModel sgm = objs.sgm;
-        final SOCGame ga = objs.gameAtServer;
+        final SOCGame ga = objs.gameAtServer, gaAtCli1 = tcli.getGame(ga.getName()), gaAtCli2 = tcli2.getGame(ga.getName());
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer, cli2Pl = objs.client2Player;
         final Vector<EventEntry> records = objs.records;
@@ -1618,6 +1618,15 @@ public class TestActionsMessages
         // once that sequence is validated, will change so client and CLIENT2 must discard on 7
         assertEquals(new SOCResourceSet(1, 2, 1, 3, 0, 0), ga.getPlayer(CLIENT2_PN).getResources());
         cliPl.getResources().setAmounts(new SOCResourceSet(0, 3, 1, 2, 0, 0));
+
+        // clear players' roll stats from reloaded save
+        final int[][] rsrcRollStats = new int[ga.maxPlayers][1 + SOCResourceConstants.GOLD_LOCAL];
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            ga.getPlayer(pn).setResourceRollStats(rsrcRollStats[pn]);
+            gaAtCli1.getPlayer(pn).setResourceRollStats(rsrcRollStats[pn]);
+            gaAtCli2.getPlayer(pn).setResourceRollStats(rsrcRollStats[pn]);
+        }
 
         // allow 7s to be rolled
         ga.getGameOptions().remove("N7");
@@ -1684,11 +1693,24 @@ public class TestActionsMessages
                 for (int pn = 1; pn < ga.maxPlayers; ++pn)  // pn 0 is vacant
                 {
                     SOCPlayer pl = ga.getPlayer(pn);
-                    int nGains = pl.getRolledResources().getTotal();
+                    SOCResourceSet gains = pl.getRolledResources();
+                    int nGains = gains.getTotal();
                     assertEquals
                         ((counts != null) ? counts[pn] : 0, nGains);
                     if (nGains > 0)
+                    {
                         ++nGainingPlayers;
+
+                        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.GOLD_LOCAL; ++rtype)
+                            rsrcRollStats[pn][rtype] += gains.getAmount(rtype);
+                            // this game doesn't have gold, should always be 0, but for completeness we'll check for it
+                        assertArrayEquals("pl[" + pn + "] rsrc roll stats at server",
+                            rsrcRollStats[pn], pl.getResourceRollStats());
+                        assertArrayEquals("pl[" + pn + "] rsrc roll stats at client 1",
+                            rsrcRollStats[pn], gaAtCli1.getPlayer(pn).getResourceRollStats());
+                        assertArrayEquals("pl[" + pn + "] rsrc roll stats at client 2",
+                            rsrcRollStats[pn], gaAtCli2.getPlayer(pn).getResourceRollStats());
+                    }
                 }
 
                 if (counts != null)
