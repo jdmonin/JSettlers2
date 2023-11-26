@@ -68,7 +68,7 @@ public class TestI18NGameoptScenStrings
     @BeforeClass
     public static void loadStrings()
     {
-        sm = SOCStringManager.getServerManagerForClient(new Locale("en_US"));
+        sm = SOCStringManager.getServerManagerForClient(Locale.US);
         allOpts = SOCGameOptionSet.getAllKnownOptions();
         allScens = SOCScenario.getAllKnownScenarios();
     }
