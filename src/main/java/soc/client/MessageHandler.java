@@ -2932,16 +2932,21 @@ public class MessageHandler
      */
     private void handlePLAYERSTATS(SOCPlayerStats mes)
     {
-        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        final String gaName = mes.getGame();
+        PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;  // Not one of our games
+        final int clientPN = pcl.getClientPlayerNumber();
+        if (clientPN == -1)
+            return;  // Not one of our games
+
+        SOCDisplaylessPlayerClient.handlePLAYERSTATS(mes, pcl.getGame(), clientPN);  // update player data
 
         final int stype = mes.getStatType();
         switch (stype)
         {
         case SOCPlayerStats.STYPE_RES_ROLL:
             // fallthrough
-
         case SOCPlayerStats.STYPE_TRADES:
             pcl.playerStats(stype, mes.getParams());
             break;

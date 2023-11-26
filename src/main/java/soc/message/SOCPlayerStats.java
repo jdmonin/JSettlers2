@@ -93,7 +93,8 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
      * Data is from {@link SOCPlayer#getResourceTradeStats()}.
      * Same format as returned from that method,
      * but with each {@link SOCResourceSet} changed to an array of 5 ints.
-     * So, length is (5 * 2 * {@link SOCPlayer#TRADE_STATS_ARRAY_LEN}) + 2.
+     * To help decode, {@code pa[1]} = length of each trade type's "subarray" of give/get ResourceSet ints: 5 * 2.
+     * So, total stats array length is (5 * 2 * {@link SOCPlayer#TRADE_STATS_ARRAY_LEN}) + 2.
      *<P>
      * More trade types may be added in later versions; earlier versions should ignore those added ones.
      *<P>

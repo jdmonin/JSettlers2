@@ -2868,6 +2868,58 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * Update player statistics.
+     * Server currently sends only for client player.
+     * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
+     * @param client player number in {@code ga}; update this player's stats; does nothing if -1
+     * @since 2.7.00
+     */
+    public static void handlePLAYERSTATS(SOCPlayerStats mes, final SOCGame ga, final int clientPN)
+    {
+        if ((ga == null) || (clientPN == -1))
+            return;  // Not one of our games
+
+        final SOCPlayer pl = ga.getPlayer(clientPN);
+
+        final int[] stats = mes.getParams();
+        switch (mes.getStatType())
+        {
+        case SOCPlayerStats.STYPE_RES_ROLL:
+            {
+                int[] rollStats = new int[1 + SOCResourceConstants.GOLD_LOCAL];
+                int rMax = SOCResourceConstants.GOLD_LOCAL;
+                if (rMax >= stats.length)
+                    rMax = stats.length - 1;
+                for (int rtype = SOCResourceConstants.CLAY; rtype <= rMax; ++rtype)
+                    rollStats[rtype] = stats[rtype];
+
+                pl.setResourceRollStats(rollStats);
+            }
+            break;
+
+        case SOCPlayerStats.STYPE_TRADES:
+            {
+                final int subArrLen = stats[1], resArrLen = subArrLen / 2;
+                int numTypes = (stats.length - 2) / subArrLen;  // probably == SOCPlayer.TRADE_STATS_ARRAY_LEN
+                SOCResourceSet[][] tradeStats = new SOCResourceSet[2][numTypes];
+                for(int i = 2, tradeType = 0; i < stats.length; i += subArrLen, ++tradeType)
+                {
+                    tradeStats[0][tradeType] = new SOCResourceSet(stats[i], stats[i+1], stats[i+2], stats[i+3], stats[i+4], 0);
+                    i += resArrLen;
+                    tradeStats[1][tradeType] = new SOCResourceSet(stats[i], stats[i+1], stats[i+2], stats[i+3], stats[i+4], 0);
+                    i -= resArrLen;
+                }
+
+                pl.setResourceTradeStats(tradeStats);
+            }
+            break;
+
+        }
+    }
+
+    /**
      * Update any game data from "simple request" announcements from the server.
      * Currently ignores them except for:
      *<UL>

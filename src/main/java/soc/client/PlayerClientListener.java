@@ -265,10 +265,15 @@ public interface PlayerClientListener
     /**
      * Display one type of a player's stats, such as resource trades.
      * Called at end of game or when the player uses the *STATS* command.
+     * In client v2.7.00 and newer, is called after player data has been updated
+     * by {@link SOCDisplaylessPlayerClient#handlePLAYERSTATS(SOCPlayerStats, SOCGame, int)}.
      * @param statsType  Type of statistics, such as {@link SOCPlayerStats#STYPE_TRADES}
      *     or {@link SOCPlayerStats#STYPE_RES_ROLL}.
      *     If type is unrecognized, do nothing.
-     * @param stats  Player statistic details for {@code statsType}
+     * @param stats  Player statistic details for {@code statsType}.
+     *     Before v2.7.00, this method would need to interpret and display the contents.
+     *     Starting at that version, displays values from player data instead and {@code stats[]} is used only as
+     *     a hint of how much stats data (how many types of trades, etc) was sent by the server.
      * @since 2.6.00
      */
     void playerStats(int statsType, int[] stats);

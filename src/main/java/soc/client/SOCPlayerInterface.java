@@ -4435,26 +4435,31 @@ public class SOCPlayerInterface extends JFrame
 
         public void playerStats(final int statsType, final int[] stats)
         {
+            final SOCPlayer clientPlayer = pi.getClientPlayer();
+            if (clientPlayer == null)
+                return;
+
             List<String> prints = new ArrayList<String>();
 
             switch(statsType)
             {
             case SOCPlayerStats.STYPE_RES_ROLL:
                 {
-                    // index 0 of stats is unused
+                    // index 0 of plStats is unused
                     int total = 0;
+                    final int[] plStats = clientPlayer.getResourceRollStats();
                     for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; ++i)
-                        total += stats[i];
+                        total += plStats[i];
 
                     prints.add("* " + strings.get
                         ("stats.rolls.your"));  // "Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)"
                     prints.add("* " + strings.get
-                        ("stats.rolls.n.total", stats[1], stats[2], stats[3], stats[4], stats[5], total));
+                        ("stats.rolls.n.total", plStats[1], plStats[2], plStats[3], plStats[4], plStats[5], total));
                         // "{0}, {1}, {2}, {3}, {4}. Total: {5}"
 
-                    if (stats.length > SOCResourceConstants.GOLD_LOCAL)
+                    if (plStats.length > SOCResourceConstants.GOLD_LOCAL)
                     {
-                        final int gp = stats[SOCResourceConstants.GOLD_LOCAL];
+                        final int gp = plStats[SOCResourceConstants.GOLD_LOCAL];
                         if (gp != 0)
                             prints.add("* " + strings.get("stats.gold_gains", gp));  // "Resources gained from gold hexes: {0}"
                     }
@@ -4463,6 +4468,8 @@ public class SOCPlayerInterface extends JFrame
 
             case SOCPlayerStats.STYPE_TRADES:
                 {
+                    final SOCResourceSet[][] plStats = clientPlayer.getResourceTradeStats();
+
                     prints.add("* " + strings.get("game.trade.stats.heading"));
                         // "Your trade stats: Give (clay, ore, sheep, wheat, wood) -> Get (clay, ore, sheep, wheat, wood):"
                     final String[] statLabels =
@@ -4474,49 +4481,41 @@ public class SOCPlayerInterface extends JFrame
                             "game.trade.stats.with_players"  // "All trades with players"
                         };
 
-                    final int subLen = stats[1];
-                    int numTypes = (stats.length - 2) / subLen;
+                    final int subArrLen = stats[1];
+                    int numTypes = (stats.length - 2) / subArrLen;
                     if (numTypes > statLabels.length)
                         numTypes = statLabels.length;  // just in case; shouldn't occur
-                    int si = 2;  // index just after subLen
+
                     StringBuilder sb = new StringBuilder();
                     for (int ttype = 0; ttype < numTypes; ++ttype)
                     {
-                        boolean none = true;
-                        for (int i = si; i < (si + (2 * 5)); ++i)
-                            if (stats[i] != 0)
-                            {
-                                none = false;
-                                break;
-                            }
+                        boolean none = (plStats[0][ttype].isEmpty() && plStats[1][ttype].isEmpty());
 
                         sb.append("* ").append(strings.get(statLabels[ttype]));
                         if (none)
                         {
                             sb.append(": ");
                             sb.append(strings.get("base.none"));
-                            si += (2 * 5);
                         } else {
                             sb.append(": ");
                             if ((ttype >= 1) && (ttype <= 5)) {
-                                sb.append(stats[si + ttype - 1]);  // 2:1 port; assume only that element != 0
-                                si += 5;
+                                sb.append(plStats[0][ttype].getAmount(ttype));  // 2:1 port; assume only that element != 0
                             } else {
                                 sb.append('(');
-                                for (int res = 0; res < 5; ++res, ++si)
+                                for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
                                 {
-                                    if (res > 0)
+                                    if (res > SOCResourceConstants.CLAY)
                                         sb.append(", ");
-                                    sb.append(stats[si]);
+                                    sb.append(plStats[0][ttype].getAmount(res));
                                 }
                                 sb.append(')');
                             }
                             sb.append(" -> (");
-                            for (int res = 0; res < 5; ++res, ++si)
+                            for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
                             {
-                                if (res > 0)
+                                if (res > SOCResourceConstants.CLAY)
                                     sb.append(", ");
-                                sb.append(stats[si]);
+                                sb.append(plStats[1][ttype].getAmount(res));
                             }
                             sb.append(')');
                         }
