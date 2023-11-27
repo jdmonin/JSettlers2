@@ -1919,6 +1919,7 @@ public class TestActionsMessages
 
     /**
      * Test rolling dice at start of turn, eventually roll 8, gain resources from gold hex.
+     * Also checks update of {@link SOCPlayer#getResourceRollStats()}[{@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL}].
      * @see #testRollDiceRsrcsOrMoveRobber()
      */
     @Test
@@ -1950,9 +1951,12 @@ public class TestActionsMessages
                 (srv, CLIENT_NAME, CLIENT2_NAME, CLIENT2_PN, null, false, 0, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli, tcli2 = objs.tcli2;
         final SavedGameModel sgm = objs.sgm;
-        final SOCGame ga = objs.gameAtServer;
+        final SOCGame ga = objs.gameAtServer, gaAtCli1 = tcli.getGame(ga.getName()), gaAtCli2 = tcli2.getGame(ga.getName());
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
-        final SOCPlayer cliPl = objs.clientPlayer, cli2Pl = objs.client2Player;
+        final SOCPlayer cliPl = objs.clientPlayer, cli2Pl = objs.client2Player,
+            cli1PlAtCli1 = gaAtCli1.getPlayer(CLIENT_PN), cli2PlAtCli1 = gaAtCli1.getPlayer(CLIENT2_PN),
+            cli1PlAtCli2 = gaAtCli2.getPlayer(CLIENT_PN), cli2PlAtCli2 = gaAtCli2.getPlayer(CLIENT2_PN);
+
         final Vector<EventEntry> records = objs.records;
 
         assertEquals(SOCBoardLarge.GOLD_HEX, board.getHexTypeFromCoord(0xF05));
@@ -1968,6 +1972,8 @@ public class TestActionsMessages
             CLI2_RS_KNOWN = new SOCResourceSet(CLI2_RS_KNOWN_AMOUNTS_ARR);
         cliPl.getResources().setAmounts(RS_KNOWN);
         cli2Pl.getResources().setAmounts(CLI2_RS_KNOWN);
+        for (SOCPlayer pl : new SOCPlayer[]{cliPl, cli2Pl, cli1PlAtCli1, cli2PlAtCli1, cli1PlAtCli2, cli2PlAtCli2})
+            assertEquals(0, pl.getResourceRollStats()[SOCResourceConstants.GOLD_LOCAL]);
 
         // change board at server to build some pieces, so client and client2 players will gain on 8 (GOLD_DICE_NUM):
 
@@ -2025,8 +2031,11 @@ public class TestActionsMessages
             if (diceNumber != GOLD_DICE_NUM)
                 continue;
 
-            assertEquals(2, cliPl.getNeedToPickGoldHexResources());
-            assertEquals(2, cli2Pl.getNeedToPickGoldHexResources());
+            for (SOCPlayer pl : new SOCPlayer[]{cliPl, cli2Pl, cli1PlAtCli1, cli2PlAtCli1, cli1PlAtCli2, cli2PlAtCli2})
+            {
+                assertEquals(2, pl.getNeedToPickGoldHexResources());
+                assertEquals(2, pl.getResourceRollStats()[SOCResourceConstants.GOLD_LOCAL]);
+            }
             assertArrayEquals(RS_KNOWN_AMOUNTS_ARR, cliPl.getResources().getAmounts(false));
             assertArrayEquals(CLI2_RS_KNOWN_AMOUNTS_ARR, cli2Pl.getResources().getAmounts(false));
             assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, ga.getGameState());
@@ -2036,7 +2045,11 @@ public class TestActionsMessages
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
             assertEquals(0, cliPl.getNeedToPickGoldHexResources());
+            assertEquals(0, cli1PlAtCli1.getNeedToPickGoldHexResources());
+            assertEquals(0, cli1PlAtCli2.getNeedToPickGoldHexResources());
             assertEquals(2, cli2Pl.getNeedToPickGoldHexResources());
+            assertEquals(2, cli2PlAtCli1.getNeedToPickGoldHexResources());
+            assertEquals(2, cli2PlAtCli2.getNeedToPickGoldHexResources());
             assertArrayEquals(RS_KNOWN_PLUS_2_CLAY, cliPl.getResources().getAmounts(false));
             assertArrayEquals(CLI2_RS_KNOWN_AMOUNTS_ARR, cli2Pl.getResources().getAmounts(false));
             assertEquals(SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE, ga.getGameState());
@@ -2045,8 +2058,11 @@ public class TestActionsMessages
 
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
-            assertEquals(0, cliPl.getNeedToPickGoldHexResources());
-            assertEquals(0, cli2Pl.getNeedToPickGoldHexResources());
+            for (SOCPlayer pl : new SOCPlayer[]{cliPl, cli2Pl, cli1PlAtCli1, cli2PlAtCli1, cli1PlAtCli2, cli2PlAtCli2})
+            {
+                assertEquals(0, pl.getNeedToPickGoldHexResources());
+                assertEquals(2, pl.getResourceRollStats()[SOCResourceConstants.GOLD_LOCAL]);
+            }
             assertArrayEquals(CLI2_RS_KNOWN_PLUS_SHEEP_WHEAT, cli2Pl.getResources().getAmounts(false));
             assertEquals(SOCGame.PLAY1, ga.getGameState());
 

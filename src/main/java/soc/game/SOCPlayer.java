@@ -79,7 +79,8 @@ import java.util.Vector;
  * also group roads and ships together. They are otherwise treated separately.
  *<P>
  * Some fields are for use at the server only, and are null at the client:
- * {@link #resourceStats}, {@link #pendingMessagesOut}, etc.
+ * {@link #pendingMessagesOut}, etc: Check field javadocs and {@link SOCGame#isAtServer}.
+ *<P>
  * To get the {@code Connection} to a SOCPlayer's client, use
  * {@code SOCServer.getConnection(player.{@link #getName()}).
  *
@@ -1283,6 +1284,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Set the number of gold-hex resources this player must now pick,
      * after a dice roll or placing their 2nd initial settlement.
      * See {@link #getNeedToPickGoldHexResources()} for details.
+     *<P>
+     * If {@code numRes} &gt; current {@link #getNeedToPickGoldHexResources()},
+     * increments stat {@link #getResourceRollStats()}[{@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL}]
+     * by that delta amount.
      *
      * @param numRes  Number of resources to pick, or 0 for no pick/pick has been completed
      * @since 2.0.00
