@@ -244,6 +244,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected boolean debugTraffic;
 
     /**
+     * Should client ignore all {@link SOCPlayerStats} messages,
+     * although they may be about our {@link #nickname} client player? True by default.
+     * @see #handlePLAYERSTATS(SOCPlayerStats, SOCGame, int)
+     * @since 2.7.00
+     */
+    protected boolean ignorePlayerStats = true;
+
+    /**
      * Constructor to set up using this server connect info. Does not actually connect here;
      * subclass methods such as {@link soc.robot.SOCRobotClient#init()} must do so.
      * 
@@ -875,6 +883,23 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.GAMEOPTIONINFO:
                 handleGAMEOPTIONINFO((SOCGameOptionInfo) mes);
+                break;
+
+            /**
+             * player statistics. Generally ignored by bots;
+             * to support unit tests, added here 2023-11-27 for v2.7.00.
+             */
+            case SOCMessage.PLAYERSTATS:
+                if (! ignorePlayerStats)
+                {
+                    SOCGame ga = games.get(((SOCPlayerStats) mes).getGame());
+                    if (ga != null)
+                    {
+                        SOCPlayer pn = ga.getPlayer(nickname);
+                        if (pn != null)
+                            handlePLAYERSTATS((SOCPlayerStats) mes, ga, pn.getPlayerNumber());
+                    }
+                }
                 break;
 
             /**
@@ -2870,6 +2895,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * Update player statistics.
      * Server currently sends only for client player.
+     * This message is handled by some client types, but ignored in the base
+     * {@link SOCDisplaylessPlayerClient#treat(SOCMessage)} unless its
+     * {@link SOCDisplaylessPlayerClient#ignorePlayerStats} flag is cleared.
      * @param mes  the message
      * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
      *     for method reuse by SOCPlayerClient; does nothing if {@code null}

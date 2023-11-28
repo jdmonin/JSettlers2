@@ -2102,6 +2102,7 @@ public class TestActionsMessages
 
     /**
      * Test 4:1 bank trades, 2:1 port trades, undoing those trades.
+     * Also checks update of {@link SOCPlayer#getResourceTradeStats()} from game actions and {@code *STATS*} command.
      */
     @Test
     public void testBankPortTrades()
@@ -2245,6 +2246,36 @@ public class TestActionsMessages
             {
                 {"all:SOCBankTrade:", "|give=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=2|wood=0|unknown=0|pn=3"}
             }, false);
+
+        /* *STATS* command should update player stats at client */
+
+        assertArrayEquals("at server", new int[]{0, 1, 0, 0, 2, 2, 0}, cliPl.getResourceRollStats());
+        // make arbitrary changes to all stats types:
+        cliPl.addRolledResources(new SOCResourceSet(10, 20, 30, 40, 50, 3));
+        cliPl.setNeedToPickGoldHexResources(0);
+        assertArrayEquals("at server", new int[]{0, 11, 20, 30, 42, 52, 3}, cliPl.getResourceRollStats());
+        assertArrayEquals("at client", new int[7], cliPlAtCli.getResourceRollStats());
+        plExpectedStats[SOCResourceConstants.CLAY][0] = new int[]{2, 0, 0, 0, 0};
+        plExpectedStats[SOCResourceConstants.CLAY][1] = new int[]{0, 0, 1, 0, 0};
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][0] = new int[]{0, 0, 0, 4, 0};
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][1] = new int[]{0, 0, 1, 0, 0};
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][0] = new int[]{0, 1, 0, 2, 3};
+        plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][1] = new int[]{2, 0, 3, 1, 2};
+        cliPl.setResourceTradeStats
+            (new SOCResourceSet[][]
+                {{ null, new SOCResourceSet(2, 0, 0, 0, 0, 0), null, null, null, null,   // give clay
+                   new SOCResourceSet(0, 0, 0, 4, 0, 0), new SOCResourceSet(0, 1, 0, 2, 3, 0) },  // bank, player
+                 { null, new SOCResourceSet(0, 0, 1, 0, 0, 0), null, null, null, null,   // get for clay
+                   new SOCResourceSet(0, 0, 1, 0, 0, 0), new SOCResourceSet(2, 0, 3, 1, 2, 0) }   // bank, player
+                });
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, cliPl);
+
+        tcli.sendText(gaAtCli, "*STATS*");
+
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+        assertArrayEquals("at client", new int[]{0, 11, 20, 30, 42, 52, 3}, cliPlAtCli.getResourceRollStats());
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, cliPlAtCli);
 
         /* leave game, consolidate results */
 
