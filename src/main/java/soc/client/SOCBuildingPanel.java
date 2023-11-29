@@ -820,7 +820,7 @@ import javax.swing.SwingConstants;
         {
             if (statsFrame != null)
                 statsFrame.dispose();
-            GameStatisticsFrame f = new GameStatisticsFrame(pi);
+            GameStatisticsFrame f = new GameStatisticsFrame(pi, pi.displayScale);
             f.register(pi.getGameStats());
             f.setLocation(this.getLocationOnScreen());
             f.setVisible(true);

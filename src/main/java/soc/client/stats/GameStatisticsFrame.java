@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2012-2014,2017,2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2014,2017,2020,2022-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -46,9 +46,11 @@ import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 
+import soc.client.ColorSquare;
 import soc.client.SOCPlayerInterface;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
+import soc.game.SOCResourceConstants;
 
 /**
  * Game Statistics frame.  Shows misc stats (dice roll histogram, number of rounds).
@@ -61,15 +63,30 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     private final SOCPlayerInterface pi;
+
+    /**
+     * Display scale, from PI; its displayScale field isn't visible to us.
+     * @since 2.7.00
+     */
+    private final int displayScale;
+
     private SOCGameStatistics.ListenerRegistration reg;
     private RollPanel rollPanel;
     private MiscStatsPanel miscPanel;
+
+    /**
+     * Client player stats, from {@link SOCPlayer#getResourceRollStats()} and {@link SOCPlayer#getResourceTradeStats()}.
+     * @since 2.7.00
+     */
+    private YourPlayerPanel yourPlayerPanel;
+
     private SOCGameStatistics lastStats;
 
-    public GameStatisticsFrame(SOCPlayerInterface pi)
+    public GameStatisticsFrame(final SOCPlayerInterface pi, final int displayScale)
     {
         setTitle(strings.get("dialog.stats.title"));  // "Game Statistics"
         this.pi = pi;
+        this.displayScale = displayScale;
 
         Container cpane = getContentPane();
         cpane.setLayout(new BoxLayout(cpane, BoxLayout.Y_AXIS));
@@ -95,6 +112,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     {
         lastStats = stats;
         rollPanel.refresh(stats);
+        yourPlayerPanel.refreshFromGame();
         miscPanel.refreshFromGame();
     }
 
@@ -109,6 +127,11 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
         JTabbedPane tabs = new JTabbedPane();
         rollPanel = new RollPanel();
         tabs.addTab(strings.get("dialog.stats.dice_rolls.title"), rollPanel);  // "Dice Rolls"
+        getContentPane().add(tabs);
+
+        tabs = new JTabbedPane();
+        yourPlayerPanel = new YourPlayerPanel();
+        tabs.addTab(strings.get("dialog.stats.your_player.title"), yourPlayerPanel);  // "Your Player"
         getContentPane().add(tabs);
 
         tabs = new JTabbedPane();
@@ -128,6 +151,30 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     }
 
     /**
+     * Create a row in our panel to display one stat, and return the JLabel that will hold its value.
+     * @param label  The stat's name
+     * @param gbc    Our layout manager's GBC
+     * @return  The JLabel, currently blank, that will hold the stat's value
+     */
+    public static JLabel createStatControlRow
+        (final int rownum, final String label, GridBagConstraints gbc, Container addTo)
+    {
+        gbc.gridy = rownum;
+
+        JLabel jl = new JLabel(label);
+        gbc.gridx = 0;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        addTo.add(jl, gbc);
+
+        jl = new JLabel();  // will contain value
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        addTo.add(jl, gbc);
+
+        return jl;
+    }
+
+    /**
      * Miscellaneous other statistics, such as number of game rounds so far.
      * Refresh with {@link #refreshFromGame()}.
      * @author jdmonin
@@ -143,33 +190,9 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             GridBagLayout gbl = new GridBagLayout();
             GridBagConstraints gbc = new GridBagConstraints();
             setLayout(gbl);
-            gbc.ipadx = 8;
-            gbc.ipady = 8;
-            roundNum = createStatControlRow(0,  strings.get("dialog.stats.current_round"), gbc);  // "Current Round:"
-        }
-
-        /**
-         * Create a row in our panel to display one stat, and return the JLabel that will hold its value.
-         * @param label  The stat's name
-         * @param gbc    Our layout manager's GBC
-         * @return  The JLabel, currently blank, that will hold the stat's value
-         */
-        private JLabel createStatControlRow
-            (final int rownum, final String label, GridBagConstraints gbc)
-        {
-            gbc.gridy = rownum;
-
-            JLabel jl = new JLabel(label);
-            gbc.gridx = 0;
-            gbc.anchor = GridBagConstraints.LINE_START;
-            add(jl, gbc);
-
-            jl = new JLabel();  // will contain value
-            gbc.gridx = 1;
-            gbc.anchor = GridBagConstraints.LINE_START;
-            add(jl, gbc);
-
-            return jl;
+            gbc.ipadx = 8 * displayScale;
+            gbc.ipady = 8 * displayScale;
+            roundNum = createStatControlRow(0, strings.get("dialog.stats.current_round"), gbc, this);  // "Current Round:"
         }
 
         /** Refresh our statistics from the current game. */
@@ -177,6 +200,76 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
         {
             final SOCGame ga = pi.getGame();
             roundNum.setText(Integer.toString(ga.getRoundCount()));
+        }
+    }
+
+    /**
+     * Client player's roll and resource stats, from {@link SOCPlayer#getResourceRollStats()}
+     * and {@link SOCPlayer#getResourceTradeStats()}.
+     * Refresh with {@link #refreshFromGame()} when stats change or after sitting down to play.
+     * @author jdmonin
+     * @since 2.7.00
+     */
+    private class YourPlayerPanel extends JPanel
+    {
+        private SOCPlayer pl;
+        private final ColorSquare[] resRolls = new ColorSquare[5];
+
+        public YourPlayerPanel()
+        {
+            super(true);
+            GridBagLayout gbl = new GridBagLayout();
+            GridBagConstraints gbc = new GridBagConstraints();
+            setLayout(gbl);
+            gbc.ipadx = 8 * displayScale;
+            gbc.ipady = 8 * displayScale;
+
+            pl = null;
+
+            gbc.gridy = 0;
+
+            JLabel jl = new JLabel(strings.get("stats.rolls.resource_rolls"));  // "Resource Rolls:"
+            gbc.gridx = 0;
+            gbc.anchor = GridBagConstraints.LINE_START;
+            add(jl, gbc);
+
+            int sqWidth = ColorSquare.HEIGHT * displayScale;
+            for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; rtype++)
+            {
+                ColorSquare sq = new ColorSquare(ColorSquare.RESOURCE_COLORS[rtype - 1], 0, sqWidth, sqWidth);
+                resRolls[rtype - 1] = sq;
+                gbc.gridx = rtype;  // 1 - 5
+                gbc.anchor = GridBagConstraints.LINE_START;
+                add(sq, gbc);
+            }
+
+            // TODO initially-hidden row for gold, so we only need logic in 1 place: refreshFromGame
+
+            // TODO trade stats, from PI stats handler
+
+            refreshFromGame();
+        }
+
+        /** Refresh our statistics from the current game. */
+        public void refreshFromGame()
+        {
+            SOCPlayer piPlayer = pi.getClientPlayer();
+            if (pl != piPlayer)
+            {
+                if (pl == null)
+                {
+                    // TODO one-time un-hide fields/rows as needed
+                }
+
+                pl = piPlayer;
+            }
+
+            if (pl == null)
+                return;
+
+            int[] rollStats = pl.getResourceRollStats();
+            for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; rtype++)
+                resRolls[rtype - 1].setIntValue(rollStats[rtype]);
         }
     }
 

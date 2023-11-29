@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2012,2018-2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012,2018-2020,2022-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -271,7 +271,8 @@ public class ColorSquare extends JComponent implements MouseListener
      * Creates a new ColorSquare with specified background color and size, without a visible value;
      * calls {@link #ColorSquare(Color)}.
      *
-     * @param c background color; creates resource-name tooltip if is a resource color
+     * @param c background color; creates resource-name tooltip if is a defined resource color
+     *     ({@link #CLAY}, {@link #WHEAT}, etc, or an element of {@link #RESOURCE_COLORS})
      * @param w width in pixels
      * @param h height in pixels
      * @since 2.0.00
@@ -307,7 +308,8 @@ public class ColorSquare extends JComponent implements MouseListener
      * Creates a new ColorSquare with specified background color, initial value, and size;
      * calls {@link #ColorSquare(Color, int)}.
      *
-     * @param c background color; creates resource-name tooltip if is a resource color
+     * @param c background color; creates resource-name tooltip if is a defined resource color
+     *     ({@link #CLAY}, {@link #WHEAT}, etc, or an element of {@link #RESOURCE_COLORS})
      * @param v initial int value
      * @param w width in pixels
      * @param h height in pixels
