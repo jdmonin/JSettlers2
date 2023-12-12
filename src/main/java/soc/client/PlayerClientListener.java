@@ -263,7 +263,7 @@ public interface PlayerClientListener
     void playerPickedResources(SOCPlayer player, SOCResourceSet resSet, int reasonCode);
 
     /**
-     * Display one type of a player's stats, such as resource trades.
+     * Display or format one type of a player's stats, such as resource trades.
      * Called at end of game or when the player uses the *STATS* command.
      * In client v2.7.00 and newer, is called after player data has been updated
      * by {@link SOCDisplaylessPlayerClient#handlePLAYERSTATS(SOCPlayerStats, SOCGame, int)}.
@@ -273,10 +273,15 @@ public interface PlayerClientListener
      * @param stats  Player statistic details for {@code statsType}.
      *     Before v2.7.00, this method would need to interpret and display the contents.
      *     Starting at that version, displays values from player data instead and {@code stats[]} is used only as
-     *     a hint of how much stats data (how many types of trades, etc) was sent by the server.
+     *     a hint of how much stats data (how many types of trades, etc) was sent by the server
+     *     and can be {@code null} to use client's defaults.
+     * @param withHeading  If true, print or return a heading row before the data row(s)
+     * @param doDisplay  If true, display the formatted stats immediately instead of returning them.
+     * @return formatted and localized stats strings, or {@code null} if {@code doDisplay} is true
+     *     or {@code statsType} not recognized
      * @since 2.6.00
      */
-    void playerStats(int statsType, int[] stats);
+    List<String> playerStats(int statsType, int[] stats, final boolean withHeading, final boolean doDisplay);
 
     /**
      * The game requests that the client player discard a particular number of resource cards.

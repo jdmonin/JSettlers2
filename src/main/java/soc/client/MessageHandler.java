@@ -2948,7 +2948,7 @@ public class MessageHandler
         case SOCPlayerStats.STYPE_RES_ROLL:
             // fallthrough
         case SOCPlayerStats.STYPE_TRADES:
-            pcl.playerStats(stype, mes.getParams());
+            pcl.playerStats(stype, mes.getParams(), true, true);
             break;
 
         default:

@@ -4433,11 +4433,12 @@ public class SOCPlayerInterface extends JFrame
             pi.changeFace(player.getPlayerNumber(), faceId);
         }
 
-        public void playerStats(final int statsType, final int[] stats)
+        public List<String> playerStats
+            (final int statsType, final int[] stats, final boolean withHeading, final boolean doDisplay)
         {
             final SOCPlayer clientPlayer = pi.getClientPlayer();
             if (clientPlayer == null)
-                return;
+                return null;
 
             List<String> prints = new ArrayList<String>();
 
@@ -4451,8 +4452,9 @@ public class SOCPlayerInterface extends JFrame
                     for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; ++i)
                         total += plStats[i];
 
-                    prints.add("* " + strings.get
-                        ("stats.rolls.your"));  // "Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)"
+                    if (withHeading)
+                        prints.add
+                            ("* " + strings.get("stats.rolls.your"));  // "Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)"
                     prints.add("* " + strings.get
                         ("stats.rolls.n.total", plStats[1], plStats[2], plStats[3], plStats[4], plStats[5], total));
                         // "{0}, {1}, {2}, {3}, {4}. Total: {5}"
@@ -4470,8 +4472,9 @@ public class SOCPlayerInterface extends JFrame
                 {
                     final SOCResourceSet[][] plStats = clientPlayer.getResourceTradeStats();
 
-                    prints.add("* " + strings.get("game.trade.stats.heading"));
-                        // "Your trade stats: Give (clay, ore, sheep, wheat, wood) -> Get (clay, ore, sheep, wheat, wood):"
+                    if (withHeading)
+                        prints.add("* " + strings.get("game.trade.stats.heading") + ' ' + strings.get("game.trade.stats.heading_give_get"));
+                            // "Your trade stats: Give (clay, ore, sheep, wheat, wood) -> Get (clay, ore, sheep, wheat, wood):"
                     final String[] statLabels =
                         {
                             "game.port.three",  // "3:1 Port"
@@ -4481,17 +4484,25 @@ public class SOCPlayerInterface extends JFrame
                             "game.trade.stats.with_players"  // "All trades with players"
                         };
 
-                    final int subArrLen = stats[1];
-                    int numTypes = (stats.length - 2) / subArrLen;
-                    if (numTypes > statLabels.length)
-                        numTypes = statLabels.length;  // just in case; shouldn't occur
+                    final int subArrLen = (stats != null) ? stats[1] : 5;
+                    int numTypes;
+                    if (stats != null)
+                    {
+                        numTypes = (stats.length - 2) / subArrLen;
+                        if (numTypes > statLabels.length)
+                            numTypes = statLabels.length;  // just in case; shouldn't occur
+                    } else {
+                         numTypes = statLabels.length;
+                    }
 
                     StringBuilder sb = new StringBuilder();
                     for (int ttype = 0; ttype < numTypes; ++ttype)
                     {
                         boolean none = (plStats[0][ttype].isEmpty() && plStats[1][ttype].isEmpty());
 
-                        sb.append("* ").append(strings.get(statLabels[ttype]));
+                        if (doDisplay)
+                            sb.append("* ");
+                        sb.append(strings.get(statLabels[ttype]));
                         if (none)
                         {
                             sb.append(": ");
@@ -4527,12 +4538,18 @@ public class SOCPlayerInterface extends JFrame
                 break;
 
             default:
-                return;  // ignore unrecognized type
+                return null;  // ignore unrecognized type
             }
 
-            for (String s : prints)
-                pi.print(s);
-            prints.clear();
+            if (doDisplay)
+            {
+                for (String s : prints)
+                    pi.print(s);
+                prints.clear();
+                prints = null;
+            }
+
+            return prints;
         }
 
         public void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew)

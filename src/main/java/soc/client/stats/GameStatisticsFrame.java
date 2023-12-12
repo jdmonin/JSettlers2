@@ -51,6 +51,7 @@ import soc.client.SOCPlayerInterface;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
+import soc.message.SOCPlayerStats;  // for STYPE_TRADES
 
 /**
  * Game Statistics frame.  Shows misc stats (dice roll histogram, number of rounds).
@@ -214,6 +215,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     {
         private SOCPlayer pl;
         private final ColorSquare[] resRolls = new ColorSquare[5];
+        private final JLabel resTrades = new JLabel();
 
         public YourPlayerPanel()
         {
@@ -245,7 +247,27 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
 
             // TODO initially-hidden row for gold, so we only need logic in 1 place: refreshFromGame
 
-            // TODO trade stats, from PI stats handler
+            // trade stats, from PI stats handler:
+
+            gbc.gridy = 1;
+            jl = new JLabel
+                ("<html><B>" + strings.get("game.trade.stats.heading_short") + "</B> "
+                 + strings.get("game.trade.stats.heading_give_get") + "</html>");
+                // "Trade stats: Give (clay, ore, sheep, wheat, wood) -> Get (clay, ore, sheep, wheat, wood):"
+            gbc.gridx = 0;
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            int f = gbc.fill;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.anchor = GridBagConstraints.LINE_START;
+            add(jl, gbc);
+
+            gbc.gridy = 2;
+            gbc.gridx = 0;
+            // use same wide gridwidth & fill as the label above it
+            add(resTrades, gbc);
+
+            gbc.gridwidth = 1;
+            gbc.fill = f;
 
             refreshFromGame();
         }
@@ -270,6 +292,25 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             int[] rollStats = pl.getResourceRollStats();
             for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; rtype++)
                 resRolls[rtype - 1].setIntValue(rollStats[rtype]);
+
+            StringBuilder sb = new StringBuilder();
+            List<String> stats = pi.getClientListener().playerStats(SOCPlayerStats.STYPE_TRADES, null, false, false);
+            if (sb != null)
+            {
+                sb.append("<html>");
+                boolean any = false;
+                for (String s : stats)
+                {
+                    if (any)
+                        sb.append("<br>");
+                    else
+                        any = true;
+                    sb.append(s);
+                }
+                sb.append("</html>");
+            }
+
+            resTrades.setText(sb.toString());
         }
     }
 
