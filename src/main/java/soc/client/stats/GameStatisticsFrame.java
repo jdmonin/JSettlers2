@@ -98,7 +98,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     public void register(SOCGameStatistics stats)
     {
         reg = stats.addListener(this);
-        statsUpdated(stats);
+        statsUpdated(stats, null);
     }
 
     @Override
@@ -109,12 +109,20 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
         super.dispose();
     }
 
-    public void statsUpdated(SOCGameStatistics stats)
+    /**
+     * Update the displayed statistics.
+     * @param stats Stats data to update with
+     * @param event Event details and type, or {@code null} to update all stats
+     */
+    public void statsUpdated(final SOCGameStatistics stats, final SOCGameStatistics.GameStatisticsEvent event)
     {
         lastStats = stats;
-        rollPanel.refresh(stats);
-        yourPlayerPanel.refreshFromGame();
-        miscPanel.refreshFromGame();
+        if ((event == null) || (event instanceof SOCGameStatistics.DiceRollEvent))
+        {
+            rollPanel.refresh(stats);
+            miscPanel.refreshFromGame();
+        }
+        yourPlayerPanel.refreshFromGame(event);
     }
 
     public void statsDisposing()
@@ -207,7 +215,8 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     /**
      * Client player's roll and resource stats, from {@link SOCPlayer#getResourceRollStats()}
      * and {@link SOCPlayer#getResourceTradeStats()}.
-     * Refresh with {@link #refreshFromGame()} when stats change or after sitting down to play.
+     * Refresh with {@link #refreshFromGame(SOCGameStatistics.GameStatisticsEvent)}
+     * when stats change or after sitting down to play.
      * @author jdmonin
      * @since 2.7.00
      */
@@ -269,11 +278,14 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             gbc.gridwidth = 1;
             gbc.fill = f;
 
-            refreshFromGame();
+            refreshFromGame(null);
         }
 
-        /** Refresh our statistics from the current game. */
-        public void refreshFromGame()
+        /**
+         * Refresh our statistics from the current game.
+         * @param event Event that's just occurred, or {@code null} to update all stats
+         */
+        public void refreshFromGame(final SOCGameStatistics.GameStatisticsEvent event)
         {
             SOCPlayer piPlayer = pi.getClientPlayer();
             if (pl != piPlayer)
@@ -289,28 +301,34 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             if (pl == null)
                 return;
 
-            int[] rollStats = pl.getResourceRollStats();
-            for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; rtype++)
-                resRolls[rtype - 1].setIntValue(rollStats[rtype]);
-
-            StringBuilder sb = new StringBuilder();
-            List<String> stats = pi.getClientListener().playerStats(SOCPlayerStats.STYPE_TRADES, null, false, false);
-            if (sb != null)
+            if ((event == null) || (event instanceof SOCGameStatistics.DiceRollEvent))
             {
-                sb.append("<html>");
-                boolean any = false;
-                for (String s : stats)
-                {
-                    if (any)
-                        sb.append("<br>");
-                    else
-                        any = true;
-                    sb.append(s);
-                }
-                sb.append("</html>");
+                int[] rollStats = pl.getResourceRollStats();
+                for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; rtype++)
+                    resRolls[rtype - 1].setIntValue(rollStats[rtype]);
             }
 
-            resTrades.setText(sb.toString());
+            if ((event == null) || (event instanceof SOCGameStatistics.ResourceTradeEvent))
+            {
+                StringBuilder sb = new StringBuilder();
+                List<String> stats = pi.getClientListener().playerStats(SOCPlayerStats.STYPE_TRADES, null, false, false);
+                if (sb != null)
+                {
+                    sb.append("<html>");
+                    boolean any = false;
+                    for (String s : stats)
+                    {
+                        if (any)
+                            sb.append("<br>");
+                        else
+                            any = true;
+                        sb.append(s);
+                    }
+                    sb.append("</html>");
+                }
+
+                resTrades.setText(sb.toString());
+            }
         }
     }
 

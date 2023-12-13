@@ -2376,6 +2376,8 @@ public class SOCPlayerInterface extends JFrame
      * Print game text to announce either a bank/port trade, a player's new trade offer,
      * or an accepted and completed trade offer between two players.
      *<P>
+     * If completed trade involves client player, calls {@link SOCGameStatistics#resourceTraded()}.
+     *<P>
      * For a bank/port trade, also enables client player's Undo Trade button.
      *
      * @param plFrom  Player making the trade offer or the bank/port/player trade
@@ -2404,6 +2406,10 @@ public class SOCPlayerInterface extends JFrame
             if (client.getServerVersion(game) >= SOCStringManager.VERSION_FOR_I18N)
                 printKeyedSpecial("trade.gave.rsrcs.for.from.player", plName, give, get, plTo.getName());
                     // "{0} gave {1,rsrcs} for {2,rsrcs} from {3}."
+            if ((clientHand != null)
+                && ((clientHandPlayerNum == plFrom.getPlayerNumber())
+                    || (clientHandPlayerNum == plTo.getPlayerNumber())))
+                gameStats.resourceTraded();
         }
         else
         {
@@ -2424,7 +2430,11 @@ public class SOCPlayerInterface extends JFrame
             printKeyedSpecial(msgKey, plName, give, get, tradeFrom);
 
             if (clientHand != null)
+            {
                 clientHand.enableBankUndoButton();
+                if (clientHandPlayerNum == plFrom.getPlayerNumber())
+                    gameStats.resourceTraded();
+            }
         }
     }
 
