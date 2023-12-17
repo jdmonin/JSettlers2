@@ -321,7 +321,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             if (pl == null)
                 return;
 
-            if ((event == null) || (event instanceof SOCGameStatistics.DiceRollEvent))
+            if ((event == null) || (event instanceof SOCGameStatistics.ResourceRollReceivedEvent))
             {
                 int[] rollStats = pl.getResourceRollStats();
                 for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; rtype++)

@@ -1886,7 +1886,7 @@ public class MessageHandler
         case NUM_PICK_GOLD_HEX_RESOURCES:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
                 (ga, pl, pn, action, etype, amount, null);
-            pcl.requestedGoldResourceCountUpdated(pl, 0);
+            pcl.requestedGoldResourceCountUpdated(pl, amount);
             break;
 
         case SCENARIO_SVP:

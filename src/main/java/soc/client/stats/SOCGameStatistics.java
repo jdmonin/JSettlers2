@@ -85,6 +85,19 @@ public class SOCGameStatistics
     }
 
     /**
+     * A resource has been received by the client player from dice roll, or player has been requested
+     * to pick free resources for their gold hex gains.
+     * Currently holds no details, because GameStatisticsFrame gets all trade stats from their {@link SOCPlayer} data.
+     * @author jdmonin
+     * @since 2.7.00
+     */
+    public static class ResourceRollReceivedEvent
+        extends GameStatisticsEvent
+    {
+        public static final ResourceRollReceivedEvent SINGLETON = new ResourceRollReceivedEvent();
+    }
+
+    /**
      * A resource trade (with bank, port, or a player) has been made by the client player.
      * Currently holds no details, because GameStatisticsFrame gets all trade stats from their {@link SOCPlayer} data.
      * @author jdmonin
@@ -94,8 +107,6 @@ public class SOCGameStatistics
         extends GameStatisticsEvent
     {
         public static final ResourceTradeEvent SINGLETON = new ResourceTradeEvent();
-
-        public ResourceTradeEvent() {}
     }
 
     public SOCGameStatistics(final SOCGame game)
@@ -147,6 +158,16 @@ public class SOCGameStatistics
             System.err.println("Failed updating dice roll " + evt);
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Call listeners when client player receives resources from dice roll or request to pick gold hex resources.
+     * (a {@link ResourceRollReceivedEvent}).
+     * @since 2.7.00
+     */
+    public void resourceRollReceived()
+    {
+        fire(ResourceRollReceivedEvent.SINGLETON);
     }
 
     /**

@@ -4138,7 +4138,7 @@ public class SOCPlayerInterface extends JFrame
         public void diceRolledResources(final List<Integer> pnum, final List<SOCResourceSet> rsrc)
         {
             StringBuffer sb = new StringBuffer("* ");
-            boolean noPlayersGained = true;
+            boolean noPlayersGained = true, cliPlayerGained = false;
 
             final int n = pnum.size();
             final SOCGame ga = pi.game;
@@ -4158,10 +4158,17 @@ public class SOCPlayerInterface extends JFrame
                     (SOCPlayerInterface.strings.getSpecial
                         (ga, "game.playername.gets.resources.common", pl.getName(), rsrc.get(p)));
                     // "{0} gets {1,rsrcs}."
+
+                if (pn == pi.clientHandPlayerNum)
+                    cliPlayerGained = true;
             }
 
             if (sb.length() > 2)
+            {
                 pi.print(sb.toString());
+                if (cliPlayerGained)
+                    pi.gameStats.resourceRollReceived();
+            }
         }
 
         public void playerJoined(String nickname)
@@ -4414,8 +4421,12 @@ public class SOCPlayerInterface extends JFrame
 
         public void requestedGoldResourceCountUpdated(SOCPlayer player, int countToPick)
         {
-            final SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
+            final int pn = player.getPlayerNumber();
+            final SOCHandPanel hpan = pi.getPlayerHandPanel(pn);
             hpan.updatePickGoldHexResources();
+
+            if ((countToPick > 0) && (pn == pi.clientHandPlayerNum))
+                pi.gameStats.resourceRollReceived();
         }
 
         public void playerDevCardsUpdated(SOCPlayer player, final boolean addedPlayable)

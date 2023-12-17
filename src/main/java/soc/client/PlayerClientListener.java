@@ -302,7 +302,7 @@ public interface PlayerClientListener
      * Update displays accordingly. This method is informational only: Do not ask
      * the client player to pick resources, {@link #promptPickResources(int)} is used for that.
      * @param player  The player
-     * @param countToSelect  Number of free resources they must pick, or 0 if they've just picked them
+     * @param countToPick  Number of free resources they must pick, or 0 if they've just picked them
      */
     void requestedGoldResourceCountUpdated(SOCPlayer player, int countToPick);
 
