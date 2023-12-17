@@ -29,6 +29,7 @@ import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -224,7 +225,9 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     {
         private SOCPlayer pl;
         private final ColorSquare[] resRolls = new ColorSquare[5];
-        private final JLabel resTrades = new JLabel();
+        /** Gold gains from dice rolls; initially hidden until refreshFromGame sees gold */
+        private final ColorSquare resRollsGold;
+        private final JLabel resRollsGoldLab, resTrades;
 
         public YourPlayerPanel()
         {
@@ -244,21 +247,37 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             gbc.anchor = GridBagConstraints.LINE_START;
             add(jl, gbc);
 
+            Insets prevInsets = gbc.insets;
+            gbc.insets = new Insets(2 * displayScale, 0, 2 * displayScale, 0);
+                // room above and below colorsquares, especially needed when resRollsGold visible
+
             int sqWidth = ColorSquare.HEIGHT * displayScale;
+            gbc.anchor = GridBagConstraints.LINE_START;
             for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; rtype++)
             {
                 ColorSquare sq = new ColorSquare(ColorSquare.RESOURCE_COLORS[rtype - 1], 0, sqWidth, sqWidth);
                 resRolls[rtype - 1] = sq;
                 gbc.gridx = rtype;  // 1 - 5
-                gbc.anchor = GridBagConstraints.LINE_START;
                 add(sq, gbc);
             }
 
-            // TODO initially-hidden row for gold, so we only need logic in 1 place: refreshFromGame
+            ++gbc.gridy;
+            resRollsGold = new ColorSquare(ColorSquare.GOLD, 0, sqWidth, sqWidth);
+            resRollsGold.setVisible(false);
+            resRollsGoldLab = new JLabel(strings.get("stats.gold_gains.title"));  // "From gold hexes:"
+            resRollsGoldLab.setVisible(false);
+            gbc.gridx = 0;
+            gbc.gridwidth = SOCResourceConstants.WOOD;  // take up most of line
+            add(resRollsGoldLab, gbc);
+            gbc.gridx = SOCResourceConstants.WOOD;  // line up below previous row
+            gbc.gridwidth = 1;
+            add(resRollsGold, gbc);
+
+            gbc.insets = prevInsets;
 
             // trade stats, from PI stats handler:
 
-            gbc.gridy = 1;
+            ++gbc.gridy;
             jl = new JLabel
                 ("<html><B>" + strings.get("game.trade.stats.heading_short") + "</B> "
                  + strings.get("game.trade.stats.heading_give_get") + "</html>");
@@ -270,9 +289,10 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             gbc.anchor = GridBagConstraints.LINE_START;
             add(jl, gbc);
 
-            gbc.gridy = 2;
+            ++gbc.gridy;
             gbc.gridx = 0;
             // use same wide gridwidth & fill as the label above it
+            resTrades = new JLabel();
             add(resTrades, gbc);
 
             gbc.gridwidth = 1;
@@ -306,6 +326,24 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
                 int[] rollStats = pl.getResourceRollStats();
                 for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; rtype++)
                     resRolls[rtype - 1].setIntValue(rollStats[rtype]);
+                if (rollStats.length > SOCResourceConstants.GOLD_LOCAL)
+                {
+                    int gold = rollStats[SOCResourceConstants.GOLD_LOCAL];
+                    if (gold > 0)
+                    {
+                        int prevGold = resRollsGold.getIntValue();
+                        if (gold != prevGold)
+                        {
+                            resRollsGold.setIntValue(gold);
+                            if (prevGold == 0)
+                            {
+                                resRollsGoldLab.setVisible(true);
+                                resRollsGold.setVisible(true);
+                                revalidate();
+                            }
+                        }
+                    }
+                }
             }
 
             if ((event == null) || (event instanceof SOCGameStatistics.ResourceTradeEvent))
