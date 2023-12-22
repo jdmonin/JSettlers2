@@ -220,6 +220,7 @@ public class ColorSquare extends JComponent implements MouseListener
     /**
      * Size from most recent call to {@link #setSize(int, int)}.
      * @see #minSize
+     * @see #sizeIsMax
      * @since 1.1.00
      */
     protected Dimension squareSize;
@@ -230,6 +231,13 @@ public class ColorSquare extends JComponent implements MouseListener
      * @since 2.0.00
      */
     protected Dimension minSize;
+
+    /**
+     * If true, {@link #squareSize} is also the maximum size and square should be no larger:
+     * {@link #setMaximumSizeToCurrent()}.
+     * @since 2.7.00
+     */
+    protected boolean sizeIsMax;
 
     /**
      * i18n text strings, for tooltip text.
@@ -520,11 +528,14 @@ public class ColorSquare extends JComponent implements MouseListener
      * @param w  New width
      * @param h  New height
      * @since 2.0.00
+     * @see #setMaximumSizeToCurrent()
      */
     protected final void setSizesAndFont(final int w, final int h)
     {
         setSize(w, h);
         setMinimumSize(squareSize);
+        if (sizeIsMax)
+            setMaximumSize(squareSize);
         final int size = (w < h) ? w : h;
         if (size >= (ColorSquare.HEIGHT * 4) / 3)
             setFont(getFont().deriveFont(10f * (size / (float) ColorSquare.HEIGHT)));
@@ -535,6 +546,7 @@ public class ColorSquare extends JComponent implements MouseListener
      * Overrides the width and height set by {@link #setSize(int, int)},
      * {@link #setSize(Dimension)}, or {@link #setBounds(int, int, int, int)}.
      * @since 2.0.00
+     * @see #setMaximumSizeToCurrent()
      */
     @Override
     public void setMinimumSize(Dimension d)
@@ -542,6 +554,18 @@ public class ColorSquare extends JComponent implements MouseListener
         super.setMinimumSize(d);
         minSize = (d != null) ? new Dimension(d) : null;
             // copy w, h values instead of copying a reference that might be squareSize
+    }
+
+    /**
+     * Make current size be the maximum size, square should become no larger;
+     * useful for layouts which might stretch their components.
+     * @since 2.7.00
+     * @see #setSizesAndFont(int, int)
+     */
+    public void setMaximumSizeToCurrent()
+    {
+        sizeIsMax = true;
+        super.setMaximumSize(squareSize);
     }
 
     /**
@@ -599,6 +623,7 @@ public class ColorSquare extends JComponent implements MouseListener
      * @param w width in pixels
      * @param h height in pixels
      * @see #setMinimumSize(Dimension)
+     * @see #setMaximumSizeToCurrent()
      * @since 1.1.00
      */
     @Override
@@ -617,6 +642,8 @@ public class ColorSquare extends JComponent implements MouseListener
         squareSize = new Dimension(w, h);
 
         super.setSize(w, h);
+        if (sizeIsMax)
+            setMaximumSize(squareSize);
     }
 
     /**

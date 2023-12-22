@@ -29,13 +29,14 @@ import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -46,8 +47,10 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
 
 import soc.client.ColorSquare;
+import soc.client.ColorSquareLarger;
 import soc.client.SOCPlayerInterface;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
@@ -232,71 +235,58 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
         public YourPlayerPanel()
         {
             super(true);
-            GridBagLayout gbl = new GridBagLayout();
-            GridBagConstraints gbc = new GridBagConstraints();
-            setLayout(gbl);
-            gbc.ipadx = 8 * displayScale;
-            gbc.ipady = 8 * displayScale;
+
+            final Border pad4 = BorderFactory.createEmptyBorder
+                (4 * displayScale, 4 * displayScale, 4 * displayScale, 4 * displayScale);
+            setBorder(pad4);
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
             pl = null;
 
-            gbc.gridy = 0;
-
+            final Box rollSquaresRow = Box.createHorizontalBox();
             JLabel jl = new JLabel(strings.get("stats.rolls.resource_rolls"));  // "Resource Rolls:"
-            gbc.gridx = 0;
-            gbc.anchor = GridBagConstraints.LINE_START;
-            add(jl, gbc);
+            jl.setBorder(pad4);
+            rollSquaresRow.add(jl);
+            rollSquaresRow.add(Box.createHorizontalGlue());
 
-            Insets prevInsets = gbc.insets;
-            gbc.insets = new Insets(2 * displayScale, 0, 2 * displayScale, 0);
-                // room above and below colorsquares, especially needed when resRollsGold visible
-
-            int sqWidth = ColorSquare.HEIGHT * displayScale;
-            gbc.anchor = GridBagConstraints.LINE_START;
+            int sqWidth = ColorSquareLarger.WIDTH_L * displayScale;
             for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; rtype++)
             {
                 ColorSquare sq = new ColorSquare(ColorSquare.RESOURCE_COLORS[rtype - 1], 0, sqWidth, sqWidth);
+                sq.setMaximumSizeToCurrent();
                 resRolls[rtype - 1] = sq;
-                gbc.gridx = rtype;  // 1 - 5
-                add(sq, gbc);
+                rollSquaresRow.add(sq);
             }
+            rollSquaresRow.setAlignmentX(0);
+            add(rollSquaresRow);
 
-            ++gbc.gridy;
+            final Box rollGoldRow = Box.createHorizontalBox();
+            resRollsGoldLab = new JLabel(strings.get("stats.gold_gains.title"));  // "From gold hexes:"
+            resRollsGoldLab.setBorder(pad4);
+            resRollsGoldLab.setVisible(false);
             resRollsGold = new ColorSquare(ColorSquare.GOLD, 0, sqWidth, sqWidth);
             resRollsGold.setVisible(false);
-            resRollsGoldLab = new JLabel(strings.get("stats.gold_gains.title"));  // "From gold hexes:"
-            resRollsGoldLab.setVisible(false);
-            gbc.gridx = 0;
-            gbc.gridwidth = SOCResourceConstants.WOOD;  // take up most of line
-            add(resRollsGoldLab, gbc);
-            gbc.gridx = SOCResourceConstants.WOOD;  // line up below previous row
-            gbc.gridwidth = 1;
-            add(resRollsGold, gbc);
-
-            gbc.insets = prevInsets;
+            resRollsGold.setMaximumSizeToCurrent();
+            rollGoldRow.add(resRollsGoldLab);
+            rollGoldRow.add(Box.createHorizontalGlue());
+            rollGoldRow.add(resRollsGold);
+            rollGoldRow.setAlignmentX(0);
+            add(rollGoldRow);
 
             // trade stats, from PI stats handler:
 
-            ++gbc.gridy;
             jl = new JLabel
                 ("<html><B>" + strings.get("game.trade.stats.heading_short") + "</B> "
                  + strings.get("game.trade.stats.heading_give_get") + "</html>");
                 // "Trade stats: Give (clay, ore, sheep, wheat, wood) -> Get (clay, ore, sheep, wheat, wood):"
-            gbc.gridx = 0;
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
-            int f = gbc.fill;
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            gbc.anchor = GridBagConstraints.LINE_START;
-            add(jl, gbc);
+            jl.setAlignmentX(0);
+            jl.setBorder(pad4);
+            add(jl);
 
-            ++gbc.gridy;
-            gbc.gridx = 0;
-            // use same wide gridwidth & fill as the label above it
             resTrades = new JLabel();
-            add(resTrades, gbc);
-
-            gbc.gridwidth = 1;
-            gbc.fill = f;
+            resTrades.setAlignmentX(0);
+            resTrades.setBorder(pad4);
+            add(resTrades);
 
             refreshFromGame(null);
         }
@@ -523,15 +513,13 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
 
         public RollBar()
         {
+            final Dimension size = new Dimension(20, 30);
+
             setDoubleBuffered(true);
+            setMinimumSize(size);
+            setPreferredSize(size);
             //setBorder(new EtchedBorder());
             value = 0;
-        }
-
-        @Override
-        public Dimension getPreferredSize()
-        {
-            return new Dimension(20, 30);
         }
 
         public void setValue(int value, int max)
