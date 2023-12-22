@@ -1580,6 +1580,11 @@ import javax.swing.UIManager;
 
         SOCResourceSet giveSet = new SOCResourceSet(give);
         SOCResourceSet getSet = new SOCResourceSet(get);
+        if (giveSet.isEmpty() || getSet.isEmpty())
+        {
+            playerInterface.getClientListener().playerTradeDisallowed(playerNumber, false, false);  // "You can't make that trade."
+            return;
+        }
         messageSender.bankTrade(game, giveSet, getSet);
 
         bankGive = giveSet;

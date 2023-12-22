@@ -26,6 +26,7 @@ JARs for recent JSettlers versions can be downloaded from
 - Client:
 	- Game window:
 	    - For visibility when a player builds, highlight most recently placed piece until end of their turn
+	    - Bank/port trade: Bugfix: After making a trade, if player wants to undo that trade but accidentally clicks "Bank/Port" instead of "Undo", couldn't then click Undo because hand panel forgot previous trade
 	    - Discard, Year of Plenty dialogs: Each resource pick square won't go past prompted amount  
 	      (was no limit in previous versions)
 	    - `*STATS*`: De-clutter player resource trade stats output

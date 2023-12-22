@@ -1105,7 +1105,7 @@ public class SOCPlayerInterface extends JFrame
     }
 
     /**
-     * Provide access to the client listener in case this class does not directly implement it.
+     * Get our client listener; useful for other UI classes.
      */
     public PlayerClientListener getClientListener()
     {
