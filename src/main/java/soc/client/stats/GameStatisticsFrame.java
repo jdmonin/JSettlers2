@@ -51,10 +51,13 @@ import javax.swing.border.Border;
 
 import soc.client.ColorSquare;
 import soc.client.ColorSquareLarger;
+import soc.client.SOCPlayerClient;
 import soc.client.SOCPlayerInterface;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
+import soc.message.SOCBankTrade;  // for VERSION_FOR_OMIT_PLAYERELEMENTS
+import soc.message.SOCDiceResultResources;  // for VERSION_FOR_DICERESULTRESOURCES
 import soc.message.SOCPlayerStats;  // for STYPE_TRADES
 
 /**
@@ -81,6 +84,8 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
 
     /**
      * Client player stats, from {@link SOCPlayer#getResourceRollStats()} and {@link SOCPlayer#getResourceTradeStats()}.
+     * Null if server is too old for client to support accurately updating those stats.
+     * (Workarounds to support older servers are technically possible, but users are unlikely to encounter such servers.)
      * @since 2.7.00
      */
     private YourPlayerPanel yourPlayerPanel;
@@ -121,12 +126,14 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     public void statsUpdated(final SOCGameStatistics stats, final SOCGameStatistics.GameStatisticsEvent event)
     {
         lastStats = stats;
+
         if ((event == null) || (event instanceof SOCGameStatistics.DiceRollEvent))
         {
             rollPanel.refresh(stats);
             miscPanel.refreshFromGame();
         }
-        yourPlayerPanel.refreshFromGame(event);
+        if (yourPlayerPanel != null)
+            yourPlayerPanel.refreshFromGame(event);
     }
 
     public void statsDisposing()
@@ -142,10 +149,14 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
         tabs.addTab(strings.get("dialog.stats.dice_rolls.title"), rollPanel);  // "Dice Rolls"
         getContentPane().add(tabs);
 
-        tabs = new JTabbedPane();
-        yourPlayerPanel = new YourPlayerPanel();
-        tabs.addTab(strings.get("dialog.stats.your_player.title"), yourPlayerPanel);  // "Your Player"
-        getContentPane().add(tabs);
+        final int serverVersion = pi.getClient().getServerVersion(pi.getGame());
+        if (serverVersion >= SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
+        {
+            tabs = new JTabbedPane();
+            yourPlayerPanel = new YourPlayerPanel(serverVersion);
+            tabs.addTab(strings.get("dialog.stats.your_player.title"), yourPlayerPanel);  // "Your Player"
+            getContentPane().add(tabs);
+        }
 
         tabs = new JTabbedPane();
         miscPanel = new MiscStatsPanel();
@@ -228,13 +239,25 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     {
         private SOCPlayer pl;
         private final ColorSquare[] resRolls = new ColorSquare[5];
-        /** Gold gains from dice rolls; initially hidden until refreshFromGame sees gold */
+        /** Gold gains from dice rolls; initially hidden until refreshFromGame sees gold; not null */
         private final ColorSquare resRollsGold;
-        private final JLabel resRollsGoldLab, resTrades;
+        private final JLabel resRollsGoldLab;
+        /** All trade resource statistics, or {@code null} if server is too old to send them */
+        private final JLabel resTrades;
 
-        public YourPlayerPanel()
+        /**
+         * Create the stats panel. Server must be new enough for client to support accurately updating stats.
+         * @param serverVersion  Server version, from {@link SOCPlayerClient#getServerVersion(SOCGame)}
+         * @throws IllegalArgumentException  if {@code serverVersion} &lt; 2.0.00
+         *     ({@link SOCDiceResultResources#VERSION_FOR_DICERESULTRESOURCES})
+         */
+        public YourPlayerPanel(final int serverVersion)
+            throws IllegalArgumentException
         {
             super(true);
+
+            if (serverVersion < SOCDiceResultResources.VERSION_FOR_DICERESULTRESOURCES)
+                throw new IllegalArgumentException("serverVersion");
 
             final Border pad4 = BorderFactory.createEmptyBorder
                 (4 * displayScale, 4 * displayScale, 4 * displayScale, 4 * displayScale);
@@ -275,18 +298,23 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
 
             // trade stats, from PI stats handler:
 
-            jl = new JLabel
-                ("<html><B>" + strings.get("game.trade.stats.heading_short") + "</B> "
-                 + strings.get("game.trade.stats.heading_give_get") + "</html>");
-                // "Trade stats: Give (clay, ore, sheep, wheat, wood) -> Get (clay, ore, sheep, wheat, wood):"
-            jl.setAlignmentX(0);
-            jl.setBorder(pad4);
-            add(jl);
+            if (serverVersion >= SOCBankTrade.VERSION_FOR_OMIT_PLAYERELEMENTS)
+            {
+                jl = new JLabel
+                    ("<html><B>" + strings.get("game.trade.stats.heading_short") + "</B> "
+                     + strings.get("game.trade.stats.heading_give_get") + "</html>");
+                    // "Trade stats: Give (clay, ore, sheep, wheat, wood) -> Get (clay, ore, sheep, wheat, wood):"
+                jl.setAlignmentX(0);
+                jl.setBorder(pad4);
+                add(jl);
 
-            resTrades = new JLabel();
-            resTrades.setAlignmentX(0);
-            resTrades.setBorder(pad4);
-            add(resTrades);
+                resTrades = new JLabel();
+                resTrades.setAlignmentX(0);
+                resTrades.setBorder(pad4);
+                add(resTrades);
+            } else {
+                resTrades = null;
+            }
 
             refreshFromGame(null);
         }
@@ -336,7 +364,8 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
                 }
             }
 
-            if ((event == null) || (event instanceof SOCGameStatistics.ResourceTradeEvent))
+            if (((event == null) || (event instanceof SOCGameStatistics.ResourceTradeEvent))
+                && (resTrades != null))
             {
                 StringBuilder sb = new StringBuilder();
                 List<String> stats = pi.getClientListener().playerStats(SOCPlayerStats.STYPE_TRADES, null, false, false);
