@@ -51,7 +51,7 @@ import soc.util.IntPair;
  * {@link #setLegalSettlements(Collection, int, HashSet[])} with data from the server.
  *<P>
  * See {@link soc.server.SOCBoardAtServer}'s class javadoc, and its
- * {@link soc.server.SOCBoardAtServer#makeNewBoard(SOCGameOptionSet) makeNewBoard(SOCGameOptionSet)},
+ * {@link soc.server.SOCBoardAtServer#makeNewBoard(SOCGameOptionSet) makeNewBoard(SOCGameOptionSet)} method,
  * for more details on layout creation.
  *<P>
  * On this large sea board, there can optionally be multiple "land areas"
@@ -183,7 +183,7 @@ import soc.util.IntPair;
  *</TR>
  *</table>
  *  Some of these geometry methods are specific to {@link SOCBoardLarge}
- *  and don't appear in the parent {@link SOCBoard}.
+ *  and don't appear in its parent class {@link SOCBoard}.
  *<P>
  * <h4> Coordinate System: </h4>
  *

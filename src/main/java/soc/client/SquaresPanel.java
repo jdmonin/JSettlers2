@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2012,2019-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2012,2019-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -54,6 +54,7 @@ import soc.game.SOCResourceConstants;
      * Before v2.5.00 this field was {@code WIDTH}.
      *
      * @since 2.0.00
+     * @see ColorSquareLarger#WIDTH_L
      */
     public static final int WIDTH_PX = 5 * (ColorSquareLarger.WIDTH_L - 1) + 1;
 
@@ -64,6 +65,7 @@ import soc.game.SOCResourceConstants;
      * Before v2.5.00 this field was {@code HEIGHT}.
      *
      * @since 1.1.08
+     * @see ColorSquareLarger#HEIGHT_L
      */
     public static final int HEIGHT_PX = (2 * (ColorSquareLarger.HEIGHT_L - 1)) + 1;
 

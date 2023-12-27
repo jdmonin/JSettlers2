@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2019-2021,2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@ package soc.game;
 
 /**
  * Represents an immutable set of resources
- *
+ *<P>
  * To construct a mutable set, see {@link SOCResourceSet}.
  * @since 2.0.00
  */
@@ -33,6 +33,7 @@ public interface ResourceSet
      * Is this set empty, containing zero resources?
      * @return true if set is completely empty, including its amount of unknown resources
      * @see #getTotal()
+     * @see #getAmount(int)
      * @since 2.5.00
      */
     public boolean isEmpty();
@@ -83,6 +84,8 @@ public interface ResourceSet
      *     for each known resource type and {@link SOCResourceConstants#UNKNOWN}.
      *     True if {@code other} is null or empty.
      * @see #contains(int)
+     * @see #getAmount(int)
+     * @see #isEmpty()
      */
     boolean contains(ResourceSet other);
 

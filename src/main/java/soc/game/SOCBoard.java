@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -666,7 +666,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     protected List<Integer>[] ports = new ArrayList[6];  // 1 per resource type, MISC_PORT to WOOD_PORT
 
     /**
-     * roads on the board; a list of of {@link SOCRoad}s.
+     * roads on the board; a list of {@link SOCRoad}s.
      * On the large sea board ({@link SOCBoardLarge}), also
      * contains all {@link SOCShip}s on the board.
      *<P>

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -29,6 +29,8 @@ import java.util.Arrays;
  * clay, ore, sheep, wheat, and wood resources.
  * Unknown resources are also tracked here.
  * Although it's possible to store negative amounts of resources, it's discouraged.
+ *<P>
+ * For a read-only set, cast to {@link ResourceSet}.
  *
  *<H3>Threads:</H3>
  * Resource count updates are not thread-safe:
