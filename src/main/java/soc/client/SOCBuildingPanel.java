@@ -1227,6 +1227,9 @@ import javax.swing.SwingConstants;
         player = cliPl;
         if (cliPl == null)
             throw new IllegalStateException("null PI.clientPlayer");
+
+        if ((statsFrame != null) && statsFrame.isVisible())
+            statsFrame.statsUpdated(null, null);
     }
 
     /**

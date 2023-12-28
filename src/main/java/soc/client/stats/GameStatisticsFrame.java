@@ -24,6 +24,7 @@ package soc.client.stats;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
@@ -63,6 +64,9 @@ import soc.message.SOCPlayerStats;  // for STYPE_TRADES
 /**
  * Game Statistics frame.  Shows misc stats (dice roll histogram, number of rounds).
  * If this stays visible as the game is played, the stats will update.
+ * If was visible before the client player sits, call
+ * {@link #statsUpdated(SOCGameStatistics, soc.client.stats.SOCGameStatistics.GameStatisticsEvent) statsUpdated(null, null)}
+ * when they do so.
  */
 @SuppressWarnings("serial")
 public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Listener
@@ -120,12 +124,14 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
 
     /**
      * Update the displayed statistics.
-     * @param stats Stats data to update with
+     * Call when an event occurs or when client player has just sat down.
+     * @param stats Stats data to update with, or {@code null} to update from game data where possible
      * @param event Event details and type, or {@code null} to update all stats
      */
     public void statsUpdated(final SOCGameStatistics stats, final SOCGameStatistics.GameStatisticsEvent event)
     {
-        lastStats = stats;
+        if (stats != null)
+            lastStats = stats;
 
         if ((event == null) || (event instanceof SOCGameStatistics.DiceRollEvent))
         {
@@ -325,6 +331,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
          */
         public void refreshFromGame(final SOCGameStatistics.GameStatisticsEvent event)
         {
+            boolean hasSetPlayer = false;
             SOCPlayer piPlayer = pi.getClientPlayer();
             if (pl != piPlayer)
             {
@@ -334,6 +341,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
                 }
 
                 pl = piPlayer;
+                hasSetPlayer = true;
             }
 
             if (pl == null)
@@ -385,6 +393,18 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
                 }
 
                 resTrades.setText(sb.toString());
+                if (hasSetPlayer)
+                {
+                    // text is several lines longer than previous; make the panel and window longer to fit
+                    revalidate();
+                    EventQueue.invokeLater(new Runnable()
+                    {
+                        public void run()
+                        {
+                            GameStatisticsFrame.this.pack();
+                        }
+                    });
+                }
             }
         }
     }
