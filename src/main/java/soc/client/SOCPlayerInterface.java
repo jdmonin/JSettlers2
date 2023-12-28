@@ -506,6 +506,7 @@ public class SOCPlayerInterface extends JFrame
      * by calling {@link #setClientHand(SOCHandPanel)}.
      * @see #clientHandPlayerNum
      * @see #isClientCurrentPlayer()
+     * @see #clientPlayerIsSitting
      * @see #bankTradeWasFromTradePanel
      * @since 1.1.00
      */
@@ -581,6 +582,14 @@ public class SOCPlayerInterface extends JFrame
      * @since 1.1.00
      */
     protected boolean gameIsStarting;
+
+    /**
+     * If true, game has started and server is sending message sequence that client player is sitting down
+     * (probably to take over a robot). May suppress some redundant game text prints.
+     * Set in {@link #addPlayer(String, int)}, checked/cleared in {@link #updateAtGameState()}.
+     * @since 2.7.00
+     */
+    protected boolean clientPlayerIsSitting;
 
     /**
      * Flag to set true if game has been deleted while we're observing it,
@@ -2643,7 +2652,8 @@ public class SOCPlayerInterface extends JFrame
     }
 
     /**
-     * A player has sat down to play. Update the display:
+     * A player has sat down to play, or server is sending already-seated player info as client joins a game.
+     * Update the display:
      *<UL>
      * <LI> Calls {@link SOCHandPanel#addPlayer(String)} which does additional actions if that
      *     player is the client (not a different human or robot), including a call back up
@@ -2665,6 +2675,9 @@ public class SOCPlayerInterface extends JFrame
 
         if (sitterIsClientPlayer)
         {
+            if (game.getGameState() >= SOCGame.START1A)  // is 0/NEW when addPlayer called during joingame
+                clientPlayerIsSitting = true;
+
             for (int i = 0; i < game.maxPlayers; i++)
                 if (game.getPlayer(i).isRobot())
                     hands[i].addSittingRobotLockBut();
@@ -3387,6 +3400,9 @@ public class SOCPlayerInterface extends JFrame
             // PLAYERELEMENT messages, clean up now.
             discardOrPickTimerClear();
         }
+
+        if (clientPlayerIsSitting)
+            clientPlayerIsSitting = false;
 
         // React if we are current player
         if ((clientHand == null) || (clientHandPlayerNum != game.getCurrentPlayerNumber()))
@@ -4458,7 +4474,7 @@ public class SOCPlayerInterface extends JFrame
             (final int statsType, final int[] stats, final boolean withHeading, final boolean doDisplay)
         {
             final SOCPlayer clientPlayer = pi.getClientPlayer();
-            if (clientPlayer == null)
+            if ((clientPlayer == null) || (doDisplay && pi.clientPlayerIsSitting))
                 return null;
 
             List<String> prints = new ArrayList<String>();

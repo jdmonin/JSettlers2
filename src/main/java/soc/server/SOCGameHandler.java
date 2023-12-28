@@ -2119,6 +2119,17 @@ public class SOCGameHandler extends GameHandler
             }
 
         /**
+         * send client player's private stats
+         */
+        if ((cliVers >= SOCPlayerStats.VERSION_FOR_SENT_AT_SITDOWN) && (ga.getGameState() >= SOCGame.START1A))
+        {
+            srv.messageToPlayer(c, gaName, pn,
+                new SOCPlayerStats(pl, SOCPlayerStats.STYPE_RES_ROLL));
+            srv.messageToPlayer(c, gaName, pn,
+                new SOCPlayerStats(pl, SOCPlayerStats.STYPE_TRADES));
+        }
+
+        /**
          * send game state info such as requests for discards
          */
         sendGameState(ga);

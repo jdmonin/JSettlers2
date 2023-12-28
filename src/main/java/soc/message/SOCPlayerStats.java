@@ -121,6 +121,13 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     public static final int VERSION_FOR_TRADES = 2600;
 
     /**
+     * Minimum version 2.7.00 where server automatically sends player stats when client player sits down
+     * if game is in progress.
+     * @since 2.7.00
+     */
+    public static final int VERSION_FOR_SENT_AT_SITDOWN = 2700;
+
+    /**
      * Constructor for server to tell client about a player stat.
      *
      * @param pl  Player for these stats

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,7 +39,8 @@ import java.util.StringTokenizer;
  * SOCSitDown for those seats is sent with {@link #isRobot()} true so the client will show
  * a "Take Over" button for them.
  *<P>
- * Server v2.5.00 and newer ignore {@link #isRobot()} because robot clients authenticate before joining games.
+ * Server v2.5.00 and newer ignores {@link #isRobot()} flag from client,
+ * because robot clients authenticate before joining games.
  *<P>
  * Although it's a game-specific message, this game-lifecycle message
  * is handled by {@code SOCServer} instead of a {@code GameHandler}.

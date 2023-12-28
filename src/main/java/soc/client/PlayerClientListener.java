@@ -126,7 +126,8 @@ public interface PlayerClientListener
     void playerLeft(String nickname, SOCPlayer player);
 
     /**
-     * A client has sat down to become an active player.
+     * A client has sat down to become an active player,
+     * or server is sending already-seated player info as client joins a game.
      * {@link #playerJoined(String)} was called earlier on this client.
      * {@link SOCGame#addPlayer(String, int)} has just been called.
      * @param playerNumber  New player's playerNumber in the game; the seat number they've sat down at
