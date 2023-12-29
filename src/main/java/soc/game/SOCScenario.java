@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -429,6 +429,8 @@ public class SOCScenario
      * Scenario's {@link SOCGameOption}s, as a formatted string
      * from {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
      * Never {@code null} or empty; {@code "-"} if scenario has no game options.
+     * Typical scenarios are expected to have options because game code should check the
+     * game's option values, not its scenario.
      */
     public final String scOpts;
 
@@ -479,6 +481,8 @@ public class SOCScenario
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
      *             from {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
      *             Never "" or {@code null}.
+     *             Would be {@code "-"} for a scenario with no game options, but scenarios are expected to have
+     *             options because game code should check the game's option values, not its scenario.
      * @throws IllegalArgumentException if key length is > 8 or not alphanumeric,
      *        or if opts is {@code null} or the empty string "",
      *        or if desc or longDesc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}

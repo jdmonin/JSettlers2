@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2018-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>:
  *     - parameterize types
  * This file's contents were formerly part of SOCPlayerClient.java:
@@ -41,7 +41,8 @@ import soc.message.SOCNewGameWithOptions;
  * Client has one instance for remote tcp server, one for practice server.
  * For simplicity, getters/setters are not included: Synchronize on the object to set/read its fields.
  *<P>
- * In v2.0.00 and newer, also tracks all {@link SOCScenario}s' i18n localized strings.
+ * In v2.0.00 and newer, also tracks all {@link SOCGameOption} and {@link SOCScenario} i18n localized strings
+ * received from server.
  *<P>
  * Interaction with client-server messages at connect:
  *<OL>
@@ -49,7 +50,7 @@ import soc.message.SOCNewGameWithOptions;
  *     <tt>newGameWaitingForOpts</tt> false.
  *     <tt>knownOpts</tt> is set at client from {@link SOCGameOptionSet#getAllKnownOptions()}.
  *<LI> At server connect, ask and receive info about options, if our version and the
- *     server's version differ.  Once this is done, <tt>allOptionsReceived</tt> == true.
+ *     server's version differ or client wants localization.  Once this is done, <tt>allOptionsReceived</tt> == true.
  *     If server is older than 1.1.07, <tt>knownOpts</tt> becomes null here
  *     because older servers don't support game options.
  *<LI> When user wants to create a new game, <tt>askedDefaultsAlready</tt> is false;

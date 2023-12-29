@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013,2015-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013,2015-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,6 +42,8 @@ public enum SOCPlayerEvent
     // Note: Some server code assumes that player events are fired only during SOCGameMessageHandler.handlePUTPIECE.
     // If a new player event breaks this assumption, adjust SOCServer.playerEvent(...) and related code;
     // search where SOCGame.pendingMessagesOut is used.
+    // So far SOCPlayer.pendingMessagesOut contains text, not data messages,
+    // because data are usually sent to an entire game.
 
     /**
      * Special victory point awarded for first settlement in any land area past the starting land area.

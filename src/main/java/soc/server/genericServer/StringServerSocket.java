@@ -1,6 +1,6 @@
 /**
  * Local ({@link StringConnection}) network message system.
- * This file Copyright (C) 2007-2009,2016-2017,2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007-2009,2016-2017,2020-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -58,7 +58,7 @@ public class StringServerSocket implements SOCServerSocket
 
     /**
      * Length of queue for accepting new connections; default 100.
-     * Changing it here affects future calls to connectTo() in all
+     * Changing it here affects future calls to {@link #connectTo(String, StringConnection)} in all
      * instances.
      */
     public static int ACCEPT_QUEUELENGTH = 100;
@@ -92,7 +92,7 @@ public class StringServerSocket implements SOCServerSocket
      *
      * @param name Stringport server name to connect to
      *
-     * @throws ConnectException If stringport name is not found, or is EOF,
+     * @throws ConnectException If stringport name is not found, or that port is at EOF,
      *                          or if its connect/accept queue is full.
      * @throws IllegalArgumentException If name is null
      */
@@ -110,7 +110,7 @@ public class StringServerSocket implements SOCServerSocket
      * @param name Stringport server name to connect to
      * @param client Existing unused connection object to connect with
      *
-     * @throws ConnectException If stringport name is not found, or is EOF,
+     * @throws ConnectException If stringport name is not found, or that port is at EOF,
      *                          or if its connect/accept queue is full.
      * @throws IllegalArgumentException If name is null, client is null,
      *                          or client is already peered/connected.

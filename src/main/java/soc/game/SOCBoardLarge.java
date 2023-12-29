@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1626,10 +1626,11 @@ public class SOCBoardLarge extends SOCBoard
      * encoded in the hex layout; use {@link #getPortTypeFromNodeCoord(int)} instead.
      *<P>
      * The numeric value (7) for {@link #GOLD_HEX} is the same as
-     * the v1/v2 encoding's {@link SOCBoard#MISC_PORT_HEX}, and
+     * the v1/v2 board encoding format's {@link SOCBoard#MISC_PORT_HEX}, and
      * {@link #FOG_HEX} (8) is the same as {@link SOCBoard#CLAY_PORT_HEX}.
      * The ports aren't encoded that way in <tt>SOCBoardLarge</tt>, so there is no ambiguity
-     * as long as callers check the board encoding format.
+     * as long as callers check the board's {@link SOCBoard#getBoardEncodingFormat()}
+     * and call the correct method for that format.
      *
      * @param hex  the coordinates ("ID") for a hex
      * @return the type of hex:
@@ -1653,6 +1654,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Unlike the original {@link SOCBoard} encoding, port types are not
      * encoded in the hex layout; use {@link #getPortTypeFromNodeCoord(int)} instead.
+     * See {@link #getHexTypeFromCoord(int)} for details.
      *
      * @param hex  the number of a hex, or -1 for invalid
      * @return the type of hex:

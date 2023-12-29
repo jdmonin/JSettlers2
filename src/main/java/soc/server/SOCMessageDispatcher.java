@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,6 +39,8 @@ import soc.server.genericServer.Server;
  *<P>
  * Once server is initialized, call {@link #setServer(SOCServer, SOCGameListAtServer)}
  * before calling {@link #dispatch(SOCMessage, Connection)}.
+ *<P>
+ * Before v2.0.00 this class was part of {@code SOCServer.processCommand(..)} and related methods.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
