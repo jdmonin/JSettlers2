@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
- * Portions of this file copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -79,6 +79,7 @@ public class SOCBuildPlanStack extends Stack<SOCPossiblePiece>
     public SOCResourceSet getFirstPieceResources()
     {
         final SOCResourceSet rs = (isEmpty()) ? null : getPlannedPiece(0).getResourcesToBuild();
+            // piece.getResourcesToBuild may be null
 
         return (rs != null) ? rs : SOCResourceSet.EMPTY_SET;
     }

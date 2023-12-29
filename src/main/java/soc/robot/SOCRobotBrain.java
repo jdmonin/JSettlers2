@@ -2184,7 +2184,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Handle a game state change from {@link SOCGameState} or another message
      * which has a Game State field. Clears {@link #waitingForGameState}
-     * (unless {@code gs} is {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING}),
+     * (unless {@code newState} is {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING}),
      * updates {@link #oldGameState} if state value is actually changing, then calls
      * {@link SOCDisplaylessPlayerClient#handleGAMESTATE(SOCGame, int)}.
      *<P>

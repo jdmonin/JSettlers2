@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -111,6 +111,9 @@ public class SOCRobotDM
   public static final int SMART_STRATEGY = 0;
   public static final int FAST_STRATEGY = 1;
 
+  /**
+   * The brain using this DM for {@link #ourPlayerData}, or {@code null}
+   */
   protected SOCRobotBrain brain;
 
   /**
@@ -123,6 +126,10 @@ public class SOCRobotDM
   /** Player tracker for {@link #ourPlayerData}. */
   protected SOCPlayerTracker ourPlayerTracker;
 
+  /**
+   * Our own player in {@link #game};
+   * {@link #brain} is for this player.
+   */
   protected final SOCPlayer ourPlayerData;
 
   /**
