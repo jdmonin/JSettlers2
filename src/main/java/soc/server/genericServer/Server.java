@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018,2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018,2020-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -747,25 +747,25 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public void removeConnection(final Connection c, final boolean doCleanup)
     {
-        final String cKey = c.getData();  // client player name
+        final String connName = c.getData();  // client player name
 
         synchronized (unnamedConns)
         {
-            if (cKey != null)
+            if (connName != null)
             {
-                final Connection cKeyConn = conns.get(cKey);
-                if (null == cKeyConn)
+                final Connection connNameConn = conns.get(connName);
+                if (null == connNameConn)
                 {
                     // Was not a member
                     return;
                 }
-                if (c == cKeyConn)
+                if (c == connNameConn)
                 {
-                    conns.remove(cKey);
-                    connNames.remove(cKey.toLowerCase(Locale.US));
+                    conns.remove(connName);
+                    connNames.remove(connName.toLowerCase(Locale.US));
                 }
                 // else, was replaced by a
-                // different conn for cKey.
+                // different conn for connName.
                 // don't remove the replacement.
             }
             else
@@ -785,10 +785,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             Exception cerr = c.getError();
             if ((cerr == null) || (! (cerr instanceof SocketTimeoutException)) || ! c.wantsHideTimeoutMessage())
             {
-                if (cKey != null)
+                if (connName != null)
                 {
                     ConnExcepDelayedPrintTask leftMsgTask = new ConnExcepDelayedPrintTask(false, cerr, c);
-                    cliConnDisconPrintsPending.put(cKey, leftMsgTask);
+                    cliConnDisconPrintsPending.put(connName, leftMsgTask);
                     utilTimer.schedule(leftMsgTask, CLI_DISCON_PRINT_TIMER_FIRE_MS);
                 } else {
                     // no connection-name key data; we can't identify it later if it reconnects;
@@ -842,15 +842,15 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 connAccepted = newConnection1(c);  // <-- App-specific #1 --
                 if (connAccepted)
                 {
-                    final String cKey = c.getData();
-                    if (cKey != null)
+                    final String connName = c.getData();
+                    if (connName != null)
                     {
-                        final String cName = cKey.toLowerCase(Locale.US);
-                        if (connNames.containsKey(cName))
-                                throw new IllegalArgumentException("already in connNames: " + cName);
+                        final String connNameLower = connName.toLowerCase(Locale.US);
+                        if (connNames.containsKey(connNameLower))
+                                throw new IllegalArgumentException("already in connNames: " + connNameLower);
 
-                        conns.put(cKey, c);
-                        connNames.put(cName, cKey);
+                        conns.put(connName, c);
+                        connNames.put(connNameLower, connName);
                     } else {
                         unnamedConns.add(c);
                     }
@@ -908,20 +908,20 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     public void nameConnection(Connection c, final boolean isReplacing)
         throws IllegalArgumentException
     {
-        String cKey = c.getData();
-        if (cKey == null)
+        String connName = c.getData();
+        if (connName == null)
             throw new IllegalArgumentException("null c.getData");
 
         synchronized (unnamedConns)
         {
-            final String cName = cKey.toLowerCase(Locale.US);
-            if ((! isReplacing) && connNames.containsKey(cName))
-                throw new IllegalArgumentException("already in connNames: " + cName);
+            final String connNameLower = connName.toLowerCase(Locale.US);
+            if ((! isReplacing) && connNames.containsKey(connNameLower))
+                throw new IllegalArgumentException("already in connNames: " + connNameLower);
 
             if (unnamedConns.removeElement(c))
             {
-                conns.put(cKey, c);
-                connNames.put(cName, cKey);
+                conns.put(connName, c);
+                connNames.put(connNameLower, connName);
             }
             else
             {
