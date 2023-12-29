@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2014,2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2014,2020-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -50,7 +50,8 @@ public class D
     public static final int ERROR = 2;
 
     /**
-     * Print out fatals only. NOTE: despite the name, fatals are exceptions that may or may not cause the application to crash
+     * Print out fatals only. NOTE: despite the name, fatals are exceptions that may or may not cause the application to crash.
+     * This logger treats a {@code FATAL} like any other level, doesn't end the process or perform any extra actions.
      * @since 2.5.00
      */
     public static final int FATAL = 3;
@@ -93,12 +94,12 @@ public class D
     }
 
     /**
-     * Does nothing, since this is the disabled version.
+     * Enable debugging; does nothing, since this is the debug-disabled version.
      */
     public static final void ebug_enable() {}
 
     /**
-     * Always disabled; does nothing, since this is the disabled version.
+     * Disable debugging; does nothing, since this is the debug-disabled version.
      */
     public static final void ebug_disable() {}
 
@@ -149,7 +150,8 @@ public class D
 
     /**
      * If debug is enabled, print the stack trace of this exception
-     * @param ex Exception or other Throwable
+     * @param ex Exception or other Throwable. If null, would create an exception
+     *           in order to force a stack trace.
      * @param prefixMsg Message for {@link #ebugPrintln(String)} above the exception,
      *                  or null
      * @since 1.1.00

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
- * Some parts of this file Copyright (C) 2013,2017-2022 Jeremy D Monin <jeremy@nand.net>
+ * Some parts of this file Copyright (C) 2013,2017-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -105,6 +105,7 @@ public class SOCStringManager extends StringManager
      * Create a string manager for the bundles at {@code bundlePath} with the default locale.
      * Remember that bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}, see class javadoc.
      * @param bundlePath  Bundle path, will be retrieved with {@link ResourceBundle#getBundle(String)}
+     * @see #SOCStringManager(String, Locale)
      */
     public SOCStringManager(String bundlePath)
     {
@@ -116,6 +117,7 @@ public class SOCStringManager extends StringManager
      * Remember that bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}, see class javadoc.
      * @param bundlePath  Bundle path, will be retrieved with {@link ResourceBundle#getBundle(String, Locale)}
      * @param loc  Locale to use; not {@code null}
+     * @see #SOCStringManager(String)
      */
     public SOCStringManager(final String bundlePath, final Locale loc)
     {
