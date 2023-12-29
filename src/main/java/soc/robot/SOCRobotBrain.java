@@ -1767,7 +1767,7 @@ public class SOCRobotBrain extends Thread
 
                         if ((! waitingForOurTurn) && ourTurn)
                         {
-                            if (!(expectPLAY1) && (counter < 4000))
+                            if ((! expectPLAY1) && (counter < 4000))
                             {
                                 waitingForGameState = true;
                                 expectPLAY1 = true;

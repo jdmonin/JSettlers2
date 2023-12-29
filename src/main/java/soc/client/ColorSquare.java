@@ -1322,7 +1322,7 @@ public class ColorSquare extends JComponent implements MouseListener
         {
         case YES_NO:
         case CHECKBOX:
-            boolValue = !boolValue;
+            boolValue = ! boolValue;
             bvalChanged = true;
 
             break;

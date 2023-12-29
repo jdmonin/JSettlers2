@@ -6530,7 +6530,7 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        if (!resources.contains(rs))
+        if (! resources.contains(rs))
         {
             return false;
         }
@@ -8027,14 +8027,14 @@ public class SOCGame implements Serializable, Cloneable
 
         D.ebugPrintlnINFO("*** offeringPlayer.getResources() = " + offeringPlayer.getResources());
 
-        if (!(offeringPlayer.getResources().contains(offer.getGiveSet())))
+        if (! (offeringPlayer.getResources().contains(offer.getGiveSet())))
         {
             return false;
         }
 
         D.ebugPrintlnINFO("*** acceptingPlayer.getResources() = " + acceptingPlayer.getResources());
 
-        if (!(acceptingPlayer.getResources().contains(offer.getGetSet())))
+        if (! (acceptingPlayer.getResources().contains(offer.getGetSet())))
         {
             return false;
         }

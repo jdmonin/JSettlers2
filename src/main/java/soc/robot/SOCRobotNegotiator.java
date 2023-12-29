@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -461,7 +461,9 @@ public class SOCRobotNegotiator
         ///
         int getRsrcIdx = neededRsrcCount - 1;
 
-        while ((getRsrcIdx >= 0) && ((ourResources.getAmount(neededRsrc[getRsrcIdx]) >= targetResources.getAmount(neededRsrc[getRsrcIdx])) || (!someoneIsSellingResource[neededRsrc[getRsrcIdx]])))
+        while ((getRsrcIdx >= 0)
+               && ((ourResources.getAmount(neededRsrc[getRsrcIdx]) >= targetResources.getAmount(neededRsrc[getRsrcIdx]))
+                   || (! someoneIsSellingResource[neededRsrc[getRsrcIdx]])))
         {
             getRsrcIdx--;
         }
@@ -692,7 +694,7 @@ public class SOCRobotNegotiator
 
             int getRsrcIdx2 = notNeededRsrcCount - 1;
 
-            while ((getRsrcIdx2 >= 0) && (!someoneIsSellingResource[neededRsrc[getRsrcIdx2]]))
+            while ((getRsrcIdx2 >= 0) && (! someoneIsSellingResource[neededRsrc[getRsrcIdx2]]))
             {
                 getRsrcIdx2--;
             }
@@ -804,7 +806,7 @@ public class SOCRobotNegotiator
         boolean match = false;
         Iterator<SOCTradeOffer> offersMadeIter = offersMade.iterator();
 
-        while ((offersMadeIter.hasNext() && !match))
+        while ((offersMadeIter.hasNext() && ! match))
         {
             SOCTradeOffer pastOffer = offersMadeIter.next();
 
@@ -817,7 +819,7 @@ public class SOCRobotNegotiator
         ///
         /// see if somone is offering this to us
         ///
-        if (!match)
+        if (! match)
         {
             for (int i = 0; i < game.maxPlayers; i++)
             {
@@ -837,7 +839,7 @@ public class SOCRobotNegotiator
 
         D.ebugPrintlnINFO("*** match = " + match);
 
-        if (!match)
+        if (! match)
         {
             ///
             /// this is a new offer
@@ -930,7 +932,7 @@ public class SOCRobotNegotiator
                     }
                 }
 
-                if (!acceptable)
+                if (! acceptable)
                 {
                     offer = null;
                 }

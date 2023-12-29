@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -2237,7 +2237,7 @@ public class SOCPlayerTracker
         {
             SOCPossibleRoad posRoad = posRoadsIter.next();
 
-            if (!posRoad.isThreatUpdated())
+            if (! posRoad.isThreatUpdated())
             {
                 //D.ebugPrintln("&&&& examining road at "+Integer.toHexString(posRoad.getCoordinates()));
 
@@ -2337,7 +2337,7 @@ public class SOCPlayerTracker
         {
             SOCPossibleSettlement posSet = posSetsIter.next();
 
-            if (!posSet.isThreatUpdated())
+            if (! posSet.isThreatUpdated())
             {
                 //D.ebugPrintln("&&&& examining settlement at "+Integer.toHexString(posSet.getCoordinates()));
 
@@ -2907,7 +2907,7 @@ public class SOCPlayerTracker
 
                     SOCPossibleSettlement chosenSet = null;
 
-                    if ((settlementPiecesLeft > 0) && (!posSetsCopy.isEmpty()))
+                    if ((settlementPiecesLeft > 0) && (! posSetsCopy.isEmpty()))
                     {
                         Iterator<SOCPossibleSettlement> posSetsIter = posSetsCopy.values().iterator();
 

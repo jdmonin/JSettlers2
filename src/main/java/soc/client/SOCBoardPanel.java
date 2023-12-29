@@ -6584,7 +6584,7 @@ import javax.swing.JComponent;
                     ptrOldY = y;
                     nodeNum = findNode(xb, yb);
 
-                    if ((player == null) || !player.isPotentialCity(nodeNum))
+                    if ((player == null) || ! player.isPotentialCity(nodeNum))
                     {
                         nodeNum = 0;
                     }
@@ -6751,7 +6751,7 @@ import javax.swing.JComponent;
                     ptrOldY = y;
                     edgeNum = findEdge(xb, yb, false);
 
-                    if (!otherPlayer.isPotentialRoad(edgeNum))
+                    if (! otherPlayer.isPotentialRoad(edgeNum))
                     {
                         edgeNum = 0;
                     }
@@ -6805,7 +6805,7 @@ import javax.swing.JComponent;
                     ptrOldY = y;
                     nodeNum = findNode(xb, yb);
 
-                    if (!otherPlayer.isPotentialCity(nodeNum))
+                    if (! otherPlayer.isPotentialCity(nodeNum))
                     {
                         nodeNum = 0;
                     }

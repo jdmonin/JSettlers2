@@ -1058,12 +1058,12 @@ comment to make searching the source for strings easier:
     setTooltipText(strings.get("hpan.points.total.yours"));  // "Your victory point total"
 ```
 
-Use parentheses around all boolean expressions and their parts, to make them
-easier to see as such:
+Use parentheses around all boolean expressions and their non-unary subexpression parts,
+and a space after negation `! `, to make them easier to see as such:
 
 ``` java
     flagvalue = (state == xyz);
-    somevar = (testflag) ? a : b;
+    somevar = (testflag && ! otherFlag) ? a : b;
     somecondition = ((state == xyz) || (players < 4));
 ```
 

@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2019-2020,2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -175,7 +175,7 @@ public class SOCBuildPossibility
      */
     public boolean isPlayDevCard()
     {
-        return ((piece == null) && !buyDevCard);
+        return ((piece == null) && ! buyDevCard);
     }
 
     /**

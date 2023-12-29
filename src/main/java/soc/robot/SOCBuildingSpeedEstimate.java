@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2012-2013,2015-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2012-2013,2015-2018,2020,2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -533,7 +533,7 @@ public class SOCBuildingSpeedEstimate
         SOCResourceSet ourResources = new SOCResourceSet(startingResources);
         int rolls = 0;
 
-        if (!ourResources.contains(targetResources))
+        if (! ourResources.contains(targetResources))
         {
             /**
              * do any possible trading with the bank/ports
@@ -636,7 +636,7 @@ public class SOCBuildingSpeedEstimate
             }
         }
 
-        while (!ourResources.contains(targetResources))
+        while (! ourResources.contains(targetResources))
         {
             //D.ebugPrintln("roll: "+rolls);
             //D.ebugPrintln("resources: "+ourResources);
@@ -663,7 +663,7 @@ public class SOCBuildingSpeedEstimate
                 }
             }
 
-            if (!ourResources.contains(targetResources))
+            if (! ourResources.contains(targetResources))
             {
                 /**
                  * do any possible trading with the bank/ports
@@ -810,7 +810,7 @@ public class SOCBuildingSpeedEstimate
         SOCResourceSet targetReachedResources = null;
         float targetReachedProb = 0.0f;
 
-        while (!targetReached)
+        while (! targetReached)
         {
             if (D.ebugOn)
             {
@@ -864,7 +864,7 @@ public class SOCBuildingSpeedEstimate
 
                     float newProb = lastProb.floatValue() * diceProb;
 
-                    if (!newResources.contains(targetResources))
+                    if (! newResources.contains(targetResources))
                     {
                         //
                         // do any possible trading with the bank/ports

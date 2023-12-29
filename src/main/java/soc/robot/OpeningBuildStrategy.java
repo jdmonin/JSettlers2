@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
- * Portions of this file copyright (C) 2009-2013,2017-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2013,2017-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -778,7 +778,7 @@ public class OpeningBuildStrategy {
         /**
          * check if this is on a 3:1 ports, only if we don't have one
          */
-        if (!ourPlayerData.getPortFlag(SOCBoard.MISC_PORT))
+        if (! ourPlayerData.getPortFlag(SOCBoard.MISC_PORT))
         {
             List<Integer> miscPortNodes = game.getBoard().getPortCoordinates(SOCBoard.MISC_PORT);
             bestSpotInANodeSet(nodes, miscPortNodes, miscPortWeight);
@@ -796,7 +796,7 @@ public class OpeningBuildStrategy {
              * if the chances of rolling a number on the resource is better than 1/3,
              * then it's worth looking at the port
              */
-            if ((resourceEstis[portType] > 33) && (!ourPlayerData.getPortFlag(portType)))
+            if ((resourceEstis[portType] > 33) && (! ourPlayerData.getPortFlag(portType)))
             {
                 List<Integer> portNodes = game.getBoard().getPortCoordinates(portType);
                 int estimatedPortWeight = (resourceEstis[portType] * portWeight) / 56;
