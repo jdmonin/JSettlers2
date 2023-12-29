@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -1313,10 +1313,15 @@ public abstract class SOCMessage implements Serializable, Cloneable
     }
 
     /**
-     * Strip out the parameter/attribute names from {@link #toString()}'s format,
-     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}
+     * Strip out the parameter/attribute names from {@link #toString()}'s pipe-delimited ({@code '|'}) format,
+     * returning message parameter values as a comma-delimited list for {@link #parseMsgStr(String)}
      * to pass to the message class's {@code parseDataStr(String)}.
      *<P>
+     * For each parameter:
+     *<UL>
+     * <LI> If includes {@code '='}, uses only the value: {@code 'coord=40a'} -> {@code '40a'}
+     * <LI> If no {@code '='}, uses the entire parameter: {@code 'example'} -> {@code 'example'}
+     *</UL>
      * Some messages will need to override this (new game with options,
      * any of the types which use hex encoding of coordinates).
      * Message types which have been renamed, and the old name used an incompatibly different toString format,

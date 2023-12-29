@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -236,7 +236,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the action's optional {@code value1} detail field
+     * @return the action's optional {@code value1} detail field, or 0 if unused by this {@link #getActionType()}
      */
     public final int getValue1()
     {
@@ -244,7 +244,7 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the action's optional {@code value2} detail field
+     * @return the action's optional {@code value2} detail field, or 0 if unused by this {@link #getActionType()}
      */
     public final int getValue2()
     {
@@ -257,8 +257,8 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * @param ga  the name of the game
      * @param pn  the player acting or acted on, or -1 if this action isn't about a specific player
      * @param actType  the action type; below 1000 is general, 1000+ is specific to one kind of game
-     * @param value1  First optional detail value, or 0
-     * @param value2  Second optional detail value, or 0
+     * @param value1  First optional detail value, or 0 if unused by this {@link #getActionType()}
+     * @param value2  Second optional detail value, or 0 if unused by this {@link #getActionType()}
      * @return the command string
      */
     public static String toCmd(final String ga, final int pn, final int actType, final int value1, final int value2)

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -51,8 +51,10 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
  * their {@link #getPlayerNumber()} is -1 in this message.
  *<P>
+ * To undo placing a piece, client should send {@link SOCUndoPutPiece}.
+ *<P>
  * See also {@link SOCMovePiece} and {@link SOCDebugFreePlace}. Messages similar but opposite to this one
- * are {@link SOCCancelBuildRequest}, {@link SOCUndoPutPiece}, and the very-limited {@link SOCRemovePiece}.
+ * are {@link SOCCancelBuildRequest}, and the very-limited {@link SOCRemovePiece}.
  *<P>
  * Some scenarios like {@link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces
  * as part of the initial board layout while the game is starting. These will all be sent to

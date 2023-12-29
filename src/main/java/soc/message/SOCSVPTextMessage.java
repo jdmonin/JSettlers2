@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2014,2019-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2014,2019-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -51,12 +51,12 @@ public class SOCSVPTextMessage extends SOCMessage
     public final String game;
 
     /**
-     * Player number.
+     * Player number; not validated.
      */
     public final int pn;
 
     /**
-     * Number of Special Victory Points (SVP) awarded.
+     * Number of Special Victory Points (SVP) awarded to {@link #pn}.
      */
     public final int svp;
 
@@ -79,8 +79,8 @@ public class SOCSVPTextMessage extends SOCMessage
      * Create a new non-localized SVPTEXTMSG message at the server.
      *
      * @param ga  the game name
-     * @param pn  Player number
-     * @param svp  Number of Special Victory Points (SVP) awarded
+     * @param pn  Player number; not validated
+     * @param svp  Number of Special Victory Points (SVP) awarded to {@code pn}
      * @param desc  Description of the player's action that led to the SVP.
      *     At the server this is an I18N string key which the server will localize before sending,
      *     at the client it's text which was localized by and sent from the server.
@@ -98,8 +98,8 @@ public class SOCSVPTextMessage extends SOCMessage
      * Create a new localized or non-localized SVPTEXTMSG message.
      *
      * @param ga  the game name
-     * @param pn  Player number
-     * @param svp  Number of Special Victory Points (SVP) awarded
+     * @param pn  Player number; not validated
+     * @param svp  Number of Special Victory Points (SVP) awarded to {@code pn}
      * @param desc  Description of the player's action that led to the SVP.
      *     At the server this is an I18N string key which the server must localize before sending,
      *     at the client it's localized text sent from the server. This allows new SVP actions
@@ -144,8 +144,8 @@ public class SOCSVPTextMessage extends SOCMessage
      * SVPTEXTMSG sep game sep2 pn sep2 svp sep2 desc
      *
      * @param ga  the game name
-     * @param pn  Player number
-     * @param svp  Number of Special Victory Points (SVP) awarded
+     * @param pn  Player number; not validated
+     * @param svp  Number of Special Victory Points (SVP) awarded to {@code pn}
      * @param desc  Description of the player's action that led to the SVP
      * @return    the command string
      */

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2019-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2019-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,6 +25,7 @@ import soc.game.SOCPlayingPiece;
 
 /**
  * This message from server announces a SOCShip removed from the board.
+ * (To undo piece placement, use {@link SOCUndoPutPiece} instead.)
  * Ships are removed when the player makes an attack on their Pirate Fortress and fails to win.
  * Currently, no other piece types are removed in any scenario, but the message allows for other types
  * in case that changes in a later version.

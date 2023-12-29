@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -88,8 +88,9 @@ public class SOCStatusMessage extends SOCMessage
      * Name not found in server's accounts = 2.
      * Server version 1.1.19 and 1.1.20 never replies with this to any authentication
      * request message type; {@link #SV_PW_WRONG} is sent even if the name doesn't exist.
-     * Server v1.2.00 and higher will send this reply to any older clients which
-     * can't recognize {@link #SV_OK_SET_NICKNAME}.
+     *<P>
+     * For compatibility, server v1.2.00 and higher will send this reply to any older clients which
+     * can't recognize the {@link #SV_OK_SET_NICKNAME} status added for v1.2.00.
      * @since 1.1.06
      */
     public static final int SV_NAME_NOT_FOUND = 2;

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2010,2013,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2010,2013,2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -47,8 +47,9 @@ import soc.util.DataUtils;
  * A client looking for all such changes but also info about specific options
  * can send {@link #OPTKEY_GET_ANY_CHANGES} as part of its {@link #optionKeys} list.
  *<P>
- * In v2.0.00 and newer, clients can also request localized descriptions of all options
- * if available, by including {@link #OPTKEY_GET_I18N_DESCS} as the last option keyname
+ * In v2.0.00 and newer, clients can also use this message to
+ * request localized descriptions of all options if available,
+ * by including {@link #OPTKEY_GET_I18N_DESCS} as the last option keyname
  * in their list sent to the server.  Check server version against
  * {@link soc.util.SOCStringManager#VERSION_FOR_I18N SOCStringManager.VERSION_FOR_I18N}.
  * Server's response sequence may include a

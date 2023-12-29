@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2008-2012,2014-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2012,2014-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -53,7 +53,8 @@ import java.util.ListIterator;
  * for your new message type, see {@link SOCMessageMulti}.
  *<P>
  * Before v2.0.00 this template class also implemented {@link SOCMessageForGame} for use by future subclasses,
- * but none of its actual subclasses were game-specific.
+ * but none of its actual subclasses were game-specific or sent from the client. So 2.0.00 removed the
+ * unused game name parameter without needing backwards-compatibility code.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.00
@@ -112,7 +113,6 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      * MESSAGETYPE [sep game] sep param1 sep param2 sep ...
      *
      * @param messageType The message type id
-     * @param gaName  the game name, or null
      * @param pal  The parameter list, or null if no additional parameters.
      *     Blank or null values in this list are automatically sent as the {@link SOCMessage#EMPTYSTR} token
      *     and must be converted back on the receiving end: See {@link #parseData_FindEmptyStrs(List)}.

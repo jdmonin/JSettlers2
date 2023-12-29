@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2013-2015,2017,2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2013-2015,2017,2020-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ import soc.game.SOCGameOptionSet;
 
 
 /**
- * This message means that the server is asking this robot client to join a game.
+ * This message means that the server is asking this robot client to join a game and sit down at a specific seat.
  * The bot should record the game options (if any) and respond with {@link SOCJoinGame JOINGAME},
  * the message sent by human players to request joining a game.
  *<P>

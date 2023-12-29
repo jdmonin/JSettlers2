@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012,2014,2016-2022 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012,2014,2016-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@ import java.util.StringTokenizer;
  * clients older than v2.5. All client versions including v1.x.xx correctly display progress of the discards
  * without needing that {@code SOCGameState}.
  *
+ * @see SOCPickResources
  * @author Robert S. Thomas
  */
 public class SOCDiscard extends SOCMessage
