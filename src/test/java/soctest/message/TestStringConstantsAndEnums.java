@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -81,9 +81,10 @@ public class TestStringConstantsAndEnums
         } catch (IllegalArgumentException e) {}
 
         assertArrayEquals
-            (new int[]{3, 6, 7},
+            (new int[]{3, 6, 7, 8, 9},
              GEType.getValues(new GEType[]
-                 {GEType.FIRST_PLAYER, GEType.LONGEST_ROAD_PLAYER, GEType.SPECIAL_BUILDING_AFTER_PLAYER}));
+                 {GEType.FIRST_PLAYER, GEType.LONGEST_ROAD_PLAYER, GEType.SPECIAL_BUILDING_AFTER_PLAYER,
+                  GEType.SHIP_PLACED_THIS_TURN_EDGE, GEType.IS_PLACING_ROBBER_FOR_KNIGHT_CARD_FLAG}));
 
         // GEType uniqueness
         final HashMap<Integer, GEType> typeValues = new HashMap<>();
