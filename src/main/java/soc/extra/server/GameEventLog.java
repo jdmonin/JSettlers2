@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,10 +29,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.InputMismatchException;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Vector;
 
@@ -119,9 +124,9 @@ public class GameEventLog
     /**
      * Timestamp format for log comments, local time with RFC 822 timezone offset:
      * "2001-06-09 13:30:23 -0400".
-     * Remember to synchronize calls to this formatter.
      */
-    private static final SimpleDateFormat TIMESTAMP_SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
+    private static final DateTimeFormatter TIMESTAMP_FMT
+        = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss Z", Locale.US);
 
     /**
      * All log entries, chronologically. Public for easy access; Vector is thread-safe, field is final.
@@ -360,19 +365,24 @@ public class GameEventLog
         try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter
                 (new FileOutputStream(new File(saveDir, saveFilename)), "UTF-8")))
         {
-            final Date createdAt = game.getStartTime(), now = new Date();
+            final Instant createdAt = Instant.ofEpochMilli(game.getStartTime().getTime()), now = Instant.now();
             final String createdStr, nowStr;
-            synchronized (TIMESTAMP_SDF)
             {
-                createdStr = TIMESTAMP_SDF.format(createdAt);
-                nowStr = TIMESTAMP_SDF.format(now);
+                ZoneId localTZ;
+                try {
+                    localTZ = ZoneId.systemDefault();
+                } catch (DateTimeException e) {
+                    localTZ = ZoneOffset.UTC;
+                }
+                createdStr = OffsetDateTime.ofInstant(createdAt, localTZ).format(TIMESTAMP_FMT);
+                nowStr = OffsetDateTime.ofInstant(now, localTZ).format(TIMESTAMP_FMT);
             }
 
             writer.append
                 ("SOC game event log: type=" + (atClient ? 'C' : 'F')
                  + ", version=" + Version.versionNumber()
-                 + ", created_at=" + (createdAt.getTime() / 1000)
-                 + ", now=" + (now.getTime() / 1000)
+                 + ", created_at=" + (createdAt.getEpochSecond())
+                 + ", now=" + (now.getEpochSecond())
                  + ", game_name=" + game.getName() + '\n');
             writer.append("# Game created at: " + createdStr + '\n');
             writer.append("# Log written at:  " + nowStr + '\n');
