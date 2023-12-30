@@ -2250,11 +2250,12 @@ public class TestActionsMessages
         /* *STATS* command should update player stats at client */
 
         assertArrayEquals("at server", new int[]{0, 1, 0, 0, 2, 2, 0}, cliPl.getResourceRollStats());
+        assertArrayEquals("at client", new int[]{0, 1, 0, 0, 2, 2, 0}, cliPlAtCli.getResourceRollStats());
         // make arbitrary changes to all stats types:
         cliPl.addRolledResources(new SOCResourceSet(10, 20, 30, 40, 50, 3));
         cliPl.setNeedToPickGoldHexResources(0);
         assertArrayEquals("at server", new int[]{0, 11, 20, 30, 42, 52, 3}, cliPl.getResourceRollStats());
-        assertArrayEquals("at client", new int[7], cliPlAtCli.getResourceRollStats());
+        assertArrayEquals("at client", new int[]{0, 1, 0, 0, 2, 2, 0}, cliPlAtCli.getResourceRollStats());  // change not seen yet
         plExpectedStats[SOCResourceConstants.CLAY][0] = new int[]{2, 0, 0, 0, 0};
         plExpectedStats[SOCResourceConstants.CLAY][1] = new int[]{0, 0, 1, 0, 0};
         plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][0] = new int[]{0, 0, 0, 4, 0};
