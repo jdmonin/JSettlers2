@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -118,7 +118,7 @@ public class TestSavegame
 
     /**
      * Save a basic game, reload it, check field contents.
-     * For a more detailed test, see {@link #testSaveLoadPlayerStats()}.
+     * For a more detailed test, see {@link #testSaveLoadPlayerMiscFields()}.
      */
     @Test
     public void testBasicSaveLoad()
@@ -279,12 +279,12 @@ public class TestSavegame
     }
 
     /**
-     * Save a game, reload it, check various player statistics.
+     * Save a game, reload it, check various player statistics and misc other fields.
      * @see #testBasicSaveLoad()
      * @since 2.6.00
      */
     @Test
-    public void testSaveLoadPlayerStats()
+    public void testSaveLoadPlayerMiscFields()
         throws IOException
     {
         final SOCGame gaSave = new SOCGame("stats", null, null);
@@ -314,13 +314,14 @@ public class TestSavegame
         final int[][] RES_ROLLED = new int[][]
             { {0, 3, 3, 5, 2, 4, 0}, null, null, {0, 0, 1, 0, 0, 0, 0} };
 
+        final SOCPlayer pl = gaSave.getPlayer(0);
+
         // trade res stats
         int[][][] plExpectedStats = new int[SOCPlayer.TRADE_STATS_ARRAY_LEN][2][5],  // [trType][give/get][resType]
             plTradeExpectedStats  = new int[SOCPlayer.TRADE_STATS_ARRAY_LEN][2][5];
         {
             // simplified from TestPlayer.testTradeAndStats()
 
-            final SOCPlayer pl = gaSave.getPlayer(0);
             final SOCResourceSet ORE_1 = new SOCResourceSet(0, 1, 0, 0, 0, 0);
 
             // player trade
@@ -370,6 +371,9 @@ public class TestSavegame
             assertArrayEquals(RES_ROLLED[0], pl.getResourceRollStats());
         }
 
+        // misc other fields
+        pl.setUndosRemaining(2);
+
         File saveFile = testTmpFolder.newFile("stats.game.json");
         GameSaverJSON.saveGame(gaSave, testTmpFolder.getRoot(), saveFile.getName(), srv);
 
@@ -399,6 +403,9 @@ public class TestSavegame
         TestPlayer.assertTradeStatsEqual(plTradeExpectedStats, plTradeLoaded);
         assertArrayEquals(RES_ROLLED[0], plLoaded.getResourceRollStats());
         assertArrayEquals(RES_ROLLED[3], plTradeLoaded.getResourceRollStats());
+
+        // check misc other fields
+        assertEquals(2, plLoaded.getUndosRemaining());
     }
 
     /**

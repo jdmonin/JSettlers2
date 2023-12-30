@@ -130,6 +130,8 @@ public class SavedGameModel
      * <LI> Model version is still 2400
      * <LI> Adds game field {@link #lastAction}
      * <LI> Earlier server versions will ignore this added field while loading a savegame
+     * <LI> Adds {@link SOCPlayerElement.PEType#NUM_UNDOS_REMAINING} to {@link PlayerInfo#elements}
+     *      if {@link SOCPlayer#getUndosRemaining()} &gt; 0
      *</UL>
      *
      *<H4>2.5.00</H4>
@@ -1059,6 +1061,9 @@ public class SavedGameModel
             n = pl.numRBCards;
             if (n > 0)
                 elements.put(PEType.NUM_PLAYED_DEV_CARD_ROADS, n);
+            n = pl.getUndosRemaining();
+            if (n > 0)
+                elements.put(PEType.NUM_UNDOS_REMAINING, n);
 
             if (ga.hasSeaBoard)
             {
