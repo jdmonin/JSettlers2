@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,7 +38,64 @@ import static org.junit.Assert.*;
  */
 public class TestDataUtils
 {
-    // TODO tests for arrayIntoStringBuf, listIntoStringBuilder
+    // TODO tests for listIntoStringBuilder
+
+    /**
+     * Test {@link DataUtils#arrayIntoStringBuf(int[], StringBuffer, boolean)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testArrayIntoStringBuf()
+    {
+        StringBuffer sb = new StringBuffer();
+        final int[] EMPTY = {};
+
+        DataUtils.arrayIntoStringBuf(EMPTY, sb, false);
+        assertEquals("empty array", "{ }", sb.toString());
+
+        DataUtils.arrayIntoStringBuf(EMPTY, sb, false);
+        assertEquals("append to non-empty SB", "{ }{ }", sb.toString());
+
+        try
+        {
+            DataUtils.arrayIntoStringBuf(EMPTY, null, false);
+            fail("null SB should throw NPE");
+        }
+        catch (NullPointerException e) {}
+
+        try
+        {
+            DataUtils.arrayIntoStringBuf(null, sb, false);
+            fail("null array should throw NPE");
+        }
+        catch (NullPointerException e) {}
+        assertEquals("sb unchanged after call with null array", "{ }{ }", sb.toString());
+
+        DataUtils.arrayIntoStringBuf(new int[]{7}, sb, false);
+        assertEquals("append array with 1 elem", "{ }{ }{ 7 }", sb.toString());
+
+        sb.setLength(0);
+
+        DataUtils.arrayIntoStringBuf(new int[]{7, 5}, sb, false);
+        assertEquals("array with 2 elems", "{ 7 5 }", sb.toString());
+        sb.setLength(0);
+
+        DataUtils.arrayIntoStringBuf(new int[]{111, 7, 5}, sb, false);
+        assertEquals("array with 3 elems", "{ 111 7 5 }", sb.toString());
+        sb.setLength(0);
+
+        DataUtils.arrayIntoStringBuf(new int[]{111, -7, 5, -2}, sb, false);
+        assertEquals("array with 4 elems and negative values", "{ 111 -7 5 -2 }", sb.toString());
+        sb.setLength(0);
+
+        DataUtils.arrayIntoStringBuf(new int[]{0x2, 0xabc}, sb, true);
+        assertEquals("hex array with 2 elems", "{ 2 abc }", sb.toString());
+        sb.setLength(0);
+
+        DataUtils.arrayIntoStringBuf(new int[]{0x111, -7, 0xa5, -0x12}, sb, true);
+        assertEquals("hex array with 4 elems and negative values", "{ 111 -7 a5 -12 }", sb.toString());
+        sb.setLength(0);
+    }
 
     /**
      * Test {@link DataUtils#mapIntoStringBuilder(Map, StringBuilder, String, String)}.

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019,2021-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019,2021-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,11 +39,11 @@ import java.util.TreeSet;
 public abstract class DataUtils
 {
     /**
-     * For use in toString: Append int array contents to stringbuffer,
+     * For use in toString, append int array contents to a stringbuffer,
      * formatted as "{ 1 2 3 4 5 }".
      * @param ia  int array to append. 0 length is allowed, null is not.
      * @param sb  StringBuffer to which <tt>ia</tt> will be appended, as "{ 1 2 3 4 5 }"
-     * @param useHex  If true, append <tt>ia</tt> as hexidecimal strings.
+     * @param useHex  If true, append <tt>ia</tt> as hexadecimal strings.
      *            Uses {@link Integer#toHexString(int)} after checking the sign bit.
      *            (Added in 2.0.00)
      * @throws NullPointerException if <tt>ia</tt> or <tt>sb</tt> is null
@@ -52,6 +52,9 @@ public abstract class DataUtils
     public static final void arrayIntoStringBuf(final int[] ia, StringBuffer sb, final boolean useHex)
         throws NullPointerException
     {
+        if (ia == null)
+            throw new NullPointerException("ia");
+
         sb.append("{");
         for (int i = 0; i < ia.length; ++i)
         {
