@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -867,7 +867,7 @@ public class TestLoadgame
         // game has some invalid/unknown elements; rest of elements should load OK
         assertEquals(1, ga.getFirstPlayer());
         assertEquals(1, ga.getCurrentPlayerNumber());
-        assertEquals(2, ga.getRoundCount());
+        assertEquals(2, ga.getRoundCount());  // is after unknowns in elements
         assertEquals(null, ga.getPlayerWithLargestArmy());
         assertEquals(null, ga.getPlayerWithLongestRoad());
 
@@ -875,8 +875,9 @@ public class TestLoadgame
         final String[] NAMES = {null, "robot 4", "robot 2", "debug"};
         final int[] TOTAL_VP = {0, 3, 2, 2};
         final int[][] RESOURCES = {null, {0, 1, 0, 2, 0}, {2, 2, 0, 0, 0}, {1, 3, 1, 0, 1}};
-        final int[][] PIECE_COUNTS = {{15, 5, 4, 0, 0}, {13, 4, 3, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}};
+        final int[][] PIECE_COUNTS = {{15, 5, 4, 0, 0}, {13, 4, 3, 0, 2}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}};
         checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
+        assertEquals("PEType.NUMKNIGHTS still recognized after unknown elements", 2, ga.getPlayer(1).getNumKnights());
 
         // player 1 oldDevCards has some unknown type strings and numbers;
         // should still parse the rest of them properly
