@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,7 @@ package soctest.game;
 import java.util.ArrayList;
 
 import soc.game.SOCGame;
+import soc.game.SOCPlayer;
 import soctest.server.savegame.TestLoadgame;  // for javadocs only
 
 import org.junit.Test;
@@ -153,6 +154,51 @@ public class TestGame
         }
         if (! threwISE)
             fail("should have thrown IllegalStateException");
+    }
+
+    /**
+     * Test {@link SOCGame#saveLargestArmyState()} and {@link SOCGame#restoreLargestArmyState()}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testSaveRestoreLargestArmyState()
+    {
+        final SOCGame ga = new SOCGame("testSaveRestoreLargestArmyState");
+        assertEquals(SOCGame.NEW, ga.getGameState());
+
+        ga.addPlayer("tplayer", 2);
+        final SOCPlayer pl2 = ga.getPlayer(2);
+        ga.setGameState(SOCGame.PLAY1);
+        ga.setCurrentPlayerNumber(2);
+
+        assertEquals(null, ga.getPlayerWithLargestArmy());
+        ga.restoreLargestArmyState();
+        assertEquals("was nothing to restore yet", null, ga.getPlayerWithLargestArmy());
+
+        ga.saveLargestArmyState();
+        pl2.setNumKnights(3);
+        ga.updateLargestArmy();
+        assertEquals(pl2, ga.getPlayerWithLargestArmy());
+
+        pl2.setNumKnights(2);
+        ga.restoreLargestArmyState();
+        assertEquals(null, ga.getPlayerWithLargestArmy());
+
+        pl2.setNumKnights(3);
+        ga.updateLargestArmy();
+        assertEquals(pl2, ga.getPlayerWithLargestArmy());
+
+        ga.addPlayer("player3", 3);
+        final SOCPlayer pl3 = ga.getPlayer(2);
+
+        ga.saveLargestArmyState();
+        pl3.setNumKnights(4);
+        ga.updateLargestArmy();
+        assertEquals(pl3, ga.getPlayerWithLargestArmy());
+
+        pl3.setNumKnights(0);
+        ga.restoreLargestArmyState();
+        assertEquals(pl2, ga.getPlayerWithLargestArmy());
     }
 
     /**
