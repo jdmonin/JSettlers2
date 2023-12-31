@@ -21,6 +21,7 @@ and server classes like `SOCGameMessageHandler` and `SOCGameHandler` which commu
 Sequences are tested for consistency during unit tests and release testing:
 - `/src/test/java/soctest/server/TestRecorder.java` `testLoadAndBasicSequences()` runs through some basic game actions
 - `/src/extraTest/java/soctest/server/TestActionsMessages.java` runs through the rest of them
+- `src/test/java/soctest/robot/TestGameActionExtractor.java` tests recognition of hardcoded message sequences
 - `/src/test/resources/resources/gameevent/all-basic-actions.soclog` has all of these sequences and some non-sequence messages
   (debug commands, a client joins the game, etc).
 
@@ -328,6 +329,14 @@ Or if client sends build request:
     - all:SOCGameServerText:game=test|text=p3 needs to pick resources from the gold hex.
     - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=101|amount=1
     - p3:SOCSimpleRequest:game=test|pn=3|reqType=1|v1=1|v2=0
+
+## Undo build or move piece
+
+### City (upgrade from settlement)
+
+- f3:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45
+- all:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45
+- all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2
 
 ## Move piece (move ship)
 

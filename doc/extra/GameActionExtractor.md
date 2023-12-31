@@ -17,6 +17,7 @@ and group the unknown messages before it for possible later analysis.
 More info and some consistency testing of those message sequences:
 - `/src/test/java/soctest/server/TestRecorder.java` `testLoadAndBasicSequences()` runs through some basic game actions
 - `/src/extraTest/java/soctest/server/TestActionsMessages.java` runs through the rest of them
+- `src/test/java/soctest/robot/TestGameActionExtractor.java` tests recognition of hardcoded message sequences
 - `/src/test/resources/resources/gameevent/all-basic-actions.soclog` has all of these sequences and some non-sequence messages
 
 ## Analysis: Decision tree to recognize sequences as game actions
@@ -40,6 +41,7 @@ Message sequence beginnings, roughly in same order as in [Message-Sequences-for-
     - Own turn -> Build piece
     - Another player's turn -> Ask Special Building
 - f3:SOCCancelBuildRequest -> Cancel built piece (like initial settlement)
+- f3:SOCUndoPutPiece -> Undo build or move piece
 - f3:SOCMovePiece -> Move ship
 - f3:SOCBuyDevCardRequest -> Buy dev card
 - f3:SOCPlayDevCardRequest -> Play dev card
@@ -74,6 +76,7 @@ As seen by a human player client or robot player.
     - Next is SOCPutPiece -> Build Piece
     - Next is SOCMovePiece -> Move Piece
 - SOCCancelBuildRequest -> Cancel built piece (like initial settlement)
+- SOCUndoPutPiece -> Undo build or move piece
 - SOCPlayerElements or SOCPlayerElement:
     - SOCPlayerElement:actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=1 -> Ask Special Building during another player's turn
     - SOCPlayerElement:playerNum=(current player)|actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=0 -> End special building "turn"

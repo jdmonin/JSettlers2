@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -67,7 +67,8 @@ public class GameActionExtractor
         for (int msgtype : new int[]
             {
                 SOCMessage.TURN, SOCMessage.ROLLDICE,
-                SOCMessage.PUTPIECE, SOCMessage.BUILDREQUEST, SOCMessage.CANCELBUILDREQUEST, SOCMessage.MOVEPIECE,
+                SOCMessage.PUTPIECE, SOCMessage.BUILDREQUEST, SOCMessage.CANCELBUILDREQUEST,
+                SOCMessage.UNDOPUTPIECE, SOCMessage.MOVEPIECE,
                 SOCMessage.BUYDEVCARDREQUEST, SOCMessage.PLAYDEVCARDREQUEST,
                 SOCMessage.DISCARD, SOCMessage.PICKRESOURCES, SOCMessage.CHOOSEPLAYER, SOCMessage.MOVEROBBER,
                 SOCMessage.CHOOSEPLAYERREQUEST, SOCMessage.ROBBERYRESULT, SOCMessage.BANKTRADE,
@@ -88,6 +89,7 @@ public class GameActionExtractor
         for (int msgtype : new int[]
             {
                 SOCMessage.DICERESULT, SOCMessage.PUTPIECE, SOCMessage.REVEALFOGHEX, SOCMessage.CANCELBUILDREQUEST,
+                SOCMessage.UNDOPUTPIECE,
                 SOCMessage.PLAYERELEMENT, SOCMessage.PLAYERELEMENTS,
                 SOCMessage.MOVEPIECE, SOCMessage.DEVCARDACTION, SOCMessage.DISCARD, SOCMessage.PICKRESOURCES,
                 SOCMessage.GAMESTATE, SOCMessage.MOVEROBBER, SOCMessage.CHOOSEPLAYERREQUEST,
@@ -525,6 +527,10 @@ public class GameActionExtractor
 
                 case SOCMessage.CANCELBUILDREQUEST:
                     extractedAct = extract_CANCEL_BUILT_PIECE(e);
+                    break;
+
+                case SOCMessage.UNDOPUTPIECE:
+                    extractedAct = extract_UNDO_BUILD_PIECE(e);
                     break;
 
                 case SOCMessage.PLAYERELEMENT:
@@ -1055,6 +1061,62 @@ public class GameActionExtractor
         return new Action
             (ActionType.CANCEL_BUILT_PIECE, state.currentGameState, resetCurrentSequence(), prevStart,
              pType, 0, state.currentPlayerNumber);
+    }
+
+    /**
+     * Extract {@link ActionType#UNDO_BUILD_PIECE} from the current message sequence.
+     * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
+     * @return extracted action, or {@code null} if sequence incomplete
+     * @since 2.7.00
+     */
+    private Action extract_UNDO_BUILD_PIECE(GameEventLog.EventEntry e)
+    {
+        // f3:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45
+        if (! hasLogAtClient)
+        {
+            if (! e.isFromClient)
+                return null;
+
+            e = next();
+        }
+
+        // all:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45
+        if (! (e.isToAll() && (e.event instanceof SOCUndoPutPiece)))
+            return null;
+        final int pieceType = ((SOCUndoPutPiece) (e.event)).getPieceType(),
+            builtCoord = ((SOCUndoPutPiece) (e.event)).getCoordinates();
+        // TODO parse types other than CITY
+        if (pieceType != SOCPlayingPiece.CITY)
+        {
+            System.err.println("TODO: parse SOCUndoPutPiece(pType=" + pieceType + ')');
+            return null;
+        }
+        e = next();
+        if (e == null)
+            return null;
+
+        // all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2
+        if (! (e.isToAll() && (e.event instanceof SOCPlayerElements)))
+            return null;
+        SOCPlayerElements pe = (SOCPlayerElements) e.event;
+        if (pe.getAction() != SOCPlayerElement.GAIN)
+            return null;
+        // Should be only resource element types
+        final int[] etypes = pe.getElementTypes(),
+            amounts = pe.getAmounts();
+        SOCResourceSet cost = new SOCResourceSet();
+        for (int i = 0; i < etypes.length; ++i)
+        {
+            final int etype = etypes[i];
+            if ((etype < SOCResourceConstants.CLAY) || (etype > SOCResourceConstants.WOOD))
+                return null;
+            cost.add(amounts[i], etype);
+        }
+
+        int prevStart = currentSequenceStartIndex;
+        return new Action
+            (ActionType.UNDO_BUILD_PIECE, state.currentGameState, resetCurrentSequence(), prevStart,
+             pieceType, builtCoord, 0, cost, null);
     }
 
     /**

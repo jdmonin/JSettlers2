@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,6 +30,7 @@ import soc.extra.robot.GameActionLog;
 import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.EventEntry;
 import soc.game.GameAction.ActionType;
+import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCPlayingPiece;
@@ -1203,6 +1204,93 @@ public class TestGameActionExtractor
                     assertEquals(desc + " moved to", 0xb02, act.param3);
 
                     act = actionLog.get(7);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                }
+            });
+    }
+
+    /**
+     * Test extraction of building pieces and undoing that:
+     * {@link ActionType#UNDO_BUILD_PIECE}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testBuildUndo()
+    {
+        testExtractEventSequence(new String[]
+            {
+            // start of p3's turn:
+            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+
+            // roll dice:
+            "f3:SOCRollDice:game=test",
+            "all:SOCDiceResult:game=test|param=12",
+            "all:SOCGameState:game=test|state=20",
+
+            // build city:
+            "f3:SOCPutPiece:game=g|playerNumber=3|pieceType=2|coord=45",
+            "all:SOCPlayerElements:game=g|playerNum=3|actionType=LOSE|e2=3,e4=2",
+            "all:SOCGameServerText:game=g|text=debug built a city.",
+            "all:SOCPutPiece:game=g|playerNumber=3|pieceType=2|coord=45",
+            "all:SOCGameState:game=g|state=20",
+
+            // undo build city:
+            "f3:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45",
+            "all:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45",
+            "all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2",
+
+            // end turn:
+            "f3:SOCEndTurn:game=test",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+            },
+            3, 99,
+            new ExtractResultsChecker()
+            {
+                public void check(GameActionLog actionLog, int toClientPN)
+                {
+                    final String desc = "for clientPN=" + toClientPN + ":";
+
+                    assertEquals(desc, 6, actionLog.size());
+
+                    GameActionLog.Action act = actionLog.get(0);
+                    assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
+                    assertEquals(desc, EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+                    assertEquals(desc, EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+                    act = actionLog.get(1);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc + " new current player number", 3, act.param1);
+
+                    act = actionLog.get(2);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 12, act.param1);
+
+                    act = actionLog.get(3);
+                    assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " built city", SOCPlayingPiece.CITY, act.param1);
+                    assertEquals(desc + " built at 0x45", 0x45, act.param2);
+                    assertEquals(desc + " built by player 3", 3, act.param3);
+
+                    act = actionLog.get(4);
+                    assertEquals(desc, ActionType.UNDO_BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " unbuilt city", SOCPlayingPiece.CITY, act.param1);
+                    assertEquals(desc + " unbuilt at 0x45", 0x45, act.param2);
+                    assertEquals(0, act.param3);
+                    assertEquals(desc + " resources from undo build city", SOCCity.COST, act.rset1);
+                    assertNull(act.rset2);
+
+                    act = actionLog.get(5);
                     assertEquals(desc, ActionType.END_TURN, act.actType);
                     assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
