@@ -22,7 +22,7 @@ compileJava {
     targetCompatibility = '1.8'
 }
 
-ext.python_command = 'python'  // expected to be in PATH; could change to python3 if needed
+ext.python_command = findPythonOrPython3()  // python3 or python expected to be in PATH
 
 repositories {
     mavenCentral()
@@ -339,6 +339,25 @@ task extraTestPython(type: Exec) {
 extraTest.dependsOn test
 extraTest.finalizedBy extraTestPython  // run java tests first; run python tests even if java fails
 
+// build setup: try to run python3 or python available in PATH
+def static findPythonOrPython3() {
+    try {
+        def cmd = "python3 --version"
+        def proc = cmd.execute()
+        proc.waitFor()
+        if (proc.exitValue() == 0)
+            return 'python3'
+    } catch(Exception e) {}
+
+    def cmd = "python --version"
+    def proc = cmd.execute()
+    proc.waitFor()
+    if (proc.exitValue() == 0)
+        return 'python'
+    else
+        throw new GradleScriptException("build environment problem: couldn't run python3 nor python")
+}
+
 clean {
     // also remove python bytecode files
     delete fileTree("src/test/python").matching{ include "**/*.pyc" }
@@ -354,7 +373,7 @@ artifacts {
  * This file is part of the JSettlers project.
  *
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2019-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2019 Colin Werner
  *
  * This program is free software: you can redistribute it and/or modify
