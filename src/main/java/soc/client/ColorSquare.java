@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2012,2018-2020,2022-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012,2018-2020,2022-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,7 +38,7 @@ import javax.swing.JComponent;
  * This is a square box with a background color and
  * possibly a number, checkmark, or text in it.  This box can be
  * interactive, or non-interactive.
- * If a "resource" background color from {@link #RESOURCE_COLORS} is used,
+ * If a "resource" background color from {@link #RESOURCE_COLORS} or {@link #GOLD} is used,
  * will automatically have a tooltip with that resource type (sheep, wood, etc).
  *<P>
  * Default size and minimum size are {@link #WIDTH} by {@link #HEIGHT} pixels,
@@ -263,8 +263,8 @@ public class ColorSquare extends JComponent implements MouseListener
      * Non-interactive. Uses type {@link #CHECKBOX}.
      *<P>
      * A tooltip with the resource name is created if {@code c} is one of the
-     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
-     * or an element of {@link #RESOURCE_COLORS}).
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT},
+     * {@link #GOLD}, etc, or an element of {@link #RESOURCE_COLORS}).
      *
      * @param c background color; creates resource-name tooltip if is a resource color
      * @see #ColorSquare(Color, int, int)
@@ -280,7 +280,7 @@ public class ColorSquare extends JComponent implements MouseListener
      * calls {@link #ColorSquare(Color)}.
      *
      * @param c background color; creates resource-name tooltip if is a defined resource color
-     *     ({@link #CLAY}, {@link #WHEAT}, etc, or an element of {@link #RESOURCE_COLORS})
+     *     ({@link #CLAY}, {@link #WHEAT}, {@link #GOLD}, etc, or an element of {@link #RESOURCE_COLORS})
      * @param w width in pixels
      * @param h height in pixels
      * @since 2.0.00
@@ -298,8 +298,8 @@ public class ColorSquare extends JComponent implements MouseListener
      * lower=0.
      *<P>
      * A tooltip with the resource name is created if {@code c} is one of the
-     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
-     * or an element of {@link #RESOURCE_COLORS}).
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT},
+     * {@link #GOLD}, etc, or an element of {@link #RESOURCE_COLORS}).
      *
      * @param c background color; creates resource-name tooltip if is a resource color
      * @param v initial int value
@@ -317,7 +317,7 @@ public class ColorSquare extends JComponent implements MouseListener
      * calls {@link #ColorSquare(Color, int)}.
      *
      * @param c background color; creates resource-name tooltip if is a defined resource color
-     *     ({@link #CLAY}, {@link #WHEAT}, etc, or an element of {@link #RESOURCE_COLORS})
+     *     ({@link #CLAY}, {@link #WHEAT}, {@link #GOLD}, etc, or an element of {@link #RESOURCE_COLORS})
      * @param v initial int value
      * @param w width in pixels
      * @param h height in pixels
@@ -340,8 +340,8 @@ public class ColorSquare extends JComponent implements MouseListener
      * large enough to display your text.
      *<P>
      * A tooltip with the resource name is created if {@code c} is one of the
-     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
-     * or an element of {@link #RESOURCE_COLORS}).
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT},
+     * {@link #GOLD}, etc, or an element of {@link #RESOURCE_COLORS}).
      *
      * @param c background color; creates resource-name tooltip if is a resource color
      * @param v initial string value
@@ -360,8 +360,8 @@ public class ColorSquare extends JComponent implements MouseListener
      * For kind {@link #BOUNDED_INC} and {@link #BOUNDED_DEC}, sets {@code upper=99 lower=0}.
      *<P>
      * A tooltip with the resource name is created if {@code c} is one of the
-     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
-     * or an element of {@link #RESOURCE_COLORS}).
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT},
+     * {@link #GOLD}, etc, or an element of {@link #RESOURCE_COLORS}).
      *
      * @param k Kind: {@link #NUMBER}, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
      * @param in interactive flag allowing user interaction
@@ -380,8 +380,8 @@ public class ColorSquare extends JComponent implements MouseListener
      * For kind {@link #BOUNDED_INC} and {@link #BOUNDED_DEC}, sets {@code upper=99 lower=0}.
      *<P>
      * A tooltip with the resource name is created if {@code c} is one of the
-     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
-     * or an element of {@link #RESOURCE_COLORS}).
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT},
+     * {@link #GOLD}, etc, or an element of {@link #RESOURCE_COLORS}).
      *
      * @param k Kind: {@link #NUMBER}, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
      * @param in interactive flag allowing user interaction
@@ -402,8 +402,8 @@ public class ColorSquare extends JComponent implements MouseListener
      * {@link #BOUNDED_INC} and {@link #BOUNDED_DEC} kinds.
      *<P>
      * A tooltip with the resource name is created if {@code c} is one of the
-     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT}, etc,
-     * or an element of {@link #RESOURCE_COLORS}).
+     * resource colors defined in ColorSquare ({@link #CLAY}, {@link #WHEAT},
+     * {@link #GOLD}, etc, or an element of {@link #RESOURCE_COLORS}).
      *
      * @param k Kind: NUMBER, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
      * @param in interactive flag allowing user interaction
@@ -493,6 +493,8 @@ public class ColorSquare extends JComponent implements MouseListener
             setToolTipText(strings.get("resources.wheat"));
         else if (c == WOOD)
             setToolTipText(strings.get("resources.wood"));
+        else if (c == GOLD)
+            setToolTipText(strings.get("board.hex.gold"));
 
         if (in)
             addMouseListener(this);
