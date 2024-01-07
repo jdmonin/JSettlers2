@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -364,12 +364,12 @@ public class SOCBoardLayout extends SOCMessage
      */
     public String toString()
     {
-        StringBuffer sb = new StringBuffer("SOCBoardLayout:game=");
+        StringBuilder sb = new StringBuilder("SOCBoardLayout:game=");
         sb.append(game);
         sb.append("|hexLayout=");
-        DataUtils.arrayIntoStringBuf(hexLayout, sb, false);
+        DataUtils.arrayIntoStringBuilder(hexLayout, sb, false);
         sb.append("|numberLayout=");
-        DataUtils.arrayIntoStringBuf(numberLayout, sb, false);
+        DataUtils.arrayIntoStringBuilder(numberLayout, sb, false);
         sb.append("|robberHex=0x");
         sb.append(Integer.toHexString(robberHex));
 

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2021,2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -562,7 +562,7 @@ public class SOCBoardLayout2 extends SOCMessage
     @Override
     public String toString()
     {
-        StringBuffer sb = new StringBuffer("SOCBoardLayout2:game=");
+        StringBuilder sb = new StringBuilder("SOCBoardLayout2:game=");
         sb.append(game);
         sb.append("|bef=");
         sb.append(boardEncodingFormat);
@@ -574,7 +574,7 @@ public class SOCBoardLayout2 extends SOCMessage
             Object kv = layoutParts.get(okey);
             if (kv instanceof int[])
             {
-                DataUtils.arrayIntoStringBuf
+                DataUtils.arrayIntoStringBuilder
                     ((int[]) kv, sb, ! (okey.equals("HL") || okey.equals("NL")));
             } else {
                 sb.append(kv.toString());

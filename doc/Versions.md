@@ -75,6 +75,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- Refactored SOCGame.lastAction out of SOCPlayer.lastActionBankTrade_give, _get
 	- SOCVersionedItem.getMinVersion, itemsMinimumVersion map keys are now always String
 	- SOCPlayerInterface.print +addStarPrefix instead of calling print("* " + someText)
+	- Changed DataUtils.arrayIntoStringBuf to arrayIntoStringBuilder
 
 
 ## `2.6.10` (build JM20220705)
