@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -873,8 +873,13 @@ public class TestActionsMessages
                 fail(testDesc + ": unsupported pieceType for test");
                 return;  // to satisfy compiler
             }
+
             tcli.putPiece(ga, pieceToPut);
         } else {
+            final SOCShip shipAtNewLoc = new SOCShip(cliPl, pieceCoord, board);
+            assertFalse(ga.canUndoMoveShip(CLIENT_PN, shipAtNewLoc));
+            assertFalse(gaAtCli.canUndoMoveShip(CLIENT_PN, shipAtNewLoc));
+
             tcli.movePieceRequest(ga, CLIENT_PN, SOCPlayingPiece.SHIP, movedFromCoord, pieceCoord);
         }
 
@@ -944,6 +949,10 @@ public class TestActionsMessages
             assertEquals(testDesc, pieceType, act.param1);
             assertEquals(testDesc, movedFromCoord, act.param2);
             assertEquals(testDesc, pieceCoord, act.param3);
+
+            final SOCShip shipAtNewLoc = new SOCShip(cliPl, pieceCoord, board);
+            assertTrue(ga.canUndoMoveShip(CLIENT_PN, shipAtNewLoc));
+            assertTrue(gaAtCli.canUndoMoveShip(CLIENT_PN, shipAtNewLoc));
         }
         {
             List<GameAction.Effect> effects = act.effects;
