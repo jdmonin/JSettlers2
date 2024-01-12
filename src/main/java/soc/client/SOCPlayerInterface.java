@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, type parameterization, GUI API updates, etc
  *
@@ -1361,7 +1361,7 @@ public class SOCPlayerInterface extends JFrame
      * @param tfield Textfield to add to, like {@link #chatDisplay} or {@link #textDisplay}
      * @since 2.3.00
      */
-    private void textComponentAddClipboardContextMenu(final TextComponent tfield)
+    private static void textComponentAddClipboardContextMenu(final TextComponent tfield)
     {
         final PopupMenu menu = new PopupMenu();
 
@@ -1373,7 +1373,7 @@ public class SOCPlayerInterface extends JFrame
                 try
                 {
                     final StringSelection data = new StringSelection(tfield.getSelectedText());
-                    final Clipboard cb = getToolkit().getSystemClipboard();
+                    final Clipboard cb = tfield.getToolkit().getSystemClipboard();
                     if (cb != null)
                         cb.setContents(data, data);
                 } catch (Exception e) {}  // security, or clipboard unavailable

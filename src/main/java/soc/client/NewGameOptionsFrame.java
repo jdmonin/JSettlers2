@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2015,2017-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2015,2017-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,11 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
 import java.awt.Window;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -519,7 +523,7 @@ import soc.util.Version;
             gameName.setText(gaName);
         if (readOnly)
         {
-            gameName.setEnabled(false);
+            gameName.setEditable(false);  // not setEnabled(false), so still allows highlight in order to copy name
         } else {
             gameName.addKeyListener(this);     // for ESC/ENTER
             Document tfDoc = gameName.getDocument();
@@ -646,6 +650,52 @@ import soc.util.Version;
         // Final assembly setup
         bp.validate();
         add(bp, BorderLayout.CENTER);
+
+        // Now that bp's been added to hierarchy, add copy menu if game name is read-only
+        if (readOnly && (gaName != null))
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    final PopupMenu menu = new PopupMenu();
+
+                    MenuItem mi = new MenuItem(strings.get("menu.copy"));  // "Copy"
+                    mi.addActionListener(new ActionListener()
+                    {
+                        public void actionPerformed(ActionEvent ae)
+                        {
+                            try
+                            {
+                                String selData = gameName.getSelectedText();
+                                if ((selData == null) || selData.isEmpty())
+                                    selData = gameName.getText();
+                                final StringSelection data = new StringSelection(selData);
+                                final Clipboard cb = gameName.getToolkit().getSystemClipboard();
+                                if (cb != null)
+                                    cb.setContents(data, data);
+                            } catch (Exception e) {}  // security, or clipboard unavailable
+                        }
+                    });
+                    menu.add(mi);
+
+                    gameName.add(menu);
+                    gameName.addMouseListener(new MouseAdapter()
+                    {
+                        // different platforms have different popupTriggers for their context menus,
+                        // so check several types of mouse event:
+                        public void mouseReleased(MouseEvent e) { mouseClicked(e); }
+                        public void mousePressed(MouseEvent e)  { mouseClicked(e); }
+                        public void mouseClicked(MouseEvent e)
+                        {
+                            if (! e.isPopupTrigger())
+                                return;
+
+                            e.consume();
+                            menu.show(gameName, e.getX(), e.getY());
+                        }
+                    });
+                }
+            });
     }
 
     /**
