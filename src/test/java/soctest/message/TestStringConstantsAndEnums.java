@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -135,11 +135,12 @@ public class TestStringConstantsAndEnums
         } catch (IllegalArgumentException e) {}
 
         assertArrayEquals
-            (new int[]{2, 3, 4, 5, 6, 17, 106},
+            (new int[]{2, 3, 4, 5, 6, 17, 22, 23, 24, 25, 106},
              PEType.getValues(new PEType[]
                  {
                      PEType.ORE, PEType.SHEEP, PEType.WHEAT, PEType.WOOD, PEType.UNKNOWN_RESOURCE,
-                     PEType.RESOURCE_COUNT, PEType.SCENARIO_CLOTH_COUNT
+                     PEType.RESOURCE_COUNT, PEType.NUM_PLAYED_DEV_CARD_DISC, PEType.NUM_PLAYED_DEV_CARD_MONO,
+                     PEType.NUM_PLAYED_DEV_CARD_ROADS, PEType.NUM_UNDOS_REMAINING, PEType.SCENARIO_CLOTH_COUNT
                  }));
 
         // PEType uniqueness
