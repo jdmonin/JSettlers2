@@ -3,9 +3,9 @@
   "savedByVersion": 2700,
   "gameMinVersion": 2700,
   "gameName": "reletest-longest-joinships",
-  "comments": "when player 3 builds a coastal settlement to connect roads to ships, should gain longest route from player 2 (checked in server v2.5.00 and newer; github issue 95); minVersion 2700 when gameopt UB is set",
-  "author": "Jeremy D Monin  2021-2023",
-  "gameOptions": "BC\u003dt4,N7\u003df7,PL\u003d3,RD\u003df,SBL\u003dt,VP\u003dt11,UB\u003dt",
+  "comments": "when player 3 builds a coastal settlement to connect roads to ships, should gain longest route from player 2 (checked in server v2.5.00 and newer; github issue 95); minVersion 2700 when gameopt UB is set; player's NUM_UNDOS_REMAINING is increased here to complete entire undo test",
+  "author": "Jeremy D Monin  2021-2024",
+  "gameOptions": "BC\u003dt4,N7\u003df7,PL\u003d3,RD\u003df,SBL\u003dt,VP\u003dt11,UB\u003dt,UBL\u003dt4",
   "gameDurationSeconds": 215,
   "gameState": 20,
   "oldGameState": 4,
@@ -477,7 +477,8 @@
         "ROADS": 10,
         "SETTLEMENTS": 3,
         "NUMKNIGHTS": 0,
-        "CITIES": 4
+        "CITIES": 4,
+        "NUM_UNDOS_REMAINING": 2
       },
       "resRollStats": [
         0,
@@ -544,7 +545,8 @@
         "ROADS": 13,
         "SETTLEMENTS": 3,
         "NUMKNIGHTS": 0,
-        "CITIES": 4
+        "CITIES": 4,
+        "NUM_UNDOS_REMAINING": 7
       },
       "resRollStats": [
         0,

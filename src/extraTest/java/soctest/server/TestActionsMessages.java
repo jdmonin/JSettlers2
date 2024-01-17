@@ -556,13 +556,16 @@ public class TestActionsMessages
         assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
         assertFalse(ga.isSeatVacant(OTHER_PN));
         assertTrue(ga.isGameOptionSet("UB"));  // Undo Build
+        assertEquals(4, ga.getGameOptionIntValue("UBL"));  // Undo Build limit per player
+        assertEquals(7, cliPl.getUndosRemaining());  // for this test, changed in file to be higher than limit
+        assertEquals(2, ga.getPlayer(2).getUndosRemaining());  // differs from default (limit)
 
         /* settlement to join roads + ships for longest route */
         final int SETTLEMENT_NODE = 0x80b;
         final int[] SHIP_ROUTE_BECOMES_CLOSED = {0xc08, 0xc09, 0xb0a, 0xa0a, 0x90b},
             SHIP_ROUTE_REMAINS_OPEN = {0xc0a, 0xc0b};
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.SETTLEMENT, SETTLEMENT_NODE, 0, 2, 3, false,
+            (SOCPlayingPiece.SETTLEMENT, SETTLEMENT_NODE, 0, 2, 3, 7, false,
              SHIP_ROUTE_BECOMES_CLOSED, SHIP_ROUTE_REMAINS_OPEN, false, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesSettle = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -575,7 +578,7 @@ public class TestActionsMessages
 
         final int ROAD_EDGE = 0xc07;
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.ROAD, ROAD_EDGE, 0, 2, 13, false, null, null, false, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.ROAD, ROAD_EDGE, 0, 2, 13, 6, false, null, null, false, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesRoad = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -586,7 +589,7 @@ public class TestActionsMessages
 
         final int SHIP_EDGE_EAST = 0x80b;
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, 0, 2, 8, false, null, null, false, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, 0, 2, 8, 5, false, null, null, false, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesShip = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -598,7 +601,7 @@ public class TestActionsMessages
         /* move ship & undo */
         final int SHIP_MOVE_FROM = 0xc0b;
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 2, 8, false,
+            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 2, 8, 4, false,
              null, null, false, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesShipMove = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -611,7 +614,7 @@ public class TestActionsMessages
             /* move and undo same ship, to verify we've undone game data about ships moved/placed this turn */
             System.out.println("(Re-testing move & undo same ship)");
             testOne_UndoBuildAndMove_buildAndUndoPiece
-                (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 2, 8, false,
+                (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 2, 8, 3, false,
                  null, null, false, objs, clientAsRobot, othersAsRobot);
             comparesShipMove = TestRecorder.compareRecordsToExpected
                 (records, new String[][]
@@ -683,7 +686,7 @@ public class TestActionsMessages
             final int[] SHIP_ROUTE2_BECOMES_CLOSED = {0xc08, 0xc09, 0xb0a, 0xa0a, 0x90b, 0x80b};
 
             testOne_UndoBuildAndMove_buildAndUndoPiece
-                (SOCPlayingPiece.SHIP, SHIP_EDGE_NEW_COASTAL, 0xc0b, 5, 7, true,
+                (SOCPlayingPiece.SHIP, SHIP_EDGE_NEW_COASTAL, 0xc0b, 5, 7, 2, true,
                  SHIP_ROUTE2_BECOMES_CLOSED, SHIP_ROUTE2_SPUR_REMAINS_OPEN, true,
                  objs, clientAsRobot, othersAsRobot);
             comparesShipMove = TestRecorder.compareRecordsToExpected
@@ -703,7 +706,7 @@ public class TestActionsMessages
             final int[] SHIP_ROUTE2_BECOMES_CLOSED = {0xc08, 0xc09, 0xb0a, 0xa0a, 0x90b, 0x80b};
 
             testOne_UndoBuildAndMove_buildAndUndoPiece
-                (SOCPlayingPiece.SHIP, SHIP_EDGE_NEW_COASTAL, 0, 5, 7, true,
+                (SOCPlayingPiece.SHIP, SHIP_EDGE_NEW_COASTAL, 0, 5, 7, 1, true,
                  SHIP_ROUTE2_BECOMES_CLOSED, SHIP_ROUTE2_SPUR_REMAINS_OPEN, true,
                  objs, clientAsRobot, othersAsRobot);
             comparesShip = TestRecorder.compareRecordsToExpected
@@ -768,6 +771,7 @@ public class TestActionsMessages
      * @param movedFromCoord  Edge coordinate to move ship from, or 0 when building
      * @param startingVP  Player's {@link SOCPlayer#getPublicVP()} before placement or move
      * @param startPieceCount  Player's expected amount of {@code pieceType} before building one
+     * @param startUndoCount  Player's expected {@link SOCPlayer#getUndosRemaining()} before this method builds or moves
      * @param ignoreLR  If true, Longest Route player shouldn't change; don't check what player it is
      * @param shipRouteBecomesClosed  Edges to check that {@link SOCShip#isClosed()} becomes true with placement, or null
      * @param shipRouteRemainsOpen  Edges to check that {@link SOCShip#isClosed()} remains false with placement, or null
@@ -779,7 +783,7 @@ public class TestActionsMessages
      */
     private void testOne_UndoBuildAndMove_buildAndUndoPiece
         (final int pieceType, final int pieceCoord, final int movedFromCoord,
-         final int startingVP, final int startPieceCount, final boolean ignoreLR,
+         final int startingVP, final int startPieceCount, final int startUndoCount, final boolean ignoreLR,
          final int[] shipRouteBecomesClosed, final int[] shipRouteRemainsOpen, final boolean builtOrMovedShipBecomesClosed,
          final StartedTestGameObjects objs, final boolean clientAsRobot, final boolean othersAsRobot)
     {
@@ -855,6 +859,8 @@ public class TestActionsMessages
         }
         assertArrayEquals(testDesc, PL_START_RES_ARR, cliPl.getResources().getAmounts(false));
         assertArrayEquals(testDesc, PL_START_RES_ARR, cliPlAtCli.getResources().getAmounts(false));
+        assertEquals(startUndoCount, cliPl.getUndosRemaining());
+        assertEquals(startUndoCount, cliPlAtCli.getUndosRemaining());
         if (movedFromCoord == 0)
         {
             final SOCPlayingPiece pieceToPut;
