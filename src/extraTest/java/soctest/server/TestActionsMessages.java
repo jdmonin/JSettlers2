@@ -1210,6 +1210,8 @@ public class TestActionsMessages
         assertEquals(0, cliPl.numDISCCards);
         assertEquals(0, cliPl.numMONOCards);
         assertEquals(0, cliPl.numRBCards);
+        assertFalse(ga.isPlacingRobberForKnightCard());
+        assertEquals(SOCGame.PLAY1, ga.getGameState());
 
         /* monopoly: Sheep (victims pn=1 and pn=2 both have some sheep) */
 
@@ -1390,6 +1392,7 @@ public class TestActionsMessages
         }
 
         assertNotEquals("pirate not moved there yet", PIRATE_HEX, board.getPirateHex());
+        assertFalse(ga.isPlacingRobberForKnightCard());  // not yet placing robber/pirate
         cliPl.setPlayedDevCard(false);
         tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
 
@@ -1400,20 +1403,24 @@ public class TestActionsMessages
         expectedCardsPlayed.add(SOCDevCardConstants.KNIGHT);
         assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
+        assertTrue(ga.isPlacingRobberForKnightCard());  // waiting for choice because of knight card
         tcli.choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_PIRATE);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertEquals(SOCGame.PLACING_PIRATE, ga.getGameState());
+        assertTrue(ga.isPlacingRobberForKnightCard());  // currently placing it
         tcli.moveRobber(ga, cliPl, -PIRATE_HEX);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertEquals("new pirateHex", PIRATE_HEX, board.getPirateHex());
+        assertEquals(SOCGame.PLAY1, ga.getGameState());
         SOCMoveRobberResult robRes = ga.getRobberyResult();
         assertNotNull(robRes);
         int resType = robRes.getLoot();
         assertTrue(resType > 0);
+        assertFalse(ga.isPlacingRobberForKnightCard());  // placement is complete
 
         StringBuilder comparesMovePirate = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -1450,6 +1457,7 @@ public class TestActionsMessages
 
         final int ROBBER_HEX = 0x703;
         assertNotEquals("robber not moved there yet", ROBBER_HEX, board.getRobberHex());
+        assertFalse(ga.isPlacingRobberForKnightCard());  // not yet placing robber/pirate
         // victim's settlement should be sole adjacent piece
         {
             final int EXPECTED_VICTIM_SETTLEMENT_NODE = 0x604;
@@ -1486,20 +1494,24 @@ public class TestActionsMessages
         assertEquals(6, cliPl.getPublicVP());
         assertEquals(cliPl, ga.getPlayerWithLargestArmy());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
+        assertTrue(ga.isPlacingRobberForKnightCard());  // waiting for choice because of knight card
         tcli.choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertEquals(SOCGame.PLACING_ROBBER, ga.getGameState());
+        assertTrue(ga.isPlacingRobberForKnightCard());  // currently placing it
         tcli.moveRobber(ga, cliPl, ROBBER_HEX);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
+        assertEquals(SOCGame.PLAY1, ga.getGameState());
         assertEquals("new robberHex", ROBBER_HEX, board.getRobberHex());
         robRes = ga.getRobberyResult();
         assertNotNull(robRes);
         resType = robRes.getLoot();
         assertTrue(resType > 0);
+        assertFalse(ga.isPlacingRobberForKnightCard());  // placement is complete
 
         StringBuilder comparesMoveRobber = TestRecorder.compareRecordsToExpected
             (records, new String[][]

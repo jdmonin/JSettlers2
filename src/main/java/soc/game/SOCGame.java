@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
@@ -1629,7 +1629,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For saving a game snapshot, get the values of several private boolean fields:
      *<UL>
-     * <LI> placingRobberForKnightCard
+     * <LI> placingRobberForKnightCard (also available from {@link #isPlacingRobberForKnightCard()}
      * <LI> robberyWithPirateNotRobber (also available from {@link #getRobberyPirateFlag()})
      * <LI> askedSpecialBuildPhase
      * <LI> movedShipThisTurn

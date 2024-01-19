@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -372,6 +372,7 @@ public class TestSavegame
         }
 
         // misc other fields
+        gaSave.setPlacingRobberForKnightCard(true);
         pl.setUndosRemaining(2);
 
         File saveFile = testTmpFolder.newFile("stats.game.json");
@@ -405,6 +406,7 @@ public class TestSavegame
         assertArrayEquals(RES_ROLLED[3], plTradeLoaded.getResourceRollStats());
 
         // check misc other fields
+        assertTrue(ga.isPlacingRobberForKnightCard());
         assertEquals(2, plLoaded.getUndosRemaining());
     }
 
