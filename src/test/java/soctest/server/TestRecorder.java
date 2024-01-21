@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1164,7 +1164,7 @@ public class TestRecorder
         assertEquals(2, cliPl.getNumKnights());
         assertEquals(Arrays.asList(SOCDevCardConstants.KNIGHT, SOCDevCardConstants.KNIGHT), cliPl.getDevCardsPlayed());
         StringBuilder comparesSoldierMoveRobber = moveRobberStealSequence
-            (tcli, ga, cliPl, 0, records,
+            (tcli, ga, cliPl, true, 0, records,
              new String[][]
                 {
                     {"all:SOCGameServerText:", "|text=" + clientName + " played a Soldier card."},
@@ -1299,6 +1299,7 @@ public class TestRecorder
      * @param ga  Game loaded and started by
      *     {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
      * @param cliPl  Client's Player object at test server
+     * @param isForKnightCard  True if this robbery is from playing a Knight card, not from rolling a 7
      * @param observabilityMode  Observability mode (0..2, normally 0): See {@code connectLoadJoinResumeGame(..)} javadoc
      * @param records {@code ga}'s message records at test server; doesn't call {@link Vector#clear()}.
      * @param seqPrefix null, or messages which start the sequence to be compared here
@@ -1306,14 +1307,16 @@ public class TestRecorder
      *     or null if no differences
      */
     public static StringBuilder moveRobberStealSequence
-        (final DisplaylessTesterClient tcli, final SOCGame ga, final SOCPlayer cliPl, final int observabilityMode,
-         final Vector<EventEntry> records, final String[][] seqPrefix)
+        (final DisplaylessTesterClient tcli, final SOCGame ga, final SOCPlayer cliPl, final boolean isForKnightCard,
+         final int observabilityMode, final Vector<EventEntry> records, final String[][] seqPrefix)
         throws UnsupportedOperationException
     {
         assertTrue(ga.hasSeaBoard);
         final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
         final String clientName = tcli.getNickname();
 
+        assertEquals
+            ("field == isForKnightCard which is " + isForKnightCard, isForKnightCard, ga.isPlacingRobberForKnightCard());
         assertEquals("old robberHex", 2314, board.getRobberHex());  // 0x90a
         // victim's settlement should be sole adjacent piece
         {
@@ -1340,11 +1343,15 @@ public class TestRecorder
         }
 
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
+        assertEquals
+            ("field == isForKnightCard which is " + isForKnightCard, isForKnightCard, ga.isPlacingRobberForKnightCard());
         tcli.choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertEquals(SOCGame.PLACING_ROBBER, ga.getGameState());
+        assertEquals
+            ("field == isForKnightCard which is " + isForKnightCard, isForKnightCard, ga.isPlacingRobberForKnightCard());
         tcli.moveRobber(ga, cliPl, MOVE_ROBBER_STEAL_SEQUENCE_NEW_HEX);
 
         try { Thread.sleep(70); }
@@ -1354,6 +1361,7 @@ public class TestRecorder
         assertNotNull(robRes);
         final int resType = robRes.getLoot();
         assertTrue(resType > 0);
+        assertFalse(ga.isPlacingRobberForKnightCard());  // placement is complete
 
         final String[][] SEQ = new String[][]
             {

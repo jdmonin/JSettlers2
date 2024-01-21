@@ -1841,7 +1841,7 @@ public class TestActionsMessages
                     try { Thread.sleep(60); }
                     catch(InterruptedException e) {}
                     compares7MoveRobber = TestRecorder.moveRobberStealSequence
-                        (tcli, ga, cliPl, observabilityMode, records,
+                        (tcli, ga, cliPl, false, observabilityMode, records,
                          new String[][]
                             {
                                 {"all:SOCDiceResult:", "|param=7"},
@@ -1869,7 +1869,7 @@ public class TestActionsMessages
                     catch(InterruptedException e) {}
                     assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
                     compares7DiscardMove = TestRecorder.moveRobberStealSequence
-                        (tcli, ga, cliPl, observabilityMode, records,
+                        (tcli, ga, cliPl, false, observabilityMode, records,
                          new String[][]
                             {
                                 {"all:SOCDiceResult:", "|param=7"},
