@@ -957,8 +957,16 @@ public class TestActionsMessages
             assertEquals(testDesc, pieceCoord, act.param3);
 
             final SOCShip shipAtNewLoc = new SOCShip(cliPl, pieceCoord, board);
-            assertTrue(ga.canUndoMoveShip(CLIENT_PN, shipAtNewLoc));
-            assertTrue(gaAtCli.canUndoMoveShip(CLIENT_PN, shipAtNewLoc));
+            assertTrue(testDesc, ga.canUndoMoveShip(CLIENT_PN, shipAtNewLoc));
+            assertTrue(testDesc, gaAtCli.canUndoMoveShip(CLIENT_PN, shipAtNewLoc));
+
+            // make sure canUndo checks undos remaining:
+            // client and server use same code, so don't have to check both
+            assertEquals(testDesc, startUndoCount, cliPl.getUndosRemaining());
+            cliPl.setUndosRemaining(0);
+            assertFalse(testDesc, ga.canUndoMoveShip(CLIENT_PN, shipAtNewLoc));
+            cliPl.setUndosRemaining(startUndoCount);
+            assertTrue(testDesc, ga.canUndoMoveShip(CLIENT_PN, shipAtNewLoc));
         }
         {
             List<GameAction.Effect> effects = act.effects;
@@ -1014,6 +1022,8 @@ public class TestActionsMessages
         assertEquals(startPieceCount, cliPlAtCli.getNumPieces(pieceType));
         assertEquals(startingVP, cliPl.getPublicVP());
         assertEquals(startingVP, cliPlAtCli.getPublicVP());
+        assertEquals(startUndoCount - 1, cliPl.getUndosRemaining());
+        assertEquals(startUndoCount - 1, cliPlAtCli.getUndosRemaining());
         if (! ignoreLR)
         {
             assertEquals(OTHER_PN, ga.getPlayerWithLongestRoad().getPlayerNumber());
