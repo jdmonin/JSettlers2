@@ -58,6 +58,7 @@ import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
+import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCNewGameWithOptions;
 import soc.server.SOCGameHandler;
@@ -1176,7 +1177,7 @@ public class TestActionsMessages
     }
 
     /**
-     * Tests playing dev cards.
+     * Tests playing dev cards, and canceling playing a Knight card which changed Largest Army.
      * @see #testBuyDevCard()
      */
     @Test
@@ -1493,24 +1494,47 @@ public class TestActionsMessages
         }
 
         cliPl.setPlayedDevCard(false);
-        tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
 
-        try { Thread.sleep(60); }
-        catch(InterruptedException e) {}
-        assertTrue(cliPl.hasPlayedDevCard());
-        assertEquals(3, cliPl.getNumKnights());
-        expectedCardsPlayed.add(SOCDevCardConstants.KNIGHT);
-        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
-        assertEquals(6, cliPl.getPublicVP());
-        assertEquals(cliPl, ga.getPlayerWithLargestArmy());
-        assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
-        assertTrue(ga.isPlacingRobberForKnightCard());  // waiting for choice because of knight card
-        tcli.choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
+        // play soldier card, cancel during placement, play again to actually place:
+        for (int testedCancel = 0; testedCancel <= 1; ++testedCancel)
+        {
+            tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
 
-        try { Thread.sleep(60); }
-        catch(InterruptedException e) {}
-        assertEquals(SOCGame.PLACING_ROBBER, ga.getGameState());
-        assertTrue(ga.isPlacingRobberForKnightCard());  // currently placing it
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertTrue(cliPl.hasPlayedDevCard());
+            assertEquals(3, cliPl.getNumKnights());
+            expectedCardsPlayed.add(SOCDevCardConstants.KNIGHT);
+            assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
+            assertEquals(6, cliPl.getPublicVP());
+            assertEquals(cliPl, ga.getPlayerWithLargestArmy());
+            assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
+            assertTrue(ga.isPlacingRobberForKnightCard());  // waiting for choice because of knight card
+            tcli.choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertEquals(SOCGame.PLACING_ROBBER, ga.getGameState());
+            assertTrue(ga.isPlacingRobberForKnightCard());  // currently placing it
+
+            if (testedCancel == 0)
+            {
+                // cancel; related stats should revert
+                tcli.cancelBuildRequest(ga, SOCCancelBuildRequest.CARD);
+
+                try { Thread.sleep(60); }
+                catch(InterruptedException e) {}
+                assertFalse(cliPl.hasPlayedDevCard());
+                assertEquals(2, cliPl.getNumKnights());
+                assertEquals(SOCDevCardConstants.KNIGHT, expectedCardsPlayed.remove(expectedCardsPlayed.size() - 1).intValue());
+                assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
+                assertEquals(4, cliPl.getPublicVP());
+                assertEquals(null, ga.getPlayerWithLargestArmy());
+                assertEquals(SOCGame.PLAY1, ga.getGameState());
+            }
+        }
+
+        // now actually place instead of cancel:
         tcli.moveRobber(ga, cliPl, ROBBER_HEX);
 
         try { Thread.sleep(60); }
@@ -1535,6 +1559,24 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " must choose to move the robber or the pirate."},
                 {"all:SOCGameState:", "|state=33"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " will move the robber."},
+                // cancel card
+                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " cancelled the Soldier card."},
+                {"all:SOCDevCardAction:", "|playerNum=3|actionType=ADD_OLD|cardType=9"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=LOSE|elementType=15|amount=1"},
+                {"all:SOCGameElements:", "|e5=-1"},  // LARGEST_ARMY_PLAYER
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=0"},
+                {"all:SOCGameState:", "|state=20"},  // PLAY1
+                // play again (same as start of sequence)
+                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " played a Soldier card."},
+                {"all:SOCDevCardAction:", "|playerNum=3|actionType=PLAY|cardType=9"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=19|amount=1"},  // PLAYED_DEV_CARD_FLAG
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=GAIN|elementType=15|amount=1"},  // NUMKNIGHTS
+                {"all:SOCGameElements:", "|e5=3"},  // LARGEST_ARMY_PLAYER
+                {"all:SOCGameState:", "|state=54"},
+                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " must choose to move the robber or the pirate."},
+                {"all:SOCGameState:", "|state=33"},
+                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " will move the robber."},
+                // place instead of cancel
                 {"all:SOCMoveRobber:", "|playerNumber=3|coord=703"},
                 {
                     (observabilityMode != 2) ? "p3:SOCRobberyResult:" : "all:SOCRobberyResult:",

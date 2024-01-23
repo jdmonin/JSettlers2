@@ -3,7 +3,7 @@
  * This file Copyright (C) 2016 Alessandro D'Ottavio
  * Some contents were formerly part of SOCServer.java and SOCGameHandler.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -2045,7 +2045,8 @@ public class SOCGameMessageHandler
      * handle "cancel build request" message.
      * Cancels placement and sends new game state, if cancel is allowed.
      *<P>
-     * If canceling Road Building before the first free road/ship is placed,
+     * If canceling a dev card while choosing details (road or soldier location, resource type, etc),
+     * or Road Building before the first free road/ship is placed,
      * announces return of dev card to player's hand and clears their
      * {@link SOCPlayerElement.PEType#PLAYED_DEV_CARD_FLAG PLAYED_DEV_CARD_FLAG}:
      * See {@link SOCCancelBuildRequest} javadoc.
