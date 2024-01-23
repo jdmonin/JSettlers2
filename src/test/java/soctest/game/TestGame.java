@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -189,7 +189,7 @@ public class TestGame
         assertEquals(pl2, ga.getPlayerWithLargestArmy());
 
         ga.addPlayer("player3", 3);
-        final SOCPlayer pl3 = ga.getPlayer(2);
+        final SOCPlayer pl3 = ga.getPlayer(3);
 
         ga.saveLargestArmyState();
         pl3.setNumKnights(4);
