@@ -3589,6 +3589,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * chose whether to move the robber or the pirate,
      * or (game state {@link SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE})
      * chose whether to steal a resource or cloth.
+     *<P>
+     * If choice is from playing a {@link SOCDevCardConstants#KNIGHT} card, to cancel the card
+     * call {@link #cancelBuildRequest(SOCGame, int) cancelBuildRequest}({@link SOCCancelBuildRequest#CARD}) instead.
      *
      * @param ga  the game
      * @param ch  the player number,
