@@ -1665,22 +1665,29 @@ public class TestActionsMessages
         throws IOException
     {
         // unique client nickname, in case tests run in parallel
-        final String CLIENT_NAME
-            = "testPlayCnclKn_" + observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h");
+        final String CLIENT_NAME, BOT_CLI_NAME;
+        {
+            final String nameSuffix = observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h");
+            CLIENT_NAME  = "testPlayCnclKn_" + nameSuffix;
+            BOT_CLI_NAME = "testPlayCnKnP2_" + nameSuffix;
+        }
 
         final int CLIENT_PN = 3, BOT_PN = 2;
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
-                (srv, CLIENT_NAME, null, 0, null, true, observabilityMode, clientAsRobot, othersAsRobot);
+                (srv, CLIENT_NAME, BOT_CLI_NAME, BOT_PN, null, true, observabilityMode, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
-        final SOCGame ga = objs.gameAtServer, gaAtCli = tcli.getGame(ga.getName());
+        final SOCGame ga = objs.gameAtServer, gaAtCli = tcli.getGame(ga.getName()),
+            gaAtBot = objs.tcli2.getGame(ga.getName());
         // final SOCBoardLarge board = (SOCBoardLarge) objs.board;
         final SOCPlayer cliPl = objs.clientPlayer, botPl = ga.getPlayer(BOT_PN),
-            cliPlAtCli = gaAtCli.getPlayer(CLIENT_PN), botPlAtCli = gaAtCli.getPlayer(BOT_PN);
+            cliPlAtCli = gaAtCli.getPlayer(CLIENT_PN), botPlAtCli = gaAtCli.getPlayer(BOT_PN),
+            cliPlAtBot = gaAtBot.getPlayer(CLIENT_PN), botPlAtBot = gaAtBot.getPlayer(BOT_PN);
         assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
         assertFalse(ga.isSeatVacant(BOT_PN));
         assertFalse(gaAtCli.isSeatVacant(BOT_PN));
+        assertFalse(gaAtBot.isSeatVacant(BOT_PN));
         final Vector<EventEntry> records = objs.records;
 
         /* no one -> has it; cancel during placement */
@@ -1688,14 +1695,19 @@ public class TestActionsMessages
         records.clear();
         assertNull(ga.getPlayerWithLargestArmy());
         assertNull(gaAtCli.getPlayerWithLargestArmy());
+        assertNull(gaAtBot.getPlayerWithLargestArmy());
         assertEquals(1, cliPl.getNumKnights());
         assertEquals(1, cliPlAtCli.getNumKnights());
+        assertEquals(1, cliPlAtBot.getNumKnights());
         assertEquals(0, botPl.getNumKnights());
         assertEquals(0, botPlAtCli.getNumKnights());
+        assertEquals(0, botPlAtBot.getNumKnights());
         assertEquals(2, cliPl.getPublicVP());
         assertEquals(2, cliPlAtCli.getPublicVP());
+        assertEquals(2, cliPlAtBot.getPublicVP());
         cliPl.setNumKnights(2);
         cliPlAtCli.setNumKnights(2);
+        cliPlAtBot.setNumKnights(2);
 
         tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
 
@@ -1703,24 +1715,32 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertTrue(cliPl.hasPlayedDevCard());
         assertTrue(cliPlAtCli.hasPlayedDevCard());
+        assertTrue(cliPlAtBot.hasPlayedDevCard());
         assertEquals(3, cliPl.getNumKnights());
         assertEquals(3, cliPlAtCli.getNumKnights());
+        assertEquals(3, cliPlAtBot.getNumKnights());
         assertEquals(4, cliPl.getPublicVP());
         assertEquals(4, cliPlAtCli.getPublicVP());
+        assertEquals(4, cliPlAtBot.getPublicVP());
         assertEquals(cliPl, ga.getPlayerWithLargestArmy());
         assertEquals(cliPlAtCli, gaAtCli.getPlayerWithLargestArmy());
+        assertEquals(cliPlAtBot, gaAtBot.getPlayerWithLargestArmy());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, gaAtCli.getGameState());
+        assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, gaAtBot.getGameState());
         assertTrue(ga.isPlacingRobberForKnightCard());  // waiting for choice because of knight card
         assertTrue(gaAtCli.isPlacingRobberForKnightCard());
+        assertTrue(gaAtBot.isPlacingRobberForKnightCard());
         tcli.choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertEquals(SOCGame.PLACING_ROBBER, ga.getGameState());
         assertEquals(SOCGame.PLACING_ROBBER, gaAtCli.getGameState());
+        assertEquals(SOCGame.PLACING_ROBBER, gaAtBot.getGameState());
         assertTrue(ga.isPlacingRobberForKnightCard());  // currently placing it
         assertTrue(gaAtCli.isPlacingRobberForKnightCard());
+        assertTrue(gaAtBot.isPlacingRobberForKnightCard());
 
         // cancel; related stats should revert
         tcli.cancelBuildRequest(ga, SOCCancelBuildRequest.CARD);
@@ -1729,14 +1749,19 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertFalse(cliPl.hasPlayedDevCard());
         assertFalse(cliPlAtCli.hasPlayedDevCard());
+        assertFalse(cliPlAtBot.hasPlayedDevCard());
         assertEquals(2, cliPl.getNumKnights());
         assertEquals(2, cliPlAtCli.getNumKnights());
+        assertEquals(2, cliPlAtBot.getNumKnights());
         assertEquals(2, cliPl.getPublicVP());
         assertEquals(2, cliPlAtCli.getPublicVP());
+        assertEquals(2, cliPlAtBot.getPublicVP());
         assertEquals(null, ga.getPlayerWithLargestArmy());
         assertEquals(null, gaAtCli.getPlayerWithLargestArmy());
+        assertEquals(null, gaAtBot.getPlayerWithLargestArmy());
         assertEquals(SOCGame.PLAY1, ga.getGameState());
         assertEquals(SOCGame.PLAY1, gaAtCli.getGameState());
+        assertEquals(SOCGame.PLAY1, gaAtBot.getGameState());
 
         StringBuilder comparesBuy1 = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -1768,16 +1793,22 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertTrue(cliPl.hasPlayedDevCard());
         assertTrue(cliPlAtCli.hasPlayedDevCard());
+        assertTrue(cliPlAtBot.hasPlayedDevCard());
         assertEquals(3, cliPl.getNumKnights());
         assertEquals(3, cliPlAtCli.getNumKnights());
+        assertEquals(3, cliPlAtBot.getNumKnights());
         assertEquals(4, cliPl.getPublicVP());
         assertEquals(4, cliPlAtCli.getPublicVP());
+        assertEquals(4, cliPlAtBot.getPublicVP());
         assertEquals(cliPl, ga.getPlayerWithLargestArmy());
         assertEquals(cliPlAtCli, gaAtCli.getPlayerWithLargestArmy());
+        assertEquals(cliPlAtBot, gaAtBot.getPlayerWithLargestArmy());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, gaAtCli.getGameState());
+        assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, gaAtBot.getGameState());
         assertTrue(ga.isPlacingRobberForKnightCard());  // waiting for choice because of knight card
         assertTrue(gaAtCli.isPlacingRobberForKnightCard());
+        assertTrue(gaAtBot.isPlacingRobberForKnightCard());
 
         // cancel; related stats should revert
         tcli.cancelBuildRequest(ga, SOCCancelBuildRequest.CARD);
@@ -1786,14 +1817,19 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertFalse(cliPl.hasPlayedDevCard());
         assertFalse(cliPlAtCli.hasPlayedDevCard());
+        assertFalse(cliPlAtBot.hasPlayedDevCard());
         assertEquals(2, cliPl.getNumKnights());
         assertEquals(2, cliPlAtCli.getNumKnights());
+        assertEquals(2, cliPlAtBot.getNumKnights());
         assertEquals(2, cliPl.getPublicVP());
         assertEquals(2, cliPlAtCli.getPublicVP());
+        assertEquals(2, cliPlAtBot.getPublicVP());
         assertEquals(null, ga.getPlayerWithLargestArmy());
         assertEquals(null, gaAtCli.getPlayerWithLargestArmy());
+        assertEquals(null, gaAtBot.getPlayerWithLargestArmy());
         assertEquals(SOCGame.PLAY1, ga.getGameState());
         assertEquals(SOCGame.PLAY1, gaAtCli.getGameState());
+        assertEquals(SOCGame.PLAY1, gaAtBot.getGameState());
 
         StringBuilder comparesFirstLA = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -1819,8 +1855,10 @@ public class TestActionsMessages
         records.clear();
         botPl.setNumKnights(3);
         botPlAtCli.setNumKnights(3);
+        botPlAtBot.setNumKnights(3);
         ga.setPlayerWithLargestArmy(botPl);
         gaAtCli.setPlayerWithLargestArmy(botPlAtCli);
+        gaAtBot.setPlayerWithLargestArmy(botPlAtBot);
 
         tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
 
@@ -1828,16 +1866,22 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertTrue(cliPl.hasPlayedDevCard());
         assertTrue(cliPlAtCli.hasPlayedDevCard());
+        assertTrue(cliPlAtBot.hasPlayedDevCard());
         assertEquals(3, cliPl.getNumKnights());
         assertEquals(3, cliPlAtCli.getNumKnights());
+        assertEquals(3, cliPlAtBot.getNumKnights());
         assertEquals(2, cliPl.getPublicVP());
         assertEquals(2, cliPlAtCli.getPublicVP());
+        assertEquals(2, cliPlAtBot.getPublicVP());
         assertEquals("largest-army player unchanged", botPl, ga.getPlayerWithLargestArmy());
         assertEquals("largest-army player unchanged", botPlAtCli, gaAtCli.getPlayerWithLargestArmy());
+        assertEquals("largest-army player unchanged", botPlAtBot, gaAtBot.getPlayerWithLargestArmy());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, gaAtCli.getGameState());
+        assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, gaAtBot.getGameState());
         assertTrue(ga.isPlacingRobberForKnightCard());  // waiting for choice because of knight card
         assertTrue(gaAtCli.isPlacingRobberForKnightCard());
+        assertTrue(gaAtBot.isPlacingRobberForKnightCard());
 
         // cancel; related stats should revert
         tcli.cancelBuildRequest(ga, SOCCancelBuildRequest.CARD);
@@ -1846,14 +1890,19 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertFalse(cliPl.hasPlayedDevCard());
         assertFalse(cliPlAtCli.hasPlayedDevCard());
+        assertFalse(cliPlAtBot.hasPlayedDevCard());
         assertEquals(2, cliPl.getNumKnights());
         assertEquals(2, cliPlAtCli.getNumKnights());
+        assertEquals(2, cliPlAtBot.getNumKnights());
         assertEquals(2, cliPl.getPublicVP());
         assertEquals(2, cliPlAtCli.getPublicVP());
+        assertEquals(2, cliPlAtBot.getPublicVP());
         assertEquals(botPl, ga.getPlayerWithLargestArmy());
         assertEquals(botPlAtCli, gaAtCli.getPlayerWithLargestArmy());
+        assertEquals(botPlAtBot, gaAtBot.getPlayerWithLargestArmy());
         assertEquals(SOCGame.PLAY1, ga.getGameState());
         assertEquals(SOCGame.PLAY1, gaAtCli.getGameState());
+        assertEquals(SOCGame.PLAY1, gaAtBot.getGameState());
 
         StringBuilder comparesTieLA = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -1877,12 +1926,16 @@ public class TestActionsMessages
         records.clear();
         cliPl.setNumKnights(3);
         cliPlAtCli.setNumKnights(3);
+        cliPlAtBot.setNumKnights(3);
         botPl.setNumKnights(3);
         botPlAtCli.setNumKnights(3);
+        botPlAtBot.setNumKnights(3);
         ga.getPlayer(1).setNumKnights(3);
         gaAtCli.getPlayer(1).setNumKnights(3);
+        gaAtBot.getPlayer(1).setNumKnights(3);
         ga.setPlayerWithLargestArmy(botPl);
         gaAtCli.setPlayerWithLargestArmy(botPlAtCli);
+        gaAtBot.setPlayerWithLargestArmy(botPlAtCli);
 
         tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
 
@@ -1890,16 +1943,22 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertTrue(cliPl.hasPlayedDevCard());
         assertTrue(cliPlAtCli.hasPlayedDevCard());
+        assertTrue(cliPlAtBot.hasPlayedDevCard());
         assertEquals(4, cliPl.getNumKnights());
         assertEquals(4, cliPlAtCli.getNumKnights());
+        assertEquals(4, cliPlAtBot.getNumKnights());
         assertEquals(4, cliPl.getPublicVP());
         assertEquals(4, cliPlAtCli.getPublicVP());
+        assertEquals(4, cliPlAtBot.getPublicVP());
         assertEquals(cliPl, ga.getPlayerWithLargestArmy());
         assertEquals(cliPlAtCli, gaAtCli.getPlayerWithLargestArmy());
+        assertEquals(cliPlAtBot, gaAtBot.getPlayerWithLargestArmy());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
         assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, gaAtCli.getGameState());
+        assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, gaAtBot.getGameState());
         assertTrue(ga.isPlacingRobberForKnightCard());  // waiting for choice because of knight card
         assertTrue(gaAtCli.isPlacingRobberForKnightCard());
+        assertTrue(gaAtBot.isPlacingRobberForKnightCard());
 
         // cancel; related stats should revert
         tcli.cancelBuildRequest(ga, SOCCancelBuildRequest.CARD);
@@ -1908,14 +1967,19 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertFalse(cliPl.hasPlayedDevCard());
         assertFalse(cliPlAtCli.hasPlayedDevCard());
+        assertFalse(cliPlAtBot.hasPlayedDevCard());
         assertEquals(3, cliPl.getNumKnights());
         assertEquals(3, cliPlAtCli.getNumKnights());
+        assertEquals(3, cliPlAtBot.getNumKnights());
         assertEquals(2, cliPl.getPublicVP());
         assertEquals(2, cliPlAtCli.getPublicVP());
+        assertEquals(2, cliPlAtBot.getPublicVP());
         assertEquals(botPl, ga.getPlayerWithLargestArmy());
         assertEquals(botPlAtCli, gaAtCli.getPlayerWithLargestArmy());
+        assertEquals(botPlAtBot, gaAtBot.getPlayerWithLargestArmy());
         assertEquals(SOCGame.PLAY1, ga.getGameState());
         assertEquals(SOCGame.PLAY1, gaAtCli.getGameState());
+        assertEquals(SOCGame.PLAY1, gaAtBot.getGameState());
 
         StringBuilder comparesTakeTiedLA = TestRecorder.compareRecordsToExpected
             (records, new String[][]
