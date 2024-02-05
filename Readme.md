@@ -140,6 +140,8 @@ will continue even if there is no DB or the DB connect doesn't work.
 
 You can change those values and specify game option defaults; see details below.
 
+To automatically start the JSettlers server on a linux server, see [src/main/bin/jsettlers.service](src/main/bin/jsettlers.service).
+
 If MySQL or another database is not installed and running (See "Database Setup"
 in [doc/Database.md](doc/Database.md)), you will see a warning with the
 appropriate explanation:
