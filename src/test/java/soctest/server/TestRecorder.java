@@ -775,6 +775,50 @@ public class TestRecorder
     }
 
     /**
+     * Convenience method to make sure an originally-inactive game option is active at server
+     * and in a set of game options to give to a new client.
+     * {@code opt} may already have the active flag at server; will still activate at client.
+     *<P>
+     * If {@code opt} was inactive when calling this method,
+     * afterwards caller should call {@code server.knownOpts.getKnownOption(key, true)} again
+     * to retrieve the active version.
+     *
+     * @param server Server where {@code opt} should be activated if needed
+     * @param opt Game option, already cloned by calling
+     *     {@link SOCServer#knownOpts}.{@link SOCGameOptionSet#getKnownOption(String, boolean) getKnownOption(optKey, true)}.
+     * @return A new set of options from {@link SOCGameOptionSet#getAllKnownOptions()} with {@code opt} active
+     * @throws IllegalArgumentException if {@code opt} was never inactive: doesn't have flag
+     *     {@link SOCGameOption#FLAG_INACTIVE_HIDDEN} or {@link SOCGameOption#FLAG_ACTIVATED}
+     * @since 2.7.00
+     */
+    private static SOCGameOptionSet activateOptionAtServerForClient
+        (final SOCServer server, SOCGameOption opt)
+    {
+        final String key = opt.key;
+        if (! (opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN) || opt.hasFlag(SOCGameOption.FLAG_ACTIVATED)))
+            throw new IllegalArgumentException("was never inactive: " + key);
+
+        if (opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
+        {
+            assertTrue
+                ("server.activateKnownOption(" + key + ") success",
+                 server.activateKnownOption(key));
+            opt = server.knownOpts.getKnownOption(key, true);
+            assertNotNull("server found option " + key, opt);
+            assertTrue(opt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+        }
+
+        final SOCGameOptionSet clientKnownOpts = SOCGameOptionSet.getAllKnownOptions();
+        clientKnownOpts.activate(key);
+
+        assertTrue("option activated at server: " + key, opt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+        assertTrue
+            ("option activated at client: " + key, clientKnownOpts.get(key).hasFlag(SOCGameOption.FLAG_ACTIVATED));
+
+        return clientKnownOpts;
+    }
+
+    /**
      * Common code to use when beginning a test:
      *<UL>
      * <LI> Assert {@code server} not null
@@ -798,6 +842,9 @@ public class TestRecorder
      *<P>
      * Limitation: Even when ! {@code othersAsRobot}, those fields can't be set non-null for robot clients because
      * those bot connections are also in other games which may have a different value for {@code othersAsRobot}.
+     *<P>
+     * To connect an observer to the new game, call {@link #connectObserver(RecordingSOCServer, SOCGame, String, int)}
+     * afterwards.
      *
      * @param clientName  Unique client name to use for this client and game; will sit at player number 3
      * @param client2Name  Optional unique second client name to use, or null
@@ -828,7 +875,9 @@ public class TestRecorder
      *     or if using {@code client2Name} but {@code client2PN} isn't a non-vacant robot player number;
      *     or if {@code observabilityMode} not in range 0..2
      * @throws IllegalStateException if {@code clientName} or {@code client2Name} was already used for
-     *     a different call to this method: Use unique names for each call to avoid intermittent auth problems
+     *     a different call to this method or
+     *     {@link #connectObserver(RecordingSOCServer, SOCGame, String, int) connectObserver(..)}:
+     *     Use unique names for each call to avoid intermittent auth problems
      * @throws IOException if game artifact file can't be loaded
      */
     public static StartedTestGameObjects connectLoadJoinResumeGame
@@ -837,6 +886,9 @@ public class TestRecorder
          final int observabilityMode, final boolean clientAsRobot, final boolean othersAsRobot)
         throws IllegalArgumentException, IllegalStateException, IOException
     {
+        // NOTE: connectObserver uses similar setup code.
+        // If changing anything here, check that method too.
+
         if (clientName == null)
             throw new IllegalArgumentException("clientName");
         if (clientName.length() > SOCServer.PLAYER_NAME_MAX_LENGTH)
@@ -880,22 +932,15 @@ public class TestRecorder
             final String key = (observabilityMode == 1) ? SOCGameOptionSet.K_PLAY_VPO : SOCGameOptionSet.K_PLAY_FO;
             SOCGameOption opt = server.knownOpts.getKnownOption(key, true);
             assertNotNull("server found option " + key, opt);
-            if (opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
+            boolean wasInactiveAtServer = (opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+
+            clientKnownOpts = activateOptionAtServerForClient(server, opt);
+            if (wasInactiveAtServer)
             {
-                assertTrue
-                    ("server.activateKnownOption(" + key + ") success",
-                     server.activateKnownOption(key));
                 opt = server.knownOpts.getKnownOption(key, true);
-                assertNotNull("server found option " + key, opt);
                 assertTrue(opt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
             }
 
-            clientKnownOpts = SOCGameOptionSet.getAllKnownOptions();
-            clientKnownOpts.activate(key);
-
-            assertTrue("option activated at server: " + key, opt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
-            assertTrue
-                ("option activated at client: " + key, clientKnownOpts.get(key).hasFlag(SOCGameOption.FLAG_ACTIVATED));
             observabilityOpt = opt;
         } else {
             observabilityOpt = null;
@@ -1055,6 +1100,99 @@ public class TestRecorder
 
         return new StartedTestGameObjects
             (tcli, tcli2, tcliConn, tcli2Conn, sgm, ga, ga.getBoard(), cliPl, cli2Pl, log.entries);
+    }
+
+    /**
+     * Connect a new observer {@link DisplaylessTesterClient} to a game on the RecordingServer.
+     * Asserts observer client has connected to server and game.
+     * Does not change game's {@link SOCGame#isBotsOnly} flag.
+     *<P>
+     * Returns the new client. For related data:
+     *<UL>
+     * <LI> To get this client's connection at the server, call {@link SOCServer#getConnection(String)}
+     * <LI> To get game data at the client, call {@link soc.baseclient.SOCDisplaylessPlayerClient#getGame(String)}
+     *</UL>
+     * When done testing, caller should call {@link soc.baseclient.SOCDisplaylessPlayerClient#destroy()}
+     * to shut down the returned observer.
+     *
+     * @param observerClientName Unique client name to use for this client and game
+     * @param observabilityMode Whether to test using normally-inactive game options for "observability":
+     *     Same value given to {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
+     *     when loading the game.
+     * @return  the observer client; not null
+     * @throws IllegalArgumentException if {@code observerClientName} is null or too long
+     *     (max length is {@link SOCServer#PLAYER_NAME_MAX_LENGTH});
+     *     or if {@code observabilityMode} not in range 0..2
+     * @throws IllegalStateException if {@code observerClientName} was already used for
+     *     a different call to this method or
+     *     {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean) connectLoadJoinResumeGame(..)}:
+     *     Use unique names for each call to avoid intermittent auth problems
+     * @since 2.7.00
+     */
+    public static DisplaylessTesterClient connectObserver
+        (final RecordingSOCServer server, final SOCGame gameAtServer,
+         final String observerClientName, final int observabilityMode)
+        throws IllegalArgumentException, IllegalStateException
+    {
+        // NOTE: connectLoadJoinResumeGame uses similar setup code.
+        // If changing anything here, check that method too.
+
+        if (observerClientName == null)
+            throw new IllegalArgumentException("observerClientName");
+        if (observerClientName.length() > SOCServer.PLAYER_NAME_MAX_LENGTH)
+            throw new IllegalArgumentException("observerClientName.length " + observerClientName.length()
+                + ", max is " + SOCServer.PLAYER_NAME_MAX_LENGTH);
+        assertNotNull(server);
+        if ((observabilityMode < 0) || (observabilityMode > 2))
+            throw new IllegalArgumentException("observabilityMode: " + observabilityMode);
+        final String gameName = gameAtServer.getName();
+
+        synchronized(clientNamesUsed)
+        {
+            if (clientNamesUsed.contains(observerClientName))
+                throw new IllegalStateException("already used observerClientName " + observerClientName);
+
+            clientNamesUsed.add(observerClientName);
+        }
+
+        SOCGameOptionSet clientKnownOpts = null;
+        if (observabilityMode > 0)
+        {
+            final String key = (observabilityMode == 1) ? SOCGameOptionSet.K_PLAY_VPO : SOCGameOptionSet.K_PLAY_FO;
+            SOCGameOption opt = server.knownOpts.getKnownOption(key, true);
+            assertNotNull("server found option " + key, opt);
+            boolean wasInactiveAtServer = (opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+
+            clientKnownOpts = activateOptionAtServerForClient(server, opt);
+            if (wasInactiveAtServer)
+            {
+                opt = server.knownOpts.getKnownOption(key, true);
+                assertTrue(opt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+            }
+        }
+
+        final DisplaylessTesterClient tcli = new DisplaylessTesterClient
+            (RecordingSOCServer.STRINGPORT_NAME, observerClientName, null, clientKnownOpts);
+        tcli.init();
+        assertEquals(observerClientName, tcli.getNickname());
+
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+        assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
+
+        final Connection tcliConn = server.getConnection(observerClientName);
+        assertNotNull("server has tcliConn(" + observerClientName + ")", tcliConn);
+        assertEquals("conn.getData==" + observerClientName, observerClientName, tcliConn.getData());
+
+        tcli.askJoinGame(gameName);
+
+        // wait to join in client's thread
+        try { Thread.sleep(150); }
+        catch(InterruptedException e) {}
+
+        assertTrue("tcli member of reloaded game?", server.getGameList().isMember(tcliConn, gameName));
+
+        return tcli;
     }
 
     /**
