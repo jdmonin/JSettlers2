@@ -128,6 +128,7 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
 - Move robber/steal resources
     - For these tests, can use the `debug` player and debug command `*FREEPLACE* 1`
       to quickly build players' pieces, and `dev: 9 debug` to get each Soldier card
+      to play to move the robber
     - Play Soldier card, but then Cancel the move with button in hand panel
       - Before roll dice, and after, on same turn
       - Card should return to inventory and be able to play again same turn
