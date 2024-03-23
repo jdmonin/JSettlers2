@@ -2930,7 +2930,8 @@ public class SOCGameMessageHandler
                 pp = null;
             }
 
-            boolean sendDenyReply = true;
+            boolean sendDenyReply = true;  // if false, will send undo sequence ending with SOCGameState
+
             if ((act.actType == GameAction.ActionType.MOVE_PIECE) && (pp instanceof SOCShip))
             {
                 if (ga.canUndoMoveShip(pn, (SOCShip) pp))
@@ -2970,6 +2971,9 @@ public class SOCGameMessageHandler
                             (gaName, pn, SOCPlayerElement.SET, PEType.NUM_UNDOS_REMAINING, 0));
                 srv.messageToPlayer
                     (c, gaName, pn, new SOCUndoPutPiece(gaName, -1, pieceType, coord));
+            } else {
+                srv.messageToGame
+                    (gaName, true, new SOCGameState(gaName, ga.getGameState()));
             }
         } finally {
             ga.releaseMonitor();

@@ -1112,6 +1112,13 @@ public class GameActionExtractor
                 return null;
             cost.add(amounts[i], etype);
         }
+        e = next();
+        if (e == null)
+            return null;
+
+        // all:SOCGameState:game=g|state=20
+        if (! (e.isToAll() && (e.event instanceof SOCGameState)))
+            return null;
 
         int prevStart = currentSequenceStartIndex;
         return new Action

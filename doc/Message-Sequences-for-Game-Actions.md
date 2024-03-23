@@ -12,8 +12,8 @@ That version updated and reorganized many sequences to be more efficient
 and easier for bots and other automated readers to recognize.
 Since the server and built-in robots are packaged together,
 the bots also use these updated message sequences.
-The server uses the latest version format to record the game event sequences
-it sends, even when it actually sent different messages to an older client to be compatible.
+When recording game event sequences, the server records using the latest version format,
+even when it actually sent different messages to an older client to be compatible.
 
 If you're curious about older versions, see the code and comments in message classes like `SOCPutPiece`
 and server classes like `SOCGameMessageHandler` and `SOCGameHandler` which communicate with clients.
@@ -332,11 +332,14 @@ Or if client sends build request:
 
 ## Undo build or move piece
 
+Because the sequence sometimes includes messages from undoing side effects, it always ends with SOCGameState (although state is usually unchanged) as a marker. As with other types of sequences, sometimes that SOCGameState is followed by a SOCGameServerText.
+
 ### City (upgrade from settlement)
 
 - f3:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45
 - all:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45
 - all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2
+- all:SOCGameState:game=g|state=20
 
 ## Move piece (move ship)
 

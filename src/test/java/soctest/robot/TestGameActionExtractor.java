@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1241,6 +1241,7 @@ public class TestGameActionExtractor
             "f3:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45",
             "all:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45",
             "all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2",
+            "all:SOCGameState:game=g|state=20",
 
             // end turn:
             "f3:SOCEndTurn:game=test",
@@ -1282,7 +1283,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(4);
                     assertEquals(desc, ActionType.UNDO_BUILD_PIECE, act.actType);
-                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " unbuilt city", SOCPlayingPiece.CITY, act.param1);
                     assertEquals(desc + " unbuilt at 0x45", 0x45, act.param2);
