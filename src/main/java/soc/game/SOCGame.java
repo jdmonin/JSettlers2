@@ -4698,7 +4698,8 @@ public class SOCGame implements Serializable, Cloneable
 
         if (isAtServer)
             undoActionSideEffects_post(moveAct, SOCPlayingPiece.SHIP);
-        gameState = actualGS;
+        if (gameState == UNDOING_ACTION)
+            gameState = actualGS;
 
         if (isGameOptionSet("UBL"))
             players[currentPlayerNumber].decrementUndosRemaining();
@@ -4815,7 +4816,8 @@ public class SOCGame implements Serializable, Cloneable
 
         if (isAtServer)
             undoActionSideEffects_post(buildAct, ptype);
-        gameState = actualGS;
+        if (gameState == UNDOING_ACTION)
+            gameState = actualGS;
 
         if (isGameOptionSet("UBL"))
             players[currentPlayerNumber].decrementUndosRemaining();
@@ -4968,8 +4970,13 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * At server, handle undoing some side effects of a game action.
      * Called by undo methods after they undo the direct part of the action (like building a piece).
+     *<P>
+     * If {@link GameAction#effects} includes {@link GameAction.EffectType#CHANGE_GAMESTATE},
+     * {@link SOCGame#setGameState(int)} is called only after applying all other {@code effects}.
+     * After calling this method, check {@link SOCGame#getGameState()} to see if
+     * it's been changed from {@link #UNDOING_ACTION}.
      *
-     * @param actToUndo  Action being undone; not {@code null}
+     * @param actToUndo  Action being undone; not {@code null}.
      *     Does nothing if {@link GameAction#effects actToUndo.effects} is {@code null} or empty.
      * @param pieceType  Piece type for action being undone if relevant, such as {@link SOCPlayingPiece#SHIP}, or -1
      * @exception IllegalStateException if {@link #getGameState()} != {@link #UNDOING_ACTION} when called
@@ -4988,6 +4995,7 @@ public class SOCGame implements Serializable, Cloneable
         // update that one too
 
         final SOCPlayer currPlayer = players[currentPlayerNumber];
+        int gameStateAfterUndo = 0;
         for (GameAction.Effect e : actToUndo.effects)
             switch (e.eType)
             {
@@ -5006,6 +5014,10 @@ public class SOCGame implements Serializable, Cloneable
                     if (cost != null)
                         currPlayer.getResources().add(cost);
                 }
+                break;
+
+            case CHANGE_GAMESTATE:
+                gameStateAfterUndo = e.params[0];
                 break;
 
             case CHANGE_LONGEST_ROAD_PLAYER:
@@ -5040,6 +5052,9 @@ public class SOCGame implements Serializable, Cloneable
             default:
                 ;  // nothing yet
             }
+
+        if (gameStateAfterUndo > 0)
+            setGameState(gameStateAfterUndo);
     }
 
     /**

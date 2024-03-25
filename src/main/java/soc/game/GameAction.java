@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2022-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2022-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,6 +34,7 @@ import soc.message.SOCStartGame;  // javadocs only
  * Some actions can be undone.
  * Meaning of field values depends on {@link #actType}.
  * See {@link ActionType} for all recognized action types.
+ * See {@link #effects} for side effects such as paying resources or changing gameState.
  *<P>
  * To copy a GameAction while changing some fields,
  * use the {@link #GameAction(GameAction, ActionType, int, int, int)} constructor.
@@ -584,6 +585,7 @@ public class GameAction
 
     /**
      * All currently known {@link Effect} types.
+     * Except for {@link #CHANGE_GAMESTATE}, none change the game's {@link SOCGame#getGameState()}.
      * @since 2.7.00
      */
     public static enum EffectType
@@ -611,10 +613,13 @@ public class GameAction
         DEDUCT_COST_FROM_PLAYER(10),
 
         /**
-         * Game state changed in a notable way.
+         * GameState changed in a notable way.
          * Example: Action was {@link ActionType#BUILD_PIECE} for a free road instead of the usual built road,
          * so the pre-place state was {@link SOCGame#PLACING_FREE_ROAD1} or {@link SOCGame#PLACING_FREE_ROAD2}.
          * (Typical state changes, like for buying and placing a piece, aren't an Effect.)
+         *<P>
+         * If the action is undone and server sends side-effect data messages to clients,
+         * {@code CHANGE_GAMESTATE} is sent last regardless of its position within {@link GameAction#effects}.
          *<P>
          * Params: Old and new {@link SOCGame#getGameState()}.
          */

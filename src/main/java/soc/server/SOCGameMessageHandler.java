@@ -1252,8 +1252,12 @@ public class SOCGameMessageHandler
 
     /**
      * While undoing a game action for the current player,
-     * send its {@link GameAction.Effect} game data messages
+     * send its {@link soc.game.GameAction.Effect} game data messages
      * which are sent before the undo, and gather those to send afterwards.
+     *<P>
+     * If {@link soc.game.GameAction#effects} includes {@link soc.game.GameAction.EffectType#CHANGE_GAMESTATE},
+     * its {@link SOCGameState} message will be at the end of the returned list.
+     *
      * @param ga  Game for this action
      * @param actToUndo  Action being undone; not {@code null}
      * @param pieceType  Piece type for action being undone if relevant, such as {@link SOCPlayingPiece#SHIP}, or -1
@@ -1274,6 +1278,7 @@ public class SOCGameMessageHandler
         List<SOCMessage> msgsAfter = new ArrayList<>();
         final String gaName = ga.getName();
         final int cpn = ga.getCurrentPlayerNumber();
+        int gameStateAfterUndo = 0;  // if set, will add to end of msgsAfter
 
         for (GameAction.Effect e : actToUndo.effects)
             switch (e.eType)
@@ -1294,6 +1299,10 @@ public class SOCGameMessageHandler
                         msgsAfter.add(new SOCPlayerElements
                             (gaName, cpn, SOCPlayerElement.GAIN, cost));
                 }
+                break;
+
+            case CHANGE_GAMESTATE:
+                gameStateAfterUndo = e.params[0];
                 break;
 
             case CHANGE_LONGEST_ROAD_PLAYER:
@@ -1341,6 +1350,9 @@ public class SOCGameMessageHandler
             default:
                 ;  // nothing yet
             }
+
+        if (gameStateAfterUndo > 0)
+            msgsAfter.add(new SOCGameState(gaName, gameStateAfterUndo));
 
         return (msgsAfter.isEmpty() ? null : msgsAfter);
     }
