@@ -1221,33 +1221,34 @@ public class TestGameActionExtractor
     {
         testExtractEventSequence(new String[]
             {
-            // start of p3's turn:
-            "all:SOCTurn:game=test|playerNumber=3|gameState=15",
-            "all:SOCRollDicePrompt:game=test|playerNumber=3",
+            // start of p5's turn:
+            "all:SOCTurn:game=test|playerNumber=5|gameState=15",
+            "all:SOCRollDicePrompt:game=test|playerNumber=5",
 
             // roll dice:
-            "f3:SOCRollDice:game=test",
+            "f5:SOCRollDice:game=test",
             "all:SOCDiceResult:game=test|param=12",
             "all:SOCGameState:game=test|state=20",
 
             // build city:
-            "f3:SOCPutPiece:game=g|playerNumber=3|pieceType=2|coord=45",
-            "all:SOCPlayerElements:game=g|playerNum=3|actionType=LOSE|e2=3,e4=2",
+            "f5:SOCPutPiece:game=g|playerNumber=5|pieceType=2|coord=45",
+            "all:SOCPlayerElements:game=g|playerNum=5|actionType=LOSE|e2=3,e4=2",
             "all:SOCGameServerText:game=g|text=debug built a city.",
-            "all:SOCPutPiece:game=g|playerNumber=3|pieceType=2|coord=45",
+            "all:SOCPutPiece:game=g|playerNumber=5|pieceType=2|coord=45",
             "all:SOCGameState:game=g|state=20",
 
             // undo build city:
-            "f3:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45",
-            "all:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45",
-            "all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2",
+            "f5:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=2|coord=45",
+            "all:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=2|coord=45",
+            "all:SOCPlayerElements:game=g|playerNum=5|actionType=GAIN|e2=3,e4=2",
             "all:SOCGameState:game=g|state=20",
 
             // end turn:
-            "f3:SOCEndTurn:game=test",
+            "f5:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
+
             },
-            3, 99,
+            5, 99,
             new ExtractResultsChecker()
             {
                 public void check(GameActionLog actionLog, int toClientPN)
@@ -1265,7 +1266,7 @@ public class TestGameActionExtractor
                     assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
                     assertEquals(desc, 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
-                    assertEquals(desc + " new current player number", 3, act.param1);
+                    assertEquals(desc + " new current player number", 5, act.param1);
 
                     act = actionLog.get(2);
                     assertEquals(desc, ActionType.ROLL_DICE, act.actType);
@@ -1279,7 +1280,7 @@ public class TestGameActionExtractor
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " built city", SOCPlayingPiece.CITY, act.param1);
                     assertEquals(desc + " built at 0x45", 0x45, act.param2);
-                    assertEquals(desc + " built by player 3", 3, act.param3);
+                    assertEquals(desc + " built by player 5", 5, act.param3);
 
                     act = actionLog.get(4);
                     assertEquals(desc, ActionType.UNDO_BUILD_PIECE, act.actType);
