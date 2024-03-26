@@ -332,7 +332,17 @@ Or if client sends build request:
 
 ## Undo build or move piece
 
-Because the sequence sometimes includes messages from undoing side effects, it always ends with SOCGameState (although state is usually unchanged) as a marker. As with other types of sequences, sometimes that SOCGameState is followed by a SOCGameServerText.
+Because the sequence sometimes includes messages from undoing side effects, it always ends with SOCGameState (although state is usually unchanged) as a marker; can be 20 (PLAY1) or 100 (SPECIAL_BUILDING). As with other types of sequences, sometimes that SOCGameState is followed by a SOCGameServerText.
+
+### Road
+
+- f5:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=0|coord=64
+- all:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=0|coord=64
+- all:SOCPlayerElements:game=g|playerNum=5|actionType=GAIN|e1=1,e5=1
+- Undo any side effects, such as:
+    - all:SOCLongestRoad:game=g|playerNumber=-1
+    - Any message type before SOCGameState should be considered part of the side effects
+- all:SOCGameState:game=g|state=20
 
 ### City (upgrade from settlement)
 

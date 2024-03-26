@@ -35,6 +35,7 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
+import soc.game.SOCRoad;
 import soc.game.SOCScenario;
 import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCGameElements;
@@ -1221,6 +1222,8 @@ public class TestGameActionExtractor
     {
         testExtractEventSequence(new String[]
             {
+            /* undo build city */
+
             // start of p5's turn:
             "all:SOCTurn:game=test|playerNumber=5|gameState=15",
             "all:SOCRollDicePrompt:game=test|playerNumber=5",
@@ -1247,6 +1250,44 @@ public class TestGameActionExtractor
             "f5:SOCEndTurn:game=test",
             "all:SOCClearOffer:game=test|playerNumber=-1",
 
+            /* undo build roads, including Longest Road */
+
+            // start of p5's Special Building Phase:
+            "all:SOCTurn:game=g|playerNumber=5|gameState=100",
+
+            // build road:
+            "f5:SOCPutPiece:game=g|playerNumber=5|pieceType=0|coord=84",
+            "all:SOCPlayerElements:game=g|playerNum=5|actionType=LOSE|e1=1,e5=1",
+            "all:SOCGameServerText:game=g|text=debug built a road.",
+            "all:SOCPutPiece:game=g|playerNumber=5|pieceType=0|coord=84",
+            "all:SOCGameState:game=g|state=100",
+
+            // undo that:
+            "f5:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=0|coord=84",
+            "all:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=0|coord=84",
+            "all:SOCPlayerElements:game=g|playerNum=5|actionType=GAIN|e1=1,e5=1",
+            "all:SOCGameState:game=g|state=100",
+
+            // build road that gains Longest Route:
+            "f5:SOCPutPiece:game=g|playerNumber=5|pieceType=0|coord=64",
+            "all:SOCPlayerElements:game=g|playerNum=5|actionType=LOSE|e1=1,e5=1",
+            "all:SOCGameServerText:game=g|text=debug built a road.",
+            "all:SOCPutPiece:game=g|playerNumber=5|pieceType=0|coord=64",
+            "all:SOCGameElements:game=g|e6=5",
+            "all:SOCGameState:game=g|state=100",
+
+            // undo that:
+            "f5:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=0|coord=64",
+            "all:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=0|coord=64",
+            "all:SOCPlayerElements:game=g|playerNum=5|actionType=GAIN|e1=1,e5=1",
+          //  "all:SOCLongestRoad:game=g|playerNumber=-1", TODO uncomment once side-effects recognized
+            "all:SOCGameState:game=g|state=100",
+
+            // end SBP:
+            "f5:SOCEndTurn:game=g",
+            "all:SOCPlayerElement:game=g|playerNum=5|actionType=SET|elementType=16|amount=0",
+            "all:SOCClearOffer:game=g|playerNumber=-1"
+
             },
             5, 99,
             new ExtractResultsChecker()
@@ -1255,12 +1296,14 @@ public class TestGameActionExtractor
                 {
                     final String desc = "for clientPN=" + toClientPN + ":";
 
-                    assertEquals(desc, 6, actionLog.size());
+                    assertEquals(desc, 12, actionLog.size());
 
                     GameActionLog.Action act = actionLog.get(0);
                     assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
                     assertEquals(desc, EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
                     assertEquals(desc, EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+                    /* undo build city */
 
                     act = actionLog.get(1);
                     assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
@@ -1296,6 +1339,57 @@ public class TestGameActionExtractor
                     assertEquals(desc, ActionType.END_TURN, act.actType);
                     assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+
+                    /* undo build roads, including Longest Road */
+
+                    act = actionLog.get(6);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc + " new current player number", 5, act.param1);
+
+                    act = actionLog.get(7);
+                    assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc + " built road", SOCPlayingPiece.ROAD, act.param1);
+                    assertEquals(desc + " built at 0x84", 0x84, act.param2);
+                    assertEquals(desc + " built by player 5", 5, act.param3);
+
+                    act = actionLog.get(8);
+                    assertEquals(desc, ActionType.UNDO_BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc + " unbuilt road", SOCPlayingPiece.ROAD, act.param1);
+                    assertEquals(desc + " unbuilt at 0x84", 0x84, act.param2);
+                    assertEquals(0, act.param3);
+                    assertEquals(desc + " resources from undo build road", SOCRoad.COST, act.rset1);
+                    assertNull(act.rset2);
+
+                    act = actionLog.get(9);
+                    assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 6 : 5, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc + " built road", SOCPlayingPiece.ROAD, act.param1);
+                    assertEquals(desc + " built at 0x64", 0x64, act.param2);
+                    // TODO look for Longest Route change
+                    assertEquals(desc + " built by player 5", 5, act.param3);
+
+                    act = actionLog.get(10);
+                    assertEquals(desc, ActionType.UNDO_BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc + " unbuilt road", SOCPlayingPiece.ROAD, act.param1);
+                    assertEquals(desc + " unbuilt at 0x64", 0x64, act.param2);
+                    assertEquals(0, act.param3);
+                    assertEquals(desc + " resources from undo build road", SOCRoad.COST, act.rset1);
+                    // TODO look for Longest Route change
+                    assertNull(act.rset2);
+
+                    act = actionLog.get(11);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
                 }
             });
     }

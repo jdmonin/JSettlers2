@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1086,7 +1086,7 @@ public class GameActionExtractor
         final int pieceType = ((SOCUndoPutPiece) (e.event)).getPieceType(),
             builtCoord = ((SOCUndoPutPiece) (e.event)).getCoordinates();
         // TODO parse types other than CITY
-        if (pieceType != SOCPlayingPiece.CITY)
+        if ((pieceType != SOCPlayingPiece.ROAD) && (pieceType != SOCPlayingPiece.CITY))
         {
             System.err.println("TODO: parse SOCUndoPutPiece(pType=" + pieceType + ')');
             return null;
@@ -1094,6 +1094,8 @@ public class GameActionExtractor
         e = next();
         if (e == null)
             return null;
+
+        // TODO parse pieceType road side effects
 
         // all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2
         if (! (e.isToAll() && (e.event instanceof SOCPlayerElements)))
