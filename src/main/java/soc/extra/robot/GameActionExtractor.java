@@ -1085,7 +1085,7 @@ public class GameActionExtractor
             return null;
         final int pieceType = ((SOCUndoPutPiece) (e.event)).getPieceType(),
             builtCoord = ((SOCUndoPutPiece) (e.event)).getCoordinates();
-        // TODO parse types other than CITY
+        // TODO parse types other than ROAD, CITY
         if ((pieceType != SOCPlayingPiece.ROAD) && (pieceType != SOCPlayingPiece.CITY))
         {
             System.err.println("TODO: parse SOCUndoPutPiece(pType=" + pieceType + ')');
@@ -1094,8 +1094,6 @@ public class GameActionExtractor
         e = next();
         if (e == null)
             return null;
-
-        // TODO parse pieceType road side effects
 
         // all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2
         if (! (e.isToAll() && (e.event instanceof SOCPlayerElements)))
@@ -1114,12 +1112,17 @@ public class GameActionExtractor
                 return null;
             cost.add(amounts[i], etype);
         }
-        e = next();
-        if (e == null)
-            return null;
+
+        // Skip past any side effects (any message before gamestate)
+        do
+        {
+            e = next();
+            if (e == null)
+                return null;
+        } while (! (e.event instanceof SOCGameState));
 
         // all:SOCGameState:game=g|state=20
-        if (! (e.isToAll() && (e.event instanceof SOCGameState)))
+        if (! e.isToAll())
             return null;
 
         int prevStart = currentSequenceStartIndex;
