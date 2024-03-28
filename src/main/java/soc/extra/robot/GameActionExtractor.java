@@ -1085,8 +1085,8 @@ public class GameActionExtractor
             return null;
         final int pieceType = ((SOCUndoPutPiece) (e.event)).getPieceType(),
             builtCoord = ((SOCUndoPutPiece) (e.event)).getCoordinates();
-        // TODO parse types other than ROAD, CITY
-        if ((pieceType != SOCPlayingPiece.ROAD) && (pieceType != SOCPlayingPiece.CITY))
+        // TODO parse SHIP
+        if ((pieceType != SOCPlayingPiece.ROAD) && (pieceType != SOCPlayingPiece.SETTLEMENT) && (pieceType != SOCPlayingPiece.CITY))
         {
             System.err.println("TODO: parse SOCUndoPutPiece(pType=" + pieceType + ')');
             return null;

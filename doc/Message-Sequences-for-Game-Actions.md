@@ -213,12 +213,12 @@ and pieces have no cost, so it may send SOCTurn instead of SOCGameState and won'
 - f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=804
 - all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e3=1,e4=1,e5=1
 - all:SOCGameServerText:game=test|text=p3 built a settlement.
+- all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=60a
+- If Longest Route player changes: all:SOCGameElements:game=test|e6=3  // LONGEST_ROAD_PLAYER
 - Occasionally extra messages here, depending on game options/scenario. Example:
     - all:SOCSVPTextMessage:game=test|pn=3|svp=2|desc=settling a new island
     - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=104|amount=4  // SCENARIO_SVP_LANDAREAS_BITMASK
     - all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=102|amount=2  // SCENARIO_SVP
-- all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=60a
-- If Longest Route player changes: all:SOCGameElements:game=test|e6=3  // LONGEST_ROAD_PLAYER
 - all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING)
     - Or if won game:  
       all:SOCGameElements:game=test|e4=3 , all:SOCGameState 1000 (OVER)
@@ -232,6 +232,7 @@ Or if client starts with build request:
 - all:SOCGameServerText:game=test|text=p3 built a settlement.
 - all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=67
 - If Longest Route player changes: all:SOCGameElements:game=test|e6=3
+- Occasional extra messages here as mentioned above
 - all:SOCGameState:game=test|state=20  // or 100 (SPECIAL_BUILDING)
 
 ### City

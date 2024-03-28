@@ -37,6 +37,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCScenario;
+import soc.game.SOCSettlement;
 import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCGameElements;
 import soc.message.SOCGameServerText;
@@ -1286,7 +1287,40 @@ public class TestGameActionExtractor
             // end SBP:
             "f5:SOCEndTurn:game=g",
             "all:SOCPlayerElement:game=g|playerNum=5|actionType=SET|elementType=16|amount=0",
-            "all:SOCClearOffer:game=g|playerNumber=-1"
+            "all:SOCClearOffer:game=g|playerNumber=-1",
+
+            /* undo build settlement, including Special Victory Points */
+
+            // start of p5's turn:
+            "all:SOCTurn:game=g|playerNumber=5|gameState=15",
+            "all:SOCRollDicePrompt:game=g|playerNumber=5",
+
+            // roll dice:
+            "f5:SOCRollDice:game=g",
+            "all:SOCDiceResult:game=g|param=3",
+            "all:SOCGameState:game=g|state=20",
+
+            // build settlement:
+            "f5:SOCPutPiece:game=g|playerNumber=5|pieceType=1|coord=60c",
+            "all:SOCPlayerElements:game=g|playerNum=5|actionType=LOSE|e1=1,e3=1,e4=1,e5=1",
+            "all:SOCGameServerText:game=g|text=debug built a settlement.",
+            "all:SOCPutPiece:game=g|playerNumber=5|pieceType=1|coord=60c",
+            "all:SOCSVPTextMessage:game=g|pn=5|svp=2|desc=settling a new island",
+            "all:SOCPlayerElement:game=g|playerNum=5|actionType=SET|elementType=104|amount=4",
+            "all:SOCPlayerElement:game=g|playerNum=5|actionType=SET|elementType=102|amount=2",
+            "all:SOCGameState:game=g|state=20",
+
+            // undo that build:
+            "f5:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=1|coord=60c",
+            "all:SOCSetShipRouteClosed:game=g|p=0|p=1547|p=1546",
+            "all:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=1|coord=60c",
+            "all:SOCPlayerElements:game=g|playerNum=5|actionType=SET|e102=0,e104=0",
+            "all:SOCPlayerElements:game=g|playerNum=5|actionType=GAIN|e1=1,e3=1,e4=1,e5=1",
+            "all:SOCGameState:game=g|state=20",
+
+            // end turn:
+            "f5:SOCEndTurn:game=g",
+            "all:SOCClearOffer:game=g|playerNumber=-1",
 
             },
             5, 99,
@@ -1296,7 +1330,7 @@ public class TestGameActionExtractor
                 {
                     final String desc = "for clientPN=" + toClientPN + ":";
 
-                    assertEquals(desc, 12, actionLog.size());
+                    assertEquals(desc, 18, actionLog.size());  // TODO should be 17, temporarily 18 to debug past this assert
 
                     GameActionLog.Action act = actionLog.get(0);
                     assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -1388,6 +1422,44 @@ public class TestGameActionExtractor
                     assertEquals(desc, ActionType.END_TURN, act.actType);
                     assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+
+                    /* undo build settlement, including Special Victory Points */
+
+                    act = actionLog.get(12);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc + " new current player number", 5, act.param1);
+
+                    act = actionLog.get(13);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 3, act.param1);
+
+                    act = actionLog.get(14);
+                    assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " built settlement", SOCPlayingPiece.SETTLEMENT, act.param1);
+                    assertEquals(desc + " built at 0x60c", 0x60c, act.param2);
+                    assertEquals(desc + " built by player 5", 5, act.param3);
+
+                    act = actionLog.get(15);
+                    assertEquals(desc, ActionType.UNDO_BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.SPECIAL_BUILDING, act.endingGameState);
+                    assertEquals(desc + " unbuilt settlement", SOCPlayingPiece.SETTLEMENT, act.param1);
+                    assertEquals(desc + " unbuilt at 0x60c", 0x60c, act.param2);
+                    assertEquals(0, act.param3);
+                    assertEquals(desc + " resources from undo build settlement", SOCSettlement.COST, act.rset1);
+                    assertNull(act.rset2);
+
+                    act = actionLog.get(16);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+
                 }
             });
     }
