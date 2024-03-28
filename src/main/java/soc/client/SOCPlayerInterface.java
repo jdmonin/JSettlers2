@@ -4359,13 +4359,11 @@ public class SOCPlayerInterface extends JFrame
                 break;
 
             case SpecialVictoryPoints:
-                if (player.getSpecialVP() != 0)
-                {
-                    // assumes will never be reduced to 0 again
-                    hpan.updateValue(PlayerClientListener.UpdateType.SpecialVictoryPoints);
-                    hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // call after SVP, not before, in case ends the game
-                    // (This code also appears in SOCPlayerInterface.playerEvent)
-                }
+                hpan.updateValue(PlayerClientListener.UpdateType.SpecialVictoryPoints);
+                hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // call after SVP, not before, in case ends the game
+                // (This code also appears in SOCPlayerInterface.playerEvent,
+                //  where it assumes SVP will never be reduced to 0 again
+                //  because Undo does not cause any PlayerEvent)
                 break;
 
             case Cloth:
