@@ -221,6 +221,48 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
         - When card is played, game might immediately award Largest Army and Hand Panel might show 10 VP
         - Card should fully play out (choose player, etc) before server announces game is over
 
+### Undo Build/Move Pieces
+
+- Setup
+    - As Debug user, start a new game on server with options:
+        - Game scenario: New Shores
+        - Allow undo piece builds and moves
+        - Limit undos to 7 per player (is default)
+    - Initial placement: Build 2 coastal settlements near two small islands, each with an initial ship (not a road)
+    - Have another client join as observer
+- Build Road and Undo
+    - Add resources: `rsrcs: 4 0 0 0 4 debug`
+    - Build 3 roads towards the middle of the main island
+        - In player client and observer, should show 2 VP
+    - Note player's current resource counts
+    - Build another road to gain Longest Route
+        - Player should show 4 VP and Longest Route
+    - Undo build that road
+        - Player should show 2 VP and no Longest Route
+        - Player's resource counts should be same as before building that latest road
+        - Player's Undos remaining should be 6
+- Build Settlement and Undo
+    - Add resources: `rsrcs: 0 0 2 1 1 debug`
+    - Build a ship to reach a small island
+        - Don't use the same line of ships/roads just built for testing Undo Build Road/Longest Route
+        - In player client and observer, should show 2 VP and no SVP
+    - Note player's current resource counts
+    - Build a settlement on the small island
+        - Player should show 5 VP and 2 SVP
+    - Undo build that settlement
+        - Player should show 2 VP and no SVP
+        - Player's resource counts should be same as before building that settlement
+        - Player's Undos remaining should be 5
+- Build City and Undo
+    - Add resources: `rsrcs: 0 3 0 1 0 debug`
+    - Note player's current resource counts
+    - Upgrade any settlement to city
+        - Player should show 3 VP
+    - Undo that city upgrade
+        - Player should show 2 VP
+        - Player's resource counts should be same as before that city
+        - Player's Undos remaining should be 4
+
 ### Scenarios and Victory Points to Win
 
 - New Game dialog: VP to Win vs scenarios
