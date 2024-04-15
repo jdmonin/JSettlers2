@@ -33,6 +33,8 @@ JARs for recent JSettlers versions can be downloaded from
 	        - If hasn't made trades of a type, show "None" instead of all 0s
 	        - 2:1 ports: Show as `4 -> (0, 0, 0, 1, 1)` instead of `(0, 0, 4, 0, 0) -> ...`
 	    - Statistics dialog shows client player's resource rolls and trades
+	    - Bugfix when Window Close button clicked: Don't hide the window if user wants to continue playing or reset board
+	      (thanks KotCzarny for reporting github issue #103)
 	- New Game dialog:
 	    - If any of the chosen Game Options require a minimum client version, list those options in the confirmation dialog
 	      so user knows what to leave out if they don't want that requirement

@@ -116,6 +116,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -1295,6 +1296,7 @@ public class SOCPlayerInterface extends JFrame
         {
             // If player requests window close, ask if they're sure, leave game if so
             addWindowListener(new PIWindowAdapter(mainDisplay, this));
+            setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         }
 
     }
@@ -5764,7 +5766,11 @@ public class SOCPlayerInterface extends JFrame
     }
 
     /**
-     * React to window closing or losing focus (deactivation).
+     * React to window close button request or losing focus (deactivation).
+     *<P>
+     * As of v2.7.00, assumes frame setup included calling
+     * {@link JFrame#setDefaultCloseOperation(WindowConstants) PI.setDefaultCloseOperation}({@link WindowConstants#DO_NOTHING_ON_CLOSE})
+     * to not hide the frame if user decides to keep playing.
      * @author jdmonin
      * @since 1.1.00
      */

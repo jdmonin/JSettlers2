@@ -1464,6 +1464,11 @@ On most recent and less-recent OSX and Windows; JRE 8 and a new JDK:
       should be able to Select All, Copy to clipboard
 - Sound, including 2 clients in same game for overlapping piece-place sound
 - Start, join networked games
+- Game window Close button handler
+    - Create a game
+    - Click its game window's Close button, then choose Continue Playing; window should not disappear
+    - Click Close again and choose Reset Board; window should not disappear
+    - Click Close again and choose Quit Game; window should disappear, game should be removed from list of games
 - Graphics, including scaling and antialiasing after window resize
 - High-DPI support
     - Test runs:
