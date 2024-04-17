@@ -23,6 +23,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- New optional house rule: Allow undo building and moving pieces (new game option `UB`; requires client v2.7.00 or newer)
 - I18N:
 	- Added German translation (thank you Eudoxia and Quasigroup)
+	- Updated Polish translation (thank you KotCzarny)
 - Client:
 	- Game window:
 	    - For visibility when a player builds, highlight most recently placed piece until end of their turn
