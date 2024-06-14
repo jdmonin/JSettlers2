@@ -351,6 +351,17 @@ Because the sequence sometimes includes messages from undoing side effects, it a
 - all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2
 - all:SOCGameState:game=g|state=20
 
+### Ship
+
+- f5:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=3|coord=d05
+- If undo reopens a trade route as side effect: all:SOCSetShipRouteClosed:game=g|p=0|p=3333|p=3077
+- all:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=3|coord=d05
+- all:SOCPlayerElements:game=g|playerNum=5|actionType=GAIN|e3=1,e5=1
+- Undo any side effects, such as:
+    - all:SOCLongestRoad:game=g|playerNumber=-1
+    - Any message type before SOCGameState should be considered part of the side effects
+- all:SOCGameState:game=g|state=20
+
 ## Move piece (move ship)
 
 - f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=c06|toCoord=f06

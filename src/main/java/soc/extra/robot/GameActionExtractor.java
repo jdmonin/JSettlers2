@@ -89,7 +89,7 @@ public class GameActionExtractor
         for (int msgtype : new int[]
             {
                 SOCMessage.DICERESULT, SOCMessage.PUTPIECE, SOCMessage.REVEALFOGHEX, SOCMessage.CANCELBUILDREQUEST,
-                SOCMessage.UNDOPUTPIECE,
+                SOCMessage.UNDOPUTPIECE, SOCMessage.SETSHIPROUTECLOSED,
                 SOCMessage.PLAYERELEMENT, SOCMessage.PLAYERELEMENTS,
                 SOCMessage.MOVEPIECE, SOCMessage.DEVCARDACTION, SOCMessage.DISCARD, SOCMessage.PICKRESOURCES,
                 SOCMessage.GAMESTATE, SOCMessage.MOVEROBBER, SOCMessage.CHOOSEPLAYERREQUEST,
@@ -529,6 +529,8 @@ public class GameActionExtractor
                     extractedAct = extract_CANCEL_BUILT_PIECE(e);
                     break;
 
+                case SOCMessage.SETSHIPROUTECLOSED:
+                    // fall through
                 case SOCMessage.UNDOPUTPIECE:
                     extractedAct = extract_UNDO_BUILD_PIECE(e);
                     break;
@@ -1079,6 +1081,10 @@ public class GameActionExtractor
 
             e = next();
         }
+
+        // optionally, all:SOCSetShipRouteClosed:game=g|p=0|p=3333|p=3077
+        if ((e.event instanceof SOCSetShipRouteClosed) && e.isToAll())
+            e = next();
 
         // all:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45
         if (! (e.isToAll() && (e.event instanceof SOCUndoPutPiece)))

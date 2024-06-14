@@ -1315,7 +1315,6 @@ public class TestGameActionExtractor
             "all:SOCPlayerElements:game=g|playerNum=5|actionType=GAIN|e3=1,e5=1",
             "all:SOCGameState:game=g|state=20",
 
-            /*
             // build ship to a coastal settlement, closing a route:
             "f5:SOCPutPiece:game=g|playerNumber=5|pieceType=3|coord=d05",
             "all:SOCPlayerElements:game=g|playerNum=5|actionType=LOSE|e3=1,e5=1",
@@ -1329,13 +1328,21 @@ public class TestGameActionExtractor
             "all:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=3|coord=d05",
             "all:SOCPlayerElements:game=g|playerNum=5|actionType=GAIN|e3=1,e5=1",
             "all:SOCGameState:game=g|state=20",
-             */
 
             // build ship that gains Longest Route:
-            // [...]
+            "f5:SOCPutPiece:game=g|playerNumber=5|pieceType=3|coord=60e",
+            "all:SOCPlayerElements:game=g|playerNum=5|actionType=LOSE|e3=1,e5=1",
+            "all:SOCGameServerText:game=g|text=f5 built a ship.",
+            "all:SOCPutPiece:game=g|playerNumber=5|pieceType=3|coord=60e",
+            "all:SOCGameElements:game=g|e6=5",
+            "all:SOCGameState:game=g|state=20",
 
             // undo that:
-            // [...]
+            "f5:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=3|coord=60e",
+            "all:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=3|coord=60e",
+            "all:SOCPlayerElements:game=g|playerNum=5|actionType=GAIN|e3=1,e5=1",
+            "all:SOCLongestRoad:game=g|playerNumber=-1",
+            "all:SOCGameState:game=g|state=20",
 
             // end turn:
             "f5:SOCEndTurn:game=g",
@@ -1349,7 +1356,7 @@ public class TestGameActionExtractor
                 {
                     final String desc = "for clientPN=" + toClientPN + ":";
 
-                    assertEquals(desc, 17, actionLog.size());
+                    assertEquals(desc, 21, actionLog.size());
 
                     GameActionLog.Action act = actionLog.get(0);
                     assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
@@ -1474,7 +1481,6 @@ public class TestGameActionExtractor
                     assertEquals(desc + " resources from undo build ship", SOCShip.COST, act.rset1);
                     assertNull(act.rset2);
 
-                    /*
                     act = actionLog.get(16);
                     assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
                     assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
@@ -1485,16 +1491,33 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(17);
                     assertEquals(desc, ActionType.UNDO_BUILD_PIECE, act.actType);
-                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " unbuilt ship", SOCPlayingPiece.SHIP, act.param1);
                     assertEquals(desc + " unbuilt at 0xd05", 0xd05, act.param2);
                     assertEquals(0, act.param3);
                     assertEquals(desc + " resources from undo build ship", SOCShip.COST, act.rset1);
                     assertNull(act.rset2);
-                     */
 
-                    act = actionLog.get(16);
+                    act = actionLog.get(18);
+                    assertEquals(desc, ActionType.BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 6 : 5, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " built ship", SOCPlayingPiece.SHIP, act.param1);
+                    assertEquals(desc + " built at 0x60e", 0x60e, act.param2);
+                    assertEquals(desc + " built by player 5", 5, act.param3);
+
+                    act = actionLog.get(19);
+                    assertEquals(desc, ActionType.UNDO_BUILD_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " unbuilt ship", SOCPlayingPiece.SHIP, act.param1);
+                    assertEquals(desc + " unbuilt at 0x60e", 0x60e, act.param2);
+                    assertEquals(0, act.param3);
+                    assertEquals(desc + " resources from undo build ship", SOCShip.COST, act.rset1);
+                    assertNull(act.rset2);
+
+                    act = actionLog.get(20);
                     assertEquals(desc, ActionType.END_TURN, act.actType);
                     assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);

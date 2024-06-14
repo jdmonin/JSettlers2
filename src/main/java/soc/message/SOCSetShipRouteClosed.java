@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2022,2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,7 +27,8 @@ import soc.game.SOCShip;  // javadocs only
 
 /**
  * This game data message from server reopens or closes a shipping trade route.
- * Typically this is sent (to reopen) near start of a sequence to undo placing or moving a ship ({@link SOCUndoPutPiece}).
+ * Typically this is sent (to reopen) near start of a sequence to undo placing or moving a ship
+ * (before sending {@link SOCUndoPutPiece}).
  * Closing a ship route is handled at client's game logic while the pieces are placed,
  * not by sending a message from the server.
  *<P>
