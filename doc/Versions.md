@@ -44,6 +44,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Show game duration and status (not started yet, in progress, finished)
 	    - Even if client can't join game, show its options (with server v2.7.00 or newer)
 	    - Added context menu to copy game name to clipboard
+	- When started with command line params, and then connection to server is lost, show same buttons as when started with none: Reconnect, practice, etc (issue #108)
 	- Don't set gotPassword field while joining a practice game
 	- Game stats:
 	    - Update players' resource stats during game play (previously done only at server)

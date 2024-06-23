@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2008-2009,2012-2013,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2009,2012-2013,2017,2019-2022,2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -552,6 +552,22 @@ import soc.util.Version;
     {
         topText.setText(newText);
         validate();
+    }
+
+    /**
+     * Update the contents of the panel's Host and Port fields.
+     * @param chost Hostname to set to, or {@code null} to leave unchanged
+     * @param cport Port number to set to
+     * @since 2.7.00
+     */
+    public void setServerHostPort(final String chost, final int cport)
+    {
+        if ((chost != null) && ! conn_servhost.getText().equals(chost))
+            conn_servhost.setText(chost);
+
+        String pstr = String.valueOf(cport);
+        if (! conn_servport.getText().equals(pstr))
+            conn_servport.setText(pstr);
     }
 
     /**

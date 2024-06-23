@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -586,7 +586,7 @@ public class SOCPlayerClient
 
     /**
      * Connect and give feedback by showing MESSAGE_PANEL.
-     * Calls {@link MainDisplay#connect(String, String)} to set username and password,
+     * Calls {@link MainDisplay#connect(String, int, String, String)} to set username and password,
      * then {@link ClientNetwork#connect(String, int)} to make the connection.
      *<P>
      * Note: If {@code chost} is null, {@link ClientNetwork#connect(String, int)}
@@ -601,7 +601,7 @@ public class SOCPlayerClient
      */
     public void connect(final String chost, final int cport, final String cuser, final String cpass)
     {
-        mainDisplay.connect(cpass, cuser);
+        mainDisplay.connect(chost, cport, cpass, cuser);
 
         // TODO don't do net connect attempt on UI thread
         // Meanwhile: To ensure the UI repaints before starting net connect:
@@ -1091,8 +1091,8 @@ public class SOCPlayerClient
         final SOCPlayerClient client;
         final SwingMainDisplay mainDisplay;
 
-        String host = null;  // from args, if not empty
-        int port = -1;
+        final String host;  // from args, if not empty
+        final int port;
 
         Version.printVersionText(System.out, "Java Settlers Client ");
 
@@ -1104,14 +1104,21 @@ public class SOCPlayerClient
                 System.exit(1);
             }
 
+            String h = null;
+            int p = -1;
             try {
-                host = args[0];
-                port = Integer.parseInt(args[1]);
+                h = args[0];
+                p = Integer.parseInt(args[1]);
             } catch (NumberFormatException x) {
                 usage();
                 System.err.println("Invalid port: " + args[1]);
                 System.exit(1);
             }
+            host = h;
+            port = p;
+        } else {
+            host = null;
+            port = -1;
         }
 
         try {
@@ -1154,7 +1161,17 @@ public class SOCPlayerClient
         }
 
         if ((host != null) && (port != -1))
-            client.net.connect(host, port);
+        {
+            // Connect to a remote server.
+            // Uses invokeLater so UI can set host/port textfields before calling call net.connect
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    client.connect(host, port, "", "");
+                }
+            });
+        }
     }
 
 

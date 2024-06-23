@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2020,2022,2024 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -72,7 +72,7 @@ public interface MainDisplay
 
     /**
      * Prepare to connect and give feedback by showing a message panel.
-     * Stores the given username and password in the user interface.
+     * Stores the given hostname, port, username and password in the user interface.
      *<P>
      * Does not make a network connection.
      * Call {@link ClientNetwork#connect(String, int)} when ready to make the connection.
@@ -80,10 +80,12 @@ public interface MainDisplay
      * User login and authentication don't occur until a game or channel join is requested;
      * at that time, the user interface will read the name and password stored here.
      *
+     * @param chost Hostname to connect to, or null for localhost
+     * @param cport Port number to connect to
      * @param cpass Password text to put into that TextField (obscured)
      * @param cuser User nickname text to put into that TextField
      */
-    void connect(String cpass, String cuser);
+    void connect(String chost, int cport, String cpass, String cuser);
 
     /**
      * Setup for locally hosting a TCP server.

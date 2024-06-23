@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2024 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -190,7 +190,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
     /** Connect-or-practice panel (if jar launch), in cardlayout.
      * Panel field is {@link #connectOrPracticePane}.
-     * Available if {@link #hasConnectOrPractice}.
+     * Shown at startup if {@link #hasConnectOrPractice}.
      * @since 1.1.00
      */
     private static final String CONNECT_OR_PRACTICE_PANEL = "connOrPractice";
@@ -322,12 +322,12 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     protected boolean hasJoinedServer;
 
     /**
-     * If true, we'll give the user a choice to
+     * If true, at startup we'll give the user a choice to
      * connect to a server, start a local server,
      * or a local practice game.
      * Used for when we're started from a jar, or
      * from the command line with no arguments.
-     * Uses {@link SOCConnectOrPracticePanel}.
+     * Uses {@link #connectOrPracticePane}.
      *
      * @see #cardLayout
      * @since 1.1.00
@@ -335,7 +335,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     protected final boolean hasConnectOrPractice;
 
     /**
-     * If applicable, is set up in {@link #initVisualElements()}.
+     * Is set up in {@link #initVisualElements()}.
      * Key for {@link #cardLayout} is {@link #CONNECT_OR_PRACTICE_PANEL}.
      * @see #hasConnectOrPractice
      * @since 1.1.00
@@ -996,12 +996,12 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         cardLayout = new CardLayout();
         setLayout(cardLayout);
 
+        connectOrPracticePane = new SOCConnectOrPracticePanel(this);
         if (hasConnectOrPractice)
-        {
-            connectOrPracticePane = new SOCConnectOrPracticePanel(this);
             add (connectOrPracticePane, CONNECT_OR_PRACTICE_PANEL);  // shown first
-        }
         add(messagePane, MESSAGE_PANEL); // shown first unless cpPane
+        if (! hasConnectOrPractice)
+            add (connectOrPracticePane, CONNECT_OR_PRACTICE_PANEL);
         add(mainPane, MAIN_PANEL);
 
         messageLabel.setText(strings.get("pcli.message.connecting.serv"));  // "Connecting to server..."
@@ -1290,8 +1290,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * Prepare to connect, give feedback by showing {@link #MESSAGE_PANEL}.
      * {@inheritDoc}
      */
-    public void connect(String cpass, String cuser)
+    public void connect(String chost, int cport, String cpass, String cuser)
     {
+        connectOrPracticePane.setServerHostPort(chost, cport);
         nick.setEditable(true);  // in case of reconnect. Will disable after starting or joining a game.
         pass.setEditable(true);
         pass.setText(cpass);
@@ -2140,10 +2141,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * After network trouble, show the error panel ({@link #MESSAGE_PANEL})
      * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
      *<P>
-     * If {@link #hasConnectOrPractice we have the startup panel} (started as JAR client
-     * app, not applet) with buttons to connect to a server or practice, and
-     * {@code canPractice} is true, shows that panel instead of the simpler
-     * practice-only message panel.
+     * If {@code canPractice} is true, shows the {@code err} message using the startup panel with buttons to
+     * connect to a server or practice, instead of the simpler practice-only message panel.
      *
      * @param err  Error message to show; not {@code null}. Can be multi-line by including {@code \n}.
      * @param canPractice  In current state of client, can we start a practice game?
@@ -2173,10 +2172,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             pgm.setVisible(false);
         }
 
-        if (hasConnectOrPractice && canPractice)
+        if (canPractice)
         {
-            // If we have the startup panel with buttons to connect to a server or practice,
-            // prep to show that by un-setting read-only fields we'll need again after connect.
+            // prep to show startup panel by un-setting read-only fields we'll need again after connect.
             nick.setEditable(true);
             pass.setText("");
             pass.setEditable(true);
