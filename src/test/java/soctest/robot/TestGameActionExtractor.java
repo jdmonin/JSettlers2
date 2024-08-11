@@ -1216,6 +1216,7 @@ public class TestGameActionExtractor
     /**
      * Test extraction of building pieces and undoing that:
      * {@link ActionType#UNDO_BUILD_PIECE}.
+     * @see #testMoveShipUndo()
      * @since 2.7.00
      */
     @Test
@@ -1518,6 +1519,101 @@ public class TestGameActionExtractor
                     assertNull(act.rset2);
 
                     act = actionLog.get(20);
+                    assertEquals(desc, ActionType.END_TURN, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+
+                }
+            });
+    }
+
+    /**
+     * Test extraction of moving ships and undoing that:
+     * {@link ActionType#UNDO_MOVE_PIECE}.
+     * @see #testBuildUndo()
+     * @since 2.7.00
+     */
+    @Test
+    public void testMoveShipUndo()
+    {
+        testExtractEventSequence(new String[]
+            {
+            /* undo move ship */
+
+            // start of p5's turn:
+            "all:SOCTurn:game=g|playerNumber=5|gameState=15",
+            "all:SOCRollDicePrompt:game=g|playerNumber=5",
+
+            // roll dice:
+            "f5:SOCRollDice:game=g",
+            "all:SOCDiceResult:game=g|param=12",
+            "all:SOCGameState:game=g|state=20",
+
+            // move ship:
+            "f5:SOCMovePiece:game=g|pn=5|pieceType=3|fromCoord=c0a|toCoord=b0a",
+            "all:SOCMovePiece:game=g|pn=5|pieceType=3|fromCoord=c0a|toCoord=b0a",
+
+            // undo move:
+            "f5:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=3|coord=b0a|movedFromCoord=c0a",
+            "all:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=3|coord=b0a|movedFromCoord=c0a",
+            "all:SOCGameState:game=g|state=20",
+
+            // end turn:
+            "f5:SOCEndTurn:game=test",
+            "all:SOCClearOffer:game=test|playerNumber=-1",
+
+            /* TODO undo move ship, including Longest Route */
+
+            },
+            5, 99,
+            new ExtractResultsChecker()
+            {
+                public void check(GameActionLog actionLog, int toClientPN)
+                {
+                    final String desc = "for clientPN=" + toClientPN + ":";
+
+                    assertEquals(desc, 6, actionLog.size());
+
+                    GameActionLog.Action act = actionLog.get(0);
+                    assertEquals(desc, ActionType.LOG_START_TO_STARTGAME, act.actType);
+                    assertEquals(desc, EMPTYEVENTLOG_SIZE_TO_STARTGAME, act.eventSequence.size());
+                    assertEquals(desc, EMPTYEVENTLOG_STARTGAME_GAME_STATE, act.endingGameState);
+
+                    /* move ship & undo */
+
+                    act = actionLog.get(1);
+                    assertEquals(desc, ActionType.TURN_BEGINS, act.actType);
+                    assertEquals(desc, 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.ROLL_OR_CARD, act.endingGameState);
+                    assertEquals(desc + " new current player number", 5, act.param1);
+
+                    act = actionLog.get(2);
+                    assertEquals(desc, ActionType.ROLL_DICE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " dice roll sum", 12, act.param1);
+
+                    act = actionLog.get(3);
+                    assertEquals(desc, ActionType.MOVE_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " moved ship", SOCPlayingPiece.SHIP, act.param1);
+                    assertEquals(desc + " moved from 0xc0a", 0xc0a, act.param2);
+                    assertEquals(desc + " moved to 0xb0a", 0xb0a, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
+
+                    act = actionLog.get(4);
+                    assertEquals(desc, ActionType.UNDO_MOVE_PIECE, act.actType);
+                    assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
+                    assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
+                    assertEquals(desc + " unmoved ship", SOCPlayingPiece.SHIP, act.param1);
+                    assertEquals(desc + " umoved move from 0xc0a", 0xc0a, act.param2);
+                    assertEquals(desc + " umoved move to 0xb0a", 0xb0a, act.param3);
+                    assertNull(act.rset1);
+                    assertNull(act.rset2);
+
+                    act = actionLog.get(5);
                     assertEquals(desc, ActionType.END_TURN, act.actType);
                     assertEquals(desc, (toClientPN == -1) ? 2 : 1, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
