@@ -4705,7 +4705,7 @@ public class SOCGame implements Serializable, Cloneable
             players[currentPlayerNumber].decrementUndosRemaining();
 
         final GameAction undoAct = new GameAction
-            (moveAct, ActionType.UNDO_MOVE_PIECE, SOCPlayingPiece.SHIP, wasMovedFromEdge, wasMovedToEdge);
+            (moveAct, ActionType.UNDO_MOVE_PIECE, SOCPlayingPiece.SHIP, wasMovedToEdge, wasMovedFromEdge);
         lastAction = undoAct;
         lastActionTime = System.currentTimeMillis();
 

@@ -1608,8 +1608,8 @@ public class TestGameActionExtractor
                     assertEquals(desc, (toClientPN == -1) ? 3 : 2, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " unmoved ship", SOCPlayingPiece.SHIP, act.param1);
-                    assertEquals(desc + " umoved move from 0xc0a", 0xc0a, act.param2);
-                    assertEquals(desc + " umoved move to 0xb0a", 0xb0a, act.param3);
+                    assertEquals(desc + " undid move was to 0xb0a", 0xb0a, act.param2);
+                    assertEquals(desc + " undid move was from 0xc0a", 0xc0a, act.param3);
                     assertNull(act.rset1);
                     assertNull(act.rset2);
 

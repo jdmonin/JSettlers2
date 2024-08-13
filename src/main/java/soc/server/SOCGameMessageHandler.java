@@ -2953,7 +2953,7 @@ public class SOCGameMessageHandler
                     List<SOCMessage> msgsAfter = sendUndoSideEffects(ga, undoShipMove, SOCPlayingPiece.SHIP);
                     srv.messageToGame
                         (gaName, true,
-                         new SOCUndoPutPiece(gaName, pn, pieceType, coord, undoShipMove.param2));
+                         new SOCUndoPutPiece(gaName, pn, pieceType, coord, undoShipMove.param3));
                     if (msgsAfter != null)
                         for (SOCMessage m : msgsAfter)
                             srv.messageToGame(gaName, true, m);

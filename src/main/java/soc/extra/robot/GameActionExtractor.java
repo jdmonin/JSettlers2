@@ -1146,9 +1146,7 @@ public class GameActionExtractor
         return new Action
             ((movedFromCoord == 0) ? ActionType.UNDO_BUILD_PIECE : ActionType.UNDO_MOVE_PIECE,
              state.currentGameState, resetCurrentSequence(), prevStart,
-             pieceType,
-             (movedFromCoord != 0) ? movedFromCoord : builtCoord,
-             (movedFromCoord != 0) ? builtCoord : 0,
+             pieceType, builtCoord, movedFromCoord,
              cost, null);
     }
 

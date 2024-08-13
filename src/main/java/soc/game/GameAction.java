@@ -374,8 +374,8 @@ public class GameAction
          * Undo previous move of a piece ({@link #MOVE_PIECE}).
          *<BR>
          * {@code p1} = piece type like {@link SOCPlayingPiece#SHIP},
-         * {@code p2} = coordinate piece was previously moved from, and where the undo has returned it,
-         * {@code p3} = coordinate piece was previously moved to.
+         * {@code p2} = coordinate the piece was previously moved to,
+         * {@code p3} = coordinate the piece was previously moved from, which is where the undo returns it.
          * {@code rs1} = free resources to return, gained from revealing any non-gold land hex from fog; null otherwise
          *<P>
          * Includes any {@link GameAction#effects} of the move action.

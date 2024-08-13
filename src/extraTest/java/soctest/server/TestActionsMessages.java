@@ -1068,8 +1068,8 @@ public class TestActionsMessages
         } else {
             assertEquals(GameAction.ActionType.UNDO_MOVE_PIECE, act.actType);
             assertEquals(pieceType, act.param1);
-            assertEquals(movedFromCoord, act.param2);
-            assertEquals(pieceCoord, act.param3);
+            assertEquals(pieceCoord, act.param2);
+            assertEquals(movedFromCoord, act.param3);
         }
         {
             List<GameAction.Effect> effects = act.effects;
