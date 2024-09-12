@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2012,2014-2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2012,2014-2017,2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,7 @@ import java.util.List;
 
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
 
 /**
  * Statistics from server for one stats type for a player.
@@ -28,6 +29,7 @@ import soc.game.SOCResourceConstants;
  * Design allows multiple types of stats.
  * The first item in this message is the type number.
  * Content of further items depends on the stats type.
+ * Clients should ignore any unrecognized type.
  *<UL>
  * <LI><B>Type 1:</B> Resource roll stats:<BR>
  *   For item details see {@link #STYPE_RES_ROLL}. Introduced in 1.1.09;
@@ -38,12 +40,18 @@ import soc.game.SOCResourceConstants;
  *   item for the number of gold hex resource picks/gains.
  *   Older clients would ignore the extra item, but wouldn't be compatible
  *   anyway with any game scenario that features gold hexes.
+ * <LI><B>Type 2:</B> Trade stats:<BR>
+ *   For item details see {@link #STYPE_TRADES}. Introduced in 2.6.00;
+ *   check client version against {@link #VERSION_FOR_TRADES}
+ *   before sending this type.
  *</UL>
  *
  * Because this is one player's stats sent only to their client, doesn't include player number.
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't care about their player stats.
+ *<P>
+ * For full end-of-game sequence, see {@link SOCGameStats}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.09
@@ -56,6 +64,7 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     public static final int STYPE_MIN = 1;
 
     /** Stats type 1: Resource roll stats.
+     *  Data is from {@link SOCPlayer#getResourceRollStats()}.
      *  Each resource's count includes resources picked from a rolled <tt>GOLD_HEX</tt>.
      *  For the Fog Scenario, includes resources picked when building
      *  a road or ship revealed gold from a fog hex.
@@ -76,16 +85,47 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
      *<P>
      * Check client version against {@link #VERSION_FOR_RES_ROLL}
      * before sending this type.
-     *
-     * @see SOCPlayer#getResourceRollStats()
      */
     public static final int STYPE_RES_ROLL = 1;
 
-    /** Highest-numbered stat stype in this version (1) */
-    public static final int STYPE_MAX = 1;
+    /**
+     * Stats type 2: Resource Trade stats.
+     * Data is from {@link SOCPlayer#getResourceTradeStats()}.
+     * Same format as returned from that method,
+     * but with each {@link SOCResourceSet} changed to an array of 5 ints.
+     * To help decode, {@code pa[1]} = length of each trade type's "subarray" of give/get ResourceSet ints: 5 * 2.
+     * So, total stats array length is (5 * 2 * {@link SOCPlayer#TRADE_STATS_ARRAY_LEN}) + 2.
+     *<P>
+     * More trade types may be added in later versions; earlier versions should ignore those added ones.
+     *<P>
+     * Added in v2.6.00 ({@link #VERSION_FOR_TRADES}); check client version before sending this type.
+     *
+     * @since 2.6.00
+     */
+    public static final int STYPE_TRADES = 2;
+
+    /**
+     * Highest-numbered stat stype in this version (2: {@link #STYPE_TRADES}).
+     *<P>
+     * Was 1 ({@link #STYPE_RES_ROLL}) before v2.6.00.
+     */
+    public static final int STYPE_MAX = 2;
 
     /** Minimum client version 1.1.09 for stats type 1 ({@link #STYPE_RES_ROLL}: resource roll stats). */
     public static final int VERSION_FOR_RES_ROLL = 1109;
+
+    /**
+     * Minimum client version 2.6.00 for stats type 2 ({@link #STYPE_TRADES}).
+     * @since 2.6.00
+     */
+    public static final int VERSION_FOR_TRADES = 2600;
+
+    /**
+     * Minimum version 2.7.00 where server automatically sends player stats when client player sits down
+     * if game is in progress.
+     * @since 2.7.00
+     */
+    public static final int VERSION_FOR_SENT_AT_SITDOWN = 2700;
 
     /**
      * Constructor for server to tell client about a player stat.
@@ -101,18 +141,35 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     public SOCPlayerStats(SOCPlayer pl, final int stype)
         throws IllegalArgumentException, NullPointerException
     {
-        super(PLAYERSTATS, pl.getGame().getName(), new int[len(pl, stype)]);  // len is almost always 6
+        super(PLAYERSTATS, pl.getGame().getName(), new int[len(pl, stype)]);
 
         pa[0] = stype;
 
         switch (stype)
         {
         case STYPE_RES_ROLL:
-            final int[] rstats = pl.getResourceRollStats();  // rstats[0] is unused
-            for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; ++i)
-                pa[i] = rstats[i];
-            if (pa.length > SOCResourceConstants.GOLD_LOCAL)
-                pa[SOCResourceConstants.GOLD_LOCAL] = rstats[SOCResourceConstants.GOLD_LOCAL];
+            {
+                final int[] rstats = pl.getResourceRollStats();  // rstats[0] is unused
+                for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; ++i)
+                    pa[i] = rstats[i];
+                if (pa.length > SOCResourceConstants.GOLD_LOCAL)
+                    pa[SOCResourceConstants.GOLD_LOCAL] = rstats[SOCResourceConstants.GOLD_LOCAL];
+            }
+            break;
+
+        case STYPE_TRADES:
+            {
+                pa[1] = 5 * 2;  // length of each "subarray"
+                int pi = 2;
+                final SOCResourceSet[][] tradesGiveGet = pl.getResourceTradeStats();
+                for (int tradeType = 0; tradeType < SOCPlayer.TRADE_STATS_ARRAY_LEN; ++tradeType)
+                    for (int giveGet = 0; giveGet < 2; ++giveGet)
+                    {
+                        final int[] res = tradesGiveGet[giveGet][tradeType].getAmounts(false);
+                        System.arraycopy(res, 0, pa, pi, 5);
+                        pi += 5;
+                    }
+            }
             break;
 
         default:  // (stype < STYPE_MIN) || (stype > STYPE_MAX)
@@ -143,6 +200,7 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     /**
      * Given a stat type and specific player, find the array length needed
      * to send that player's stats of that type.
+     * Called at server only.
      * @param pl  Player for these stats
      * @param stype  Stats type, such as {@link #STYPE_RES_ROLL}; see class javadoc or constructors
      * @return  Stat array length, including {@code stype} at index 0; always 6 before v2.0.00
@@ -162,6 +220,9 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
 
                 return 1 + 5 + ((hasGold) ? 1 : 0);
             }
+
+        case STYPE_TRADES:
+            return 2 + (SOCPlayer.TRADE_STATS_ARRAY_LEN * 5 * 2);
 
         default:  // (stype < STYPE_MIN) || (stype > STYPE_MAX)
             throw new IllegalArgumentException("stype out of range: " + stype);

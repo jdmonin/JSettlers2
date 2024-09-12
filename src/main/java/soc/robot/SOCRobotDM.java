@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -111,6 +111,9 @@ public class SOCRobotDM
   public static final int SMART_STRATEGY = 0;
   public static final int FAST_STRATEGY = 1;
 
+  /**
+   * The brain using this DM for {@link #ourPlayerData}, or {@code null}
+   */
   protected SOCRobotBrain brain;
 
   /**
@@ -123,6 +126,10 @@ public class SOCRobotDM
   /** Player tracker for {@link #ourPlayerData}. */
   protected SOCPlayerTracker ourPlayerTracker;
 
+  /**
+   * Our own player in {@link #game};
+   * {@link #brain} is for this player.
+   */
   protected final SOCPlayer ourPlayerData;
 
   /**
@@ -138,14 +145,14 @@ public class SOCRobotDM
    * Filled each turn by {@link #planStuff(int)}.
    * Emptied by {@link SOCRobotBrain}'s calls to {@link SOCRobotBrain#resetBuildingPlan()}.
    *<P>
-   * Before v2.4.50 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
+   * Before v2.5.00 this was an unencapsulated Stack of {@link SOCPossiblePiece}.
    */
   protected final SOCBuildPlanStack buildingPlan;
 
   /**
    * Strategy to plan and build initial settlements and roads.
    * Used here for {@link OpeningBuildStrategy#estimateResourceRarity()}.
-   * @since 2.4.50
+   * @since 2.5.00
    */
   protected final OpeningBuildStrategy openingBuildStrategy;
 
@@ -153,7 +160,7 @@ public class SOCRobotDM
    * Our {@link SOCBuildingSpeedEstimate} factory.
    * Is set during construction, from {@link SOCRobotBrain#createEstimatorFactory()} if available.
    * @see #getEstimatorFactory()
-   * @since 2.4.50
+   * @since 2.5.00
    */
   protected SOCBuildingSpeedEstimateFactory bseFactory;
 
@@ -164,7 +171,9 @@ public class SOCRobotDM
    * these are the two resources that we want
    * when we play a discovery dev card
    *<P>
-   * Before v2.4.50, this field was {@code SOCRobotBrain.resourceChoices}
+   * Before v2.5.00, this field was {@code SOCRobotBrain.resourceChoices}
+   *
+   * @see #getResourceChoices()
    */
   protected SOCResourceSet resourceChoices;
 
@@ -203,45 +212,27 @@ public class SOCRobotDM
 
 
   /**
-   * constructor
+   * Constructor for setting DM fields from a robot brain.
    *
    * @param br  the robot brain
    */
   public SOCRobotDM(SOCRobotBrain br)
   {
-    brain = br;
-    playerTrackers = brain.getPlayerTrackers();
-    ourPlayerTracker = brain.getOurPlayerTracker();
-    ourPlayerData = brain.getOurPlayerData();
-    ourPlayerNumber = ourPlayerData.getPlayerNumber();
-    buildingPlan = brain.getBuildingPlan();
-    openingBuildStrategy = brain.openingBuildStrategy;
-    bseFactory = brain.getEstimatorFactory();
-    game = brain.getGame();
+    this(br.getRobotParameters(), br.getOpeningBuildStrategy(), br.getEstimatorFactory(),
+        br.getPlayerTrackers(), br.getOurPlayerTracker(), br.getOurPlayerData(), br.getBuildingPlan());
 
-    resourceChoices = new SOCResourceSet();
-    resourceChoices.add(2, SOCResourceConstants.CLAY);
-    threatenedRoads = new ArrayList<SOCPossibleRoad>();
-    goodRoads = new ArrayList<SOCPossibleRoad>();
-    threatenedSettlements = new ArrayList<SOCPossibleSettlement>();
-    goodSettlements = new ArrayList<SOCPossibleSettlement>();
-    SOCRobotParameters params = brain.getRobotParameters();
-    maxGameLength = params.getMaxGameLength();
-    maxETA = params.getMaxETA();
-    etaBonusFactor = params.getETABonusFactor();
-    adversarialFactor = params.getAdversarialFactor();
-    leaderAdversarialFactor = params.getLeaderAdversarialFactor();
-    devCardMultiplier = params.getDevCardMultiplier();
-    threatMultiplier = params.getThreatMultiplier();
+    brain = br;
   }
 
 
   /**
-   * Constructor to use if you don't want to use a brain.
+   * Constructor for specifying DM fields instead of using a Brain.
    *
    * @param params  the robot parameters
    * @param obs  a robot brain's current {@link OpeningBuildStrategy}, or {@code null} to create one here,
    *     in case DM needs to call {@link OpeningBuildStrategy#estimateResourceRarity()}
+   * @param bsef  the BSE factory to use, or {@code null} to create a
+   *     new <tt>{@link SOCBuildingSpeedEstimateFactory}(null)</tt>
    * @param pt   the player trackers, same format as {@link SOCRobotBrain#getPlayerTrackers()}
    * @param opt  our player tracker
    * @param opd  our player data; also calls {@link SOCPlayer#getGame()} here
@@ -250,6 +241,7 @@ public class SOCRobotDM
   public SOCRobotDM
       (SOCRobotParameters params,
        OpeningBuildStrategy obs,
+       SOCBuildingSpeedEstimateFactory bsef,
        SOCPlayerTracker[] pt,
        SOCPlayerTracker opt,
        SOCPlayer opd,
@@ -261,7 +253,7 @@ public class SOCRobotDM
     ourPlayerData = opd;
     ourPlayerNumber = opd.getPlayerNumber();
     buildingPlan = bp;
-    bseFactory = new SOCBuildingSpeedEstimateFactory(null);
+    bseFactory = (bsef != null) ? bsef : new SOCBuildingSpeedEstimateFactory(null);
     game = ourPlayerData.getGame();
     openingBuildStrategy = (obs != null) ? obs : new OpeningBuildStrategy(game, opd, null);
 
@@ -1180,7 +1172,7 @@ public class SOCRobotDM
 
         SOCPlayerTracker.undoTryPutPiece(tmpRS, game);
 
-        if (! buildingPlan.empty())
+        if (! buildingPlan.isEmpty())
         {
           SOCPossiblePiece planPeek = buildingPlan.peek();
           if ((planPeek == null) ||
@@ -1503,7 +1495,7 @@ public class SOCRobotDM
     boolean goingToPlayRB = false;
     if (! ourPlayerData.hasPlayedDevCard() &&
         ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2 &&
-        ourPlayerData.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.ROADS) > 0) {
+        ourPlayerData.getInventory().hasPlayable(SOCDevCardConstants.ROADS)) {
       goingToPlayRB = true;
     }
     */
@@ -2445,8 +2437,7 @@ public class SOCRobotDM
     return true;
   }
 
-
-/**
+  /**
    * Score possible settlements for for the smart game strategy ({@link #SMART_STRATEGY}),
    * from {@link #ourPlayerTracker}{@link SOCPlayerTracker#getPossibleSettlements() .getPossibleSettlements()}
    * into {@link #threatenedSettlements} and {@link #goodSettlements};
@@ -2466,7 +2457,7 @@ public class SOCRobotDM
     boolean goingToPlayRB = false;
     if (! ourPlayerData.hasPlayedDevCard() &&
         ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2 &&
-        ourPlayerData.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.ROADS) > 0) {
+        ourPlayerData.getInventory().hasPlayable(SOCDevCardConstants.ROADS)) {
       goingToPlayRB = true;
     }
     */
@@ -3073,7 +3064,7 @@ public class SOCRobotDM
    * Called during game state {@link SOCGame#PLAY1} when we have at least 1 {@link SOCDevCardConstants#KNIGHT}
    * available to play, and haven't already played a dev card this turn.
    * @return  true if knight should be played now, not kept for when it's needed later
-   * @since 2.4.50
+   * @since 2.5.00
    */
   public boolean shouldPlayKnightForLA()
   {
@@ -3104,6 +3095,21 @@ public class SOCRobotDM
   }
 
   /**
+   * Get the resources we want to request when we play a discovery dev card.
+   * Third-party bots might sometimes want to change the contents of this set.
+   *
+   * @return This DM's resource set to request for a Discovery dev card;
+   *     never null, but may be empty
+   * @see #chooseFreeResources(SOCResourceSet, int, boolean)
+   * @see #pickFreeResources(int)
+   * @since 2.5.00
+   */
+  public SOCResourceSet getResourceChoices()
+  {
+      return resourceChoices;
+  }
+
+  /**
    * Respond to server's request to pick resources to gain from the Gold Hex.
    * Use {@link #buildingPlan} or, if that's empty (like during initial placement),
    * pick what's rare from {@link OpeningBuildStrategy#estimateResourceRarity()}.
@@ -3111,10 +3117,10 @@ public class SOCRobotDM
    * Caller may want to check if {@link #buildingPlan} is empty, and
    * call {@link SOCRobotBrain#planBuilding()} if so, before calling this method.
    *<P>
-   * Before v2.4.50, this method was in {@code SOCRobotBrain}.
+   * Before v2.5.00, this method was in {@code SOCRobotBrain}.
    *
    * @param numChoose  Number of resources to pick
-   * @return  the chosen resource picks
+   * @return  the chosen resource picks; also sets {@link #getResourceChoices()} to the returned set
    * @since 2.0.00
    */
   protected SOCResourceSet pickFreeResources(int numChoose)
@@ -3167,7 +3173,7 @@ public class SOCRobotDM
    * longest to acquire, then add to {@link #resourceChoices}.
    * Looks at our player's current resources.
    *<P>
-   * Before v2.4.50, this method was in {@code SOCRobotBrain}.
+   * Before v2.5.00, this method was in {@code SOCRobotBrain}.
    *
    * @param targetResources  Resources needed to build our next planned piece,
    *             from {@link SOCPossiblePiece#getResourcesToBuild()}
@@ -3180,6 +3186,8 @@ public class SOCRobotDM
    *             from our current resources + less than <tt>numChoose</tt> more.
    *             Examine {@link #resourceChoices}{@link SOCResourceSet#getTotal() .getTotal()}
    *             to see how many were chosen.
+   * @see #chooseFreeResourcesIfNeeded(SOCResourceSet, int, boolean)
+   * @see #getResourceChoices()
    */
   protected boolean chooseFreeResources
       (final SOCResourceSet targetResources, final int numChoose, final boolean clearResChoices)
@@ -3239,7 +3247,7 @@ public class SOCRobotDM
    * If returns true, has called {@link #chooseFreeResources(SOCResourceSet, int, boolean)}
    * and has set {@link #resourceChoices}.
    *<P>
-   * Before v2.4.50, this method was in {@code SOCRobotBrain}.
+   * Before v2.5.00, this method was in {@code SOCRobotBrain}.
    *
    * @param targetResources  Resources needed to build our next planned piece,
    *             from {@link SOCPossiblePiece#getResourcesToBuild()}
@@ -3313,7 +3321,7 @@ public class SOCRobotDM
                   if (buildingItem == 1)
                   {
                       // validate direction of stack growth for buildingPlan
-                      stackTopIs0 = (0 == buildingPlan.indexOf(buildingPlan.peek()));
+                      stackTopIs0 = (0 == buildingPlan.indexOf(buildingPlan.getFirstPiece()));
                   }
 
                   int i = (stackTopIs0) ? buildingItem : (bpSize - buildingItem) - 1;
@@ -3365,7 +3373,7 @@ public class SOCRobotDM
    *     in same format passed into {@link SOCBuildingSpeedEstimate#SOCBuildingSpeedEstimate(SOCPlayerNumbers)}
    * @return  Estimator based on {@code numbers}
    * @see #getEstimator()
-   * @since 2.4.50
+   * @since 2.5.00
    */
   protected SOCBuildingSpeedEstimate getEstimator(SOCPlayerNumbers numbers)
   {
@@ -3388,7 +3396,7 @@ public class SOCRobotDM
    * @return  Estimator which doesn't consider player's dice numbers yet;
    *     see {@link SOCBuildingSpeedEstimate#SOCBuildingSpeedEstimate()} javadoc
    * @see #getEstimator(SOCPlayerNumbers)
-   * @since 2.4.50
+   * @since 2.5.00
    */
   protected SOCBuildingSpeedEstimate getEstimator()
   {
@@ -3404,7 +3412,7 @@ public class SOCRobotDM
    *
    * @return This decision maker's factory
    * @see #getEstimator(SOCPlayerNumbers)
-   * @since 2.4.50
+   * @since 2.5.00
    */
   public SOCBuildingSpeedEstimateFactory getEstimatorFactory()
   {

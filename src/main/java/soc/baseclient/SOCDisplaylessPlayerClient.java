@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,8 @@ package soc.baseclient;
 
 import soc.disableDebug.D;
 
+import soc.game.GameAction;
+import soc.game.ResourceSet;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
@@ -38,6 +40,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
+import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCSpecialItem;
@@ -48,6 +51,8 @@ import soc.message.*;
 import soc.message.SOCGameElements.GEType;
 import soc.message.SOCPlayerElement.PEType;
 
+import soc.robot.SOCRobotBrain;  // for javadocs only
+import soc.robot.SOCRobotClient;  // javadocs only
 import soc.server.genericServer.StringConnection;
 import soc.util.SOCFeatureSet;
 import soc.util.Version;
@@ -103,11 +108,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * For client/robot testing, string property {@code "jsettlers.debug.client.gameopt3p"}
      * with name of a "third-party" Known Game Option to create; will have {@link SOCGameOption#FLAG_3RD_PARTY}.
-     * At server connect, will report having client feature {@code "com.example.js."} + optionName
-     * along with default features or {@link soc.client.SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_FEATURES}.
+     * At server connect, will report having client feature {@code "com.example.js.feat."} + optionName
+     * along with default features or {@link soc.client.SOCPlayerClient#PROP_JSETTLERS_DEBUG_CLIENT_FEATURES}
+     * in the {@link SOCVersion} message sent to server. See {@link SOCFeatureSet} for more info.
      *
      * @see soc.server.SOCServer#PROP_JVM_JSETTLERS_DEBUG_SERVER_GAMEOPT3P
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final String PROP_JSETTLERS_DEBUG_CLIENT_GAMEOPT3P = "jsettlers.debug.client.gameopt3p";
 
@@ -142,7 +148,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * {@link SOCGameOptionInfo} messages.
      * @see #allOptsReceived
      * @see #handleGAMEOPTIONINFO(SOCGameOptionInfo)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
 
@@ -157,13 +163,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *
      * @see #knownOpts
      * @see #handleGAMEOPTIONINFO(SOCGameOptionInfo)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected boolean allOptsReceived = true;
 
     /**
      * Network socket. Initialized in subclasses.
-     * Before v2.4.50 this field was {@code s}.
+     * Before v2.5.00 this field was {@code s}.
      */
     protected Socket sock;
 
@@ -223,6 +229,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * the games we're playing
+     *<P>
+     * Games are added by {@link #handleJOINGAMEAUTH(SOCJoinGameAuth, boolean)},
+     * removed by {@link #leaveGame(String)}.
+     * @see #getGame(String)
      */
     protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
@@ -232,6 +242,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @since 1.2.00
      */
     protected boolean debugTraffic;
+
+    /**
+     * Should client ignore all {@link SOCPlayerStats} messages,
+     * although they may be about our {@link #nickname} client player? True by default.
+     * @see #handlePLAYERSTATS(SOCPlayerStats, SOCGame, int)
+     * @since 2.7.00
+     */
+    protected boolean ignorePlayerStats = true;
 
     /**
      * Constructor to set up using this server connect info. Does not actually connect here;
@@ -261,6 +279,17 @@ public class SOCDisplaylessPlayerClient implements Runnable
     public String getNickname()
     {
         return nickname;
+    }
+
+    /**
+     * Get a game that we've joined in this client.
+     * @param gaName  game name to look for
+     * @return Game if we've joined it, or {@code null} if not found or not joined
+     * @since 2.5.00
+     */
+    public SOCGame getGame(final String gaName)
+    {
+        return games.get(gaName);
     }
 
     /**
@@ -707,6 +736,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * A player has discarded resources.
+             * Added 2021-11-26 for v2.5.00.
+             */
+            case SOCMessage.DISCARD:
+                handleDISCARD((SOCDiscard) mes, games.get(((SOCDiscard) mes).getGame()));
+                break;
+
+            /**
              * the robber or pirate moved
              */
             case SOCMessage.MOVEROBBER:
@@ -749,10 +786,24 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * update game data for a trade between players. Added 2021-08-02 for v2.5.00
+             */
+            case SOCMessage.ACCEPTOFFER:
+                handleACCEPTOFFER((SOCAcceptOffer) mes, games.get(((SOCMessageForGame) mes).getGame()));
+                break;
+
+            /**
              * the trade message needs to be cleared
              */
             case SOCMessage.CLEARTRADEMSG:
                 handleCLEARTRADEMSG((SOCClearTradeMsg) mes);
+                break;
+
+            /**
+             * Update game data for bank trade. Added 2021-01-20 for v2.5.00
+             */
+            case SOCMessage.BANKTRADE:
+                handleBANKTRADE((SOCBankTrade) mes, games.get(((SOCMessageForGame) mes).getGame()));
                 break;
 
             /**
@@ -835,11 +886,28 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * player statistics. Generally ignored by bots;
+             * to support unit tests, added here 2023-11-27 for v2.7.00.
+             */
+            case SOCMessage.PLAYERSTATS:
+                if (! ignorePlayerStats)
+                {
+                    SOCGame ga = games.get(((SOCPlayerStats) mes).getGame());
+                    if (ga != null)
+                    {
+                        SOCPlayer pn = ga.getPlayer(nickname);
+                        if (pn != null)
+                            handlePLAYERSTATS((SOCPlayerStats) mes, ga, pn.getPlayerNumber());
+                    }
+                }
+                break;
+
+            /**
              * generic "simple action" announcements from the server.
              * Added 2013-09-04 for v1.1.19.
              */
             case SOCMessage.SIMPLEACTION:
-                handleSIMPLEACTION(games, (SOCSimpleAction) mes);
+                handleSIMPLEACTION((SOCSimpleAction) mes, games.get(((SOCSimpleAction) mes).getGame()));
                 break;
 
             /**
@@ -908,13 +976,59 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
-             * Report Robbery.
-             * Added 2020-09-15 for v2.4.50.
+             * Report robbery result.
+             * Added 2020-09-15 for v2.5.00.
              */
-            case SOCMessage.REPORTROBBERY:
-                handleREPORTROBBERY
-                    ((SOCReportRobbery) mes, games.get(((SOCReportRobbery) mes).getGame()));
+            case SOCMessage.ROBBERYRESULT:
+                handleROBBERYRESULT
+                    ((SOCRobberyResult) mes, games.get(((SOCMessageForGame) mes).getGame()));
                 break;
+
+            /**
+             * Player has Picked Resources.
+             * Added 2020-12-14 for v2.5.00.
+             */
+            case SOCMessage.PICKRESOURCES:
+                handlePICKRESOURCES
+                    ((SOCPickResources) mes, games.get(((SOCMessageForGame) mes).getGame()));
+                break;
+
+            /**
+             * Server has declined player's request.
+             * Added 2021-12-11 for v2.5.00.
+             */
+            case SOCMessage.DECLINEPLAYERREQUEST:
+                handleDECLINEPLAYERREQUEST
+                    ((SOCDeclinePlayerRequest) mes, games.get(((SOCMessageForGame) mes).getGame()));
+                break;
+
+            /**
+             * Undo moving or placing a piece.
+             * Added 2022-11-11 for v2.7.00.
+             */
+            case SOCMessage.UNDOPUTPIECE:
+                handleUNDOPUTPIECE
+                    ((SOCUndoPutPiece) mes, games.get(((SOCUndoPutPiece) mes).getGame()));
+                break;
+
+            /**
+             * Update last-action data.
+             * Added 2022-12-20 for v2.7.00.
+             */
+            case SOCMessage.SETLASTACTION:
+                handleSETLASTACTION
+                    ((SOCSetLastAction) mes, games.get(((SOCSetLastAction) mes).getGame()));
+                break;
+
+            /**
+             * Reopen or close a shipping trade route.
+             * Added 2022-12-18 for v2.7.00.
+             */
+            case SOCMessage.SETSHIPROUTECLOSED:
+                handleSETSHIPROUTECLOSED
+                    ((SOCSetShipRouteClosed) mes, games.get(((SOCSetShipRouteClosed) mes).getGame()));
+                break;
+
             }
         }
         catch (Exception e)
@@ -1086,7 +1200,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "list of games with options" message
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void handleGAMESWITHOPTIONS(final SOCGamesWithOptions mes) {}
 
@@ -1152,7 +1266,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "new game with options" message
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void handleNEWGAMEWITHOPTIONS(final SOCNewGameWithOptions mes) {}
 
@@ -1169,9 +1283,43 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleGAMEMEMBERS(SOCGameMembers mes) {}
 
     /**
-     * handle the "game stats" message
+     * handle the "game stats" message. Looks up the game and calls
+     * {@link #handleGAMESTATS(SOCGameStats, SOCGame)}.
+     *<P>
+     * Instead of overriding this method, {@link SOCRobotClient#treat(SOCMessage)} bypasses it
+     * and processes stats in {@link SOCRobotBrain#handleGAMESTATS(SOCGameStats)}.
      */
-    protected void handleGAMESTATS(SOCGameStats mes) {}
+    protected void handleGAMESTATS(SOCGameStats mes)
+    {
+        handleGAMESTATS(mes, games.get(mes.getGame()));
+    }
+
+    /**
+     * Handle the "game stats" message: static version to share with SOCPlayerClient.
+     * Updates timing fields for {@link SOCGameStats#TYPE_TIMING}, otherwise does nothing.
+     * @param mes  Message data
+     * @param ga  Game to update; does nothing if {@code null}
+     * @since 2.7.00
+     */
+    public static final void handleGAMESTATS(final SOCGameStats mes, final SOCGame ga)
+    {
+        if (ga == null)
+            return;
+        if (mes.getStatType() != SOCGameStats.TYPE_TIMING)
+            return;
+
+        // similar logic is in soc.client.MessageHandler.handleGAMESTATS
+
+        final long[] stats = mes.getScores();
+        final long timeCreated = stats[0], timeFinished = stats[2],
+            timeNow = System.currentTimeMillis() / 1000;
+        if (timeCreated > timeNow)
+            return;
+
+        ga.setTimeSinceCreated((int) (timeNow - timeCreated));
+        if (timeFinished > timeCreated)
+            ga.setDurationSecondsFinished((int) (timeFinished - timeCreated));
+    }
 
     /**
      * handle the "game text message" message; stub.
@@ -1204,13 +1352,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Handle all players' dice roll result resources: static version to share with SOCPlayerClient.
-     * Game players gain resources.
+     * Calls players' {@link SOCPlayer#addRolledResources(SOCResourceSet)} to gain resources and
+     * update {@link SOCPlayer#getResourceRollStats()}.
      * @param mes  Message data
      * @param ga  Game to update
      * @param nickname  Our client player's nickname, needed only if {@code skipResourceCount} is false.
      *     Can be {@code null} otherwise.
      *     See {@link #handlePLAYERELEMENT_simple(SOCGame, SOCPlayer, int, int, PEType, int, String)}.
-     * @param skipResourceCount  If true, ignore the resource part of the message
+     * @param skipResourceCount  If true, ignore the resource-totals part of the message
      *     because caller will handle that separately; {@code nickname} can be {@code null}
      * @since 2.0.00
      */
@@ -1224,7 +1373,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             final int pn = mes.playerNum.get(p);
             final SOCPlayer pl = ga.getPlayer(pn);
 
-            pl.getResources().add(rs);
+            pl.addRolledResources(rs);
 
             if (! skipResourceCount)
                 handlePLAYERELEMENT_simple
@@ -1431,6 +1580,22 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * Server has declined player's request.
+     * Unless {@link SOCDeclinePlayerRequest#gameState} is 0 or same as current {@link SOCGame#getGameState()},
+     * calls {@link #handleGAMESTATE(SOCGame, int)}.
+     * @since 2.5.00
+     */
+    public static void handleDECLINEPLAYERREQUEST(final SOCDeclinePlayerRequest mes, final SOCGame ga)
+    {
+        if (ga == null)
+            return;
+
+        final int currState = mes.gameState;
+        if ((currState != 0) && (currState != ga.getGameState()))
+            handleGAMESTATE(ga, currState);
+    }
+
+    /**
      * handle the "set turn" message
      * @param mes  the message
      */
@@ -1483,6 +1648,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         for (int i = 0; i < etypes.length; ++i)
             handlePLAYERELEMENT(ga, pl, pn, action, PEType.valueOf(etypes[i]), amounts[i], nickname);
+
+        if ((action == SOCPlayerElement.SET) && (etypes.length == 5) && (etypes[0] == SOCResourceConstants.CLAY)
+            && (pl != null) && (ga.getGameState() == SOCGame.ROLL_OR_CARD))
+            // dice roll results: when sent all known resources, clear UNKNOWN to 0
+            pl.getResources().setAmount(0, SOCResourceConstants.UNKNOWN);
     }
 
     /**
@@ -1607,13 +1777,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param etype  Element type, such as {@link PEType#SETTLEMENTS} or {@link PEType#NUMKNIGHTS}.
      *     Does nothing if {@code null}.
      * @param val  The new value to set, or the delta to gain/lose
-     * @param nickname  Our client player nickname/username, for the only element where that matters:
-     *     {@link PEType#RESOURCE_COUNT}. Can be {@code null} otherwise.
+     * @param cliNickname  Our client player nickname/username, for the only element where that matters:
+     *     {@link PEType#RESOURCE_COUNT}, or {@code null} if {@code pl} is definitely not the client player.
+     *     Can be {@code null} for all other element types.
      * @since 2.0.00
      */
     public static void handlePLAYERELEMENT_simple
         (SOCGame ga, SOCPlayer pl, final int pn, final int action,
-         final PEType etype, final int val, final String nickname)
+         final PEType etype, final int val, final String cliNickname)
     {
         if (etype == null)
             return;
@@ -1639,22 +1810,24 @@ public class SOCDisplaylessPlayerClient implements Runnable
             break;
 
         case RESOURCE_COUNT:
-            if (val != pl.getResources().getTotal())
             {
                 SOCResourceSet rsrcs = pl.getResources();
-
-                if (D.ebugOn)
+                if (val != rsrcs.getTotal())
                 {
-                    //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
-                }
+                    // Update count if possible; convert known to unknown if needed.
+                    // For our own player, server sends resource specifics, not just total count
 
-                //
-                //  fix it if possible
-                //
-                if ((nickname != null) && ! pl.getName().equals(nickname))
-                {
-                    rsrcs.clear();
-                    rsrcs.setAmount(val, SOCResourceConstants.UNKNOWN);
+                    if ((cliNickname == null) || ! pl.getName().equals(cliNickname))
+                    {
+                        int numKnown = rsrcs.getKnownTotal();
+                        if (numKnown <= val)
+                        {
+                            rsrcs.setAmount(val - numKnown, SOCResourceConstants.UNKNOWN);
+                        } else {
+                            rsrcs.clear();
+                            rsrcs.setAmount(val, SOCResourceConstants.UNKNOWN);
+                        }
+                    }
                 }
             }
             break;
@@ -1667,10 +1840,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
             {
                 final boolean changeTo = (val != 0);
                 if (pn != -1)
+                {
                     pl.setPlayedDevCard(changeTo);
-                else
+                    if (! changeTo)
+                        ga.setPlacingRobberForKnightCard(false);
+                } else {
                     for (int p = 0; p < ga.maxPlayers; ++p)
                         ga.getPlayer(p).setPlayedDevCard(changeTo);
+                }
             }
             break;
 
@@ -1688,6 +1865,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         case NUM_PLAYED_DEV_CARD_ROADS:
             pl.numRBCards = val;
+            break;
+
+        case NUM_UNDOS_REMAINING:
+            pl.setUndosRemaining(val);
             break;
 
         case NUM_PICK_GOLD_HEX_RESOURCES:
@@ -1813,17 +1994,19 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * Update a player's amount of a resource, for {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, int, int)}.
      *<ul>
-     *<LI> If this is a {@link SOCPlayerElement#LOSE} action, and the player does not have enough of that type,
-     *     the rest are taken from the player's UNKNOWN amount.
-     *<LI> If we are losing from type UNKNOWN,
+     *<LI> If this is a {@link SOCPlayerElement#LOSE} action,
+     *     and the player does not have enough of that {@code rtype},
+     *     the rest are taken from the player's UNKNOWN rtype amount.
+     *     (This often happens for non-client players).
+     *<LI> If we are losing from {@code rtype} UNKNOWN,
      *     first convert player's known resources to unknown resources
      *     (individual amount information will be lost),
      *     then remove mes's unknown resources from player.
      *</ul>
      *<P>
-     * To avoid code duplication, also called from
-     * {@link soc.client.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)}
-     * and {@link soc.robot.SOCRobotBrain#run()}.
+     * For consistent resource management and to avoid code duplication, is also called from
+     * {@link soc.client.MessageHandler#handlePLAYERELEMENT(SOCPlayerElement)},
+     * {@link #handleDISCARD(SOCDiscard, SOCGame)}, and {@link soc.robot.SOCRobotBrain#run()}.
      *<P>
      * Before v2.0.00 this method directly took a {@link SOCPlayerElement} instead of that message's
      * {@code action} and {@code amount} fields.
@@ -1849,31 +2032,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             break;
 
         case SOCPlayerElement.LOSE:
-            if (rtype != SOCResourceConstants.UNKNOWN)
-            {
-                int playerAmt = pl.getResources().getAmount(rtype);
-                if (playerAmt >= amount)
-                {
-                    pl.getResources().subtract(amount, rtype);
-                }
-                else
-                {
-                    pl.getResources().subtract(amount - playerAmt, SOCResourceConstants.UNKNOWN);
-                    pl.getResources().setAmount(0, rtype);
-                }
-            }
-            else
-            {
-                SOCResourceSet rs = pl.getResources();
-
-                /**
-                 * first convert player's known resources to unknown resources,
-                 * then remove mes's unknown resources from player
-                 */
-                rs.convertToUnknown();
-                pl.getResources().subtract(amount, SOCResourceConstants.UNKNOWN);
-            }
-
+            pl.getResources().subtract(amount, rtype, true);
             break;
         }
     }
@@ -1939,6 +2098,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
             ga.setSpecialBuildingPlayerNumberAfter(value);
             break;
 
+        case SHIP_PLACED_THIS_TURN_EDGE:
+            ga.addShipPlacedThisTurn(value);
+            break;
+
+        case IS_PLACING_ROBBER_FOR_KNIGHT_CARD_FLAG:
+            ga.setPlacingRobberForKnightCard(value != 0);
+            break;
+
         case UNKNOWN_TYPE:
             ;  // no action needed, UNKNOWN_TYPE is mentioned only to avoid compiler warning
         }
@@ -1998,7 +2165,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      * @param ga  Message's game from {@link SOCPutPiece#getGame()}; if {@code null}, message is ignored
      */
-    public static void handlePUTPIECE(final SOCPutPiece mes, SOCGame ga)
+    public static void handlePUTPIECE(final SOCPutPiece mes, final SOCGame ga)
     {
         if (ga == null)
             return;
@@ -2094,6 +2261,40 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * A player has discarded resources. Update player data by calling
+     * {@link #handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}
+     * for each resource type in the message.
+     *
+     * @param mes  the message
+     * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}; if {@code null}, message is ignored
+     * @return  the player discarding, for convenience of player client,
+     *     or {@code null} if {@link SOCDiscard#getPlayerNumber()} out of range
+     * @since 2.5.00
+     */
+    public static SOCPlayer handleDISCARD(final SOCDiscard mes, final SOCGame ga)
+    {
+        if (ga == null)
+            return null;
+        final int pn = mes.getPlayerNumber();
+        if ((pn < 0) || (pn >= ga.maxPlayers))
+            return null;
+
+        // for consistent resource management, calls handlePLAYERELEMENT_numRsrc
+        // instead of SOCResourceSet.subtract directly
+
+        final SOCPlayer pl = ga.getPlayer(pn);
+        final ResourceSet res = mes.getResources();
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.UNKNOWN; ++rtype)
+        {
+            int amount = res.getAmount(rtype);
+            if (amount != 0)
+                handlePLAYERELEMENT_numRsrc(pl, SOCPlayerElement.LOSE, rtype, amount);
+        }
+
+        return pl;
+    }
+
+    /**
      * handle the "robber moved" or "pirate moved" message.
      * @param mes  the message
      */
@@ -2108,6 +2309,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
          * functions to do the stealing.  We just want to say where
          * the robber moved without seeing if something was stolen.
          */
+        ga.setPlacingRobberForKnightCard(false);
         final int newHex = mes.getCoordinates();
         if (newHex > 0)
             ga.getBoard().setRobberHex(newHex, true);
@@ -2128,22 +2330,28 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes) {}
 
     /**
-     * Handle the "report robbery" message.
+     * Handle the "robbery result" message.
      * Updates game data by calling {@link #handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}
      * or {@link #handlePLAYERELEMENT(SOCGame, SOCPlayer, int, int, PEType, int, String)}.
+     * Does nothing if {@link SOCRobberyResult#isGainLose mes.isGainLose} but
+     * {@link SOCRobberyResult#amount mes.amount} == 0 and {@link SOCRobberyResult#resSet} is null.
      *<P>
      * This method is public static for access by {@code SOCPlayerClient} and robot client classes.
      *
      * @param mes  the message
      * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}; if {@code null}, message is ignored
-     * @since 2.4.50
+     * @since 2.5.00
      */
-    public static void handleREPORTROBBERY(final SOCReportRobbery mes, SOCGame ga)
+    public static void handleROBBERYRESULT(final SOCRobberyResult mes, SOCGame ga)
     {
         if (ga == null)
             return;
 
-        final int perpPN = mes.perpPN, victimPN = mes.victimPN;
+        final int perpPN = mes.perpPN, victimPN = mes.victimPN, amount = mes.amount;
+        final SOCResourceSet resSet = mes.resSet;
+        if (mes.isGainLose && (amount == 0) && (resSet == null))
+            return;
+
         final SOCPlayer perp = (perpPN >= 0) ? ga.getPlayer(perpPN) : null,
             victim = (victimPN >= 0) ? ga.getPlayer(victimPN) : null;
 
@@ -2153,14 +2361,27 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (mes.isGainLose)
             {
                 if (perp != null)
-                    handlePLAYERELEMENT(ga, perp, perpPN, SOCPlayerElement.GAIN, peType, mes.amount, null);
+                    handlePLAYERELEMENT(ga, perp, perpPN, SOCPlayerElement.GAIN, peType, amount, null);
                 if (victim != null)
-                    handlePLAYERELEMENT(ga, victim, victimPN, SOCPlayerElement.LOSE, peType, mes.amount, null);
+                    handlePLAYERELEMENT(ga, victim, victimPN, SOCPlayerElement.LOSE, peType, amount, null);
             } else {
                 if (perp != null)
-                    handlePLAYERELEMENT(ga, perp, perpPN, SOCPlayerElement.SET, peType, mes.amount, null);
+                    handlePLAYERELEMENT(ga, perp, perpPN, SOCPlayerElement.SET, peType, amount, null);
                 if (victim != null)
                     handlePLAYERELEMENT(ga, victim, victimPN, SOCPlayerElement.SET, peType, mes.victimAmount, null);
+            }
+        } else if (resSet != null) {
+            // note: when using resSet, isGainLose is always true
+            for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+            {
+                final int amt = resSet.getAmount(rtype);
+                if (amt == 0)
+                    continue;
+
+                if (perp != null)
+                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.GAIN, rtype, amt);
+                if (victim != null)
+                    handlePLAYERELEMENT_numRsrc(victim, SOCPlayerElement.LOSE, rtype, amt);
             }
         } else {
             final int resType = mes.resType;
@@ -2168,12 +2389,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (mes.isGainLose)
             {
                 if (perp != null)
-                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.GAIN, resType, mes.amount);
+                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.GAIN, resType, amount);
                 if (victim != null)
-                    handlePLAYERELEMENT_numRsrc(victim, SOCPlayerElement.LOSE, resType, mes.amount);
+                    handlePLAYERELEMENT_numRsrc(victim, SOCPlayerElement.LOSE, resType, amount);
             } else {
                 if (perp != null)
-                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.SET, resType, mes.amount);
+                    handlePLAYERELEMENT_numRsrc(perp, SOCPlayerElement.SET, resType, amount);
                 if (victim != null)
                     handlePLAYERELEMENT_numRsrc(victim, SOCPlayerElement.SET, resType, mes.victimAmount);
             }
@@ -2182,7 +2403,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "make offer" message.
-     * Ignore "not allowed" replies from server ({@link SOCTradeOffer#getFrom()} &lt; 0).
      * @param mes  the message
      */
     protected void handleMAKEOFFER(SOCMakeOffer mes)
@@ -2192,9 +2412,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;
 
         SOCTradeOffer offer = mes.getOffer();
-        int fromPN = offer.getFrom();
-        if (fromPN >= 0)
-            ga.getPlayer(fromPN).setCurrentOffer(offer);
+        ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
     }
 
     /**
@@ -2224,10 +2442,91 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleREJECTOFFER(SOCRejectOffer mes) {}
 
     /**
+     * Update game data for a trade between players: static to share with SOCPlayerClient.
+     * Calls {@link SOCGame#makeTrade(int, int)} if trade details match current offer,
+     * to update player resources and {@link SOCPlayer#getResourceTradeStats()}.
+     * Otherwise directly updates player resources.
+     *<P>
+     * Added for v2.5.00, the first server version to include trade details in {@code SOCAcceptOffer} message.
+     * Older servers send PLAYERELEMENT messages before ACCEPTOFFER instead, and their ACCEPTOFFER won't have
+     * trade detail fields; this method does nothing if those fields are {@code null}.
+     *
+     *<H3>Threads:</H3>
+     * If client is multi-threaded (for example, robot with a message treater thread and per-game brain threads),
+     * call this method from the same thread that needs the updated player resource data.
+     * Other threads may cache stale values for the resource count fields.
+     *
+     * @param mes  Message data
+     * @param ga  Game to update
+     * @since 2.5.00
+     */
+    public static void handleACCEPTOFFER(final SOCAcceptOffer mes, final SOCGame ga)
+    {
+        if (ga == null)
+            return;
+
+        final SOCResourceSet resToAccPl = mes.getResToAcceptingPlayer();
+        if (resToAccPl == null)
+            return;
+
+        final int offPN = mes.getOfferingNumber(), accPN = mes.getAcceptingNumber();
+        final SOCResourceSet resToOffPl = mes.getResToOfferingPlayer();
+
+        // Sanity check message resources vs trade offer info;
+        // if everything matches, call ga.makeTrade to update stats too
+        final SOCPlayer offPl = ga.getPlayer(offPN);
+        final SOCTradeOffer offOffered = offPl.getCurrentOffer();
+        if ((offOffered != null)
+            && resToOffPl.equals(offOffered.getGetSet()) && resToAccPl.equals(offOffered.getGiveSet()))
+        {
+            ga.makeTrade(offPN, accPN);
+        } else {
+            final SOCResourceSet accPlRes = ga.getPlayer(accPN).getResources(), offPlRes = offPl.getResources();
+
+            accPlRes.add(resToAccPl);
+            accPlRes.subtract(resToOffPl, true);
+            offPlRes.add(resToOffPl);
+            offPlRes.subtract(resToAccPl, true);
+        }
+    }
+
+    /**
      * handle the "clear trade message" message
      * @param mes  the message
      */
     protected void handleCLEARTRADEMSG(SOCClearTradeMsg mes) {}
+
+    /**
+     * Update a player's resource data from a "bank trade" announcement from the server.
+     * Calls {@link SOCPlayer#makeBankTrade(ResourceSet, ResourceSet)} to update player resources
+     * and {@link SOCPlayer#getResourceTradeStats()}.
+     * See {@link #handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)} for behavior
+     * if subtracting more than the known amount of those resources
+     * (which often happens for non-client players).
+     *<P>
+     * Call this method only if server is v2.5.00 or newer ({@link SOCBankTrade#VERSION_FOR_OMIT_PLAYERELEMENTS}).
+     * Older servers send PLAYERELEMENT messages before BANKTRADE, so calling this would subtract/add resources twice.
+     *
+     *<H3>Threads:</H3>
+     * If client is multi-threaded (for example, robot with a message treater thread and per-game brain threads),
+     * call this method from the same thread that needs the updated player resource data.
+     * Other threads may cache stale values for the resource count fields.
+     *
+     * @param mes  the message
+     * @param ga  Game to update, from Map of games the client is playing,
+     *     or {@code null} if not found in that map
+     * @return  True if updated, false if {@code ga} is null
+     * @since 2.5.00
+     */
+    public static boolean handleBANKTRADE(final SOCBankTrade mes, final SOCGame ga)
+    {
+        if (ga == null)
+            return false;
+
+        ga.getPlayer(mes.getPlayerNumber()).makeBankTrade(mes.getGiveSet(), mes.getGetSet());
+
+        return true;
+    }
 
     /**
      * handle the "number of development cards" message
@@ -2265,7 +2564,28 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 ctype = SOCDevCardConstants.UNKNOWN;
         }
 
-        switch (mes.getAction())
+        handleDEVCARDACTION(ga, player, mes.getAction(), ctype);
+    }
+
+    /**
+     * Handle one dev card's game data update for {@link #handleDEVCARDACTION(boolean, SOCDevCardAction)}.
+     * For {@link SOCDevCardAction#PLAY}, calls {@link SOCPlayer#updateDevCardsPlayed(int, boolean)}.
+     *
+     * @param ga  Game being updated
+     * @param player  Player in {@code ga} being updated
+     * @param act  Action being done: {@link SOCDevCardAction#DRAW}, {@link SOCDevCardAction#PLAY PLAY},
+     *     {@link SOCDevCardAction#ADD_OLD ADD_OLD}, or {@link SOCDevCardAction#ADD_NEW ADD_NEW}
+     * @param ctype  Type of development card from {@link SOCDevCardConstants}
+     * @see soc.client.MessageHandler#handleDEVCARDACTION(SOCGame, SOCPlayer, boolean, int, int)
+     * @since 2.5.00
+     */
+    protected void handleDEVCARDACTION
+        (final SOCGame ga, final SOCPlayer player, final int act, final int ctype)
+    {
+        // if you change this method, consider changing MessageHandler.handleDEVCARDACTION
+        // and SOCRobotBrain.handleDEVCARDACTION too
+
+        switch (act)
         {
         case SOCDevCardAction.DRAW:
             player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
@@ -2273,7 +2593,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         case SOCDevCardAction.PLAY:
             player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
-            player.updateDevCardsPlayed(ctype);
+            player.updateDevCardsPlayed(ctype, false);
+            if ((ctype == SOCDevCardConstants.KNIGHT) && ! ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
+                ga.setPlacingRobberForKnightCard(true);
             break;
 
         case SOCDevCardAction.ADD_OLD:
@@ -2299,6 +2621,25 @@ public class SOCDisplaylessPlayerClient implements Runnable
         handlePLAYERELEMENT_simple
             (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
              PEType.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
+    }
+
+    /**
+     * Handle the "Player has Picked Resources" message by updating player resource data.
+     * @param mes  the message
+     * @param ga  Game to update
+     * @return  True if updated, false if player number not found
+     * @since 2.5.00
+     */
+    public static boolean handlePICKRESOURCES
+        (final SOCPickResources mes, final SOCGame ga)
+    {
+        final SOCPlayer pl = ga.getPlayer(mes.getPlayerNumber());
+        if (pl == null)
+            return false;
+
+        pl.getResources().add(mes.getResources());
+
+        return true;
     }
 
     /**
@@ -2514,7 +2855,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * by calling {@link SOCGameOptionSet#addKnownOption(SOCGameOption)}.
      * If all are now received, sets {@link #allOptsReceived} flag.
      * @param optInfo Info message for this {@link SOCGameOption}
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected void handleGAMEOPTIONINFO(final SOCGameOptionInfo optInfo)
     {
@@ -2532,6 +2873,81 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * Update last-action data game data; may be sent from server while joining a game.
+     * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
+     * @since 2.7.00
+     */
+    public static void handleSETLASTACTION(final SOCSetLastAction mes, SOCGame ga)
+    {
+        if (ga == null)
+            return;  // Not one of our games
+
+        GameAction.ActionType at = GameAction.ActionType.valueOf(mes.getActionTypeValue());
+        if (at == null)
+            ga.setLastAction(null);
+        else
+            ga.setLastAction(new GameAction
+                (at, mes.getParam1(), mes.getParam2(), mes.getParam3(), mes.getRS1(), mes.getRS2()));
+    }
+
+    /**
+     * Update player statistics.
+     * Server currently sends only for client player.
+     * This message is handled by some client types, but ignored in the base
+     * {@link SOCDisplaylessPlayerClient#treat(SOCMessage)} unless its
+     * {@link SOCDisplaylessPlayerClient#ignorePlayerStats} flag is cleared.
+     * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
+     * @param client player number in {@code ga}; update this player's stats; does nothing if -1
+     * @since 2.7.00
+     */
+    public static void handlePLAYERSTATS(SOCPlayerStats mes, final SOCGame ga, final int clientPN)
+    {
+        if ((ga == null) || (clientPN == -1))
+            return;  // Not one of our games
+
+        final SOCPlayer pl = ga.getPlayer(clientPN);
+
+        final int[] stats = mes.getParams();
+        switch (mes.getStatType())
+        {
+        case SOCPlayerStats.STYPE_RES_ROLL:
+            {
+                int[] rollStats = new int[1 + SOCResourceConstants.GOLD_LOCAL];
+                int rMax = SOCResourceConstants.GOLD_LOCAL;
+                if (rMax >= stats.length)
+                    rMax = stats.length - 1;
+                for (int rtype = SOCResourceConstants.CLAY; rtype <= rMax; ++rtype)
+                    rollStats[rtype] = stats[rtype];
+
+                pl.setResourceRollStats(rollStats);
+            }
+            break;
+
+        case SOCPlayerStats.STYPE_TRADES:
+            {
+                final int subArrLen = stats[1], resArrLen = subArrLen / 2;
+                int numTypes = (stats.length - 2) / subArrLen;  // probably == SOCPlayer.TRADE_STATS_ARRAY_LEN
+                SOCResourceSet[][] tradeStats = new SOCResourceSet[2][numTypes];
+                for(int i = 2, tradeType = 0; i < stats.length; i += subArrLen, ++tradeType)
+                {
+                    tradeStats[0][tradeType] = new SOCResourceSet(stats[i], stats[i+1], stats[i+2], stats[i+3], stats[i+4], 0);
+                    i += resArrLen;
+                    tradeStats[1][tradeType] = new SOCResourceSet(stats[i], stats[i+1], stats[i+2], stats[i+3], stats[i+4], 0);
+                    i -= resArrLen;
+                }
+
+                pl.setResourceTradeStats(tradeStats);
+            }
+            break;
+
+        }
+    }
+
+    /**
      * Update any game data from "simple request" announcements from the server.
      * Currently ignores them except for:
      *<UL>
@@ -2539,14 +2955,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     Calls {@link SOCGame#placePort(SOCPlayer, int, int)} if {@code pn} &gt;= 0
      *</UL>
      *
-     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
      * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
      * @since 2.0.00
      */
-    public static void handleSIMPLEREQUEST(final Map<String, SOCGame> games, final SOCSimpleRequest mes)
+    public static void handleSIMPLEREQUEST(final SOCSimpleRequest mes, final SOCGame ga)
     {
-        final String gaName = mes.getGame();
-        SOCGame ga = games.get(gaName);
         if (ga == null)
             return;  // Not one of our games
 
@@ -2576,7 +2991,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 // Since the bots and server are almost always the same version, this
                 // shouldn't often occur: print for debugging.
                 System.err.println
-                    ("DPC.handleSIMPLEREQUEST: Unknown type ignored: " + rtype + " in game " + gaName);
+                    ("DPC.handleSIMPLEREQUEST: Unknown type ignored: " + rtype + " in game " + ga.getName());
         }
     }
 
@@ -2588,14 +3003,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     Calls {@link SOCGame#removePort(SOCPlayer, int)}
      *</UL>
      *
-     * @param games  Games the client is playing, for method reuse by SOCPlayerClient
      * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
      * @since 1.1.19
      */
-    public static void handleSIMPLEACTION(final Map<String, SOCGame> games, final SOCSimpleAction mes)
+    public static void handleSIMPLEACTION(final SOCSimpleAction mes, final SOCGame ga)
     {
-        final String gaName = mes.getGame();
-        SOCGame ga = games.get(gaName);
         if (ga == null)
             return;  // Not one of our games
 
@@ -2617,10 +3031,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 ga.removePort(null, mes.getValue1());
             break;
 
+        case SOCSimpleAction.DEVCARD_BOUGHT:
+            ga.setNumDevCards(mes.getValue1());
+            break;
+
         // Known types with no game data update:
         // Catch these before default case, so 'unknown type' won't be printed
 
-        case SOCSimpleAction.DEVCARD_BOUGHT:
         case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
         case SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT:
             // game data updates are sent in preceding or following messages, can ignore this one
@@ -2630,8 +3047,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
             // ignore unknown types
             // Since the bots and server are almost always the same version, this
             // shouldn't often occur: print for debugging.
-            System.err.println
-                ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
+            if (mes.getPlayerNumber() >= 0)
+                System.err.println
+                    ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + ga.getName());
         }
     }
 
@@ -2682,6 +3100,48 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * Undo moving or placing a piece.
+     * Does nothing for server decline reply ({@link SOCUndoPutPiece#getPlayerNumber()} &lt; 0).
+     * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
+     * @since 2.7.00
+     */
+    public static void handleUNDOPUTPIECE(final SOCUndoPutPiece mes, SOCGame ga)
+    {
+        if (ga == null)
+            return;  // Not one of our games
+        if (mes.getPlayerNumber() < 0)
+            return;
+
+        final SOCBoard board = ga.getBoard();
+        int pieceCurrCoord = mes.getCoordinates(), movedFromCoord = mes.getMovedFromCoordinates(),
+            pieceType = mes.getPieceType();
+        if (movedFromCoord != 0)
+        {
+            if (pieceType == SOCPlayingPiece.SHIP)
+            {
+                final SOCRoutePiece ship = board.roadOrShipAtEdge(pieceCurrCoord);
+                if (ship instanceof SOCShip)  // also checks non-null
+                    ga.undoMoveShip((SOCShip) ship);
+            } else {
+                System.err.println("Displayless.handleUNDOPUTPIECE: Un-handled move pieceType " + pieceType);
+            }
+        } else {
+            SOCPlayingPiece pp = null;
+            if ((pieceType == SOCPlayingPiece.ROAD) || (pieceType == SOCPlayingPiece.SHIP))
+                pp = board.roadOrShipAtEdge(pieceCurrCoord);
+            else if ((pieceType == SOCPlayingPiece.SETTLEMENT) || (pieceType == SOCPlayingPiece.CITY))
+                pp = board.settlementAtNode(pieceCurrCoord);
+            else
+                System.err.println("Displayless.handleUNDOPUTPIECE: Un-handled move pieceType " + pieceType);
+
+            if (pp != null)
+                ga.undoPutPiece(pp);
+        }
+    }
+
+    /**
      * Reveal a hidden hex on the board.
      * @since 2.0.00
      */
@@ -2727,6 +3187,24 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (fort != null)
                 fort.setStrength(pv);
         }
+    }
+
+    /**
+     * Handle the "reopen or close a shipping trade route" message.
+     * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
+     *     or if game doesn't use {@link SOCBoardLarge}
+     * @since 2.7.00
+     */
+    public static void handleSETSHIPROUTECLOSED(final SOCSetShipRouteClosed mes, SOCGame ga)
+    {
+        if (ga == null)
+            return;  // Not one of our games
+
+        final SOCBoard board = ga.getBoard();
+        if (board instanceof SOCBoardLarge)
+            ((SOCBoardLarge) board).setShipsClosed(mes.isClosed(), mes.getParams(), 1);
     }
 
     /**
@@ -2850,6 +3328,17 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * Ask to join a game; robots don't send this, server instead tells them to join games.
+     * Useful for testing and maybe third-party clients.
+     * @param gaName  Name of game to ask to join
+     * @since 2.5.00
+     */
+    public void joinGame(final String gaName)
+    {
+        put(new SOCJoinGame("-", "", "-", gaName).toCmd());
+    }
+
+    /**
      * request to buy a development card
      *
      * @param ga     the game
@@ -2874,10 +3363,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * request to cancel building something
+     * request to cancel building something or playing a dev card
      *
      * @param ga     the game
-     * @param piece  the type of piece from SOCPlayingPiece
+     * @param piece  the type of piece from SOCPlayingPiece, or {@link SOCCancelBuildRequest#CARD}
      */
     public void cancelBuildRequest(SOCGame ga, int piece)
     {
@@ -2914,13 +3403,29 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param fromCoord  Move the piece from here; must be >= 0
      * @param toCoord    Move the piece to here; must be >= 0
      * @throws IllegalArgumentException if {@code ptype} &lt; 0, {@code fromCoord} &lt; 0, or {@code toCoord} &lt; 0
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void movePieceRequest
         (final SOCGame ga, final int pn, final int ptype, final int fromCoord, final int toCoord)
         throws IllegalArgumentException
     {
         put(new SOCMovePiece(ga.getName(), pn, ptype, fromCoord, toCoord).toCmd());
+    }
+
+    /**
+     * Ask the server to undo placing or moving a piece.
+     * @param ga  game where the action is taking place; will call {@link SOCGame#getCurrentPlayerNumber()}
+     * @param ptype  piece type, such as {@link SOCPlayingPiece#SHIP}; must be &gt;= 0
+     * @param coord  coordinate where piece was placed or moved to; must be &gt; 0
+     * @param movedFromCoord  if undoing a move, the coordinate where piece was moved from, otherwise 0
+     * @throws IllegalArgumentException if {@code ptype} &lt; 0, {@code coord} &lt;= 0, or {@code movedFromCoord} &lt; 0
+     * @since 2.7.00
+     */
+    public void undoPutOrMovePieceRequest
+        (final SOCGame ga, final int ptype, final int coord, final int movedFromCoord)
+        throws IllegalArgumentException
+    {
+        put(new SOCUndoPutPiece(ga.getName(), ga.getCurrentPlayerNumber(), ptype, coord, movedFromCoord).toCmd());
     }
 
     /**
@@ -3003,9 +3508,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * user wants to leave a game.
+     * Calls {@link #leaveGame(String)}.
      *
      * @param ga   the game
-     * @see #leaveGame(String)
      */
     public void leaveGame(SOCGame ga)
     {
@@ -3014,10 +3519,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * user wants to leave a game, which they may not have been able to fully join.
+     * Also removes game from client's game list; {@link #getGame(String)} would return {@code null} for it afterwards.
      *
      * @param gaName  the game name
      * @see #leaveGame(SOCGame)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void leaveGame(final String gaName)
     {
@@ -3026,7 +3532,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user sits down to play
+     * User is sending server a request to sit down to play.
      *
      * @param ga   the game
      * @param pn   the number of the seat where the user wants to sit
@@ -3074,7 +3580,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void discard(SOCGame ga, SOCResourceSet rs)
     {
-        put(SOCDiscard.toCmd(ga.getName(), rs));
+        put(new SOCDiscard(ga.getName(), -1, rs).toCmd());
     }
 
     /**
@@ -3083,6 +3589,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * chose whether to move the robber or the pirate,
      * or (game state {@link SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE})
      * chose whether to steal a resource or cloth.
+     *<P>
+     * If choice is from playing a {@link SOCDevCardConstants#KNIGHT} card, to cancel the card
+     * call {@link #cancelBuildRequest(SOCGame, int) cancelBuildRequest}({@link SOCCancelBuildRequest#CARD}) instead.
      *
      * @param ga  the game
      * @param ch  the player number,
@@ -3103,7 +3612,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void rejectOffer(SOCGame ga)
     {
-        put(SOCRejectOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber()));
+        put(new SOCRejectOffer(ga.getName(), 0).toCmd());
     }
 
     /**
@@ -3114,7 +3623,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void acceptOffer(SOCGame ga, int from)
     {
-        put(SOCAcceptOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), from));
+        put(new SOCAcceptOffer(ga.getName(), 0, from).toCmd());
     }
 
     /**
@@ -3124,7 +3633,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void clearOffer(SOCGame ga)
     {
-        put(SOCClearOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber()));
+        put(SOCClearOffer.toCmd(ga.getName(), 0));
     }
 
     /**

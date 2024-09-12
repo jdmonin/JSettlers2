@@ -1,0 +1,198 @@
+SOC game event log: type=C, version=2500, created_at=1636807754, now=1636807889, game_name=test
+# Game created at: 2021-11-13 07:49:14 -0500
+# Log written at:  2021-11-13 07:51:29 -0500
+0:00.012:all:SOCVersion:2500|str=2.5.00|verBuild=JM20211113|feats=;ch;|cliLocale=(null)
+0:00.013:all:SOCNewGameWithOptions:game=test|param1=-1|param2=BC=t4,N7=f7,RD=f,PL=4
+0:00.013:ob:SOCJoinGameAuth:game=test
+0:00.013:ob:SOCSetSeatLock:game=test|states=LOCKED,UNLOCKED,UNLOCKED,UNLOCKED
+0:00.014:ob:SOCPotentialSettlements:game=test|playerNum=-1|list=83 85 87 89 8b 8d 94 96 98 9a 9c 23 25 a5 27 a7 a9 ab ad 32 34 36 b6 38 b8 ba bc 43 45 47 c7 49 c9 cb cd 52 54 56 58 d8 5a da dc 63 65 67 69 6b 72 74 76 78 7a 7c 
+0:00.015:ob:SOCGameElements:game=test|e4=-1
+0:00.015:ob:SOCPlayerElements:game=test|playerNum=0|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:00.016:ob:SOCChangeFace:game=test|playerNumber=0|faceId=1
+0:00.016:ob:SOCDiceResult:game=test|param=-1
+0:00.016:ob:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:00.016:ob:SOCChangeFace:game=test|playerNumber=1|faceId=1
+0:00.016:ob:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:00.016:ob:SOCChangeFace:game=test|playerNumber=2|faceId=1
+0:00.016:ob:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:00.016:ob:SOCChangeFace:game=test|playerNumber=3|faceId=1
+0:00.016:ob:SOCGameElements:game=test|e2=25,e1=0,e3=-1,e6=-1,e5=-1
+0:00.016:ob:SOCGameMembers:game=test|members=[p3]
+0:00.016:ob:SOCGameState:game=test|state=0
+0:00.018:all:SOCJoinGame:nickname=p3|password empty|host=	|game=test
+0:26.584:all:SOCSitDown:game=test|nickname=p3|playerNumber=3|robotFlag=false
+0:26.584:p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=0,e2=0,e3=0,e4=0,e5=0,e6=0
+0:26.584:all:SOCGameState:game=test|state=0
+0:26.584:all:SOCChangeFace:game=test|playerNumber=3|faceId=1
+0:26.609:all:SOCChangeFace:game=test|playerNumber=3|faceId=2
+0:27.413:all:SOCSetSeatLock:game=test|playerNumber=0|state=LOCKED
+0:28.278:all:SOCGameServerText:game=test|text=Fetching a robot player...
+0:28.278:all:SOCGameServerText:game=test|text=Fetching a robot player...
+0:28.278:ob:SOCBotJoinGameRequest:game=test|playerNumber=1|opts=BC=t4,N7=f7,RD=f,PL=4
+0:28.278:ob:SOCBotJoinGameRequest:game=test|playerNumber=2|opts=BC=t4,N7=f7,RD=f,PL=4
+0:28.279:ob:SOCJoinGameAuth:game=test
+0:28.279:ob:SOCSetSeatLock:game=test|states=LOCKED,UNLOCKED,UNLOCKED,UNLOCKED
+0:28.279:ob:SOCSitDown:game=test|nickname=p3|playerNumber=3|robotFlag=false
+0:28.279:ob:SOCBoardLayout:game=test|hexLayout={ 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 }|numberLayout={ -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 }|robberHex=0xffffffff
+0:28.279:ob:SOCPotentialSettlements:game=test|playerNum=-1|list=83 85 87 89 8b 8d 94 96 98 9a 9c 23 25 a5 27 a7 a9 ab ad 32 34 36 b6 38 b8 ba bc 43 45 47 c7 49 c9 cb cd 52 54 56 58 d8 5a da dc 63 65 67 69 6b 72 74 76 78 7a 7c 
+0:28.280:ob:SOCGameElements:game=test|e4=-1
+0:28.280:ob:SOCPlayerElements:game=test|playerNum=0|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:28.280:ob:SOCChangeFace:game=test|playerNumber=0|faceId=1
+0:28.280:ob:SOCDiceResult:game=test|param=-1
+0:28.280:ob:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:28.280:ob:SOCChangeFace:game=test|playerNumber=1|faceId=1
+0:28.280:ob:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:28.280:ob:SOCChangeFace:game=test|playerNumber=2|faceId=1
+0:28.280:ob:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:28.280:ob:SOCChangeFace:game=test|playerNumber=3|faceId=2
+0:28.280:ob:SOCGameElements:game=test|e2=25,e1=0,e3=-1,e6=-1,e5=-1
+0:28.280:ob:SOCGameMembers:game=test|members=[p3, droid 1]
+0:28.280:ob:SOCGameState:game=test|state=1
+0:28.280:all:SOCJoinGame:nickname=droid 1|password empty|host=	|game=test
+0:28.281:ob:SOCJoinGameAuth:game=test
+0:28.281:ob:SOCSetSeatLock:game=test|states=LOCKED,UNLOCKED,UNLOCKED,UNLOCKED
+0:28.281:ob:SOCSitDown:game=test|nickname=p3|playerNumber=3|robotFlag=false
+0:28.281:ob:SOCBoardLayout:game=test|hexLayout={ 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 }|numberLayout={ -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 }|robberHex=0xffffffff
+0:28.281:ob:SOCPotentialSettlements:game=test|playerNum=-1|list=83 85 87 89 8b 8d 94 96 98 9a 9c 23 25 a5 27 a7 a9 ab ad 32 34 36 b6 38 b8 ba bc 43 45 47 c7 49 c9 cb cd 52 54 56 58 d8 5a da dc 63 65 67 69 6b 72 74 76 78 7a 7c 
+0:28.281:ob:SOCGameElements:game=test|e4=-1
+0:28.281:ob:SOCPlayerElements:game=test|playerNum=0|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:28.281:ob:SOCChangeFace:game=test|playerNumber=0|faceId=1
+0:28.281:ob:SOCDiceResult:game=test|param=-1
+0:28.281:ob:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:28.281:ob:SOCChangeFace:game=test|playerNumber=1|faceId=1
+0:28.281:ob:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:28.281:ob:SOCChangeFace:game=test|playerNumber=2|faceId=1
+0:28.281:ob:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:28.281:ob:SOCChangeFace:game=test|playerNumber=3|faceId=2
+0:28.281:ob:SOCGameElements:game=test|e2=25,e1=0,e3=-1,e6=-1,e5=-1
+0:28.281:ob:SOCGameMembers:game=test|members=[p3, droid 1, robot 3]
+0:28.281:ob:SOCGameState:game=test|state=1
+0:28.281:all:SOCJoinGame:nickname=robot 3|password empty|host=	|game=test
+0:28.287:all:SOCSitDown:game=test|nickname=droid 1|playerNumber=1|robotFlag=true
+0:28.287:p1:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e1=0,e2=0,e3=0,e4=0,e5=0,e6=0
+0:28.287:all:SOCGameState:game=test|state=1
+0:28.287:all:SOCChangeFace:game=test|playerNumber=1|faceId=1
+0:28.288:all:SOCSitDown:game=test|nickname=robot 3|playerNumber=2|robotFlag=true
+0:28.288:p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=0,e3=0,e4=0,e5=0,e6=0
+0:28.288:all:SOCGameState:game=test|state=1
+0:28.288:all:SOCChangeFace:game=test|playerNumber=2|faceId=1
+0:28.289:all:SOCBoardLayout:game=test|hexLayout={ 51 6 10 6 6 5 1 3 68 34 0 4 1 5 6 6 4 5 2 3 4 81 37 2 2 5 3 6 6 4 3 1 12 7 6 12 6 }|numberLayout={ -1 -1 -1 -1 -1 1 5 7 -1 -1 -1 2 3 6 -1 -1 4 6 8 4 9 -1 -1 0 7 1 8 -1 -1 3 5 2 -1 -1 -1 -1 -1 }|robberHex=0x35
+0:28.289:all:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e10=15,e11=5,e12=4
+0:28.289:all:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e10=15,e11=5,e12=4
+0:28.289:all:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e10=15,e11=5,e12=4
+0:28.289:all:SOCPlayerElement:game=test|playerNum=-1|actionType=SET|elementType=19|amount=0
+0:28.290:all:SOCGameElements:game=test|e2=25
+0:28.290:all:SOCGameServerText:game=test|text=Randomly picking a starting player...
+0:28.290:all:SOCStartGame:game=test|gameState=5
+0:28.291:all:SOCGameServerText:game=test|text=It's robot 3's turn to build a settlement.
+0:28.291:all:SOCTurn:game=test|playerNumber=2|gameState=5
+0:28.320:all:SOCChangeFace:game=test|playerNumber=1|faceId=0
+0:28.322:all:SOCChangeFace:game=test|playerNumber=2|faceId=-1
+0:28.918:all:SOCGameServerText:game=test|text=robot 3 built a settlement.
+0:28.918:all:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=9a
+0:28.918:all:SOCGameState:game=test|state=6
+0:28.918:all:SOCGameServerText:game=test|text=It's robot 3's turn to build a road.
+0:30.425:all:SOCGameServerText:game=test|text=robot 3 built a road.
+0:30.425:all:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=8a
+0:30.425:all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.
+0:30.425:all:SOCTurn:game=test|playerNumber=3|gameState=5
+0:47.783:all:SOCGameServerText:game=test|text=p3 built a settlement.
+0:47.783:all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=b6
+0:47.783:all:SOCGameState:game=test|state=6
+0:47.783:all:SOCGameServerText:game=test|text=It's p3's turn to build a road.
+0:48.650:all:SOCGameServerText:game=test|text=p3 built a road.
+0:48.650:all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a6
+0:48.651:all:SOCGameServerText:game=test|text=It's droid 1's turn to build a settlement.
+0:48.651:all:SOCTurn:game=test|playerNumber=1|gameState=5
+0:49.199:all:SOCGameServerText:game=test|text=droid 1 built a settlement.
+0:49.199:all:SOCPutPiece:game=test|playerNumber=1|pieceType=1|coord=58
+0:49.199:all:SOCGameState:game=test|state=6
+0:49.200:all:SOCGameServerText:game=test|text=It's droid 1's turn to build a road.
+0:50.703:all:SOCGameServerText:game=test|text=droid 1 built a road.
+0:50.703:all:SOCPutPiece:game=test|playerNumber=1|pieceType=0|coord=48
+0:50.703:all:SOCGameServerText:game=test|text=It's droid 1's turn to build a settlement.
+0:50.703:all:SOCTurn:game=test|playerNumber=1|gameState=10
+0:53.710:all:SOCGameServerText:game=test|text=droid 1 built a settlement.
+0:53.710:all:SOCPutPiece:game=test|playerNumber=1|pieceType=1|coord=96
+0:53.710:all:SOCGameState:game=test|state=11
+0:53.710:all:SOCGameServerText:game=test|text=It's droid 1's turn to build a road.
+0:55.214:all:SOCGameServerText:game=test|text=droid 1 built a road.
+0:55.214:all:SOCPutPiece:game=test|playerNumber=1|pieceType=0|coord=86
+0:55.214:all:SOCGameServerText:game=test|text=It's p3's turn to build a settlement.
+0:55.214:all:SOCTurn:game=test|playerNumber=3|gameState=10
+1:03.450:all:SOCGameServerText:game=test|text=p3 built a settlement.
+1:03.450:all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=54
+1:03.450:all:SOCGameState:game=test|state=11
+1:03.450:all:SOCGameServerText:game=test|text=It's p3's turn to build a road.
+1:05.243:all:SOCGameServerText:game=test|text=p3 built a road.
+1:05.243:all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=54
+1:05.243:all:SOCGameServerText:game=test|text=It's robot 3's turn to build a settlement.
+1:05.243:all:SOCTurn:game=test|playerNumber=2|gameState=10
+1:05.747:all:SOCGameServerText:game=test|text=robot 3 built a settlement.
+1:05.747:all:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=74
+1:05.748:all:SOCGameState:game=test|state=11
+1:05.748:all:SOCGameServerText:game=test|text=It's robot 3's turn to build a road.
+1:07.251:all:SOCGameServerText:game=test|text=robot 3 built a road.
+1:07.251:all:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=63
+1:07.251:all:SOCTurn:game=test|playerNumber=2|gameState=15
+1:07.251:all:SOCRollDicePrompt:game=test|playerNumber=2
+1:09.755:all:SOCDiceResult:game=test|param=7
+1:09.755:all:SOCGameState:game=test|state=33
+1:09.755:all:SOCGameServerText:game=test|text=robot 3 will move the robber.
+1:09.765:all:SOCMoveRobber:game=test|playerNumber=2|coord=95
+1:09.766:all:SOCGameServerText:game=test|text=robot 3 moved the robber. Must choose a victim.
+1:09.766:all:SOCGameState:game=test|state=51
+1:09.766:p2:SOCChoosePlayerRequest:game=test|choices=[false, true, false, true]
+1:11.767:p2:SOCRobberyResult:game=test|perp=2|victim=1|resType=3|amount=1|isGainLose=true
+1:11.767:p1:SOCRobberyResult:game=test|perp=2|victim=1|resType=3|amount=1|isGainLose=true
+1:11.767:!p[2, 1]:SOCRobberyResult:game=test|perp=2|victim=1|resType=6|amount=1|isGainLose=true
+1:11.767:all:SOCGameState:game=test|state=20
+1:11.855:all:SOCPlayerElements:game=test|playerNum=2|actionType=LOSE|e2=1,e3=1,e4=1
+1:11.855:all:SOCGameElements:game=test|e2=24
+1:11.855:p2:SOCDevCardAction:game=test|playerNum=2|actionType=DRAW|cardType=5
+1:11.855:!p2:SOCDevCardAction:game=test|playerNum=2|actionType=DRAW|cardType=0
+1:11.856:all:SOCSimpleAction:game=test|pn=2|actType=1|v1=24|v2=0
+1:11.856:all:SOCGameState:game=test|state=20
+1:13.358:all:SOCClearOffer:game=test|playerNumber=-1
+1:13.358:all:SOCTurn:game=test|playerNumber=3|gameState=15
+1:13.358:all:SOCRollDicePrompt:game=test|playerNumber=3
+1:14.606:all:SOCDiceResult:game=test|param=8
+1:14.607:all:SOCDiceResultResources:game=test|p=1|p=1|p=3|p=1|p=1
+1:14.607:p1:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e1=1,e2=1,e3=0,e4=0,e5=1
+1:14.607:all:SOCGameState:game=test|state=20
+2:01.354:all:SOCClearOffer:game=test|playerNumber=-1
+2:01.354:all:SOCTurn:game=test|playerNumber=1|gameState=15
+2:01.354:all:SOCRollDicePrompt:game=test|playerNumber=1
+2:01.354:all:SOCDiceResult:game=test|param=8
+2:01.354:all:SOCDiceResultResources:game=test|p=1|p=1|p=4|p=1|p=1
+2:01.354:p1:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e1=2,e2=1,e3=0,e4=0,e5=1
+2:01.354:all:SOCGameState:game=test|state=20
+2:01.355:all:SOCPlayerElements:game=test|playerNum=1|actionType=LOSE|e1=1,e5=1
+2:01.355:all:SOCGameState:game=test|state=30
+2:01.857:all:SOCGameServerText:game=test|text=droid 1 built a road.
+2:01.857:all:SOCPutPiece:game=test|playerNumber=1|pieceType=0|coord=38
+2:01.857:all:SOCGameState:game=test|state=20
+2:04.361:all:SOCClearOffer:game=test|playerNumber=-1
+2:04.361:all:SOCTurn:game=test|playerNumber=2|gameState=15
+2:04.361:all:SOCRollDicePrompt:game=test|playerNumber=2
+2:04.361:all:SOCDiceResult:game=test|param=7
+2:04.361:all:SOCGameState:game=test|state=33
+2:04.361:all:SOCGameServerText:game=test|text=robot 3 will move the robber.
+2:04.365:all:SOCMoveRobber:game=test|playerNumber=2|coord=59
+2:04.365:p2:SOCRobberyResult:game=test|perp=2|victim=1|resType=2|amount=1|isGainLose=true
+2:04.365:p1:SOCRobberyResult:game=test|perp=2|victim=1|resType=2|amount=1|isGainLose=true
+2:04.365:!p[2, 1]:SOCRobberyResult:game=test|perp=2|victim=1|resType=6|amount=1|isGainLose=true
+2:04.365:all:SOCGameState:game=test|state=20
+2:07.924:all:SOCClearOffer:game=test|playerNumber=-1
+2:07.924:all:SOCTurn:game=test|playerNumber=3|gameState=15
+2:07.924:all:SOCRollDicePrompt:game=test|playerNumber=3
+2:08.815:all:SOCDiceResult:game=test|param=10
+2:08.815:all:SOCDiceResultResources:game=test|p=2|p=1|p=2|p=1|p=2|p=0|p=2|p=3|p=1|p=2
+2:08.815:p1:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e1=1,e2=1,e3=0,e4=0,e5=0
+2:08.815:p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=3,e3=0,e4=0,e5=0
+2:08.815:all:SOCGameState:game=test|state=20
+# End of log. Game state 20
+# Player info:
+# - pn 1: total score 2: droid 1
+# - pn 2: visible score 2, total score 3: robot 3
+# - pn 3: total score 2: p3

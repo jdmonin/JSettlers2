@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2015,2017-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,12 @@ import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
 import java.awt.Window;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -46,6 +51,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -77,7 +83,9 @@ import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
+import soc.message.SOCGameStats;
 import soc.message.SOCMessage;
+import soc.util.DataUtils;
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;
 import soc.util.Version;
@@ -131,6 +139,11 @@ import soc.util.Version;
     /**
      * Game's interface if known, or {@code null} for a new game.
      * Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
+     * Can use {@link SOCPlayerInterface#getGame()} to get info about the game.
+     *<P>
+     * For an alternate source of some limited game info when {@code pi == null},
+     * see {@link #existingGameName} and {@link #gameCreationTimeSeconds}.
+     *
      * @see #localPrefs
      * @see #forNewGame
      * @since 1.2.00
@@ -147,6 +160,13 @@ import soc.util.Version;
     private final boolean forPractice;
 
     /**
+     * The game's effective server version:
+     * Our own version for practice games, otherwise {@link SOCPlayerClient#sVersion}.
+     * @since 2.7.00
+     */
+    private final int gameVersion;
+
+    /**
      * Map of local client preferences for a new or current game.
      * Same keys and values as {@link SOCPlayerInterface} constructor's
      * {@code localPrefs} parameter.
@@ -156,10 +176,43 @@ import soc.util.Version;
 
     /**
      * Is this NGOF used to set options for a new game, not to show them for an existing one?
-     * If true, {@link #pi} == {@code null}.
+     * If true, {@link #pi} == {@code null} and {@link #existingGameName} == {@code null}.
      * @since 2.0.00
      */
     private final boolean forNewGame;
+
+    /**
+     * Name of existing game, or {@code null} if {@link #forNewGame}.
+     * @see #opts
+     * @since 2.7.00
+     */
+    private final String existingGameName;
+
+    /**
+     * For showing Game Info in {@link SwingMainDisplay} about a game we may not be a member of,
+     * its creation time (same format as {@link System#currentTimeMillis()} / 1000).
+     * 0 otherwise.
+     *<P>
+     * Related timing fields: {@link #gameIsStarted}, {@link #gameDurationFinishedSeconds}.
+     * @see #gameTimingStatsReceived(long, boolean, int)
+     * @since 2.7.00
+     */
+    private long gameCreationTimeSeconds;
+
+    /**
+     * For showing Game Info when {@link #gameCreationTimeSeconds} != 0, true if that game has started.
+     * False/unused otherwise.
+     * @see #gameDurationFinishedSeconds
+     * @since 2.7.00
+     */
+    private boolean gameIsStarted;
+
+    /**
+     * For showing Game Info when {@link #gameCreationTimeSeconds} != 0, and that game has finished,
+     * its duration in seconds. 0 otherwise.
+     * @since 2.7.00
+     */
+    private int gameDurationFinishedSeconds;
 
     /**
      * Is this for display only (shown for an existing game)? If false, dialog is to create a new game.
@@ -170,6 +223,7 @@ import soc.util.Version;
 
     /**
      * Contains this game's {@link SOCGameOption}s, or null if none.
+     * (This can occur if server is very old, or uses a third-party option which the client does not have.)
      * Unknowns (OTYPE_UNKNOWN) and inactives (SGO.FLAG_INACTIVE_HIDDEN) are removed in
      * {@link #initInterface_Options(JPanel, GridBagLayout, GridBagConstraints) initInterface_Options(..)}.
      *<P>
@@ -180,14 +234,15 @@ import soc.util.Version;
      *
      * @see #readOptsValuesFromControls(boolean)
      * @see #knownOpts
+     * @see #existingGameName
      */
     private final SOCGameOptionSet opts;
 
     /**
-     * This game's server's Known Options, from {@link ServerGametypeInfo#knownOpts}.
+     * This game's server's Known Options, from {@link ServerGametypeInfo#knownOpts}, or null if server is very old.
      * When NGOF is being shown to create the first new game / practice game, {@code knownOpts}
      * is copied to {@link ServerGametypeInfo#newGameOpts} to be {@link #opts} here.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private final SOCGameOptionSet knownOpts;
 
@@ -243,7 +298,28 @@ import soc.util.Version;
     /** Cancel button; text is "OK" if {@link #readOnly} */
     private JButton cancel;
     private JTextField gameName;
-    /** msgText is null if readOnly */
+
+    /**
+     * Game info if {@link #pi} != {@code null}, or {@code null} otherwise (including when {@link #readOnly}).
+     * Call {@link #updateGameInfo()} to update contents.
+     * @see #gameInfoUpdateTimer
+     * @see #msgText
+     * @since 2.7.00
+     */
+    private JLabel gameInfo;
+
+    /**
+     * Once per minute, calls {@link #updateGameInfo()}.
+     * Null if {@link #gameInfo} null or if this NGOF was {@link #dispose()}d.
+     * @since 2.7.00
+     */
+    private TimerTask gameInfoUpdateTimer;
+
+    /**
+     * For new games, message/prompt text at top of dialog.
+     * msgText is null if {@link #readOnly}.
+     * @see #gameInfo
+     */
     private JTextField msgText;
 
     // // TODO refactor; these are from connectorprac panel
@@ -263,6 +339,10 @@ import soc.util.Version;
      *<P>
      * See also convenience method
      * {@link #createAndShow(SOCPlayerInterface, MainDisplay, String, SOCGameOptionSet, boolean, boolean)}.
+     *<P>
+     * If showing info for a current game but {@code pi == null},
+     * may call {@link MainDisplay#readValidNicknameAndPassword()}
+     * because client must auth before sending {@link SOCGameStats} request.
      *
      * @param pi  Interface of existing game, or {@code null} for a new game.
      *     Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
@@ -274,7 +354,7 @@ import soc.util.Version;
      *                 is pressed, so the next OptionsFrame will default to the values the user has chosen.
      *                 To preserve them, copy the set beforehand.
      *                 Null if server doesn't support game options.
-     *                 Unknown options ({@link SOCGameOption#OTYPE_UNKNOWN}) will be removed.
+     *                 Unknown options ({@link SOCGameOption#OTYPE_UNKNOWN}) will be removed unless <tt>readOnly</tt>.
      *                 If not <tt>readOnly</tt>, each option's {@link SOCGameOption#userChanged userChanged}
      *                 flag will be cleared, to reset status from any previously shown NewGameOptionsFrame.
      * @param forPractice For making a new game: Will the game be on local practice server, vs remote tcp server?
@@ -299,11 +379,14 @@ import soc.util.Version;
         this.mainDisplay = md;
         SOCPlayerClient cli = md.getClient();
         forNewGame = (gaName == null);
+        existingGameName = gaName;
         this.opts = opts;
         knownOpts = ((forPractice) ? cli.practiceServGameOpts : cli.tcpServGameOpts).knownOpts;
         localPrefs = new HashMap<String, Object>();
         this.forPractice = forPractice;
         this.readOnly = readOnly;
+        gameVersion = (forPractice) ? Version.versionNumber() : cli.sVersion;
+
         if ((opts != null) && (opts == knownOpts))
             throw new IllegalArgumentException("opts == knownOpts");
 
@@ -353,6 +436,11 @@ import soc.util.Version;
      * Once created, resets the mouse cursor from hourglass to normal, and clears main panel's status text.
      * See {@link #NewGameOptionsFrame(SOCPlayerInterface, MainDisplay, String, SOCGameOptionSet, boolean, boolean) constructor}
      * for notes about <tt>opts</tt> and other parameters.
+     *<P>
+     * If showing info for a current game but {@code pi == null},
+     * may call {@link MainDisplay#readValidNicknameAndPassword()}
+     * because client must auth before sending {@link SOCGameStats} request.
+     *
      * @param pi  Interface of existing game, or {@code null} for a new game; see constructor
      * @param gaName  Name of existing game, or {@code null} to show options for a new game;
      *     see constructor for details
@@ -435,7 +523,7 @@ import soc.util.Version;
             gameName.setText(gaName);
         if (readOnly)
         {
-            gameName.setEnabled(false);
+            gameName.setEditable(false);  // not setEnabled(false), so still allows highlight in order to copy name
         } else {
             gameName.addKeyListener(this);     // for ESC/ENTER
             Document tfDoc = gameName.getDocument();
@@ -446,6 +534,54 @@ import soc.util.Version;
         gbc.weightx = 1;
         gbl.setConstraints(gameName, gbc);
         bp.add(gameName);
+
+        /**
+         * Game Info row for current game, if any
+         */
+        if (! forNewGame)
+        {
+            final SOCPlayerClient pcli = mainDisplay.getClient();
+            final boolean hasGameInfoAlready = (pi != null);
+            if (hasGameInfoAlready || (pcli.sVersion >= SOCGameStats.VERSION_FOR_TYPE_TIMING))
+            {
+                final int px2 = 2 * displayScale;
+                gbc.ipadx = px2;
+
+                L = new JLabel(strings.get("pcli.main.game.info") + ":", SwingConstants.LEFT);  // "Game Info:"
+                gbc.gridwidth = 2;
+                gbc.weightx = 0;
+                gbl.setConstraints(L, gbc);
+                bp.add(L);
+
+                final Insets prevIns = gbc.insets;
+                gameInfo = new JLabel();
+                if (hasGameInfoAlready)
+                    updateGameInfo();
+                else if (! (pcli.gotPassword || mainDisplay.readValidNicknameAndPassword()))
+                    gameInfo.setText(strings.get("game.options.must_enter_nickname_to_check"));  // "Must enter a nickname to check status"
+                gbc.gridwidth = GridBagConstraints.REMAINDER;
+                gbc.weightx = 1;
+                gbc.insets = new Insets(px2, px2, px2, px2);
+                gbl.setConstraints(gameInfo, gbc);
+                bp.add(gameInfo);
+
+                gbc.ipadx = 0;
+                gbc.insets = prevIns;
+
+                // thin <HR>-type spacer between info and game options
+                JSeparator spacer = new JSeparator();
+                if (! SwingMainDisplay.isOSColorHighContrast())
+                    spacer.setBackground(HEADER_LABEL_BG);
+                gbl.setConstraints(spacer, gbc);
+                bp.add(spacer);
+
+                if (hasGameInfoAlready)
+                    initGameInfoUpdateTimer(true);
+                // else
+                    // SwingMainDisplay has asked server for game info on our behalf,
+                    // and will soon call gameTimingStatsReceived(..)
+            }
+        }
 
         /**
          * Interface setup: Game Options, user's client preferences, per-game local preferences
@@ -514,6 +650,81 @@ import soc.util.Version;
         // Final assembly setup
         bp.validate();
         add(bp, BorderLayout.CENTER);
+
+        // Now that bp's been added to hierarchy, add copy menu if game name is read-only
+        if (readOnly && (gaName != null))
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    final PopupMenu menu = new PopupMenu();
+
+                    MenuItem mi = new MenuItem(strings.get("menu.copy"));  // "Copy"
+                    mi.addActionListener(new ActionListener()
+                    {
+                        public void actionPerformed(ActionEvent ae)
+                        {
+                            try
+                            {
+                                String selData = gameName.getSelectedText();
+                                if ((selData == null) || selData.isEmpty())
+                                    selData = gameName.getText();
+                                final StringSelection data = new StringSelection(selData);
+                                final Clipboard cb = gameName.getToolkit().getSystemClipboard();
+                                if (cb != null)
+                                    cb.setContents(data, data);
+                            } catch (Exception e) {}  // security, or clipboard unavailable
+                        }
+                    });
+                    menu.add(mi);
+
+                    gameName.add(menu);
+                    gameName.addMouseListener(new MouseAdapter()
+                    {
+                        // different platforms have different popupTriggers for their context menus,
+                        // so check several types of mouse event:
+                        public void mouseReleased(MouseEvent e) { mouseClicked(e); }
+                        public void mousePressed(MouseEvent e)  { mouseClicked(e); }
+                        public void mouseClicked(MouseEvent e)
+                        {
+                            if (! e.isPopupTrigger())
+                                return;
+
+                            e.consume();
+                            menu.show(gameName, e.getX(), e.getY());
+                        }
+                    });
+                }
+            });
+    }
+
+    /**
+     * Start a timer to show the game's increasing age once per minute.
+     * If that timer's already started, does nothing.
+     * @param initialDelayMinute  If true, wait 1 minute before the first call to {@link #updateGameInfo()}.
+     * @since 2.7.00
+     */
+    private void initGameInfoUpdateTimer(final boolean initialDelayMinute)
+    {
+        if (gameInfoUpdateTimer != null)
+            return;
+
+        gameInfoUpdateTimer = new TimerTask()
+        {
+            public void run()
+            {
+                EventQueue.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        updateGameInfo();
+                    }
+                });
+            }
+        };
+
+        mainDisplay.getEventTimer().scheduleAtFixedRate(gameInfoUpdateTimer, initialDelayMinute ? 60100 : 0, 60100);
+            // just over 60 seconds, to avoid being wrong for 59 of 60 seconds if timing is slightly off
     }
 
     /**
@@ -521,7 +732,8 @@ import soc.util.Version;
      * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
      * One row per option; 3-letter options are grouped under their matching 2-letter ones,
      * longer options whose keys have a {@code '_'} under the option (if any) whose key
-     * is the prefix before {@code '_'}. Non-grouped options are sorted by case-insensitive description
+     * is the prefix before {@code '_'} (see {@link SOCGameOption#getGroupParentKey(String)}).
+     * Non-grouped options are sorted by case-insensitive description
      * by calling {@link SOCGameOption#compareTo(Object)}.
      *<P>
      * When showing options to create a new game, option keys starting with '_' are hidden.
@@ -529,13 +741,13 @@ import soc.util.Version;
      * When the dialog is shown read-only during a game, these options are shown.
      *<P>
      * Options which have {@link SOCGameOption#FLAG_INTERNAL_GAME_PROPERTY} are always hidden.
-     * If not {@link #readOnly}, they're removed from opts.  Unknown opts are always removed.
+     * If not {@link #readOnly}, they're removed from opts. Unknown opts are removed unless read-only.
      *<P>
      * This is called from constructor, so this is a new NGOF being shown.
      * If not read-only, clear {@link SOCGameOption#userChanged} flag for
      * each option in {@link #opts}.
      *<P>
-     * If options are null, put a label with "This server version does not support game options" (localized).
+     * If options are null, put a label with "This game does not use options" (localized).
      *<P>
      * Sets up local preferences for the client by calling
      * {@link #initInterface_UserPrefs(JPanel, GridBagLayout, GridBagConstraints)}.
@@ -549,7 +761,10 @@ import soc.util.Version;
 
         if (opts == null)
         {
-            L = new JLabel(strings.get("game.options.not"));  // "This server version does not support game options."
+            L = new JLabel(strings.get
+                    ((knownOpts != null)
+                     ? "game.options.none"     // "This game does not use options."
+                     : "game.options.not" ));  // "This server version does not support game options."
             if (! isOSHighContrast)
                 L.setForeground(SwingMainDisplay.MISC_LABEL_FG_OFF_WHITE);
             gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -579,22 +794,15 @@ import soc.util.Version;
         {
             final String okey = opt.key;
             final int kL = okey.length();
-            if ((kL <= 2) || (opt.optType == SOCGameOption.OTYPE_UNKNOWN)
+            if ((kL <= 2) || ((opt.optType == SOCGameOption.OTYPE_UNKNOWN) && ! readOnly)
                 || opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
                 continue;
 
-            final String kf2;
-            if (kL == 3)
-            {
-                kf2 = okey.substring(0, 2);
-            } else {
-                int i = okey.indexOf('_');
-                if (i < 1)
-                    continue;
-                kf2 = okey.substring(0, i);
-            }
+            final String kf2 = SOCGameOption.getGroupParentKey(okey);
+            if (kf2 == null)
+                continue;
             SOCGameOption op2 = opts.get(kf2);
-            if ((op2 != null) && (op2.optType != SOCGameOption.OTYPE_UNKNOWN))
+            if ((op2 != null) && ((op2.optType != SOCGameOption.OTYPE_UNKNOWN) || readOnly))
                 sameGroupOpts.put(okey, kf2);
         }
 
@@ -612,7 +820,7 @@ import soc.util.Version;
         {
             final SOCGameOption op = optArr[i];
 
-            if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
+            if ((op.optType == SOCGameOption.OTYPE_UNKNOWN) && ! readOnly)
             {
                 opts.remove(op.key);
                 continue;  // <-- Removed, Go to next entry --
@@ -713,7 +921,7 @@ import soc.util.Version;
             Collection<SOCScenario> scens = allSc.values();
             if (! readOnly)
             {
-                // Sort by description.
+                // Sort by rank and description.
                 // Don't sort if readOnly and thus dropdown not enabled, probably not browsable.
 
                 ArrayList<SOCScenario> sl = new ArrayList<SOCScenario>(scens);
@@ -723,6 +931,12 @@ import soc.util.Version;
 
                     public int compare(SOCScenario a, SOCScenario b)
                     {
+                        final int rankA = a.getSortRank(), rankB = b.getSortRank();
+                        if (rankA < rankB)
+                            return -1;
+                        else if (rankA > rankB)
+                            return 1;
+
                         return a.getDesc().compareTo(b.getDesc());
                     }
                 });
@@ -780,6 +994,7 @@ import soc.util.Version;
         switch (op.optType)  // OTYPE_*
         {
         case SOCGameOption.OTYPE_BOOL:
+        case SOCGameOption.OTYPE_UNKNOWN:
             {
                 JCheckBox cb = new JCheckBox();
                 initInterface_Opt1(op, cb, true, false, false, bp, gbl, gbc);
@@ -868,7 +1083,8 @@ import soc.util.Version;
             else
                 cb = new JCheckBox();
             controlsOpts.put(cb, op);
-            cb.setSelected(op.getBoolValue());
+            cb.setSelected
+                ((op.optType != SOCGameOption.OTYPE_UNKNOWN) ? op.getBoolValue() : true);
             cb.setEnabled(! readOnly);
             if (! isOSHighContrast)
             {
@@ -1503,8 +1719,29 @@ import soc.util.Version;
                 // All fields OK, ready to create a new game.
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this window
                 persistLocalPrefs();
+                final SOCGameOptionSet optsForAskStartgame;
+                if (opts != null)
+                {
+                    // One last check of options for problems,
+                    // and don't send default-valued gameopts which have FLAG_DROP_IF_UNUSED flag
+                    optsForAskStartgame = new SOCGameOptionSet(opts, true);
+                    final Map<String, String> optProblems
+                        = optsForAskStartgame.adjustOptionsToKnown(knownOpts, false, null);
+                    if (optProblems != null)
+                    {
+                        StringBuilder errSB = new StringBuilder("Option problems: ");
+                            // I18N OK: Is fallback only, previous checks should have caught problems
+                        DataUtils.mapIntoStringBuilder(optProblems, errSB, null, "; ");
+                        msgText.setText(errSB.toString());
+                        gameName.requestFocusInWindow();  // draw attention to top of window
+                        setCursor(Cursor.getDefaultCursor());
+                        return;
+                    }
+                } else {
+                    optsForAskStartgame = null;
+                }
                 mainDisplay.askStartGameWithOptions
-                    (gmName, forPractice, opts, localPrefs);  // sets WAIT_CURSOR in main client frame
+                    (gmName, forPractice, optsForAskStartgame, localPrefs);  // sets WAIT_CURSOR in main client frame
             } else {
                 return;  // readOptsValues will put the err msg in dia's status line
             }
@@ -1592,6 +1829,15 @@ import soc.util.Version;
     public void dispose()
     {
         mainDisplay.dialogClosed(this);
+
+        if (gameInfoUpdateTimer != null)
+            try
+            {
+                gameInfoUpdateTimer.cancel();
+                gameInfoUpdateTimer = null;
+            }
+            catch (Throwable th) {}
+
         super.dispose();
     }
 
@@ -1786,11 +2032,12 @@ import soc.util.Version;
 
         if (allOK && checkOptionsMinVers && ! forPractice)
         {
-            int optsVers = SOCVersionedItem.itemsMinimumVersion(controlsOpts);
+            Map<String, Integer> optsMins = new HashMap<>();
+            int optsVers = SOCVersionedItem.itemsMinimumVersion(opts.getAll(), false, optsMins);
             if ((optsVers > -1) && (optsVers > Version.versionNumberMaximumNoWarn()))
             {
                 allOK = false;
-                new VersionConfirmDialog(this, optsVers).setVisible(true);
+                new VersionConfirmDialog(this, optsVers, optsMins).setVisible(true);
             }
         }
 
@@ -1808,6 +2055,7 @@ import soc.util.Version;
             switch (e.getKeyCode())
             {
             case KeyEvent.VK_ENTER:
+                e.consume();
                 if (readOnly)
                     clickCancel(true);
                 else
@@ -1816,6 +2064,7 @@ import soc.util.Version;
 
             case KeyEvent.VK_CANCEL:
             case KeyEvent.VK_ESCAPE:
+                e.consume();
                 clickCancel(false);
                 break;
             }  // switch(e)
@@ -2326,6 +2575,123 @@ import soc.util.Version;
         NotifyDialog.createAndShow(md, parent, scenStr, null, true);
     }
 
+    /**
+     * Get the name of this NGOF's existing game, if purpose isn't to create a new game.
+     * @return existing game's name, or {@code null} if new game
+     * @since 2.7.00
+     */
+    public String getExistingGameName()
+    {
+        return existingGameName;
+    }
+
+    /**
+     * Callback for when a game's timing stats are received from the server.
+     * Shows that info and, if {@code isStarted} but game not over, starts a timer to
+     * show the game's increasing age once per minute.
+     *
+     * @param creationTimeSeconds  Time game was created,
+     *     in same format as {@link System#currentTimeMillis()} / 1000; not 0
+     * @param isStarted  True if gameplay has began
+     * @param durationFinishedSeconds  If game is over, duration in seconds from creation to end of game;
+     *     otherwise 0
+     * @since 2.7.00
+     */
+    public void gameTimingStatsReceived
+        (final long creationTimeSeconds, final boolean isStarted, final int durationFinishedSeconds)
+    {
+        gameCreationTimeSeconds = creationTimeSeconds;
+        gameIsStarted = isStarted;
+        gameDurationFinishedSeconds = durationFinishedSeconds;
+
+        if (isStarted && (durationFinishedSeconds == 0))
+            initGameInfoUpdateTimer(false);
+        else
+            updateGameInfo();
+    }
+
+    /**
+     * Use current game data to update the info shown in the "Game Info" row, if shown.
+     * Does nothing if new game or if game data unavailable.
+     * @since 2.7.00
+     */
+    public void updateGameInfo()
+    {
+        if ((gameInfo == null) || ((pi == null) && (gameCreationTimeSeconds == 0)))
+            return;
+
+        String txt;
+        final SOCGame ga = (gameCreationTimeSeconds == 0) ? pi.getGame() : null;
+        final int gaState = (ga != null) ? ga.getGameState() : 0;
+        if ((gaState < SOCGame.START1A) && ! gameIsStarted)
+        {
+            txt = strings.get("game.options.not_started_yet");  // "Not started yet"
+        } else {
+            final boolean serverSendsTiming = (gameVersion >= SOCGameStats.VERSION_FOR_TYPE_TIMING);
+            final boolean isGameOver = (ga != null)
+                ? (gaState >= SOCGame.OVER)
+                : (gameDurationFinishedSeconds != 0);
+            if (isGameOver)
+            {
+                final int durSeconds = (ga != null) ? ga.getDurationSeconds() : gameDurationFinishedSeconds,
+                    durMinutes = (durSeconds + 30) / 60;
+                txt = (serverSendsTiming)
+                    ? strings.get("game.options.finished_minutes", durMinutes)  // "Finished after playing {0} minutes"
+                    : strings.get("game.options.finished");  // "Finished"
+            } else {
+                final int durSeconds = (ga != null)
+                    ? ga.getDurationSeconds()
+                    : (int) ((System.currentTimeMillis() / 1000) - gameCreationTimeSeconds),
+                durMinutes = (durSeconds + 30) / 60;
+                txt = strings.get
+                    ((serverSendsTiming)
+                        ? "game.options.in_progress_created_minutes"  // "In progress; created {0} minutes ago"
+                        : "game.options.in_progress_joined_minutes"   // "In progress; joined {0} minutes ago"
+                     , durMinutes);
+            }
+        }
+
+        gameInfo.setText(txt);
+    }
+
+    /**
+     * Builds a multi-line list of game option localized descriptions and minimum versions.
+     * Each line's format is "version: opt desc": {@code "2.7.00: Allow undo piece builds and moves"}
+     * followed by a newline character {@code '\n'}.
+     *
+     * @param optsMins  Map of gameopt keys -> minVers,
+     *     from {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, Map)};
+     *     can be null or empty
+     * @param versIgnoreMax  Ignores {@code optsMins} entries whose version is this or lower,
+     *     like {@link Version#versionNumberMaximumNoWarn()}, or -1 to use all entries
+     * @return {@code optsMins} entries' version numbers and localized {@link SOCGameOption#getDesc()}s,
+     *     one line per entry, or {@code ""} if none
+     * @since 2.7.00
+     */
+    private StringBuilder buildOptionVersionList
+        (final Map<String, Integer> optsMins, final int versIgnoreMax)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (optsMins != null)
+        {
+            ArrayList<String> okeys = new ArrayList<>(optsMins.keySet());
+            Collections.sort(okeys);
+            for (String okey : okeys)
+            {
+                final int vers = optsMins.get(okey).intValue();
+                if ((versIgnoreMax > -1) && (vers <= versIgnoreMax))
+                    continue;
+
+                sb.append(Version.version(vers)).append(": ");
+                sb.append(knownOpts.get(okey).getDesc());
+                sb.append('\n');
+            }
+        }
+
+        return sb;
+    }
+
 
     /**
      * A textfield that accepts only nonnegative-integer characters.
@@ -2367,11 +2733,15 @@ import soc.util.Version;
         /** reject entered characters which aren't digits */
         public void keyTyped(KeyEvent e)
         {
+            if (e.isConsumed())
+                return;
+
             // TODO this is not always rejecting non-digits
 
             switch (e.getKeyCode())
             {
             case KeyEvent.VK_ENTER:
+                e.consume();
                 if (readOnly)
                     clickCancel(true);
                 else
@@ -2380,6 +2750,7 @@ import soc.util.Version;
 
             case KeyEvent.VK_CANCEL:
             case KeyEvent.VK_ESCAPE:
+                e.consume();
                 clickCancel(false);
                 break;
 
@@ -2433,11 +2804,15 @@ import soc.util.Version;
          *
          * @param ngof  Parent options-frame, which contains these options
          * @param minVers  Minimum required version for these options
+         * @param optsMins  Map of options which require a minimum version,
+         *     from {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, Map)}, or null or empty if none
          */
-        public VersionConfirmDialog(NewGameOptionsFrame ngof, int minVers)
+        public VersionConfirmDialog(NewGameOptionsFrame ngof, int minVers, Map<String, Integer> optsMins)
         {
             super(mainDisplay, ngof, strings.get("game.options.verconfirm.title"),
-                strings.get("game.options.verconfirm.prompt", Version.version(minVers)),
+                strings.get
+                    ("game.options.verconfirm.prompt", Version.version(minVers),
+                     buildOptionVersionList(optsMins, Version.versionNumberMaximumNoWarn())),
                 strings.get("game.options.verconfirm.create"),
                 strings.get("game.options.verconfirm.change"), true, false);
         }

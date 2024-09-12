@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2024 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -66,6 +66,7 @@ import soc.message.SOCSetSpecialItem;
 import soc.message.SOCSimpleRequest;
 import soc.message.SOCSitDown;
 import soc.message.SOCStartGame;
+import soc.message.SOCUndoPutPiece;
 
 /**
  * Client class to form outgoing messages and call {@link ClientNetwork} methods to send them to the server.
@@ -101,21 +102,47 @@ import soc.message.SOCStartGame;
      *
      * @param s  the message command, formatted by a {@code soc.message} class's {@code toCmd()}
      * @param isPractice  Send to the practice server, not tcp network?
-     *                {@link ClientNetwork#localTCPServer} is considered "network" here.
-     *                Use <tt>isPractice</tt> only with {@link ClientNetwork#practiceServer}.
+     *      {@link ClientNetwork#localTCPServer} is considered "network" here.
+     *      Use {@code isPractice} only with {@link ClientNetwork#practiceServer}.
      * @return true if the message was sent, false if not
      * @throws IllegalArgumentException if {@code s} is {@code null}
+     * @see #put(SOCMessage, boolean)
      */
-    synchronized boolean put(String s, final boolean isPractice)
+    public synchronized boolean put(String s, final boolean isPractice)
         throws IllegalArgumentException
     {
         if (s == null)
-            throw new IllegalArgumentException("null");
+            throw new IllegalArgumentException("s null");
 
         if (isPractice)
             return net.putPractice(s);
         else
             return net.putNet(s);
+    }
+
+    /**
+     * Send a message to the net or practice server by calling {@link ClientNetwork} methods.
+     * This is a convenience method, instead of calling {@code new SomeMessage(...).toCmd()}
+     * for message types which don't have a static {@code toCmd(...)} method.
+     * Because the player can be in both network games and practice games,
+     * uses {@code isPractice} to route to the appropriate client-server connection.
+     *
+     * @param msg  the message to send, by calling its {@link SOCMessage#toCmd()}.
+     * @param isPractice  Send to the practice server, not tcp network?
+     *      {@link ClientNetwork#localTCPServer} is considered "network" here.
+     *      Use {@code isPractice} only with {@link ClientNetwork#practiceServer}.
+     * @return true if the message was sent, false if not
+     * @throws IllegalArgumentException if {@code msg} is {@code null}
+     * @see #put(String, boolean)
+     * @since 2.5.00
+     */
+    public synchronized boolean put(SOCMessage msg, final boolean isPractice)
+        throws IllegalArgumentException
+    {
+        if (msg == null)
+            throw new IllegalArgumentException("msg null");
+
+        return put(msg.toCmd(), isPractice);
     }
 
     /**
@@ -143,10 +170,10 @@ import soc.message.SOCStartGame;
     }
 
     /**
-     * request to cancel building something
+     * Request to cancel building something or playing a dev card.
      *
      * @param ga     the game
-     * @param piece  the type of piece, from SOCPlayingPiece constants
+     * @param piece  the type of piece, from {@link SOCPlayingPiece} or {@link SOCCancelBuildRequest} constants
      */
     public void cancelBuildRequest(SOCGame ga, int piece)
     {
@@ -189,6 +216,24 @@ import soc.message.SOCStartGame;
         throws IllegalArgumentException
     {
         put(SOCMovePiece.toCmd(ga.getName(), pn, ptype, fromCoord, toCoord), ga.isPractice);
+    }
+
+    /**
+     * Ask the server to undo placing or moving a piece.
+     * @param ga  game where the action is taking place; will call {@link SOCGame#getCurrentPlayerNumber()}
+     * @param ptype  piece type, such as {@link SOCPlayingPiece#SHIP}; must be &gt;= 0
+     * @param coord  coordinate where piece was placed or moved to; must be &gt; 0
+     * @param movedFromCoord  if undoing a move, the coordinate where piece was moved from, otherwise 0
+     * @throws IllegalArgumentException if {@code ptype} &lt; 0, {@code coord} &lt;= 0, or {@code movedFromCoord} &lt; 0
+     * @since 2.7.00
+     */
+    public void undoPutOrMovePieceRequest
+        (final SOCGame ga, final int ptype, final int coord, final int movedFromCoord)
+        throws IllegalArgumentException
+    {
+        put
+            (new SOCUndoPutPiece(ga.getName(), ga.getCurrentPlayerNumber(), ptype, coord, movedFromCoord).toCmd(),
+             ga.isPractice);
     }
 
     /**
@@ -316,7 +361,7 @@ import soc.message.SOCStartGame;
      */
     public void discard(SOCGame ga, SOCResourceSet rs)
     {
-        put(SOCDiscard.toCmd(ga.getName(), rs), ga.isPractice);
+        put(new SOCDiscard(ga.getName(), -1, rs), ga.isPractice);
     }
 
     /**
@@ -353,9 +398,13 @@ import soc.message.SOCStartGame;
     }
 
     /**
-     * The user is reacting to the move robber request.
+     * When asked whether to move robber or pirate, the user is choosing to move the robber.
+     *<P>
+     * If choice is from playing a {@link SOCDevCardConstants#KNIGHT} card, to cancel the card
+     * call {@link #cancelBuildRequest(SOCGame, int) cancelBuildRequest}({@link SOCCancelBuildRequest#CARD}) instead.
      *
      * @param ga  the game
+     * @see #choosePirate(SOCGame)
      */
     public void chooseRobber(SOCGame ga)
     {
@@ -363,9 +412,13 @@ import soc.message.SOCStartGame;
     }
 
     /**
-     * The user is reacting to the move pirate request.
+     * When asked whether to move robber or pirate, the user is choosing to move the pirate.
+     *<P>
+     * If choice is from playing a {@link SOCDevCardConstants#KNIGHT} card, to cancel the card
+     * call {@link #cancelBuildRequest(SOCGame, int) cancelBuildRequest}({@link SOCCancelBuildRequest#CARD}) instead.
      *
      * @param ga  the game
+     * @see #chooseRobber(SOCGame)
      */
     public void choosePirate(SOCGame ga)
     {
@@ -379,7 +432,7 @@ import soc.message.SOCStartGame;
      */
     public void rejectOffer(SOCGame ga)
     {
-        put(SOCRejectOffer.toCmd(ga.getName(), 0), ga.isPractice);
+        put(new SOCRejectOffer(ga.getName(), 0), ga.isPractice);
     }
 
     /**
@@ -390,7 +443,7 @@ import soc.message.SOCStartGame;
      */
     public void acceptOffer(SOCGame ga, final int offeringPN)
     {
-        put(SOCAcceptOffer.toCmd(ga.getName(), 0, offeringPN), ga.isPractice);
+        put(new SOCAcceptOffer(ga.getName(), 0, offeringPN), ga.isPractice);
     }
 
     /**
@@ -431,6 +484,7 @@ import soc.message.SOCStartGame;
      *
      * @param ga  the game
      * @param dc  the type of development card
+     * @see #cancelBuildRequest(SOCGame, int)
      */
     public void playDevCard(SOCGame ga, int dc)
     {

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2012-2013,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012-2013,2016-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -106,17 +106,24 @@ public interface SOCDevCardConstants
     /**
      * market VP card.
      *<P>
-     * Before v2.0.00 this constant was {@code LIB}.
+     * Before v2.0.00 this constant was {@code LIB} (library).
      * Since the 5th Edition victory point cards include
      * a Market and a Library, the same constant can't be both.
+     * @see #TEMPLE
      */
     public static final int MARKET = 5;
 
     /** university VP card */
     public static final int UNIV = 6;
 
-    /** temple, library VP card */
-    public static final int TEMP = 7;
+    /**
+     * Temple, library VP card.
+     *<P>
+     * Before v2.5.00 this constant was {@code TEMP},
+     * which could be misinterpreted as "temporary".
+     * Before v2.0.00, another VP card constant {@link #MARKET} was {@code LIB} (library).
+     */
+    public static final int TEMPLE = 7;
 
     /** tower, chapel VP card.
      *<P>

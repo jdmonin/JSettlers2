@@ -24,7 +24,7 @@ of this Readme.
 
 JSettlers is an open-source project licensed under the GPL. The
 project is hosted at https://github.com/jdmonin/JSettlers2/ and
-at http://nand.net/jsettlers/devel/ .  Questions, bugs, patches,
+https://nand.net/jsettlers/devel/ .  Questions, bugs, patches,
 and pull requests can be posted at the github page.
 
 \- The JSettlers Development Team
@@ -69,30 +69,32 @@ Currently, this Readme and the `doc` directory are the only technical
 documentation for running the client or server, setup and other issues.
 Over time, more docs will be written. If you are interested in helping
 write documentation please contact the development team from our github page.
+For developer docs, see [Readme.developer.md](doc/Readme.developer.md).
 
 If you downloaded a JSettlers JAR file without attached documentation,
 the official location of this Readme and the docs is online at
-https://github.com/jdmonin/JSettlers2/blob/master/Readme.md .
+https://github.com/jdmonin/JSettlers2/blob/main/Readme.md .
 
 
 ## Requirements
 
-To play JSettlers you will need either the Java Development Kit (JDK)
-version 7 or higher, or version 7 or 8 of the smaller Java Runtime (JRE).
+To play JSettlers you will need either Java Runtime (JRE) version 8
+from https://java.com/download/ , or the Java Development Kit (JDK)
+version 8 or higher from https://jdk.java.net/ .
+
 Then download JSettlers-full.jar from either
-https://github.com/jdmonin/JSettlers2/releases or http://nand.net/jsettlers/
+https://github.com/jdmonin/JSettlers2/releases or https://nand.net/jsettlers/
 and run it.
 
 To host a JSettlers server, use any server OS and hosting provider you like.
-To also provide a download for the full Jar, you will need any http server
-such as Apache's httpd (available from http://httpd.apache.org).
+To also provide a download for the full Jar, you will need any web server
+such as [nginx](https://nginx.org/) or [Apache httpd](https://httpd.apache.org).
 
 The JSettlers-full.jar file can also run locally as a server, without needing a
 web server. If you're running a LAN game for friends, that Jar is all you need.
 
-To build JSettlers from source, you will need Java JDK 7 or higher, and either
-gradle 5.6 or higher (which requires java 8), or an IDE such as Eclipse which
-understands gradle's format.
+To build JSettlers from source, you will need Java JDK 8 or higher, and either
+gradle 6.9.x or 7.x, or an IDE such as Eclipse which understands gradle's format.
 See [doc/Readme.developer.md](doc/Readme.developer.md) for details.
 
 
@@ -128,7 +130,7 @@ instead of the full tar.gz, use that filename on the command lines shown below.
 ### Server Startup
 
 Start the server with the following command
-(server requires Java JDK 7 or higher, or JRE version 7 or 8):
+(server requires Java JDK 8 or higher, or JRE version 8):
 
     java -jar JSettlersServer.jar
 
@@ -137,6 +139,8 @@ It will try to connect to an optional mysql database named `socdata`; startup
 will continue even if there is no DB or the DB connect doesn't work.
 
 You can change those values and specify game option defaults; see details below.
+
+To automatically start the JSettlers server on a linux server, see [src/main/bin/jsettlers.service](src/main/bin/jsettlers.service).
 
 If MySQL or another database is not installed and running (See "Database Setup"
 in [doc/Database.md](doc/Database.md)), you will see a warning with the
@@ -179,19 +183,25 @@ on the command line.  If the command includes -jar, switches and options go
 after the jar filename.
 
 To change a Game Option from its default, for example to activate the house rule
-"Robber can't return to the desert", use the `-o` switch with the game option's
-name and value, or equivalently "-Djsettlers.gameopt." + the name and value:
+"Robber can't return to the desert" and set default Victory Points to Win to 13,
+use `-o` switches with the game options' names and values, or equivalently
+"-Djsettlers.gameopt." + the names and values:
 
-    -o RD=t
-    -Djsettlers.gameopt.RD=t
+    -o RD=t -o VP=t13
+    -Djsettlers.gameopt.RD=t -Djsettlers.gameopt.VP=t13
+
+If a default VP is set, that will also be the minimum winning VP for any scenario.
+Some scenarios like Cloth Trade may have a higher VP amount, but none will be lower.
+To use the default VP in all scenarios, even those specifying a higher VP amount,
+also set game option `_VP_ALL=t` when starting the server.
 
 You could also set a default game scenario this way; for example if your server
 was running a tournament of Fog Islands games:
 
     -o SC=SC_FOG
 
-If the scenario's game options conflict with any other game options given (VP,
-etc), a warning will be printed during startup.  In general, servers shouldn't
+If the scenario's game options conflict with any other game options given,
+a warning will be printed during startup.  In general, servers shouldn't
 set a default scenario; users can choose a scenario on their own if they want.
 
 To have all completed games' results saved in the database, use this option:
@@ -204,9 +214,16 @@ To see a list of all jsettlers options (use them with -D), run:
 
 This will print all server options, and all Game Option default values. Note the
 format of those default values: Some options need both a true/false flag and a
-numeric value. To change the default winning victory points to 12 for example:
+numeric value. To change the default winning Victory Points to 12 for example:
 
     -o VP=t12
+
+
+### Savegame optional feature:
+
+The server can save/load most games to files kept on the server, using admin commands.
+For details see [doc/Readme.developer.md](doc/Readme.developer.md): Search for "Saving and loading games"
+
 
 ### jsserver.properties:
 
@@ -215,7 +232,7 @@ which is read at startup if it exists in the current directory.  Any option
 given on the command line overrides the same option in the properties file.
 Comment lines start with # .  See `src/main/bin/jsserver.properties.sample` for full
 descriptions of all available properties. (Also available online at
-https://raw.githubusercontent.com/jdmonin/JSettlers2/master/src/main/bin/jsserver.properties.sample).
+https://raw.githubusercontent.com/jdmonin/JSettlers2/main/src/main/bin/jsserver.properties.sample).
 
 
 This example command line
@@ -316,8 +333,8 @@ a debug user.)
   (file-based sqlite is another lightweight DB option)
 - Copy and edit `jsserver.properties` (optional)
 - Start JSettlers Server
-- Start http server (optional)
-- Copy `JSettlers.jar` client JAR and `src/site/*.html` to an http-served directory (optional)
+- Start web server (optional)
+- Copy `JSettlers.jar` client JAR and `src/site/*.html` to a web-served directory (optional)
 
 #### Details:
 
@@ -326,7 +343,7 @@ all of which is optional, you will need to set up a MariaDB, MySQL, PostgreSQL,
 or SQLite database. If you will be using a non-SQLite database, be sure to start
 the database server software before installing JSettlers. For DB setup details
 see the "Database Setup" section of [doc/Database.md](doc/Database.md)
-(available online at https://github.com/jdmonin/JSettlers2/blob/master/doc/Database.md).
+(available online at https://github.com/jdmonin/JSettlers2/blob/main/doc/Database.md).
 
 To install a JSettlers server, start the server as described in "Server Setup
 and Testing". Remember that you can set server parameters and game option
@@ -339,7 +356,7 @@ Remote users can simply start their clients as described there,
 and connect to your server's DNS name or IP address.
 
 To provide a web page where players can download the Jar, you will need to
-set up a web server such as Apache. Alternately, have them download the
+set up a web server such as nginx or Apache. Alternately, have them download the
 full Jar from https://github.com/jdmonin/JSettlers2/releases/latest .
 
 If setting up a web server: We assume you have installed the web server
@@ -404,17 +421,19 @@ It's a simple process to upgrade to the latest version of JSettlers:
 The server has commands anyone can run by typing into a game's chat window, like `*STATS*` or `*WHO*`.
 It also has privileged commands that can be run only by named Admin Users or the `debug` user, like `*GC*` or `*SAVEGAME*`.
 
-The debug user shouldn't be enabled except on a developer's own computer, because of its unfair in-game powers.
+The debug user shouldn't be enabled except on a developer's own computer, because of its in-game abilities.
 Admin Users let you manage your server without the debug user. They authenticate with passwords
 stored in a SQLite file or a database system. To set up Admin Users, see
 section "Security, Admin Users, Admin Commands" of [doc/Database.md](doc/Database.md).
+
+JSettlers does not use `log4j`, and all released versions are not vulnerable to CVE-2021-44228.
 
 
 ## Development and Building JSettlers
 
 JSettlers is an open-source project licensed under the GPL. The project
 source code is hosted at https://github.com/jdmonin/JSettlers2/ and
-the project website is http://nand.net/jsettlers/devel/ .  Questions,
+the project website is https://nand.net/jsettlers/devel/ .  Questions,
 bugs, patches, and pull requests can be posted at the github page.
 
 For more information on building or developing JSettlers, see
@@ -427,9 +446,13 @@ lists contributors by year.  A copyright year range (for example, 2007-2011)
 means the file was contributed to by that person in each year of that range.
 See individual source files for the GPL version and other details.
 
+The localization into French was contributed in 2020 by Lee Passey using
+the [CC0](https://creativecommons.org/publicdomain/zero/1.0/) license,
+and further developed by Jeremy Monin under CC0.
+
 BCrypt.java is licensed under the "new BSD" license, and is copyright
 (C) 2006 Damien Miller; see BCrypt.java for details.  jBCrypt-0.4.tar.gz
-retrieved 2017-05-27 from http://www.mindrot.org/projects/jBCrypt/
+retrieved 2017-05-27 from https://www.mindrot.org/projects/jBCrypt/
 and some constants, javadocs, throws declarations added by Jeremy D Monin.
 
 org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
@@ -437,7 +460,7 @@ org.fedorahosted.tennera.antgettext.StringUtil is licensed under the
 
 Miscellaneous code is attributed to the Strategic Conversation (STAC) Project -
 https://www.irit.fr/STAC/ - from their fork published at https://github.com/sorinMD/StacSettlers
-and reintegrated into JSettlers by Jeremy D Monin for v2.4.50.
+and reintegrated into JSettlers by Jeremy D Monin for v2.5.00.
 [The StacSettlers readme](https://github.com/sorinMD/StacSettlers/blob/master/README.md)
 says "Copyright (C) 2017  STAC" and that repo's most recent substantial change was in 2018.
 In the JSettlers repository, commits from that code use "STAC Project" as the author.
@@ -446,7 +469,7 @@ The classic hex and port images were created by Jeremy Monin, and are licensed
 Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
 Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.
 classic/goldHex.gif is based on a 2010-12-21 CC-BY 2.0 image by Xuan Che,
-available at http://www.flickr.com/photos/rosemania/5431942688/ , of
+available at https://www.flickr.com/photos/rosemania/5431942688/ , of
 ancient Greek coins.
 
 The pastel hex images were created and contributed by qubodup, (C) 2019,
@@ -454,3 +477,6 @@ licensed CC-BY-SA 3.0, and were retrieved 2019-08-17 from
 https://github.com/qubodup/pastel-tiles (rendered with that repo's `hex.sh` script).
 
 doc/graf/Logo.svg was created and contributed by Ruud Poutsma, (C) 2017.
+
+![SourceForge Community Choice Award badge](doc/graf/sourceforge-oss-community-choice.gif)
+This project is a SourceForge Community Choice Award winner (March 2022).

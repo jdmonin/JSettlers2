@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011,2013-2014,2017-2018,2020-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -35,10 +35,16 @@ import soc.game.SOCGame;  // for javadocs only
  * {@link SOCGameState}({@link SOCGame#PLACING_ROBBER PLACING_ROBBER}
  * or {@link SOCGame#PLACING_PIRATE PLACING_PIRATE}).
  *<P>
- * When sent from server, this message will be followed by other messages
- * about gaining/losing resources: {@link SOCReportRobbery} or {@link SOCPlayerElement}.
+ * If client can't move the robber or pirate there, server responds
+ * with {@link SOCDeclinePlayerRequest}, or to an older client with
+ * {@link SOCGameServerText} and {@link SOCGameState}.
+ *<P>
+ * When sent from server, this message may be followed by other messages
+ * about gaining/losing resources if there's a victim: {@link SOCRobberyResult} or {@link SOCPlayerElement}.
  * So for this message, the client should only call {@link soc.game.SOCBoard#setRobberHex(int, boolean)}
  * and not {@link soc.game.SOCGame#moveRobber(int, int)}.
+ * If tracking the player's dev card actions, client should also call
+ * {@link SOCGame#setPlacingRobberForKnightCard(boolean) game.setPlacingRobberForKnightCard(false)}.
  *<P>
  * Once the robber is placed on the board, it cannot be taken off the board.
  * The pirate can be taken off by sending {@code coordinate = 0}.
@@ -172,7 +178,7 @@ public class SOCMoveRobber extends SOCMessage
      * Converts robber hex coordinate to decimal from hexadecimal format.
      * @param message Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(String message)
     {

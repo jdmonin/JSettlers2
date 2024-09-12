@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2014,2018-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014,2018-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -82,7 +82,7 @@ public class SOCDevCard
             "spec.dcards.aunknown", "spec.dcards.aroadbuilding", "spec.dcards.adiscoveryplenty", "spec.dcards.amonopoly",
             "spec.dcards.acapgovhouse", "spec.dcards.amarket", "spec.dcards.auniversity",
             "spec.dcards.atemple", "spec.dcards.atowerchapel", "spec.dcards.aknightsoldier"
-        }, {  // technical names (like SOCDevCardConstants); do not change their values once established in a release
+        }, {  // technical names (like SOCDevCardConstants); do not change their values after they've been in a release
             "UNKNOWN", "ROADS", "DISC", "MONO", "CAP", "MARKET", "UNIV",
             "TEMPLE" /* not ambiguous abbreviation TEMP */, "CHAPEL", "KNIGHT"
         }
@@ -161,8 +161,9 @@ public class SOCDevCard
      * For the card type's localized name to display to the user,
      * call {@link #getCardTypeName(int, SOCGame, boolean, SOCStringManager)} instead.
      *<P>
-     * The names are generally the same as those in {@code SOCDevCardConstants} as of v2.4.00.
-     * {@link SOCDevCardConstants#TEMP} is returned as {@code "TEMPLE"} so it won't possibly be viewed as "TEMPORARY".
+     * The names are the same as those in {@code SOCDevCardConstants} as of v2.4.00,
+     * except this method has always returned {@code "TEMPLE"} for {@link SOCDevCardConstants#TEMPLE}
+     * which before v2.5.00 was declared in the code as {@code SOCDevCardConstants.TEMP}.
      *
      * @param devCardType  A constant such as {@link SOCDevCardConstants#UNIV}
      *     or {@link SOCDevCardConstants#ROADS}

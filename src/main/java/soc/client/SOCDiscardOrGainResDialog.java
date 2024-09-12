@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2011-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2011-2014,2017-2020,2022-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@ package soc.client;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+import soc.message.SOCCancelBuildRequest;
 
 import java.awt.Color;
 import java.awt.GridLayout;
@@ -45,6 +46,9 @@ import javax.swing.SwingConstants;
  * to discard from rolling a 7, or to gain from the gold hex.
  * Also used for the Discovery/Year of Plenty dev card.
  *<P>
+ * When used for that dev card, if server is new enough,
+ * can create with a Cancel button instead of Clear.
+ *<P>
  * Before v2.0.00 this class was {@code SOCDiscardDialog},
  * and Year of Plenty used {@code SOCDiscoveryDialog}.
  *
@@ -62,13 +66,21 @@ import javax.swing.SwingConstants;
     private final boolean isDiscard;
 
     /**
-     * Clear button.  Reset the {@link #pick} resource colorsquare counts to 0.
+     * Clear button, or null if has {@link #cancelBut}.
+     * Reset the {@link #pick} resource colorsquare counts to 0.
      * @since 1.1.14
      */
     private final JButton clearBut;
 
     /** Discard or Pick button */
     private final JButton okBut;
+
+    /**
+     * Cancel if server is new enough, otherwise null
+     * and {@link #clearBut} takes this position in the dialog.
+     * @since 2.7.00
+     */
+    private final JButton cancelBut;
 
     /** The 'keep' square resource types/counts only change if {@link #isDiscard}. */
     private final ColorSquare[] keep;
@@ -95,8 +107,11 @@ import javax.swing.SwingConstants;
      * @param pi   Client's player interface
      * @param numPickNeeded Player must discard or gain this many resources
      * @param isDiscard  True for discard (after 7), false for gain (after gold hex)
+     * @param withCancel  If true, have Cancel button instead of Clear
+     *     (server is new enough to cancel playing Discovery dev card)
      */
-    public SOCDiscardOrGainResDialog(SOCPlayerInterface pi, final int numPickNeeded, final boolean isDiscard)
+    public SOCDiscardOrGainResDialog
+        (SOCPlayerInterface pi, final int numPickNeeded, final boolean isDiscard, final boolean withCancel)
     {
         super(pi,
             strings.get
@@ -104,7 +119,7 @@ import javax.swing.SwingConstants;
                  // "Discard [{0}]" or "Gain Resources [{0}]"
             strings.get((isDiscard) ? "dialog.discard.please.discard.n" : "dialog.discard.please.pick.n", numPickNeeded),
                  // "Please discard {0} resources." or "Please pick {0} resources.",
-            false);
+            withCancel, false);
 
         this.isDiscard = isDiscard;
         this.numPickNeeded = numPickNeeded;
@@ -112,7 +127,8 @@ import javax.swing.SwingConstants;
 
         getRootPane().setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
 
-        clearBut = new JButton(strings.get("base.clear"));
+        clearBut = (withCancel ? null : new JButton(strings.get("base.clear")));
+        cancelBut = (withCancel ? new JButton(strings.get("base.cancel")) : null);
         okBut = new JButton(strings.get(isDiscard ? "dialog.discard.discard" : "dialog.discard.pick"));
             // "Discard" or "Pick"
 
@@ -120,7 +136,11 @@ import javax.swing.SwingConstants;
         final boolean shouldClearButtonBGs = (! isOSHighContrast) && SOCPlayerClient.IS_PLATFORM_WINDOWS;
         if (shouldClearButtonBGs)
         {
-            clearBut.setBackground(null);  // avoid gray corners on win32 JButtons
+            // avoid gray corners on win32 JButtons
+            if (withCancel)
+                cancelBut.setBackground(null);
+            else
+                clearBut.setBackground(null);
             okBut.setBackground(null);
         }
 
@@ -190,9 +210,10 @@ import javax.swing.SwingConstants;
 
         final JPanel btnsPanel = getSouthPanel();
 
-        btnsPanel.add(clearBut);
-        clearBut.addActionListener(this);
-        clearBut.setEnabled(false);  // since nothing picked yet
+        final JButton b = (withCancel) ? cancelBut : clearBut;
+        btnsPanel.add(b);
+        b.addActionListener(this);
+        b.setEnabled(withCancel);  // disable if Clear, since nothing picked yet
 
         btnsPanel.add(okBut);
         okBut.addActionListener(this);
@@ -254,7 +275,7 @@ import javax.swing.SwingConstants;
                 dispose();
             }
         }
-        else if (target == clearBut)
+        else if ((clearBut != null) && (target == clearBut))
         {
             for (int i = pick.length - 1; i >= 0; --i)
             {
@@ -266,9 +287,40 @@ import javax.swing.SwingConstants;
             clearBut.setEnabled(false);
             okBut.setEnabled(numPickNeeded == numChosen);
         }
+        else if ((cancelBut != null) && (target == cancelBut))
+        {
+            clickedCancel();
+        }
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
         }
+    }
+
+    /**
+     * Handle cancel button or window close:
+     * Ask server to cancel play-card request, dispose the dialog.
+     * Does nothing if no cancel button.
+     * @since 2.7.00
+     */
+    public void clickedCancel()
+    {
+        if (cancelBut == null)
+            return;
+
+        playerInterface.getClient().getGameMessageSender().cancelBuildRequest
+            (playerInterface.getGame(), SOCCancelBuildRequest.CARD);
+
+        dispose();
+    }
+
+    /**
+     * If window is closed or ESC key pressed, call {@link #clickedCancel()}.
+     * @since 2.7.00
+     */
+    @Override
+    public void windowCloseChosen()
+    {
+        clickedCancel();
     }
 
     /**
@@ -312,11 +364,15 @@ import javax.swing.SwingConstants;
             }
             else if ((target == pick[i]) && ((keep[i].getIntValue() > 0) || ! isDiscard))
             {
+                final int currPickI = pick[i].getIntValue();
+                if (currPickI >= numPickNeeded)
+                    return;  // <--- early return: already at overall max pickable amount ---
+
                 if ((numPickNeeded == 1) && (numChosen == 1))
                 {
                     // We only need 1 total, change our previous choice to the new one
 
-                    if (pick[i].getIntValue() == 1)
+                    if (currPickI == 1)
                         return;  // <--- early return: already set to 1 ---
                     else
                         // clear all to 0
@@ -351,7 +407,8 @@ import javax.swing.SwingConstants;
             }
         }
 
-        clearBut.setEnabled(numChosen > 0);
+        if (clearBut != null)
+            clearBut.setEnabled(numChosen > 0);
 
         if (wantsRepaint)
         {

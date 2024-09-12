@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
- * Some parts of this file Copyright (C) 2013,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Some parts of this file Copyright (C) 2013,2017-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,6 +30,7 @@ import java.util.ResourceBundle;
 
 import net.nand.util.i18n.mgr.StringManager;
 
+import soc.game.ResourceSet;
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
@@ -104,6 +105,7 @@ public class SOCStringManager extends StringManager
      * Create a string manager for the bundles at {@code bundlePath} with the default locale.
      * Remember that bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}, see class javadoc.
      * @param bundlePath  Bundle path, will be retrieved with {@link ResourceBundle#getBundle(String)}
+     * @see #SOCStringManager(String, Locale)
      */
     public SOCStringManager(String bundlePath)
     {
@@ -115,6 +117,7 @@ public class SOCStringManager extends StringManager
      * Remember that bundle files are encoded not in {@code UTF-8} but in {@code ISO-8859-1}, see class javadoc.
      * @param bundlePath  Bundle path, will be retrieved with {@link ResourceBundle#getBundle(String, Locale)}
      * @param loc  Locale to use; not {@code null}
+     * @see #SOCStringManager(String)
      */
     public SOCStringManager(final String bundlePath, final Locale loc)
     {
@@ -197,7 +200,7 @@ public class SOCStringManager extends StringManager
      *<LI> <tt>{0,list}</tt> for a list of items, which will be formatted as "x, y, and z"
      *     by {@link I18n#listItems(List, SOCStringManager)}.  Use a {@link List} in {@code arguments}.
      *<LI> <tt>{0,rsrcs}</tt> for a resource name or resource set.
-     *     A resource set is passed as a {@link SOCResourceSet} in {@code arguments}.
+     *     A resource set is passed as a {@link ResourceSet} or {@link SOCResourceSet} in {@code arguments}.
      *     Resource names ("5 sheep") take 2 argument slots: an Integer for the count, and a
      *     resource type Integer in the range {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
      *     Special case: A count of -1 will localize with "a/an", such as "a sheep" or "an ore".
@@ -213,7 +216,7 @@ public class SOCStringManager extends StringManager
      *
      * @param game  Game, in case its options influence the strings (such as dev card Knight -> Warship in scenario _SC_PIRI)
      * @param key  Key to use for string retrieval. The retrieved string can contain <tt>{0,rsrcs}</tt> and/or
-     *            <tt>{0,dcards}</tt>. You can use <tt>{1</tt>, <tt>{2</tt>, or any other slot number.
+     *            <tt>{0,dcards}</tt>. You can use <tt>1</tt>, <tt>2</tt>, or any other slot number there.
      * @param arguments  Objects to go with <tt>{0,list}</tt>, <tt>{0,rsrcs}</tt>, <tt>{0,dcards}</tt>, etc in {@code key};
      *            see above for the expected object types.
      * @return the localized formatted string from the manager's bundle or one of its parents
@@ -263,9 +266,9 @@ public class SOCStringManager extends StringManager
                 argsLocal[pnum] = getSOCResourceCount
                     (((Integer) arguments[pnum + 1]).intValue(), (Integer) arg);
             }
-            else if (arg instanceof SOCResourceSet)
+            else if (arg instanceof ResourceSet)
             {
-                final SOCResourceSet rset = (SOCResourceSet) (arg);
+                final ResourceSet rset = (ResourceSet) arg;
                 ArrayList<String> resList = new ArrayList<String>();
                 for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
                 {

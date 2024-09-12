@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011,2014,2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011,2014,2017,2020-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -220,6 +220,7 @@ public class SOCDebugFreePlace extends SOCMessage
      * @return Version number, 1112 for JSettlers 1.1.12.
      * @see #VERSION_FOR_DEBUGFREEPLACE
      */
+    @Override
     public int getMinimumVersion() { return VERSION_FOR_DEBUGFREEPLACE; /* == 1112 */ }
 
     /**
@@ -228,7 +229,7 @@ public class SOCDebugFreePlace extends SOCMessage
      * Converts piece coordinate to decimal from hexadecimal format.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(String messageStrParams)
     {

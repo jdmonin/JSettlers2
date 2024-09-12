@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2020,2022,2024 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -72,7 +72,7 @@ public interface MainDisplay
 
     /**
      * Prepare to connect and give feedback by showing a message panel.
-     * Stores the given username and password in the user interface.
+     * Stores the given hostname, port, username and password in the user interface.
      *<P>
      * Does not make a network connection.
      * Call {@link ClientNetwork#connect(String, int)} when ready to make the connection.
@@ -80,10 +80,12 @@ public interface MainDisplay
      * User login and authentication don't occur until a game or channel join is requested;
      * at that time, the user interface will read the name and password stored here.
      *
+     * @param chost Hostname to connect to, or null for localhost
+     * @param cport Port number to connect to
      * @param cpass Password text to put into that TextField (obscured)
      * @param cuser User nickname text to put into that TextField
      */
-    void connect(String cpass, String cuser);
+    void connect(String chost, int cport, String cpass, String cuser);
 
     /**
      * Setup for locally hosting a TCP server.
@@ -106,6 +108,7 @@ public interface MainDisplay
      * let the user know what to change.
      * @return true if OK, false if blank or not ready
      * @see #askStartGameWithOptions(String, boolean, SOCGameOptionSet, Map)
+     * @see SOCPlayerClient#gotPassword
      */
     boolean readValidNicknameAndPassword();
 
@@ -171,11 +174,13 @@ public interface MainDisplay
      * to a server or practice, and {@code canPractice} is true, shows that panel instead of the
      * simpler practice-only message panel.
      *
-     * @param err  Error message to show
+     * @param err  Error message to show; not {@code null}. Can be multi-line by including {@code \n}.
      * @param canPractice  In current state of client, can we start a practice game?
+     * @throws NullPointerException if {@code err} is {@code null}
      * @since 1.1.16
      */
-    void showErrorPanel(String err, boolean canPractice);
+    void showErrorPanel(String err, boolean canPractice)
+        throws NullPointerException;
 
     void enableOptions();
 
@@ -281,6 +286,21 @@ public interface MainDisplay
      * @see PlayerClientListener#messageReceived(String, String)
      */
     void chatMessageReceived(String channelName, String nickname, String message);
+
+    /**
+     * Callback for when a game's timing stats are received from the server.
+     * If a {@link NewGameOptionsFrame} is showing Game Info for a current game,
+     * can update the game info shown there.
+     *
+     * @param gameName  Game name
+     * @param creationTimeSeconds  Time game was created, in same format as {@link System#currentTimeMillis()} / 1000
+     * @param isStarted  True if gameplay has begun
+     * @param durationFinishedSeconds  If game is over, duration in seconds from creation to end of game;
+     *     otherwise 0
+     * @since 2.7.00
+     */
+    void gameTimingStatsReceived
+        (String gameName, long creationTimeSeconds, boolean isStarted, int durationFinishedSeconds);
 
     /**
      * Callback for when a {@link NewGameOptionsFrame} is closed, to clear any reference to it here.

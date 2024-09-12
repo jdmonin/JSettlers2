@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018,2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -47,6 +47,10 @@ public class SOCPossiblePickSpecialItem extends SOCPossiblePiece
 
     /** The resource costs if any, or {@code null} */
     public final SOCResourceSet cost;
+
+    // If any transient fields are added, please override super.setTransientsAtLoad(..).
+    // If any non-transient fields are added, please update unit test TestPossiblePiece.testSerializeToFile()
+    // to set them to a non-default value to ensure their values will serialize.
 
     /**
      * Constructor.

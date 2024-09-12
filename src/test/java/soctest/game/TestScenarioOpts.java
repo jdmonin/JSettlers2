@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018,2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,6 +19,7 @@
  **/
 package soctest.game;
 
+import java.util.Map;
 import java.util.TreeSet;
 
 import org.junit.Test;
@@ -28,6 +29,7 @@ import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
 import soc.game.SOCScenario;
 import soc.message.SOCMessage;
+import soc.util.DataUtils;
 
 /**
  * Tests for any SOCScenarios with inconsistent game options.
@@ -115,20 +117,22 @@ public class TestScenarioOpts
                 final SOCGameOptionSet parsedOpts = SOCGameOption.parseOptionsToSet(sc.scOpts, knownOpts);
                     // will be null if any opts failed parsing
 
-                StringBuilder sb = null;
                 // Look for unknown opts; may clip value of out-of-range opts.
                 // This same pre-check is done by TestBoardLayouts.testSingleLayout(..)
                 if (parsedOpts != null)
                 {
-                    sb = parsedOpts.adjustOptionsToKnown(knownOpts, true, null);
-                    if (null != sb)
+                    Map<String, String> optProblems = parsedOpts.adjustOptionsToKnown(knownOpts, true, null);
+                    if (null != optProblems)
                     {
-                        badScens.add(sc.key + ": Bad game options found by SGOSet.adjustOptionsToKnown: " + sb);
+                        StringBuilder sb = new StringBuilder(sc.key);
+                        sb.append(": Bad game options found by SGOSet.adjustOptionsToKnown: ");
+                        DataUtils.mapIntoStringBuilder(optProblems, sb, null, "; ");
+                        badScens.add(sb.toString());
                         continue;
                     }
                 }
 
-                sb = new StringBuilder();
+                StringBuilder sb = new StringBuilder();
 
                 // Check for bad or changed values from sc.scOpts name-value pairs (nvpairs)
                 for (String nvpair : sc.scOpts.split(SOCMessage.sep2))

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,11 +25,16 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.MissingResourceException;
 
+import soc.game.GameAction;
+import soc.game.GameAction.ActionType;
+import soc.game.GameAction.EffectType;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
+import soc.game.SOCCity;
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
@@ -41,6 +46,7 @@ import soc.game.SOCInventoryItem;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
+import soc.game.SOCRoad;
 import soc.game.SOCRoutePiece;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
@@ -59,6 +65,7 @@ import static org.junit.Assert.*;
 
 /**
  * A few tests for {@link GameLoaderJSON} and {@link SavedGameModel},
+ * and some basic gameplay behavior in loaded and resumed games,
  * using JSON test artifacts under {@code /src/test/resources/resources/savegame}.
  *
  * @see TestSavegame
@@ -73,6 +80,15 @@ public class TestLoadgame
     public static void setup()
         throws Exception
     {
+        try
+        {
+            assertTrue(null != Class.forName("com.google.gson.Gson"));
+        } catch(Throwable th) {
+            String msg = "TestLoadgame: can't load com.google.gson.Gson, check CLASSPATH: " + th;
+            System.err.println(msg);
+            fail(msg);
+        }
+
         srv = new SOCServer("dummy", 0, null, null);
 
         // - create the inactive game option used in bad-gameopt-inactive.game.json
@@ -94,13 +110,16 @@ public class TestLoadgame
      * {@link GameLoaderJSON#loadGame(File, SOCServer)}.
      * Doesn't postprocess or call {@link SavedGameModel#resumePlay(boolean)}.
      * If not found, will fail an {@code assertNotNull}. Doesn't try to catch
-     * {@link SavedGameModel.UnsupportedSGMOperationException} or SGM's other declared runtime exceptions.
+     * {@link SavedGameModel.UnsupportedSGMOperationException} or SGM's other declared runtime exceptions,
+     * most of which aren't declared as {@code throws} here.
+     *
      * @param testResFilename  Base name of test artifact, like {@code "classic-botturn.game.json"},
      *     to be loaded from {@code /src/test/resources/resources/savegame/}
      * @param server  SOCServer that will host this game later; its {@link SOCServer#getGameList()} is needed here
      * @throws IllegalArgumentException if {@code server} is null
      * @throws IOException if file can't be loaded
      * @throws SavedGameModel.UnsupportedSGMOperationException if unsupported feature; see {@code GameLoaderJson.loadGame}
+     * @see soctest.server.TestGameEventLog#load(String, boolean, boolean)
      */
     public static SavedGameModel load(final String testRsrcFilename, final SOCServer server)
         throws IllegalArgumentException, IOException, SavedGameModel.UnsupportedSGMOperationException
@@ -307,6 +326,7 @@ public class TestLoadgame
      * Check a loaded game model to see if it has same known data as savegame artifact {@code "classic-botturn.game.json"}.
      * @param sgm  Loaded game with contents of {@code "classic-botturn"}; not null
      * @see #checkReloaded_BadFieldContents(SavedGameModel, boolean)
+     * @see soctest.server.TestRecorder#testLoadAndBasicSequences(soc.extra.server.RecordingSOCServer, String, List, boolean)
      */
     static void checkReloaded_ClassicBotturn(final SavedGameModel sgm)
     {
@@ -321,6 +341,9 @@ public class TestLoadgame
         assertEquals(9, ga.getCurrentDice());
         assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
         assertEquals("gamestate", SOCGame.LOADING, ga.getGameState());
+        final int dur = ga.getDurationSeconds(), secondsFromExpected = Math.abs(dur - 49);
+        assertTrue("ga.getDurationSeconds() is ~ 49 (actual " + dur + ')', secondsFromExpected < 3);
+
         assertEquals("BC=t4,N7=t7,PL=4,RD=f", sgm.gameOptions);
         {
             final SOCGameOptionSet opts = ga.getGameOptions();
@@ -374,7 +397,7 @@ public class TestLoadgame
         assertArrayEquals("devCardDeck",
             new int[]{ 8, 9, 6, 3, 9, 9, 9, 9, 9, 9, 9, 3, 4, 1, 9, 2, 7, 5, 9, 9, 9, 2, 1, 9, 9 },
             ga.getDevCardDeck());
-        assertFalse(sgm.warnDevCardDeckHasUnknownType);
+        assertEquals(-1, sgm.warnDevCardDeckUnknownTypeAtIndex);
 
         checkExpectedPlayerDevCards(ga);
     }
@@ -418,6 +441,8 @@ public class TestLoadgame
 
         assertEquals("game name", "classic", sgm.gameName);
         assertEquals("gamestate", SOCGame.OVER, sgm.gameState);
+        final int dur = ga.getDurationSeconds(), secondsFromExpected = Math.abs(dur - 471);
+        assertTrue("ga.getDurationSeconds() is ~ 471 (actual " + dur + ')', secondsFromExpected < 3);
 
         sgm.resumePlay(true);
         assertEquals("gamestate", SOCGame.OVER, ga.getGameState());
@@ -547,16 +572,21 @@ public class TestLoadgame
         assertEquals("gamestate", SOCGame.SPECIAL_BUILDING, ga.getGameState());
     }
 
-    /** Test loading and resuming a Sea Board game, including open/closed ship routes ({@link SOCShip#isClosed()}). */
+    /**
+     * Test loading and resuming a Sea Board game, including open/closed ship routes ({@link SOCShip#isClosed()}).
+     * Because {@code testsea-closed.game.json} is a known setup, use it to test a few basic game actions
+     * like {@link SOCGame#putPiece(SOCPlayingPiece)} and {@link SOCGame#moveShip(SOCShip, int)}.
+     */
     @Test
     public void testLoadSeaBoard()
         throws IOException
     {
+        final int CURRENT_PLAYER_NUMBER = 0;
         final SavedGameModel sgm = load("testsea-closed.game.json", srv);
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", "testgame-sea-closedships", sgm.gameName);
-        assertEquals(0, ga.getCurrentPlayerNumber());
+        assertEquals(CURRENT_PLAYER_NUMBER, ga.getCurrentPlayerNumber());
         assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
         assertEquals("oldgamestate", SOCGame.PLAY1, sgm.oldGameState);
         assertEquals(4, sgm.playerSeats.length);
@@ -564,8 +594,9 @@ public class TestLoadgame
         assertTrue(ga.hasSeaBoard);
 
         assertEquals(SOCBoard.BOARD_ENCODING_LARGE, ga.getBoard().getBoardEncodingFormat());
-        assertEquals("robberHex", 2312, ga.getBoard().getRobberHex());
-        assertEquals("pirateHex", 2316, ((SOCBoardLarge) ga.getBoard()).getPirateHex());
+        final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
+        assertEquals("robberHex", 2312, board.getRobberHex());
+        assertEquals("pirateHex", 2316, board.getPirateHex());
 
         final String[] NAMES = {"debug", "robot 4", "robot 2", null};
         final SeatLockState[] LOCKS =
@@ -618,11 +649,118 @@ public class TestLoadgame
         fillSeatsForResume(sgm);
         sgm.resumePlay(true);
         assertEquals("gamestate", SOCGame.PLAY1, ga.getGameState());
+        pl = ga.getPlayer(CURRENT_PLAYER_NUMBER);
+
+        assertNull(board.settlementAtNode(0x606));
+        assertTrue(pl.canPlaceSettlement(0x606));
+        ga.putPiece(new SOCSettlement(pl, 0x606, board));
+        assertTrue("settlement built at 0x606", board.settlementAtNode(0x606) instanceof SOCSettlement);
+        assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.SETTLEMENT, 0x606, 0), ga.getLastAction());
+        assertFalse(pl.canPlaceSettlement(0x606));
+
+        assertNull(board.roadOrShipAtEdge(0x605));
+        assertTrue(pl.isPotentialRoad(0x605));
+        assertFalse(pl.isPotentialRoad(0x604));
+        ga.putPiece(new SOCRoad(pl, 0x605, board));
+        assertTrue("road built at 0x605", board.roadOrShipAtEdge(0x605) instanceof SOCRoad);
+        assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.ROAD, 0x605, 0), ga.getLastAction());
+        assertFalse(pl.isPotentialRoad(0x605));
+        assertTrue(pl.isPotentialRoad(0x604));
+
+        assertTrue(pl.isPotentialCity(0x606));
+        ga.putPiece(new SOCCity(pl, 0x606, board));
+        assertTrue("city built at 0x606", board.settlementAtNode(0x606) instanceof SOCCity);
+        assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.CITY, 0x606, 0), ga.getLastAction());
+        assertFalse(pl.isPotentialCity(0x606));
+
+        assertNull(board.roadOrShipAtEdge(0xc01));
+        assertTrue(pl.isPotentialShip(0xc01));
+        assertFalse(pl.isPotentialShip(0xd01));
+        ga.putPiece(new SOCShip(pl, 0xc01, board));
+        assertTrue("ship built at 0xc01", board.roadOrShipAtEdge(0xc01) instanceof SOCShip);
+        assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.SHIP, 0xc01, 0), ga.getLastAction());
+        assertFalse(pl.isPotentialShip(0xc01));
+        assertTrue(pl.isPotentialShip(0xd01));
+        assertTrue(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xc01)));
+
+        // Can't move ship built this turn, but can move ship built previously:
+        // built this turn, after loading:
+        SOCRoutePiece srp = board.roadOrShipAtEdge(0xc01);
+        assertTrue(srp instanceof SOCShip);
+        assertEquals(CURRENT_PLAYER_NUMBER, srp.getPlayerNumber());
+        assertFalse(((SOCShip) srp).isClosed());
+        assertNull("ship at 0xc01 should not be movable", ga.canMoveShip(CURRENT_PLAYER_NUMBER, 0xc01));
+        // built this turn, before saving (shipsPlacedThisTurn in saved game):
+        srp = board.roadOrShipAtEdge(0xc02);
+        assertTrue(srp instanceof SOCShip);
+        assertEquals(CURRENT_PLAYER_NUMBER, srp.getPlayerNumber());
+        assertNull("ship at 0xc02 should not be movable", ga.canMoveShip(CURRENT_PLAYER_NUMBER, 0xc02));
+        // previously built:
+        srp = board.roadOrShipAtEdge(0x901);
+        assertTrue(srp instanceof SOCShip);
+        assertEquals(CURRENT_PLAYER_NUMBER, srp.getPlayerNumber());
+        assertEquals("ship at 0x901 can be moved", srp, ga.canMoveShip(CURRENT_PLAYER_NUMBER, 0x901));
+        assertTrue(pl.canMoveShip((SOCShip) srp));
+        assertNull(board.roadOrShipAtEdge(0xa00));
+        assertEquals("ship at 0x901 can be moved to 0xa00", srp, ga.canMoveShip(CURRENT_PLAYER_NUMBER, 0x901, 0xa00));
+        ga.moveShip((SOCShip) srp, 0xa00);
+        assertNull(board.roadOrShipAtEdge(0x901));
+        srp = board.roadOrShipAtEdge(0xa00);
+        assertTrue(srp instanceof SOCShip);
+        assertEquals(CURRENT_PLAYER_NUMBER, srp.getPlayerNumber());
+        assertEquals(new GameAction(ActionType.MOVE_PIECE, SOCPlayingPiece.SHIP, 0x901, 0xa00), ga.getLastAction());
+        assertTrue(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xa00)));
+        // quick direct test of addShipPlacedThisTurn
+        assertFalse(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xc04)));
+        ga.addShipPlacedThisTurn(0xc04);
+        assertTrue(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xc04)));
+
+        // Close ship route from building a settlement:
+        // (close from building and moving a ship are tested in TestActionsMessages.testUndoBuildAndMove)
+
+        assertNull(board.roadOrShipAtEdge(0xd01));
+        assertTrue(pl.isPotentialShip(0xd01));
+        ga.putPiece(new SOCShip(pl, 0xd01, board));
+        srp = board.roadOrShipAtEdge(0xd01);
+        assertTrue("ship built at 0xd01", srp instanceof SOCShip);
+        assertFalse(((SOCShip) srp).isClosed());
+        assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.SHIP, 0xd01, 0), ga.getLastAction());
+        assertFalse(pl.isPotentialShip(0xd01));
+        assertTrue(pl.isPotentialSettlement(0xe01));
+
+        assertNull(board.settlementAtNode(0xe01));
+        assertTrue(pl.canPlaceSettlement(0xe01));
+        ga.putPiece(new SOCSettlement(pl, 0xe01, board));
+        assertTrue("settlement built at 0xe01", board.settlementAtNode(0xe01) instanceof SOCSettlement);
+        assertTrue(((SOCShip) board.roadOrShipAtEdge(0xc01)).isClosed());
+        assertTrue(((SOCShip) board.roadOrShipAtEdge(0xd01)).isClosed());
+        GameAction act = ga.getLastAction();
+        assertEquals(ActionType.BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals(0xe01, act.param2);
+        assertEquals(0, act.param3);
+        assertNotNull(act.effects);
+        assertEquals(1, act.effects.size());
+        GameAction.Effect ef = act.effects.get(0);
+        assertEquals(EffectType.CLOSE_SHIP_ROUTE, ef.eType);
+        // params should contain both of the ships which became closed
+        assertEquals(2, ef.params.length);
+        assertTrue(Arrays.stream(ef.params).anyMatch(i -> i == 0xc01));
+        assertTrue(Arrays.stream(ef.params).anyMatch(i -> i == 0xd01));
+
+        // Basic dev card check:
+
+        assertTrue(ga.getNumDevCards() > 0);
+        assertFalse("not enough resources", ga.couldBuyDevCard(CURRENT_PLAYER_NUMBER));
+        pl.addRolledResources(SOCDevCard.COST);
+        assertTrue(ga.couldBuyDevCard(CURRENT_PLAYER_NUMBER));
+        ga.buyDevCard();
+        assertNull(ga.getLastAction());  // later might be BUY_DEV_CARD, esp. if that becomes undoable
     }
 
     /**
      * Test loading a game with Dev Card stats elements for {@link SOCPlayer#numRBCards} etc.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void testLoadPlayerElementStats()
@@ -634,6 +772,8 @@ public class TestLoadgame
         assertEquals("game name", "devcard-stats", sgm.gameName);
         assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
         assertEquals(4, ga.maxPlayers);
+        final int dur = ga.getDurationSeconds(), secondsFromExpected = Math.abs(dur - 163);
+        assertTrue("ga.getDurationSeconds() is ~ 163 (actual " + dur + ')', secondsFromExpected < 3);
 
         final String[] NAMES = {null, "robot 4", "robot 3", "debug"};
         final int[] TOTAL_VP = {0, 3, 3, 3};
@@ -727,7 +867,7 @@ public class TestLoadgame
         // game has some invalid/unknown elements; rest of elements should load OK
         assertEquals(1, ga.getFirstPlayer());
         assertEquals(1, ga.getCurrentPlayerNumber());
-        assertEquals(2, ga.getRoundCount());
+        assertEquals(2, ga.getRoundCount());  // is after unknowns in elements
         assertEquals(null, ga.getPlayerWithLargestArmy());
         assertEquals(null, ga.getPlayerWithLongestRoad());
 
@@ -735,8 +875,9 @@ public class TestLoadgame
         final String[] NAMES = {null, "robot 4", "robot 2", "debug"};
         final int[] TOTAL_VP = {0, 3, 2, 2};
         final int[][] RESOURCES = {null, {0, 1, 0, 2, 0}, {2, 2, 0, 0, 0}, {1, 3, 1, 0, 1}};
-        final int[][] PIECE_COUNTS = {{15, 5, 4, 0, 0}, {13, 4, 3, 0, 0}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}};
+        final int[][] PIECE_COUNTS = {{15, 5, 4, 0, 0}, {13, 4, 3, 0, 2}, {13, 3, 4, 0, 0}, {12, 3, 4, 0, 0}};
         checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
+        assertEquals("PEType.NUMKNIGHTS still recognized after unknown elements", 2, ga.getPlayer(1).getNumKnights());
 
         // player 1 oldDevCards has some unknown type strings and numbers;
         // should still parse the rest of them properly
@@ -756,7 +897,7 @@ public class TestLoadgame
         assertEquals("devCardDeck[n-2]", SOCDevCardConstants.ROADS, sgm.devCardDeck.get(n-2).intValue());
         assertEquals("devCardDeck[n-1]", SOCDevCardConstants.UNKNOWN, sgm.devCardDeck.get(n-1).intValue());
         assertEquals("devCardDeck[n]", SOCDevCardConstants.KNIGHT, sgm.devCardDeck.get(n).intValue());
-        assertTrue(sgm.warnDevCardDeckHasUnknownType);
+        assertEquals(n-1, sgm.warnDevCardDeckUnknownTypeAtIndex);
 
         if (! doGameActions)
             return;
@@ -801,6 +942,73 @@ public class TestLoadgame
         assertEquals(new SOCResourceSet(0, 0, 0, 0, 1, 0), tr.getGetSet());
 
         assertNull("player(3) trade offer", ga.getPlayer(3).getCurrentOffer());
+    }
+
+    /**
+     * Test loading a game whose players have {@link SavedGameModel.PlayerInfo#resTradeStats}:
+     * {@code tradestats.game.json}.
+     * @since 2.6.00
+     */
+    @Test
+    public void testLoadResTradeStats()
+        throws IOException
+    {
+        final SavedGameModel sgm = load("tradestats.game.json", srv);
+        final SOCGame ga = sgm.getGame();
+
+        assertEquals("game name", "ts", sgm.gameName);
+        assertEquals(4, sgm.playerSeats.length);
+
+        final int[] PLAYER_VP = {0, 2, 3, 4};
+        final int[][][][] PLAYER_TRADE_STATS =
+            {
+                {
+                    {null, null}, {null, null}, {null, null}, {null, null},
+                    {null, null}, {null, null}, {null, null}, {null, null}
+                },
+                {
+                    {{0, 0, 6, 0, 0}, {1, 1, 0, 0, 0}}, {null, null}, {null, null}, {null, null},
+                    {null, null}, {null, null}, {null, null}, {null, null}
+                },
+                {
+                    {null, null}, {null, null}, {null, null}, {null, null},
+                    {null, null}, {null, null}, {null, null}, {{1, 0, 1, 0, 0}, {0, 1, 0, 1, 0}}
+                },
+                {
+                    {{0, 0, 3, 3, 0}, {1, 0, 0, 0, 1}}, {null, null},
+                    {{0, 2, 0, 0, 0}, {0, 0, 1, 0, 0}}, {null, null},
+                    {null, null}, {null, null},
+                    {{0, 0, 4, 0, 0}, {0, 0, 0, 1, 0}},
+                    {{0, 1, 0, 1, 0}, {1, 0, 1, 0, 0}}
+                }
+            };
+        for (int pn = 0; pn < 4; ++pn)
+        {
+            final SOCPlayer pl = ga.getPlayer(pn);
+            final String desc = "player(" + pn + ")";
+
+            final boolean expectVacant = (PLAYER_VP[pn] == 0);
+            assertEquals(desc, expectVacant, ga.isSeatVacant(pn));
+            assertEquals(desc, PLAYER_VP[pn], pl.getTotalVP());
+
+            final SOCResourceSet[][] plStats = pl.getResourceTradeStats();
+            for (int trType = 0; trType < PLAYER_TRADE_STATS[0].length; ++trType)
+            {
+                final String trDesc = desc + "(type=" + trType + ")";
+
+                int[] expectGive = PLAYER_TRADE_STATS[pn][trType][0],
+                    expectReceive = PLAYER_TRADE_STATS[pn][trType][1];
+                if (expectGive == null)
+                    assertTrue(trDesc + " give", plStats[0][trType].isEmpty());
+                else
+                    assertArrayEquals(trDesc + " give", expectGive, plStats[0][trType].getAmounts(false));
+
+                if (expectReceive == null)
+                    assertTrue(trDesc + " receive", plStats[1][trType].isEmpty());
+                else
+                    assertArrayEquals(trDesc + " receive", expectReceive, plStats[1][trType].getAmounts(false));
+            }
+        }
     }
 
     /** Test loading and resuming a simple scenario, including SVP for {@code _SC_SEAC}. */
@@ -868,6 +1076,7 @@ public class TestLoadgame
         assertEquals("gamestate", SOCGame.PLAY1, ga.getGameState());
 
         // Another ship & coastal settlement in a landarea we've already built to
+        // Shouldn't change SVP
         ga.putPiece(new SOCShip(plDebug, 0x505, board));
         ga.putPiece(new SOCSettlement(plDebug, 0x605, board));
         assertEquals(2, plDebug.getSpecialVP());
@@ -897,7 +1106,10 @@ public class TestLoadgame
         }
     }
 
-    /** Test loading an unknown {@link SOCGameOption}: {@code bad-gameopt-unknown.game.json} */
+    /**
+     * Test loading an unknown {@link SOCGameOption}: {@code bad-gameopt-unknown.game.json}
+     * @since 2.5.00
+     */
     @Test
     public void testLoadUnknownGameopt()
         throws IOException
@@ -917,7 +1129,10 @@ public class TestLoadgame
         }
     }
 
-    /** Test loading an inactive {@link SOCGameOption}: {@code bad-gameopt-inactive.game.json} */
+    /**
+     * Test loading an inactive {@link SOCGameOption}: {@code bad-gameopt-inactive.game.json}
+     * @since 2.5.00
+     */
     @Test
     public void testLoadInactiveGameopt()
         throws IOException

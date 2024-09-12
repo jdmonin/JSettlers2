@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2017,2020 Jeremy D Monin <jeremy@nand.net>.
+ * Portions of this file Copyright (C) 2017,2020-2023 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,20 +28,22 @@ import soc.server.genericServer.Connection;
 /**
  * This is a pair of connections, one is sitting at a game and the other is leaving;
  * the arriving connection might be taking over the leaving one's seat.
- * Server can then have info about one when dealing with messages/events from the other.
+ * Gives server info about both for when dealing with messages/events from the other.
  */
 /*package*/ class SOCReplaceRequest
 {
     private final Connection arriving;
     private final Connection leaving;
+    /** The sitdown message from {@link #arriving}; not null */
     private final SOCSitDown sdMes;
+    private final boolean isArrivingRobot;
 
     /**
      * Make a new request
      * @param arriv  the arriving connection; not null
      * @param leave  the leaving connection; not null
-     * @param sm the SITDOWN message
-     * @throws IllegalArgumentException if {@code arriv} or {@code leave} is {@code null}
+     * @param sm the SITDOWN message from {@code arriv}; not null
+     * @throws IllegalArgumentException if {@code arriv}, {@code leave}, or {@code sm} is {@code null}
      */
     public SOCReplaceRequest(Connection arriv, Connection leave, SOCSitDown sm)
         throws IllegalArgumentException
@@ -50,18 +52,35 @@ import soc.server.genericServer.Connection;
             throw new IllegalArgumentException("arriving");
         if (leave == null)
             throw new IllegalArgumentException("leaving");
+        if (sm == null)
+            throw new IllegalArgumentException("sm");
 
         arriving = arriv;
         leaving = leave;
         sdMes = sm;
+
+        final SOCClientData arrivScd = (SOCClientData) arriv.getAppData();
+        isArrivingRobot = (arrivScd != null) ? arrivScd.isRobot : false;
     }
 
     /**
      * @return the arriving connection; not null
+     * @see #isArrivingRobot()
      */
     public Connection getArriving()
     {
         return arriving;
+    }
+
+    /**
+     * Is the arriving connection's player a robot?
+     * Set during constructor by checking {@link #getArriving()}'s {@link SOCClientData#isRobot} flag.
+     * @return true if {@link #getArriving()} is a bot
+     * @since 2.5.00
+     */
+    public boolean isArrivingRobot()
+    {
+        return isArrivingRobot;
     }
 
     /**
@@ -73,7 +92,7 @@ import soc.server.genericServer.Connection;
     }
 
     /**
-     * @return the SITDOWN message
+     * @return the SITDOWN message; not null
      */
     public SOCSitDown getSitDownMessage()
     {

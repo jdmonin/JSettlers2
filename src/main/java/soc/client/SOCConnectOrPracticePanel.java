@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2008-2009,2012-2013,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2009,2012-2013,2017,2019-2022,2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -523,14 +523,51 @@ import soc.util.Version;
     }
 
     /**
+     * We were connected to a TCP server (remote, or the one we started) but something broke the connection.
+     * Show an error message and the initial 3 buttons, as if we've just started the client up.
+     *
+     * @param errText  Error message to show. Can be multi-line by using sanitized html with {@code <BR>} tag
+     *     and starting with {@code <HTML>} tag, as done when using a {@link JLabel}.
+     * @since 2.5.00
+     */
+    public void lostServerConnection(final String errText)
+    {
+        // Hide any visible detail fields
+        clickConnCancel();
+        clickRunCancel();
+
+        setTopText(errText);
+        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        for (JButton b : new JButton[]{connserv, conn_connect, conn_cancel, runserv, run_startserv, run_cancel})
+            b.setEnabled(true);
+    }
+
+    /**
      * Set the line of text displayed at the top of the panel.
-     * @param newText  New text to display
+     * @param newText  New text to display. Can be multi-line by using sanitized html with {@code <BR>} tag
+     *     and starting with {@code <HTML>} tag, as done when using a {@link JLabel}.
      * @since 1.1.16
      */
     public void setTopText(final String newText)
     {
         topText.setText(newText);
         validate();
+    }
+
+    /**
+     * Update the contents of the panel's Host and Port fields.
+     * @param chost Hostname to set to, or {@code null} to leave unchanged
+     * @param cport Port number to set to
+     * @since 2.7.00
+     */
+    public void setServerHostPort(final String chost, final int cport)
+    {
+        if ((chost != null) && ! conn_servhost.getText().equals(chost))
+            conn_servhost.setText(chost);
+
+        String pstr = String.valueOf(cport);
+        if (! conn_servport.getText().equals(pstr))
+            conn_servport.setText(pstr);
     }
 
     /**
@@ -681,8 +718,8 @@ import soc.util.Version;
         md.getClient().connect(cserv, cport, conn_user.getText(), conn_pass.getText());
     }
 
-    /** Hide fields used to connect to server. Called by client after a network error. */
-    public void clickConnCancel()
+    /** Hide fields used to connect to server. */
+    private void clickConnCancel()
     {
         panel_conn.setVisible(false);
         connserv.setVisible(true);

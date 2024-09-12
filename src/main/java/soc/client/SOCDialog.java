@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2020,2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,16 +27,24 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.LayoutManager;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
@@ -46,6 +54,9 @@ import javax.swing.WindowConstants;
  * a prompt at the top, a center "middle panel" that can be centered instead of
  * stretched to fill the entire {@link BorderLayout#CENTER}, and an optional
  * bottom button panel centered horizontally.
+ *<P>
+ * Dialog's Close button can optionally be ignored: See constructor.
+ * When closeable, Escape key also calls the {@link #windowCloseChosen()} callback.
  *<P>
  * Uses JSettlers dialog colors of black on {@link SwingMainDisplay#DIALOG_BG_GOLDENROD}
  * with default dialog font, increased to 12 points if default is smaller.
@@ -70,7 +81,7 @@ import javax.swing.WindowConstants;
  */
 @SuppressWarnings("serial")
 public abstract class SOCDialog
-    extends JDialog implements Runnable
+    extends JDialog implements Runnable, WindowListener
 {
     /**
      * i18n text strings; will use same locale as SOCPlayerClient's string manager.
@@ -104,16 +115,36 @@ public abstract class SOCDialog
      * @param piParent  Parent of this dialog, or {@code null}. Dialog will be centered in {@code piParent}.
      * @param titleText  Text to place into dialog window's title bar
      * @param promptText  Prompt text to place at top of dialog, or {@code null}
+     * @param canCloseAndESC  True if dialog is closeable instead of choosing a button to take action;
+     *     calls {@link #windowCloseChosen()} if that happens or if {@link KeyEvent#VK_ESCAPE} key is hit
      * @param middleFillsCenter  True if constructor should stretch {@link #getMiddlePanel()}'s JPanel
      *     to fill the entire {@link BorderLayout#CENTER} portion of the content pane;
      *     false to center it horizontally and vertically without stretching
      */
     protected SOCDialog
-        (final SOCPlayerInterface piParent, final String titleText, final String promptText, boolean middleFillsCenter)
+        (final SOCPlayerInterface piParent, final String titleText, final String promptText,
+         final boolean canCloseAndESC, boolean middleFillsCenter)
     {
         super(piParent, titleText, true);  // gets a BorderLayout from JDialog's default content pane
 
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);  // user must take action
+        if (canCloseAndESC)
+        {
+            addWindowListener(this);
+
+            // Keyboard shortcut setup
+            final JRootPane rp = getRootPane();
+            final InputMap im = rp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+            final ActionMap am = rp.getActionMap();
+
+            // ESC to cancel/close dialog, even if nothing has keyboard focus (as seen on MacOSX)
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
+            am.put("cancel", new AbstractAction()
+            {
+                public void actionPerformed(ActionEvent ae) { windowCloseChosen(); }
+            });
+        }
+
         playerInterface = piParent;
         if (piParent != null)
             setLocationRelativeTo(piParent);  // center
@@ -209,6 +240,8 @@ public abstract class SOCDialog
      *<P>
      * You are free to add any type of component in here and change the layout manager.
      * After adding all buttons and labels, you can call {@link #styleButtonsAndLabels(Container)}.
+     *
+     * @see #getSouthPanel()
      */
     protected JPanel getMiddlePanel()
     {
@@ -226,6 +259,7 @@ public abstract class SOCDialog
      * You might also want to call {@link JRootPane#setDefaultButton(JButton) getRootPane().setDefaultButton(...)}.
      *
      * @return the optional south panel
+     * @see #getMiddlePanel()
      */
     protected JPanel getSouthPanel()
     {
@@ -305,6 +339,18 @@ public abstract class SOCDialog
     }
 
     /**
+     * The dialog window was closed by the user, or they hit the Escape key ({@link KeyEvent#VK_ESCAPE}).
+     * This stub does nothing; override to react accordingly.
+     * SOCDialog has already called {@link java.awt.Window#dispose()}.
+     *<P>
+     * If constructor was called with {@code canCloseAndESC} false, this method won't be called.
+     * @since 2.7.00
+     */
+    public void windowCloseChosen()
+    {
+    }
+
+    /**
      * Run method, for convenience with {@link java.awt.EventQueue#invokeLater(Runnable)}.
      * Calls {@link #pack()} and {@link #setVisible(boolean) setVisible(true)}.
      */
@@ -313,5 +359,33 @@ public abstract class SOCDialog
         pack();
         setVisible(true);
     }
+
+    /**
+     * Dialog close requested by user: Dispose and call {@link #windowCloseChosen()}.
+     * @since 2.7.00
+     */
+    public void windowClosing(WindowEvent e)
+    {
+        dispose();
+        windowCloseChosen();
+    }
+
+    /** Stub required by WindowListener */
+    public void windowOpened(WindowEvent e) {}
+
+    /** Stub required by WindowListener */
+    public void windowActivated(WindowEvent e) { }
+
+    /** Stub required by WindowListener */
+    public void windowClosed(WindowEvent e) { }
+
+    /** Stub required by WindowListener */
+    public void windowDeactivated(WindowEvent e) { }
+
+    /** Stub required by WindowListener */
+    public void windowDeiconified(WindowEvent e) { }
+
+    /** Stub required by WindowListener */
+    public void windowIconified(WindowEvent e) { }
 
 }

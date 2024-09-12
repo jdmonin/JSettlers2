@@ -1,20 +1,20 @@
 -- DB tables/indexes create script for jsettlers.
--- Run jsettlers-create-mysql.sql or jsettlers-create-postgres.sql before this script.
+-- Run jsettlers-create-mysql.sql or jsettlers-create-postgres.sql before this script
+-- (nothing needed for sqlite).
 -- Make sure socdata is the database you are connected to when running this script:
---      MySQL:    $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables-mysql.sql"
+--      MySQL or MariaDB: $ mysql -u root -D socdata -p -e "SOURCE jsettlers-tables-mysql.sql"
 --      Postgres: $ psql -d socdata --file jsettlers-tables-postgres.sql
 -- See bottom of file for copyright and license information (GPLv3+).
 
 -- Developers: Do not directly edit: Rendered from template jsettlers-tables-tmpl.sql
 -- When changing the schema, update template/jsettlers-tables-tmpl.sql and not these db-specific files.
+
 -- Always use lowercase for table names and field names.  0-9 and underscore (_) are also safe.
 -- Don't create "mytable_name" if that name without underscores ("mytablename") is already a table.
 -- Remember that the sql must be valid for mysql, postgresql, sqlite, and oracle.
 -- For indexes, use the table name + __ + one lowercase letter.
 -- For multi-line SQLs, indent so that SOCDBHelper.runSetupScript can combine them.
 -- Comments must begin with a space: "-- ".
-
-
 
 -- Schema upgrades:
 --   See SOCDBHelper.upgradeSchema(). DDL here must be kept in sync with what's found there.
@@ -43,7 +43,6 @@ CREATE TABLE db_version (
 	PRIMARY KEY (to_vers)
 	);
 -- At DB creation, a row is added to this table to indicate current version: See bottom of this script.
-
 
 
 -- General settings, especially about features using the database.
@@ -118,7 +117,7 @@ CREATE TABLE games2_players (
 CREATE TABLE robotparams (
 	robotname VARCHAR(20) not null,
 	maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT,
-	strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag SMALLINT,
+	strategytype INT, starttime TIMESTAMP NULL DEFAULT null, endtime TIMESTAMP NULL DEFAULT null, gameswon INT, gameslost INT, tradeFlag SMALLINT,
 	PRIMARY KEY (robotname)
 	);
 
@@ -130,7 +129,7 @@ INSERT INTO db_version(from_vers, to_vers, ddl_done, bg_tasks_done)
 
 -- This file is part of the JSettlers project.
 --
---  This file Copyright (C) 2012,2014-2017,2019 Jeremy D Monin (jeremy@nand.net)
+--  This file Copyright (C) 2012,2014-2017,2019-2022 Jeremy D Monin (jeremy@nand.net)
 --  Portions of this file Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
 --
 --  This program is free software: you can redistribute it and/or modify

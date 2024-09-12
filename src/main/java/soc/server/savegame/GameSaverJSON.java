@@ -68,6 +68,9 @@ public class GameSaverJSON
         throws IllegalArgumentException, SavedGameModel.UnsupportedSGMOperationException,
             IllegalStateException, IOException
     {
+        // GameEventLog.save uses similar logic to check status before saving.
+        // If you update this, consider updating that too.
+
         if (! saveDir.isDirectory())
             throw new IllegalArgumentException("Not found as directory: " + saveDir.getPath());
 

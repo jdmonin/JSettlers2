@@ -1,4 +1,4 @@
-// JSettlers build script for gradle 5.6 or higher
+// JSettlers build script for gradle 6 or 7
 // See bottom of file for copyright and license information (GPLv3).
 
 apply plugin: 'java'
@@ -8,27 +8,28 @@ apply plugin: 'idea'
 buildscript {
     repositories {
         mavenCentral()
-        maven { url "http://google-diff-match-patch.googlecode.com/svn/trunk/maven" }
     }
 }
 
-version = '2.4.50'  // same as in src/main/resources/resources/version.info
-ext.i18neditor_version = '1.2.0'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
+version = '2.7.00'  // same as in src/main/resources/resources/version.info
+ext.i18neditor_version = '1.2.1'  // for PTE editor; same as in src/main/resources/pteResources/pteversion.properties
 ext.git_revision = '?'  // placed in jar manifests as Build-Revision attrib; will be filled in by findGitRevision task
 
 mainClassName = "soc.client.SOCPlayerClient"
 
 compileJava {
-    sourceCompatibility = '1.7'
-    targetCompatibility = '1.7'
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
 }
+
+ext.python_command = findPythonOrPython3()  // python3 or python expected to be in PATH
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13.1'
     implementation 'com.google.code.gson:gson:2.8.6'  // optional at runtime, for savegame feature
         // If version changes, update Readme.developer.md and jsserver.properties.sample
         // Same version is used by v3 branch (dependency of protobuf-java-util)
@@ -47,8 +48,8 @@ sourceSets {
 }
 
 configurations {
-    extraTestCompile.extendsFrom testCompile
-    extraTestRuntime.extendsFrom testRuntime
+    extraTestImplementation.extendsFrom testImplementation
+    extraTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 tasks.withType(JavaCompile) {
@@ -62,7 +63,7 @@ tasks.withType(JavaCompile) {
 
 // run all python unit tests, using PyUnit (unittest module); returns 0 if no failures
 task testPython(type: Exec) {
-    executable 'python'  // expected to be in PATH
+    executable python_command
     workingDir 'src/test/python'
     args '-m', 'unittest', 'discover'  // discover requires python 2.7 or higher
     environment CLASSPATH: tasks.test.classpath.asPath
@@ -71,7 +72,7 @@ task testPython(type: Exec) {
 // Make sure sql scripts template token data is self-consistent:
 // If test_token_consistency.py finds problems, it will print a detail message.
 task testSrcDBTemplateTokens(type: Exec) {
-    executable 'python'  // expected to be in PATH
+    executable python_command
     workingDir 'src/main/bin/sql/template'
     args 'test_token_consistency.py', new File(sourceSets.main.java.srcDirs[0], '/soc/server/database/SOCDBHelper.java').absolutePath
     outputs.upToDateWhen { false }  // never skip this test
@@ -80,7 +81,7 @@ task testSrcDBTemplateTokens(type: Exec) {
 // Make sure sql scripts are consistent with their template:
 // If render.py finds problems, it will print a message showing which script(s) must be regenerated.
 task testSrcDBTemplates(type: Exec) {
-    executable 'python'  // expected to be in PATH
+    executable python_command
     workingDir 'src/main/bin/sql/template'
     args 'render.py', '-i', 'jsettlers-tables-tmpl.sql', '-d', 'mysql,sqlite,postgres', '-c', '../jsettlers-tables-%s.sql'
     outputs.upToDateWhen { false }  // never skip this test
@@ -128,8 +129,8 @@ distZip.enabled = false   // dist builds distFullZip
 distTar.enabled = false   // dist builds distSrcTar, distFullTar
 
 task serverJar(type: Jar) {
-    baseName = 'JSettlersServer'
-    version = project.version
+    archiveBaseName = 'JSettlersServer'
+    archiveVersion = project.version
     manifest {
         attributes(
             'Main-Class': 'soc.server.SOCServer',
@@ -156,8 +157,8 @@ task serverJar(type: Jar) {
 }
 
 task fullJar(type: Jar) {
-    baseName = 'JSettlers'
-    version = project.version
+    archiveBaseName = 'JSettlers'
+    archiveVersion = project.version
     manifest {
         attributes(
             'Main-Class': 'soc.client.SOCPlayerClient',
@@ -168,7 +169,15 @@ task fullJar(type: Jar) {
     }
     from(sourceSets.main.output) {
         include "net/nand/util/i18n/mgr/**"
-        include "soc/**"
+        include "soc/baseclient/**"
+        include "soc/client/**"
+        include "soc/debug/**"
+        include "soc/disableDebug/**"
+        include "soc/game/**"
+        include "soc/message/**"
+        include "soc/robot/**"
+        include "soc/server/**"
+        include "soc/util/**"
     }
     from(sourceSets.main.resources) {
         include "resources/**"
@@ -177,8 +186,8 @@ task fullJar(type: Jar) {
 
 // PropertiesTranslatorEditor utility; not built by default
 task i18neditorJar(type: Jar) {
-    baseName = 'PTE'
-    version = project.i18neditor_version
+    archiveBaseName = 'PTE'
+    archiveVersion = project.i18neditor_version
     manifest {
         attributes(
             'Main-Class': 'net.nand.util.i18n.gui.PTEMain',
@@ -199,7 +208,7 @@ task i18neditorJar(type: Jar) {
 
 // distribution tgzs and zip
 
-ant.defaultexcludes remove: "**/.gitignore"
+//   these include **/.gitignore files (see settings.gradle)
 
 task cleanRemovePyc(type: Delete) {
     outputs.upToDateWhen { false }  // never skip if asked for
@@ -212,15 +221,15 @@ task cleanRemovePyc(type: Delete) {
 // Includes target/lib/ to prevent eclipse ant import error
 FileTree srcTree = fileTree(dir: '.', includes: ['src/**', 'doc/**', 'build.*', 'Readme.*', '*.txt', '.gitignore', 'target/lib/.gitignore'])
 
-// Naming reminder: [baseName]-[appendix]-[version]-[classifier].[extension]
+// Naming reminder: [archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]
 
 // jsettlers-2.x.xx-src.tar.gz
 task distSrcTar(type: Tar) {
     dependsOn cleanRemovePyc
-    baseName = 'jsettlers'
-    classifier = 'src'
+    archiveBaseName = 'jsettlers'
+    archiveClassifier = 'src'
     compression = Compression.GZIP
-    extension = 'tar.gz'
+    archiveExtension = 'tar.gz'
     from srcTree
     into 'jsettlers-' + project.version + '-src/'
 }
@@ -228,10 +237,10 @@ task distSrcTar(type: Tar) {
 // jsettlers-2.x.xx-full.tar.gz
 task distFullTar(type: Tar) {
     dependsOn cleanRemovePyc
-    baseName = 'jsettlers'
-    classifier = 'full'
+    archiveBaseName = 'jsettlers'
+    archiveClassifier = 'full'
     compression = Compression.GZIP
-    extension = 'tar.gz'
+    archiveExtension = 'tar.gz'
     from srcTree, fullJar.outputs.files, serverJar.outputs.files
     into 'jsettlers-' + project.version + '/'
 }
@@ -239,8 +248,8 @@ task distFullTar(type: Tar) {
 // jsettlers-2.x.xx-full.zip
 task distFullZip(type: Zip) {
     dependsOn cleanRemovePyc
-    baseName = 'jsettlers'
-    classifier = 'full'
+    archiveBaseName = 'jsettlers'
+    archiveClassifier = 'full'
     from srcTree, fullJar.outputs.files, serverJar.outputs.files
     into 'jsettlers-' + project.version + '/'
 }
@@ -280,7 +289,7 @@ task distCheckSrcDirty {
 task dist {
     dependsOn distCheckSrcDirty, distSrcTar, distFullTar, distFullZip
     doLast {
-        println "Built for distribution in " + project.distsDir + ":"
+        println "Built for distribution in ${project.buildDir.getName()}/${project.distsDirName}:"
         [distSrcTar, distFullTar, distFullZip].each { dtask -> dtask.outputs.files.each { File file ->
             println file.name
     }}}
@@ -321,7 +330,7 @@ task extraTest(type: Test) {
 
 // run all python extra tests, using PyUnit (unittest module); returns 0 if no failures
 task extraTestPython(type: Exec) {
-    executable 'python'  // expected to be in PATH
+    executable python_command
     workingDir 'src/extraTest/python'
     args '-m', 'unittest', 'discover', '--verbose'  // discover requires python 2.7 or higher
     environment CLASSPATH: tasks.extraTest.classpath.asPath
@@ -329,6 +338,25 @@ task extraTestPython(type: Exec) {
 
 extraTest.dependsOn test
 extraTest.finalizedBy extraTestPython  // run java tests first; run python tests even if java fails
+
+// build setup: try to run python3 or python available in PATH
+def static findPythonOrPython3() {
+    try {
+        def cmd = "python3 --version"
+        def proc = cmd.execute()
+        proc.waitFor()
+        if (proc.exitValue() == 0)
+            return 'python3'
+    } catch(Exception e) {}
+
+    def cmd = "python --version"
+    def proc = cmd.execute()
+    proc.waitFor()
+    if (proc.exitValue() == 0)
+        return 'python'
+    else
+        throw new GradleScriptException("build environment problem: couldn't run python3 nor python")
+}
 
 clean {
     // also remove python bytecode files
@@ -345,7 +373,7 @@ artifacts {
  * This file is part of the JSettlers project.
  *
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2019-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2019 Colin Werner
  *
  * This program is free software: you can redistribute it and/or modify

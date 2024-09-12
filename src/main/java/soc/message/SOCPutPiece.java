@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -40,18 +40,21 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  *<P>
  * If this is a placement request from a client player: If successful, server announces {@link SOCPutPiece}
  * to the game along with the new {@link SOCGameState}. Otherwise server responds with an explanatory
- * {@link SOCGameServerText} and, if the gamestate allowed placement but resources or requested coordinates
+ * {@link SOCDeclinePlayerRequest} or {@link SOCGameServerText} and,
+ * if the gamestate allowed placement but resources or requested coordinates
  * disallowed it, the current {@link SOCGameState} and then a {@link SOCCancelBuildRequest}.
  *<BR>
- * If PutPiece leads to Longest Route player changing, server sends that
- * after {@code SOCPlayerElement}s before {@code SOCGameState}:
+ * If PutPiece leads to the Longest Route player changing, server v2.4.00 and newer announces that
+ * between the {@code SOCPlayerElement}s and {@code SOCGameState}:
  * {@link SOCGameElements}({@link SOCGameElements.GEType#LONGEST_ROAD_PLAYER LONGEST_ROAD_PLAYER}).
  *<P>
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
  * their {@link #getPlayerNumber()} is -1 in this message.
  *<P>
+ * To undo placing a piece, client should send {@link SOCUndoPutPiece}.
+ *<P>
  * See also {@link SOCMovePiece} and {@link SOCDebugFreePlace}. Messages similar but opposite to this one
- * are {@link SOCCancelBuildRequest} and the very-limited {@link SOCRemovePiece}.
+ * are {@link SOCCancelBuildRequest}, and the very-limited {@link SOCRemovePiece}.
  *<P>
  * Some scenarios like {@link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces
  * as part of the initial board layout while the game is starting. These will all be sent to
@@ -113,7 +116,7 @@ public class SOCPutPiece extends SOCMessage
         if (pt < 0)
             throw new IllegalArgumentException("pt: " + pt);
         if (co < 0)
-            throw new IllegalArgumentException("coord < 0");
+            throw new IllegalArgumentException("coord < 0: " + co);
 
         messageType = PUTPIECE;
         game = na;
@@ -184,7 +187,7 @@ public class SOCPutPiece extends SOCMessage
         if (pt < 0)
             throw new IllegalArgumentException("pt: " + pt);
         if (co < 0)
-            throw new IllegalArgumentException("coord < 0");
+            throw new IllegalArgumentException("coord < 0: " + co);
 
         return PUTPIECE + sep + ga + sep2 + pn + sep2 + pt + sep2 + co;
     }
@@ -225,7 +228,7 @@ public class SOCPutPiece extends SOCMessage
      * Converts piece coordinate to decimal from hexadecimal format.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(String messageStrParams)
     {

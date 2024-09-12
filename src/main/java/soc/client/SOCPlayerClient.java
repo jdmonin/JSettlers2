@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -107,6 +107,7 @@ public class SOCPlayerClient
      * String property {@code jsettlers.debug.client.features} to support server testing and debugging:
      * When present, client will report these Client Features to server in its {@code Version} message
      * instead of its actual features from <tt>{@link SOCFeatureSet}.CLIENT_*</tt>.
+     * See {@link SOCFeatureSet} for more info.
      *<P>
      * Format: Empty for none, or string of semicolon-surrounded client features: <tt>";6pl;sb;"</tt><BR>
      * Same format as {@link SOCFeatureSet#getEncodedList()}.
@@ -266,6 +267,23 @@ public class SOCPlayerClient
             System.setProperty("com.apple.mrj.application.apple.menu.about.name", "JSettlers");
                 // Works for earlier OSX versions
         }
+        else if (! IS_PLATFORM_WINDOWS)
+        {
+            // Linux/Unix: Use sub-pixel font antialiasing if available;
+            // some desktop environments don't enable antialiasing by default
+
+            String currVal = null;
+            try
+            {
+                currVal = System.getProperty("awt.useSystemAAFontSettings");
+            } catch (SecurityException e) {}
+            if (currVal == null)
+                try
+                {
+                    System.setProperty("awt.useSystemAAFontSettings", "lcd");
+                } catch (SecurityException e) {}
+
+        }
     }
 
     /**
@@ -278,17 +296,24 @@ public class SOCPlayerClient
 
     /**
      * Helper object to deal with network connectivity.
+     * Calls {@link #messageHandler} to dispatch inbound message traffic.
+     * @see #gameMessageSender
      * @since 2.0.00
      */
     private ClientNetwork net;
 
     /**
-     * Helper object to receive incoming network traffic from the server.
+     * Helper object to dispatch incoming messages from the server.
+     * Called by {@link ClientNetwork} when it receives network traffic.
+     * Must call {@link MessageHandler#init(SOCPlayerClient)} before usage.
+     * @see #gameMessageSender
      */
     private final MessageHandler messageHandler;
 
     /**
      * Helper object to form and send outgoing network traffic to the server.
+     * @see #messageHandler
+     * @see #net
      * @since 2.0.00
      */
     private final GameMessageSender gameMessageSender;
@@ -301,6 +326,7 @@ public class SOCPlayerClient
 
     /**
      *  Server version number for remote server, sent soon after connect, 0 if no server, or -1 if version unknown.
+     *  Use {@link #getServerVersion(SOCGame)} instead to check the effective version of a specific game.
      *  A local practice server's version is always {@link Version#versionNumber()}, not {@code sVersion},
      *  so always check {@link SOCGame#isPractice} before checking this field.
      * @since 1.1.00
@@ -364,7 +390,9 @@ public class SOCPlayerClient
     protected String password = null;
 
     /**
-     * true if we've stored the {@link #password} and the server's replied that it's correct.
+     * True if we've successfully authenticated: Stored the {@link #password} if any, and the server's replied that our
+     * auth request or join game request with nickname/password was correct.
+     * When true, no need to send the password again in later join game/join channel requests.
      * @see #isNGOFWaitingForAuthStatus
      */
     protected boolean gotPassword;
@@ -397,10 +425,11 @@ public class SOCPlayerClient
 
     /**
      * All the games we're currently playing. Includes networked or hosted games and those on practice server.
-     * Accessed from GUI thread and network {@link MessageHandler} thread.
+     * Accessed from GUI thread and network {@link MessageHandler} thread,
+     * which sometimes directly calls {@code client.games.get(..)}.
      * @see #serverGames
      */
-    protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
+    protected final Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
     /**
      * all announced game names on the remote server, including games which we can't
@@ -431,6 +460,8 @@ public class SOCPlayerClient
 
     /**
      * Map from game-name to the listener for that game.
+     * @see #getClientListeners()
+     * @see #getClientListener(String)
      */
     private final Map<String, PlayerClientListener> clientListeners = new HashMap<String, PlayerClientListener>();
 
@@ -469,6 +500,22 @@ public class SOCPlayerClient
      */
     public SOCPlayerClient()
     {
+        this(new MessageHandler());
+    }
+
+    /**
+     * Create a SOCPlayerClient with the specified {@link MessageHandler}.
+     * See {@link #SOCPlayerClient()} for all other details.
+     * @param mh  MessageHandler to use; not null
+     * @throws IllegalArgumentException if {@code mh} is null
+     * @since 2.5.00
+     */
+    protected SOCPlayerClient(final MessageHandler mh)
+        throws IllegalArgumentException
+    {
+        if (mh == null)
+            throw new IllegalArgumentException("mh");
+
         gotPassword = false;
 
         int id = UserPreferences.getPref(PREF_FACE_ICON, SOCPlayer.FIRST_HUMAN_FACE_ID);
@@ -519,7 +566,7 @@ public class SOCPlayerClient
 
         net = new ClientNetwork(this);
         gameMessageSender = new GameMessageSender(this, clientListeners);
-        messageHandler = new MessageHandler(this);
+        messageHandler = mh;
     }
 
     /**
@@ -539,8 +586,12 @@ public class SOCPlayerClient
 
     /**
      * Connect and give feedback by showing MESSAGE_PANEL.
-     * Calls {@link MainDisplay#connect(String, String)} to set username and password,
+     * Calls {@link MainDisplay#connect(String, int, String, String)} to set username and password,
      * then {@link ClientNetwork#connect(String, int)} to make the connection.
+     *<P>
+     * Note: If {@code chost} is null, {@link ClientNetwork#connect(String, int)}
+     * assumes client has started a local server, so will start a thread to
+     * periodically send it {@link SOCServerPing}s as a keepalive.
      *
      * @param chost Hostname to connect to, or null for localhost
      * @param cport Port number to connect to
@@ -550,7 +601,7 @@ public class SOCPlayerClient
      */
     public void connect(final String chost, final int cport, final String cuser, final String cpass)
     {
-        mainDisplay.connect(cpass, cuser);
+        mainDisplay.connect(chost, cport, cpass, cuser);
 
         // TODO don't do net connect attempt on UI thread
         // Meanwhile: To ensure the UI repaints before starting net connect:
@@ -593,15 +644,18 @@ public class SOCPlayerClient
     }
 
     /**
-     * @return the client listener of this SOCPlayerClient object based on the name
+     * @return the client listener of this SOCPlayerClient for a particular game
+     * @param gameName the game name to look for a listener
+     * @see #getClientListeners()
      */
-    /*package*/ PlayerClientListener getClientListener(String name)
+    /*package*/ PlayerClientListener getClientListener(String gameName)
     {
-        return clientListeners.get(name);
+        return clientListeners.get(gameName);
     }
 
     /**
      * @return the client listeners of this SOCPlayerClient object.
+     * @see #getClientListener(String)
      */
     /*package*/ Map<String, PlayerClientListener> getClientListeners()
     {
@@ -806,9 +860,12 @@ public class SOCPlayerClient
      * If we're playing in or observing a game that's just finished, update the scores.
      * This is used to show the true scores, including hidden
      * victory-point cards, at the game's end.
+     * @param game  Game name
+     * @param scores  Each player number's final VP score.
+     *   This is {@code long[]} because of the message format sent from server.
      * @since 1.1.00
      */
-    public void updateGameEndStats(String game, final int[] scores)
+    public void updateGameEndStats(String game, final long[] scores)
     {
         SOCGame ga = games.get(game);
         if (ga == null)
@@ -826,7 +883,7 @@ public class SOCPlayerClient
 
         Map<SOCPlayer, Integer> scoresMap = new HashMap<SOCPlayer, Integer>();
         for (int i=0; i<scores.length; ++i)
-            scoresMap.put(ga.getPlayer(i), Integer.valueOf(scores[i]));
+            scoresMap.put(ga.getPlayer(i), Integer.valueOf((int) scores[i]));
 
         pcl.gameEnded(scoresMap);
     }
@@ -1034,8 +1091,8 @@ public class SOCPlayerClient
         final SOCPlayerClient client;
         final SwingMainDisplay mainDisplay;
 
-        String host = null;  // from args, if not empty
-        int port = -1;
+        final String host;  // from args, if not empty
+        final int port;
 
         Version.printVersionText(System.out, "Java Settlers Client ");
 
@@ -1047,14 +1104,21 @@ public class SOCPlayerClient
                 System.exit(1);
             }
 
+            String h = null;
+            int p = -1;
             try {
-                host = args[0];
-                port = Integer.parseInt(args[1]);
+                h = args[0];
+                p = Integer.parseInt(args[1]);
             } catch (NumberFormatException x) {
                 usage();
                 System.err.println("Invalid port: " + args[1]);
                 System.exit(1);
             }
+            host = h;
+            port = p;
+        } else {
+            host = null;
+            port = -1;
         }
 
         try {
@@ -1097,7 +1161,17 @@ public class SOCPlayerClient
         }
 
         if ((host != null) && (port != -1))
-            client.net.connect(host, port);
+        {
+            // Connect to a remote server.
+            // Uses invokeLater so UI can set host/port textfields before calling call net.connect
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    client.connect(host, port, "", "");
+                }
+            });
+        }
     }
 
 

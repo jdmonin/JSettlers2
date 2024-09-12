@@ -124,7 +124,7 @@ import javax.swing.SwingConstants;
         add(msg);
         add(msg2);
 
-        final Dimension initSize = new Dimension(50, 50);  // TODO use constants & displayScale
+        final Dimension initSize = new Dimension(50, msgFont.getSize() * 2); // TODO use constants & displayScale
         setSize(initSize);
         setMinimumSize(initSize);
     }

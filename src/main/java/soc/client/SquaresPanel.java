@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2012,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2012,2019-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,8 +28,8 @@ import java.awt.event.MouseListener;
 
 import javax.swing.JPanel;
 
+import soc.game.ResourceSet;
 import soc.game.SOCResourceConstants;
-import soc.game.SOCResourceSet;
 
 /**
  * Display grid of give/get resources
@@ -51,9 +51,10 @@ import soc.game.SOCResourceSet;
      * Width of this panel, in unscaled pixels: 5 columns of {@link ColorSquareLarger}s,
      * which share 1 pixel overlap for squares' shared border.
      *<P>
-     * Before v2.4.50 this field was {@code WIDTH}.
+     * Before v2.5.00 this field was {@code WIDTH}.
      *
      * @since 2.0.00
+     * @see ColorSquareLarger#WIDTH_L
      */
     public static final int WIDTH_PX = 5 * (ColorSquareLarger.WIDTH_L - 1) + 1;
 
@@ -61,9 +62,10 @@ import soc.game.SOCResourceSet;
      * Height of this panel, in unscaled pixels: 2 lines of {@link ColorSquareLarger}s,
      * which share 1 pixel overlap for squares' shared border.
      *<P>
-     * Before v2.4.50 this field was {@code HEIGHT}.
+     * Before v2.5.00 this field was {@code HEIGHT}.
      *
      * @since 1.1.08
+     * @see ColorSquareLarger#HEIGHT_L
      */
     public static final int HEIGHT_PX = (2 * (ColorSquareLarger.HEIGHT_L - 1)) + 1;
 
@@ -244,7 +246,7 @@ import soc.game.SOCResourceSet;
      *
      * @param give DOCUMENT ME!
      * @param get DOCUMENT ME!
-     * @see #setValues(SOCResourceSet, SOCResourceSet)
+     * @see #setValues(ResourceSet, ResourceSet)
      */
     public void setValues(int[] give, int[] get)
     {
@@ -267,7 +269,7 @@ import soc.game.SOCResourceSet;
      * @param get   Trade resources to use in Line 2; will clear all to 0 if null
      * @since 2.0.00
      */
-    public void setValues(final SOCResourceSet give, final SOCResourceSet get)
+    public void setValues(final ResourceSet give, final ResourceSet get)
     {
         boolean notAllZ = false;
 

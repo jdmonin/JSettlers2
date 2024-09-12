@@ -1,6 +1,6 @@
 /**
  * JSettlers network message system.
- * This file Copyright (C) 2007-2009,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007-2009,2016-2017,2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,6 +36,7 @@ import java.net.SocketException;
  *                       LocalStringServerSocket -> StringServerSocket
  *  2.1.0 - 2020-01-09 - NetServerSocket call setReuseAddress (SO_REUSEADDR)
  *  2.3.0 - 2020-04-27 - no change in this file
+ *  2.5.0 - 2021-12-30 - no change in this file
  *</PRE>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;

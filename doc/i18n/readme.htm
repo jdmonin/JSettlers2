@@ -4,7 +4,7 @@
 </head>
 <body bgcolor="white" text="black">
 <!--
-This file Copyright (C) 2014,2019-2020 Jeremy D Monin (jeremy@nand.net)
+This file Copyright (C) 2014,2019-2022 Jeremy D Monin (jeremy@nand.net)
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -19,13 +19,13 @@ Based on src/main/java/net/nand/util/i18n/README.txt; please keep in sync when t
 <P>This internationalization editor is used by the JSettlers project, so its "home" is here:
 <blockquote><table border=0>
 	<td><b>download:</b> </td><td>
-		<A href="http://nand.net/jsettlers/devel/i18n/PTE-1.1.0.jar">http://nand.net/jsettlers/devel/i18n/PTE-1.1.0.jar</A> </td></tr>
+		<A href="https://nand.net/jsettlers/devel/i18n/PTE-1.2.0.jar">https://nand.net/jsettlers/devel/i18n/PTE-1.2.0.jar</A> </td></tr>
 	<td>webpage: </td><td>
-		<A href="http://nand.net/jsettlers/devel/i18n/">http://nand.net/jsettlers/devel/i18n/</A> </td></tr>
+		<A href="https://nand.net/jsettlers/devel/i18n/">https://nand.net/jsettlers/devel/i18n/</A> </td></tr>
 	<td>bug-tracker: </td><td>
 		<A href="https://github.com/jdmonin/JSettlers2/issues">https://github.com/jdmonin/JSettlers2/issues</A> </td></tr>
 	<td>source: </td><td>
-		<A href="https://github.com/jdmonin/JSettlers2/tree/master/src/main/java/net/nand/util/i18n">https://github.com/jdmonin/JSettlers2/tree/master/src/main/java/net/nand/util/i18n</A> </td></tr>
+		<A href="https://github.com/jdmonin/JSettlers2/tree/main/src/main/java/net/nand/util/i18n">https://github.com/jdmonin/JSettlers2/tree/main/src/main/java/net/nand/util/i18n</A> </td></tr>
 </table></blockquote>
 in the <tt>net.nand.util.i18n</tt> and <tt>net.nand.util.i18n.gui</tt> packages.</P>
 
@@ -88,14 +88,20 @@ To build PTE.jar, use: <tt>gradle i18neditorJar</tt>
 See the <tt>PropertiesTranslatorEditor</tt> javadoc for current limitations and TODO items.
 <P>
 Patches can be sent by email or by pull request; if emailing, use diff -u format.
-Please make sure your patch follows the project coding style (see <tt>/doc/Readme.developer.md</tt>).
+Please make sure your patch follows the project coding style
+(see <A href="https://github.com/jdmonin/JSettlers2/blob/main/doc/Readme.developer.md">/doc/README.developer</A>).
 
 
 <H3>Version history</H3>
 
-<B>1.2.0</B> (not yet released)
+<B>1.2.1</B> (not yet released)
 <UL>
 	<LI> Current beta version being developed.
+	<LI> Recognizes marker <tt>_nolocaliz</tt> anywhere in key name, not only as prefix
+</UL>
+
+<B>1.2.0</B> (2021-07-14 756eb20)
+<UL>
 	<LI> Add project website to About dialog
 	<LI> For testing translations of the editor UI itself, can specify a different locale with JVM parameter <tt>-Dpte.locale=es_MX</tt>
 </UL>

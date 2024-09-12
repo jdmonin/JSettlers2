@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018,2020-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -528,9 +528,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * Run method for Server:
-     * Start a single "treater" thread for processing inbound messages,
-     * call the {@link #serverUp()} callback, then wait for new connections
-     * and set them up in their own threads.
+     * First, calls the {@link #serverUp()} callback.
+     * Then starts a single "treater" thread for processing inbound messages,
+     * then loops to wait for new connections and sets up each one in its own thread.
      */
     @Override
     public void run()
@@ -544,9 +544,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         // Set "up" _before_ starting treater (avoid race condition)
         up = true;
 
-        inQueue.startMessageProcessing();
-
         serverUp();  // Any processing for child class to do after serversocket is bound, before the main loop begins
+
+        inQueue.startMessageProcessing();
 
         while (isUp())
         {
@@ -747,25 +747,25 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public void removeConnection(final Connection c, final boolean doCleanup)
     {
-        final String cKey = c.getData();  // client player name
+        final String connName = c.getData();  // client player name
 
         synchronized (unnamedConns)
         {
-            if (cKey != null)
+            if (connName != null)
             {
-                final Connection cKeyConn = conns.get(cKey);
-                if (null == cKeyConn)
+                final Connection connNameConn = conns.get(connName);
+                if (null == connNameConn)
                 {
                     // Was not a member
                     return;
                 }
-                if (c == cKeyConn)
+                if (c == connNameConn)
                 {
-                    conns.remove(cKey);
-                    connNames.remove(cKey.toLowerCase(Locale.US));
+                    conns.remove(connName);
+                    connNames.remove(connName.toLowerCase(Locale.US));
                 }
                 // else, was replaced by a
-                // different conn for cKey.
+                // different conn for connName.
                 // don't remove the replacement.
             }
             else
@@ -785,10 +785,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             Exception cerr = c.getError();
             if ((cerr == null) || (! (cerr instanceof SocketTimeoutException)) || ! c.wantsHideTimeoutMessage())
             {
-                if (cKey != null)
+                if (connName != null)
                 {
                     ConnExcepDelayedPrintTask leftMsgTask = new ConnExcepDelayedPrintTask(false, cerr, c);
-                    cliConnDisconPrintsPending.put(cKey, leftMsgTask);
+                    cliConnDisconPrintsPending.put(connName, leftMsgTask);
                     utilTimer.schedule(leftMsgTask, CLI_DISCON_PRINT_TIMER_FIRE_MS);
                 } else {
                     // no connection-name key data; we can't identify it later if it reconnects;
@@ -842,15 +842,15 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 connAccepted = newConnection1(c);  // <-- App-specific #1 --
                 if (connAccepted)
                 {
-                    final String cKey = c.getData();
-                    if (cKey != null)
+                    final String connName = c.getData();
+                    if (connName != null)
                     {
-                        final String cName = cKey.toLowerCase(Locale.US);
-                        if (connNames.containsKey(cName))
-                                throw new IllegalArgumentException("already in connNames: " + cName);
+                        final String connNameLower = connName.toLowerCase(Locale.US);
+                        if (connNames.containsKey(connNameLower))
+                                throw new IllegalArgumentException("already in connNames: " + connNameLower);
 
-                        conns.put(cKey, c);
-                        connNames.put(cName, cKey);
+                        conns.put(connName, c);
+                        connNames.put(connNameLower, connName);
                     } else {
                         unnamedConns.add(c);
                     }
@@ -908,20 +908,20 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     public void nameConnection(Connection c, final boolean isReplacing)
         throws IllegalArgumentException
     {
-        String cKey = c.getData();
-        if (cKey == null)
+        String connName = c.getData();
+        if (connName == null)
             throw new IllegalArgumentException("null c.getData");
 
         synchronized (unnamedConns)
         {
-            final String cName = cKey.toLowerCase(Locale.US);
-            if ((! isReplacing) && connNames.containsKey(cName))
-                throw new IllegalArgumentException("already in connNames: " + cName);
+            final String connNameLower = connName.toLowerCase(Locale.US);
+            if ((! isReplacing) && connNames.containsKey(connNameLower))
+                throw new IllegalArgumentException("already in connNames: " + connNameLower);
 
             if (unnamedConns.removeElement(c))
             {
-                conns.put(cKey, c);
-                connNames.put(cName, cKey);
+                conns.put(connName, c);
+                connNames.put(connNameLower, connName);
             }
             else
             {
@@ -1237,10 +1237,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     }
 
     /**
-     * Broadcast a SOCmessage to all connected clients, named and unnamed.
+     * Broadcast a {@link SOCMessage} to all connected clients, named and unnamed.
      * Nearly all callers should instead use {@link #broadcast(SOCMessage)}.
      *
-     * @param m SOCmessage string, generated by {@link soc.message.SOCMessage#toCmd()}
+     * @param m SOCMessage string, generated by {@link soc.message.SOCMessage#toCmd()}
      * @see #broadcast(SOCMessage)
      * @see #broadcastToVers(String, int, int)
      * @throws IllegalArgumentException if {@code m} is {@code null}
@@ -1249,7 +1249,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         throws IllegalArgumentException
     {
         if (m == null)
-            throw new IllegalArgumentException("null");
+            throw new IllegalArgumentException("m null");
 
         for (Enumeration<Connection> e = getConnections(); e.hasMoreElements();)
         {
@@ -1262,7 +1262,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     }
 
     /**
-     * Broadcast a SOCmessage to all connected clients, named and unnamed.
+     * Broadcast a {@link SOCMessage} to all connected clients, named and unnamed.
      *
      * @param m  Message to send. Calls {@link SOCMessage#toCmd() m.toCmd()}
      * @see #broadcastToVers(SOCMessage, int, int)
@@ -1273,13 +1273,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         throws IllegalArgumentException
     {
         if (m == null)
-            throw new IllegalArgumentException("m");
+            throw new IllegalArgumentException("m null");
 
         broadcast(m.toCmd());
     }
 
     /**
-     * Broadcast a SOCmessage to all connected clients (named and
+     * Broadcast a {@link SOCMessage} to all connected clients (named and
      * unnamed) within a certain version range.
      *<P>
      * The range is inclusive: Clients of version <tt>vmin</tt> and newer,
@@ -1288,7 +1288,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *<P>
      * Nearly all callers should instead call {@link #broadcastToVers(SOCMessage, int, int)}.
      *
-     * @param m SOCmessage string, generated by {@link soc.message.SOCMessage#toCmd()}
+     * @param m SOCMessage string, generated by {@link soc.message.SOCMessage#toCmd()}
      * @param vmin Minimum version, as returned by {@link Connection#getVersion()},
      *             or {@link Integer#MIN_VALUE}
      * @param vmax Maximum version, or {@link Integer#MAX_VALUE}
@@ -1300,7 +1300,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         throws IllegalArgumentException
     {
         if (m == null)
-            throw new IllegalArgumentException("null");
+            throw new IllegalArgumentException("m null");
 
         if (vmin > vmax)
             return;
@@ -1342,7 +1342,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         throws IllegalArgumentException
     {
         if (m == null)
-            throw new IllegalArgumentException("null");
+            throw new IllegalArgumentException("m null");
 
         broadcastToVers(m.toCmd(), vmin, vmax);
     }

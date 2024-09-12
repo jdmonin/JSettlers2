@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file Copyright (C) 2009,2013-2015,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013-2015,2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,10 +18,12 @@
  **/
 package soc.message;
 
+import soc.game.SOCGameOption;  // for javadocs only
+
 /**
- * Information on current defaults for new games' {@link soc.game.SOCGameOption game options}.
- * Based on server's current values ({@link soc.game.SOCGameOption#getIntValue() .getIntValue()},
- * not {@link soc.game.SOCGameOption#defaultIntValue .defaultIntValue} field).
+ * Information on current defaults for new games' {@link SOCGameOption game options}.
+ * Based on server's current values ({@link SOCGameOption#getIntValue() .getIntValue()},
+ * not {@link SOCGameOption#defaultIntValue .defaultIntValue} field).
  * Client sends this when the user clicks the "New Game" button for the first time.
  *<P>
  * Server responds to client's GAMEOPTIONGETDEFAULTS by sending its own GAMEOPTIONGETDEFAULTS.
@@ -29,10 +31,13 @@ package soc.message;
  * Depending on client version, server's response may include option names that
  * the client is too old to use; the client is able to ignore them.
  * If the client asks about such an option (by sending {@link SOCGameOptionInfo GAMEOPTIONINFO}),
- * the server will respond with {@link soc.game.SOCGameOption#OTYPE_UNKNOWN GAMEOPTIONINFO(OTYPE_UNKNOWN)}.
+ * the server will respond with {@link SOCGameOption#OTYPE_UNKNOWN GAMEOPTIONINFO(OTYPE_UNKNOWN)}.
  *<P>
  * Introduced in 1.1.07; check server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
  * before sending this message.
+ *<P>
+ * Clients older than v2.5.00 don't update their known options' {@link SOCGameOption#defaultBoolValue}s
+ * or {@link SOCGameOption#defaultIntValue}s when receiving this, only their current values.
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't create games.
@@ -60,7 +65,7 @@ public class SOCGameOptionGetDefaults extends SOCMessage
      *
      * @param opts  the options string, or null if none (client to server).
      *              To create the string, call
-     *              {@link soc.game.SOCGameOption#packOptionsToString(java.util.Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, true, false)}.
+     *              {@link SOCGameOption#packOptionsToString(java.util.Map, boolean, boolean) SOCGameOption.packOptionsToString(opts, true, false)}.
      */
     public SOCGameOptionGetDefaults(String opts)
     {
@@ -68,10 +73,10 @@ public class SOCGameOptionGetDefaults extends SOCMessage
         this.opts = opts;
     }
 
-    /**
+    /**f
      * Get the string of option name-value pairs sent over the network.
-     * To turn this into a group of {@link soc.game.SOCGameOption SOCGameOptions},
-     * call {@link soc.game.SOCGameOption#parseOptionsToMap(String, soc.game.SOCGameOptionSet)}.
+     * To turn this into a group of {@link SOCGameOption}s,
+     * call {@link SOCGameOption#parseOptionsToMap(String, soc.game.SOCGameOptionSet)}.
      * @return the string of options, or null if none (client to server)
      */
     public String getOpts()

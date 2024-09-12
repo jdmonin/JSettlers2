@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2019-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,6 +25,7 @@ import soc.game.SOCPlayingPiece;
 
 /**
  * This message from server announces a SOCShip removed from the board.
+ * (To undo piece placement, use {@link SOCUndoPutPiece} instead.)
  * Ships are removed when the player makes an attack on their Pirate Fortress and fails to win.
  * Currently, no other piece types are removed in any scenario, but the message allows for other types
  * in case that changes in a later version.
@@ -52,6 +53,7 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
      * @param pn  player number owning the piece
      * @param ptype  type of playing piece, such as {@link soc.game.SOCPlayingPiece#SHIP}
      * @param co  coordinates of the piece to remove; must be >= 0
+     * @throws IllegalArgumentException if {@code co} &lt; 0
      */
     public SOCRemovePiece(final String ga, final int pn, final int ptype, final int co)
         throws IllegalArgumentException
@@ -66,6 +68,7 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
      * Create a SOCRemovePiece message for this piece.
      * @param ga  the name of the game
      * @param pp  the playing piece to remove; {@link SOCPlayingPiece#getCoordinates() pp.getCoordinates()} must be >= 0
+     * @throws IllegalArgumentException if {@code co} &lt; 0
      */
     public SOCRemovePiece(final String ga, final SOCPlayingPiece pp)
         throws IllegalArgumentException
@@ -81,6 +84,7 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
      * @param ptype  type of playing piece, such as {@link soc.game.SOCPlayingPiece#SHIP}
      * @param co  coordinates of the piece to remove; must be >= 0
      * @return the command string
+     * @throws IllegalArgumentException if {@code co} &lt; 0
      */
     public static String toCmd(final String ga, final int pn, final int ptype, final int co)
         throws IllegalArgumentException
@@ -132,7 +136,7 @@ public class SOCRemovePiece extends SOCMessageTemplate3i
      * Build a human-readable form of the message, with this class's field names
      * instead of generic names from {@link SOCMessageTemplate3i}.
      * @return a human readable form of the message
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Override
     public String toString()

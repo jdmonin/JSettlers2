@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2018-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>:
  *     - parameterize types
  * This file's contents were formerly part of SOCPlayerClient.java:
@@ -41,7 +41,8 @@ import soc.message.SOCNewGameWithOptions;
  * Client has one instance for remote tcp server, one for practice server.
  * For simplicity, getters/setters are not included: Synchronize on the object to set/read its fields.
  *<P>
- * In v2.0.00 and newer, also tracks all {@link SOCScenario}s' i18n localized strings.
+ * In v2.0.00 and newer, also tracks all {@link SOCGameOption} and {@link SOCScenario} i18n localized strings
+ * received from server.
  *<P>
  * Interaction with client-server messages at connect:
  *<OL>
@@ -49,7 +50,7 @@ import soc.message.SOCNewGameWithOptions;
  *     <tt>newGameWaitingForOpts</tt> false.
  *     <tt>knownOpts</tt> is set at client from {@link SOCGameOptionSet#getAllKnownOptions()}.
  *<LI> At server connect, ask and receive info about options, if our version and the
- *     server's version differ.  Once this is done, <tt>allOptionsReceived</tt> == true.
+ *     server's version differ or client wants localization.  Once this is done, <tt>allOptionsReceived</tt> == true.
  *     If server is older than 1.1.07, <tt>knownOpts</tt> becomes null here
  *     because older servers don't support game options.
  *<LI> When user wants to create a new game, <tt>askedDefaultsAlready</tt> is false;
@@ -84,7 +85,7 @@ import soc.message.SOCNewGameWithOptions;
  * @author jdmonin
  * @since 1.1.07
  */
-/*package*/ class ServerGametypeInfo
+public class ServerGametypeInfo
 {
     /**
      * If true, we know all options on this server,
@@ -116,7 +117,7 @@ import soc.message.SOCNewGameWithOptions;
      * May contain {@link SOCGameOption#OTYPE_UNKNOWN} opts sent from server
      * as part of gameopt info synchronization.
      *<P>
-     * Before v2.4.50 this field was {@code optionSet}.
+     * Before v2.5.00 this field was {@code optionSet}.
      * @see #newGameOpts
      */
     public SOCGameOptionSet knownOpts = null;
@@ -125,10 +126,11 @@ import soc.message.SOCNewGameWithOptions;
      * Deep copy of {@link #knownOpts} for {@link NewGameOptionsFrame}
      * to remember game option values selected by user for the next new game.
      * Null if {@code knownOpts} is null.
+     * May be null until first time showing a {@code NewGameOptionsFrame}.
      *<P>
      * {@code NewGameOptionsFrame} may remove any {@link SOCGameOption#OTYPE_UNKNOWN} options
      * from this set, but they will remain in {@code knownOpts}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public SOCGameOptionSet newGameOpts = null;
 
@@ -228,7 +230,7 @@ import soc.message.SOCNewGameWithOptions;
             prevKnown = new HashSet<>();
             for (String oKey : servOpts.keySet())
             {
-                SOCGameOption op = servOpts.get(oKey);
+                SOCGameOption op = SOCGameOption.copyDefaults(servOpts.get(oKey));
                 if (knownOpts.put(op) != null)  // always add, even if OTYPE_UNKNOWN
                     prevKnown.add(oKey);
             }
@@ -270,8 +272,14 @@ import soc.message.SOCNewGameWithOptions;
             // remove old, replace with new from server (if any)
 
             knownOpts.addKnownOption(oinfo);
+            if (newGameOpts != null)
+                newGameOpts.addKnownOption(oinfo);
             if (isUnknown)
+            {
                 knownOpts.put(oinfo);  // since addKnownOption won't add an unknown
+                if (newGameOpts != null)
+                    newGameOpts.remove(oinfo.key);
+            }
 
             return false;
         }

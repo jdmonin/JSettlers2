@@ -1,6 +1,6 @@
 /**
  * JSettlers network message system.
- * This file Copyright (C) 2007-2009,2013,2015-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007-2009,2013,2015-2018,2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
  * This program is free software; you can redistribute it and/or
@@ -52,6 +52,7 @@ import soc.util.SOCStringManager;
  *                       {@link #getLocalized(String)}.
  *  2.1.0 - 2020-01-09 - Connection +put({@link SOCMessage}). Misc server-side changes: See {@link SOCServerSocket}
  *  2.3.0 - 2020-04-27 - Connection +getI18NStringManager
+ *  2.5.0 - 2021-12-30 - no change in this file
  *</PRE>
  *<P>
  * Implementation note: {@code Connection} is used as a key in the server's client-management collections.

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,7 +27,7 @@ import java.util.StringTokenizer;
  * This message from client means that a player wants to sit down to play;
  * from server it announces a client has sat down to play.
  * When client is joining a game, server sends a {@code SOCSitDown} for each already-seated player
- * to give their names and robot flags.
+ * to give their names and robot flags before sending {@link SOCBoardLayout} or {@link SOCBoardLayout2}.
  *<P>
  * When client and server are v2.3.00 or newer ({@link SOCDevCardAction#VERSION_FOR_SITDOWN_CLEARS_INVENTORY}),
  * when client is sitting down to play and receives this message for their own player,
@@ -38,6 +38,9 @@ import java.util.StringTokenizer;
  * which were a human player when game was saved, but no client is currently connected to.
  * SOCSitDown for those seats is sent with {@link #isRobot()} true so the client will show
  * a "Take Over" button for them.
+ *<P>
+ * Server v2.5.00 and newer ignores {@link #isRobot()} flag from client,
+ * because robot clients authenticate before joining games.
  *<P>
  * Although it's a game-specific message, this game-lifecycle message
  * is handled by {@code SOCServer} instead of a {@code GameHandler}.
@@ -75,7 +78,7 @@ public class SOCSitDown extends SOCMessage
      * @param ga  the name of the game
      * @param nk  nickname of the player; ignored from client, can be "-" or {@link SOCMessage#EMPTYSTR} but not blank
      * @param pn  the seat number
-     * @param rf  true if this is a robot
+     * @param rf  true if this is a robot; ignored from client
      */
     public SOCSitDown(String ga, String nk, int pn, boolean rf)
     {
@@ -112,7 +115,7 @@ public class SOCSitDown extends SOCMessage
     }
 
     /**
-     * @return the value of the robot flag
+     * @return the value of the robot flag; ignored when sent from client
      */
     public boolean isRobot()
     {

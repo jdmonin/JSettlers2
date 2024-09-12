@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Read properties files to make sure props with MessageFormat.format placeholder args escape certain characters.
-# Tested in python 2.7.5 and 3.5.2
-# This file Copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+# Tested in python 2.7.5, 3.5.2, 3.9.12
+# This file Copyright (C) 2019,2022 Jeremy D Monin <jeremy@nand.net>
 # License: GPLv3
 
 import codecs, os, re, unittest
@@ -145,8 +145,7 @@ class TestPropsEscaped(unittest.TestCase):
     for root, dirs, files in os.walk("../../main/resources"):
       for fname in files:
         if fname.lower().endswith(".properties"):
-          fullpath = str(root) + os.sep + fname
-          all_prop_filenames.append(fullpath)
+          all_prop_filenames.append(os.path.join(root, fname))
     self.assertTrue(len(all_prop_filenames),
       msg="Can't find *.properties under ../../main/resources ; current directory is " + os.getcwd())
     all_errors = {}

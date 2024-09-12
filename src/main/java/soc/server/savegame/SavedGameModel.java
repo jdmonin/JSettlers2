@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -70,6 +70,7 @@ import soc.util.Version;
  * To save, use the {@link #SavedGameModel(SOCGame, SOCServer)} constructor and {@link GameSaverJSON}.
  * To load, use {@link #SavedGameModel()} and {@link GameLoaderJSON}.
  * See those constructors' javadocs for usage details.
+ * See {@link #checkCanSave(SOCGame)} for current limitations.
  *<P>
  * This standalone model is cleaner than trying to serialize/deserialize {@link SOCGame}, SOCBoard, etc.
  *<P>
@@ -122,7 +123,31 @@ public class SavedGameModel
      * backwards-compatibility tests like {@code TestLoadgame.testLoadModelVersion2300} to ensure the old format
      * can still be reliably parsed.
      *
-     *<H4>Changed in 2.4.00:</H4>
+     *<H3>Changes by JSettlers version:</H3>
+     *
+     *<H4>2.7.00</H4>
+     *<UL>
+     * <LI> Model version is still 2400
+     * <LI> Adds game field {@link #lastAction}
+     * <LI> Earlier server versions will ignore this added field while loading a savegame
+     * <LI> Adds {@link SOCPlayerElement.PEType#NUM_UNDOS_REMAINING} to {@link PlayerInfo#elements}
+     *      if {@link SOCPlayer#getUndosRemaining()} &gt; 0
+     *</UL>
+     *
+     *<H4>2.5.00</H4>
+     *<UL>
+     * <LI> Model version is still 2400
+     * <LI> Adds game field {@link #playingRoadBuildingCardForLastRoad}
+     * <LI> Adds dev card stats to {@link PlayerInfo#elements}:
+     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_DISC NUM_PLAYED_DEV_CARD_DISC},
+     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_MONO NUM_PLAYED_DEV_CARD_MONO},
+     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_ROADS NUM_PLAYED_DEV_CARD_ROADS}
+     * <LI> Adds per-player list of dev cards played: {@link PlayerInfo#playedDevCards}
+     * <LI> Adds {@link TradeOffer#offeredAtDurationMillis}
+     * <LI> Earlier server versions will ignore these added fields while loading a savegame
+     *</UL>
+     *
+     *<H4>2.4.00</H4>
      *<UL>
      * <LI> Players' dev cards ({@link PlayerInfo#oldDevCards}, {@code newDevCards})
      *      are written as user-friendly type name strings like {@code "ROADS"}, not ints.
@@ -147,16 +172,9 @@ public class SavedGameModel
      *      and renamed using {@link #rand} if needed
      *</UL>
      *
-     *<H4>Changed in 2.4.50:</H4>
+     *<H4>2.3.00</H3>
      *<UL>
-     * <LI> Model version is still 2400
-     * <LI> Adds dev card stats to {@link PlayerInfo#elements}:
-     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_DISC NUM_PLAYED_DEV_CARD_DISC},
-     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_MONO NUM_PLAYED_DEV_CARD_MONO},
-     *      {@link SOCPlayerElement.PEType#NUM_PLAYED_DEV_CARD_ROADS NUM_PLAYED_DEV_CARD_ROADS}
-     * <LI> Adds per-player list of dev cards played: {@link PlayerInfo#playedDevCards}
-     * <LI> Adds {@link TradeOffer#offeredAtDurationMillis}
-     * <LI> Earlier server versions will ignore these added fields while loading a savegame
+     * <LI> First version to have save/load feature and {@code SavedGameModel}
      *</UL>
      */
     public static final int MODEL_VERSION = 2400;
@@ -195,15 +213,19 @@ public class SavedGameModel
     public transient boolean warnHasHumanPlayerWithBotName;
 
     /**
-     * To warn user while loading, this flag is set if {@link #devCardDeck}
+     * To warn user while loading, this field is {@code != -1} if {@link #devCardDeck}
      * contains any card type which is &lt;= {@link SOCDevCardConstants#UNKNOWN}
      * or &gt;= {@link SOCDevCardConstants#MAXPLUSONE}. If a dev card name string
      * isn't recognized, it's put into the deck or players' dev cards as {@code UNKNOWN}.
      * This flag is useful because unlike player inventories, the dev card deck is hidden.
+     *<P>
+     * If the deck has multiple cards with unknown types, only the first one sets this field.
+     *<P>
+     * From v2.4.00 through v2.6.xx, this was {@code boolean warnDevCardDeckHasUnknownType}.
      *
-     * @since 2.4.00
+     * @since 2.7.00
      */
-    public transient boolean warnDevCardDeckHasUnknownType;
+    public transient int warnDevCardDeckUnknownTypeAtIndex = -1;
 
     /* DATA FIELDS to be saved into file */
 
@@ -268,7 +290,7 @@ public class SavedGameModel
 
     /**
      * Remaining unplayed dev cards, from {@link SOCGame#getDevCardDeck()}.
-     * If any unknown card types are found while loading, sets {@link #warnDevCardDeckHasUnknownType}.
+     * If any unknown card types are found while loading, sets {@link #warnDevCardDeckUnknownTypeAtIndex}.
      *<P>
      * In model schema 2.3.00, these were written as array of ints for dev card type constants.
      * In 2.4.00 and higher, dev card types in each array are written as strings ({@code "ROADS"},
@@ -281,12 +303,27 @@ public class SavedGameModel
     @JsonAdapter(DevCardEnumListAdapter.class)
     public ArrayList<Integer> devCardDeck;
 
-    /** Flag fields, from {@link SOCGame#getFlagFieldsForSave()} */
+    /**
+     * Original set of Flag fields from {@link SOCGame#getFlagFieldsForSave()}.
+     * @see #playingRoadBuildingCardForLastRoad
+     */
     public boolean placingRobberForKnightCard, robberyWithPirateNotRobber,
         askedSpecialBuildPhase, movedShipThisTurn;
 
+    /**
+     * A flag field from {@link SOCGame#getFlagFieldsForSave()}.
+     * @since 2.5.00
+     */
+    public boolean playingRoadBuildingCardForLastRoad;
+
     /** Ships placed this turn if {@link SOCGame#hasSeaBoard}, from {@link SOCGame#getShipsPlacedThisTurn()}, or null */
     public List<Integer> shipsPlacedThisTurn;
+
+    /**
+     * Most recent action by the current player, if recorded, from {@link SOCGame#getLastAction()}.
+     * @since 2.7.00
+     */
+    public GameAction lastAction;
 
     /** Board layout and contents */
     public BoardInfo boardInfo;
@@ -322,7 +359,8 @@ public class SavedGameModel
      *  <UL>
      *   <LI> {@code "_SC_SANY"} is OK
      *   <LI> {@code "_SC_SEAC"} is OK
-     *   <LI> Any other scenario game option (keyname starts with {@code "_SC_"}) is unsupported
+     *   <LI> Any other scenario game option (keyname starts with {@code "_SC_"}) is unsupported:
+     *        They might use data fields or piece types which aren't in {@code SavedGameModel} yet.
      *  </UL>
      *   Throws {@link UnsupportedSGMOperationException} with message "admin.savegame.cannot_save.scen".
      *   {@link UnsupportedSGMOperationException#param1} is scenario name,
@@ -355,8 +393,7 @@ public class SavedGameModel
     /**
      * Check if a set of game options contains any scenario game options
      * which aren't yet supported by the savegame system.
-     * Currently only {@code _SC_SANY} and {@code _SC_SEAC} are supported.
-     * Other scenario options use data fields or piece types which aren't in {@code SavedGameModel} yet.
+     * See {@link #checkCanSave(SOCGame)} javadoc for more info.
      * @param opts Set of game options to check, or null.
      *     Ignores any option whose key name doesn't start with {@code "_SC_"}.
      * @return {@code null} if no problems, or the name of the first-seen unsupported option
@@ -446,8 +483,10 @@ public class SavedGameModel
         robberyWithPirateNotRobber = flags[1];
         askedSpecialBuildPhase = flags[2];
         movedShipThisTurn = flags[3];
+        playingRoadBuildingCardForLastRoad = flags[4];
 
         shipsPlacedThisTurn = ga.getShipsPlacedThisTurn();
+        lastAction = ga.getLastAction();
 
         {
             final SOCPlayer lrPlayer = ga.getPlayerWithLongestRoad(),
@@ -625,7 +664,7 @@ public class SavedGameModel
      * is better able to do so and can rename the loaded game if needed to avoid name collisions.
      *<P>
      * Examines game and player data. Might set {@link #warnHasHumanPlayerWithBotName},
-     * {@link #warnDevCardDeckHasUnknownType} flags.
+     * {@link #warnDevCardDeckUnknownTypeAtIndex} flags.
      *
      * @param srv  Server reference to check for bot name collisions; not {@code null}.
      *     Calls {@link SOCServer#getGameList() srv.getGameList()} and sets {@link #glas}.
@@ -674,15 +713,22 @@ public class SavedGameModel
             if (devCardDeck == null)
                 devCardDeck = new ArrayList<>();
             else
-                for (int ctype : devCardDeck)
+            {
+                final int n = devCardDeck.size();
+                for (int i = 0; i < n; ++i)
+                {
+                    final int ctype = devCardDeck.get(i);
                     if ((ctype <= SOCDevCardConstants.UNKNOWN) || (ctype >= SOCDevCardConstants.MAXPLUSONE))
                     {
-                        warnDevCardDeckHasUnknownType = true;
+                        warnDevCardDeckUnknownTypeAtIndex = i;
                         break;
                     }
+                }
+            }
             ga.setFieldsForLoad
                 (devCardDeck, oldGameState, shipsPlacedThisTurn,
-                 placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn);
+                 placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn,
+                 playingRoadBuildingCardForLastRoad);
             if (elements != null)
                 for (GEType elem : elements.keySet())
                     SOCDisplaylessPlayerClient.handleGAMEELEMENT(ga, elem, elements.get(elem));
@@ -727,6 +773,8 @@ public class SavedGameModel
             // so Longest Route determinations in resumed game are correct
             for (int pn = 0; pn < ga.maxPlayers; ++pn)
                 ga.getPlayer(pn).calcLongestRoad2();
+
+            ga.setLastAction(lastAction);
 
         } catch (Exception e) {
             throw new IllegalArgumentException("Problem initializing game: " + e, e);
@@ -870,8 +918,18 @@ public class SavedGameModel
          */
         public HashMap<PEType, Integer> elements = new HashMap<>();
 
-        /** Resource roll stats, from {@link SOCPlayer#getResourceRollStats()} */
+        /**
+         * Resource roll stats, from {@link SOCPlayer#getResourceRollStats()}.
+         * {@code null} if {@link #totalVP} == 0 when saved by server v2.6.00 or newer.
+         */
         public int[] resRollStats;
+
+        /**
+         * Optional resource trade stats, in same type order as {@link SOCPlayer#getResourceTradeStats()}.
+         * {@code null} if {@link #totalVP} == 0.
+         * @since 2.6.00
+         */
+        public TradeTypeStat[] resTradeStats;
 
         /**
          * Standard dev card types in player's hand,
@@ -899,7 +957,7 @@ public class SavedGameModel
          * @see #oldDevCards
          * @see #newDevCards
          * @see SavedGameModel#devCardDeck
-         * @since 2.4.50
+         * @since 2.5.00
          */
         @JsonAdapter(DevCardEnumListAdapter.class)
         public ArrayList<Integer> playedDevCards;
@@ -1003,6 +1061,9 @@ public class SavedGameModel
             n = pl.numRBCards;
             if (n > 0)
                 elements.put(PEType.NUM_PLAYED_DEV_CARD_ROADS, n);
+            n = pl.getUndosRemaining();
+            if (n > 0)
+                elements.put(PEType.NUM_UNDOS_REMAINING, n);
 
             if (ga.hasSeaBoard)
             {
@@ -1030,7 +1091,18 @@ public class SavedGameModel
                     earlyElements = early;
             }
 
-            resRollStats = pl.getResourceRollStats();
+            if (totalVP > 0)
+            {
+                resRollStats = pl.getResourceRollStats();
+
+                final SOCResourceSet[][] tradeStats = pl.getResourceTradeStats();
+                final int nTypes = tradeStats[0].length;
+                resTradeStats = new TradeTypeStat[nTypes];
+                for (int i = 0; i <= 1; ++i)
+                    for (int ttype = 0; ttype < nTypes; ++ttype)
+                        resTradeStats[ttype] = new TradeTypeStat
+                            (tradeStats[0][ttype], tradeStats[1][ttype], TradeTypeStat.TYPE_DESCRIPTIONS[ttype]);
+            }
 
             final SOCInventory cardsInv = pl.getInventory();
             for (SOCInventoryItem item : cardsInv.getByState(SOCInventory.NEW))
@@ -1071,6 +1143,22 @@ public class SavedGameModel
 
             if ((resRollStats != null) && (resRollStats.length > 0))
                 pl.setResourceRollStats(resRollStats);
+            if ((resTradeStats != null) && (resTradeStats.length > 0))
+            {
+                int n = resTradeStats.length;
+                if (n > SOCPlayer.TRADE_STATS_ARRAY_LEN)
+                    n = SOCPlayer.TRADE_STATS_ARRAY_LEN;  // might be loading a game written by a newer version
+
+                SOCResourceSet[][] tradeStats = new SOCResourceSet[2][n];
+                for (int ttype = 0; ttype < n; ++ttype)
+                {
+                    KnownResourceSet gave = resTradeStats[ttype].gave,
+                        received = resTradeStats[ttype].received;
+                    tradeStats[0][ttype] = (gave != null) ? gave.toResourceSet() : SOCResourceSet.EMPTY_SET;
+                    tradeStats[1][ttype] = (received != null) ? received.toResourceSet() : SOCResourceSet.EMPTY_SET;
+                }
+                pl.setResourceTradeStats(tradeStats);
+            }
 
             {
                 final SOCInventory inv = pl.getInventory();
@@ -1082,7 +1170,7 @@ public class SavedGameModel
 
             if (playedDevCards != null)
                 for (final int ctype : playedDevCards)
-                    pl.updateDevCardsPlayed(ctype);
+                    pl.updateDevCardsPlayed(ctype, false);
 
             // Set some elements for scenario info before any putpiece,
             // so they know their starting land areas and scenario events
@@ -1303,8 +1391,11 @@ public class SavedGameModel
     /**
      * Set of the 5 known resource types, to use in saved game
      * instead of raw 7-element int array from {@link SOCResourceSet}.
+     *<P>
+     * Also implements {@link ResourceSet} to help with unit tests in v2.6.00 and newer.
      */
-    static class KnownResourceSet
+    public static class KnownResourceSet
+        implements ResourceSet
     {
         public int clay, ore, sheep, wheat, wood;
 
@@ -1331,6 +1422,49 @@ public class SavedGameModel
         {
             return new SOCResourceSet(clay, ore, sheep, wheat, wood, 0);
         }
+
+        public boolean isEmpty()
+        {
+            return (clay == 0) && (ore == 0) && (sheep == 0) && (wheat == 0) && (wood == 0);
+        }
+
+        public int getAmount(int resourceType)
+        {
+            switch (resourceType)
+            {
+            case SOCResourceConstants.CLAY:  return clay;
+            case SOCResourceConstants.ORE:   return ore;
+            case SOCResourceConstants.SHEEP: return sheep;
+            case SOCResourceConstants.WHEAT: return wheat;
+            case SOCResourceConstants.WOOD:  return wood;
+            default:  return 0;
+            }
+        }
+
+        public boolean contains(int resourceType)
+        {
+            return (getAmount(resourceType) > 0);
+        }
+
+        public boolean contains(ResourceSet rs)
+        {
+            for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+                if (getAmount(rtype) < rs.getAmount(rtype))
+                    return false;
+
+            return true;
+        }
+
+        public int getResourceTypeCount()
+        {
+            return ((clay > 0) ? 1 : 0) + ((ore > 0) ? 1 : 0) + ((sheep > 0) ? 1 : 0)
+                + ((wheat > 0) ? 1 : 0) + ((wood > 0) ? 1 : 0);
+        }
+
+        public int getTotal()
+        {
+            return clay + ore + sheep + wheat + wood;
+        }
     }
 
     /**
@@ -1353,7 +1487,7 @@ public class SavedGameModel
          * Time at which this offer was made, as number of milliseconds from start of game,
          * based on {@link SOCPlayer#getCurrentOfferTime()}.
          * This field is currently saved but not loaded.
-         * @since 2.4.50
+         * @since 2.5.00
          */
         public long offeredAtDurationMillis;
 
@@ -1376,6 +1510,38 @@ public class SavedGameModel
             return new SOCTradeOffer
                 (fromPlayer.getGame().getName(), fromPlayer.getPlayerNumber(),
                  offeredTo, give.toResourceSet(), receive.toResourceSet());
+        }
+    }
+
+    /**
+     * A player's stats for one type of trading, for {@link PlayerInfo#resTradeStats}.
+     * @since 2.6.00
+     */
+    public static class TradeTypeStat
+    {
+        /**
+         * Trade type descriptions for {@link #tradeType}, in same order as {@link SOCPlayer#getResourceTradeStats()}.
+         * Not localized; the SGM json file is written by server which isn't currently i18n'd.
+         */
+        public static final String[] TYPE_DESCRIPTIONS =
+        {
+            "3:1 Port", "2:1 Clay port", "2:1 Ore port","2:1 Sheep port","2:1 Wheat port","2:1 Wood port", "4:1 Bank",
+            "All trades with players"  // i18n OK: see javadoc
+        };
+
+        /** Optional trade type human-readable description, probably from {@link #TYPE_DESCRIPTIONS}, or {@code null} */
+        public String tradeType;
+
+        /** Resource totals given and received, or {@code null} if none/empty for this stat type */
+        public KnownResourceSet gave, received;
+
+        public TradeTypeStat (final SOCResourceSet gave, final SOCResourceSet received, final String tradeType)
+        {
+            this.tradeType = tradeType;
+            if ((gave != null) && ! gave.isEmpty())
+                this.gave = new KnownResourceSet(gave);
+            if ((received != null) && ! received.isEmpty())
+                this.received = new KnownResourceSet(received);
         }
     }
 

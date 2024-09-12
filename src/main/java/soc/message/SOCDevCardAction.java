@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2021,2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,6 +36,10 @@ import soc.game.SOCDevCardConstants;  // for javadocs only
  *<P>
  * If a robot asks to play a dev card that they can't right now,
  * the server replies to that bot with DevCardAction(-1, {@link #CANNOT_PLAY}, cardtype).
+ *<P>
+ * When receiving {@code PLAY} for a {@link SOCDevCardConstants#KNIGHT} card, client should call
+ * {@link soc.game.SOCGame#setPlacingRobberForKnightCard(boolean) game.setPlacingRobberForKnightCard(true)}
+ * unless game option {@link soc.game.SOCGameOptionSet#K_SC_PIRI} is set.
  *<P>
  * Not sent from client, which sends {@link SOCBuyDevCardRequest} or {@link SOCPlayDevCardRequest} instead.
  * See those message types' javadocs for server's complete response sequences.
@@ -83,6 +87,17 @@ public class SOCDevCardAction extends SOCMessage
      * @since 2.3.00
      */
     public static final int VERSION_FOR_SITDOWN_CLEARS_INVENTORY = 2300;
+
+    /**
+     * Version number (2.5.00) where when buying a dev card, the server no longer sends
+     * {@link SOCGameElements}(gaName, {@link SOCGameElements.GEType#DEV_CARD_COUNT}, remainingUnboughtCount).
+     *<P>
+     * Starting with v2.5, the client uses {@link SOCSimpleAction#DEVCARD_BOUGHT}'s remaining-card count field
+     * instead. See {@link SOCBuyDevCardRequest} for full message sequence.
+     *
+     * @since 2.5.00
+     */
+    public static final int VERSION_FOR_BUY_OMITS_GE_DEV_CARD_COUNT = 2500;
 
     /**
      * Maximum number of cards to send in a reasonable message: 100.
@@ -177,6 +192,9 @@ public class SOCDevCardAction extends SOCMessage
      *<P>
      * This form is currently used only at end of game (state {@link soc.game.SOCGame#OVER OVER})
      * to reveal hidden Victory Point cards. So, bots ignore it.
+     *<P>
+     * If called with a single-item list, v2.5.00 and newer will behave as if
+     * the {@link #SOCDevCardAction(String, int, int, int)} constructor was called.
      *
      * @param ga  name of the game
      * @param pn  the player number; cannot be &lt; 0
@@ -205,8 +223,8 @@ public class SOCDevCardAction extends SOCMessage
         game = ga;
         playerNumber = pn;
         actionType = ac;
-        cardType = 0;
-        cardTypes = ct;
+        cardType = (S != 1) ? 0 : ct.get(0).intValue();
+        cardTypes = (S != 1) ? ct : null;
     }
 
     /**
@@ -325,7 +343,7 @@ public class SOCDevCardAction extends SOCMessage
     /**
      * Action string map from action constants ({@link #ADD_NEW}, etc) for {@link #toString()}
      * and {@link #stripAttribNames(String, String)}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final String[] ACTION_STRINGS
         = { "DRAW", "PLAY", "ADD_NEW", "ADD_OLD", "CANNOT_PLAY"};
@@ -343,7 +361,7 @@ public class SOCDevCardAction extends SOCMessage
      *     The {@link SOCDevCardConstants#KNIGHT} constant has different values in v1.x vs current.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(final String messageTypeName, final String messageStrParams)
     {
@@ -377,22 +395,29 @@ public class SOCDevCardAction extends SOCMessage
 
         if (hasArray)
         {
-            // {"ga", "3", "2", "[5", " 4]"} -> {"ga", "3", "2", "5", "4"}
-            int ilast = pieces.length - 1;
-
-            for (int i = 3; i < ilast; ++i)
+            if (pieces.length == 4)
             {
-                String piece = pieces[i];
-                char ch0 = piece.charAt(0);
-                if ((ch0 == '[') || (ch0 == ' '))
-                    pieces[i] = piece.substring(1);
-            }
+                // {"ga", "3", "2", "[5]"} -> {"ga", "3", "2", "5"}
+                String piece = pieces[3];
+                pieces[3] = piece.substring(1, piece.length() - 1);
+            } else {
+                // {"ga", "3", "2", "[5", " 4]"} -> {"ga", "3", "2", "5", "4"}
+                int ilast = pieces.length - 1;
 
-            String piece = pieces[ilast];
-            int charIdxFirst = (piece.charAt(0) == ' ') ? 1 : 0;
-            int charIdxLast = piece.length() - 1;
-            if ((charIdxLast >= 0) && (piece.charAt(charIdxLast) == ']'))
-                pieces[ilast] = piece.substring(charIdxFirst, charIdxLast);
+                for (int i = 3; i < ilast; ++i)
+                {
+                    String piece = pieces[i];
+                    char ch0 = piece.charAt(0);
+                    if ((ch0 == '[') || (ch0 == ' '))
+                        pieces[i] = piece.substring(1);
+                }
+
+                String piece = pieces[ilast];
+                int charIdxFirst = (piece.charAt(0) == ' ') ? 1 : 0;
+                int charIdxLast = piece.length() - 1;
+                if ((charIdxLast >= 0) && (piece.charAt(charIdxLast) == ']'))
+                    pieces[ilast] = piece.substring(charIdxFirst, charIdxLast);
+            }
         } else if (isV1Format) {
             try
             {

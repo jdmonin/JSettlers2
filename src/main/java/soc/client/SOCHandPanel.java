@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCSpecialItem;
 import soc.game.SOCTradeOffer;
-import soc.message.SOCCancelBuildRequest;  // for INV_ITEM_PLACE_CANCEL constant
+import soc.message.SOCCancelBuildRequest;  // for CARD, INV_ITEM_PLACE_CANCEL constants
 import soc.util.SOCStringManager;
 
 import java.awt.Color;
@@ -89,6 +89,9 @@ import javax.swing.UIManager;
  * Custom layout: see {@link #doLayout()}.
  * To set this panel's position or size, please use {@link #setBounds(int, int, int, int)},
  * because it is overridden to also update {@link #getBlankStandIn()}.
+ *<P>
+ * The border/margin between panels in high-contrast mode is managed by
+ * {@link SOCPlayerInterface}, not {@code SOCHandPanel}.
  */
 @SuppressWarnings("serial")
 /*package*/ class SOCHandPanel extends JPanel
@@ -439,6 +442,20 @@ import javax.swing.UIManager;
      */
     private JLabel wonderLab;
 
+    /**
+     * Number of remaining undos, when using game option {@code "UBL"}; null otherwise.
+     * Hidden until start of first regular turn (gameState {@link SOCGame#ROLL_OR_CARD}).
+     * Label is {@link #undosLab}.
+     * @since 2.7.00
+     */
+    private ColorSquare undosSq;
+
+    /**
+     * Label for {@link #undosSq}, or null.
+     * @since 2.7.00
+     */
+    private JLabel undosLab;
+
     // Trading interface
 
     /**
@@ -541,6 +558,14 @@ import javax.swing.UIManager;
     protected final SOCPlayerClient client;
     private final GameMessageSender messageSender;
     protected final SOCGame game;
+
+    /**
+     * True if normal gameplay has started ({@link #game} state &gt;= {@link SOCGame#ROLL_OR_CARD}).
+     * Also used when observing, not only when {@link #inPlay}.
+     * Used by {@link #updateAtNormalGameplay()}.
+     * @since 2.7.00
+     */
+    private boolean hasStartedNormalGameplay;
 
     /**
      * Our player; should use only when {@link #inPlay} and {@link SOCPlayer#getName()} is not null.
@@ -718,7 +743,7 @@ import javax.swing.UIManager;
 
     /**
      * Cached result for {@link #doLayout()} for width of resource labels.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private int doLayout_resourceLabelsWidth;
 
@@ -933,6 +958,25 @@ import javax.swing.UIManager;
             add(shipLab);
         } else {
             // shipSq, shipLab already null
+        }
+
+        if (game.isGameOptionSet("UBL"))
+        {
+            undosSq = new ColorSquare(ColorSquare.GREY, 0, sqSize, sqSize);
+                // actual value will be set after initial placement or when joining game in progress
+            add(undosSq);
+            final int nStart = game.getGameOptionIntValue("UBL");
+            undosSq.setLowWarningLevel
+                ((nStart <= 6) ? 1
+                 : (nStart < 15) ? 2
+                 : (nStart < 30) ? (nStart / 5)  // 3 - 5
+                 : 5);
+            final String ttip = strings.get("hpan.undos.tt");  // "Number of remaining undos"
+            undosSq.setToolTipText(ttip);
+            undosLab = new JLabel(strings.get("hpan.undos"));  // "Undos:"
+            undosLab.setFont(DIALOG_PLAIN_10);
+            add(undosLab);
+            undosLab.setToolTipText(ttip);
         }
 
         if (game.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
@@ -1347,7 +1391,7 @@ import javax.swing.UIManager;
                     // msg = "The game is over; you are the winner!";
                     // msg = "The game is over; <someone> won.";
                     // msg = "The game is over; no one won.";
-                playerInterface.print("* " + msg);
+                playerInterface.print(msg, true);
             }
         }
         else if (target == BANK_UNDO)
@@ -1448,7 +1492,7 @@ import javax.swing.UIManager;
                     }
                 }
             } else {
-                getPlayerInterface().print("* " + strings.get("hpan.trade.msg.notnow") + "\n");
+                getPlayerInterface().print(strings.get("hpan.trade.msg.notnow"), true);
                     // "You cannot trade at this time."
             }
         }
@@ -1456,6 +1500,7 @@ import javax.swing.UIManager;
         {
             clickPlayCardButton();
         }
+
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
         }
@@ -1535,6 +1580,11 @@ import javax.swing.UIManager;
 
         SOCResourceSet giveSet = new SOCResourceSet(give);
         SOCResourceSet getSet = new SOCResourceSet(get);
+        if (giveSet.isEmpty() || getSet.isEmpty())
+        {
+            playerInterface.getClientListener().playerTradeDisallowed(playerNumber, false, false);  // "You can't make that trade."
+            return;
+        }
         messageSender.bankTrade(game, giveSet, getSet);
 
         bankGive = giveSet;
@@ -1611,6 +1661,7 @@ import javax.swing.UIManager;
     /**
      * Handle a click on the "play card" button, or double-click
      * on an item in the inventory/list of cards held.
+     * Silently ignored if {@link SOCGame#isDebugFreePlacement()}.
      *<P>
      * Inventory items are almost always {@link SOCDevCard}s.
      * Some scenarios may place other items in the player's inventory,
@@ -1623,11 +1674,20 @@ import javax.swing.UIManager;
     public void clickPlayCardButton()
     {
         // Check first for "Cancel"
-        if (game.getGameState() == SOCGame.PLACING_INV_ITEM)
+        final int gstate = game.getGameState();
+        if (gstate == SOCGame.PLACING_INV_ITEM)
         {
             messageSender.cancelBuildRequest(game, SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL);
             return;
         }
+        else if ((gstate == SOCGame.PLACING_ROBBER) || (gstate == SOCGame.PLACING_PIRATE))
+        {
+            messageSender.cancelBuildRequest(game, SOCCancelBuildRequest.CARD);
+            return;
+        }
+
+        if (game.isDebugFreePlacement())
+            return;
 
         String itemText;
         int itemNum;  // Which one to play from list?
@@ -2127,6 +2187,11 @@ import javax.swing.UIManager;
         }
         knightsSq.setVisible(false);
         knightsLab.setVisible(false);
+        if (undosSq != null)
+        {
+            undosLab.setVisible(false);
+            undosSq.setVisible(false);
+        }
         if (clothSq != null)
         {
             clothLab.setVisible(false);
@@ -2374,6 +2439,8 @@ import javax.swing.UIManager;
             blankStandIn.setVisible(true);
         setVisible(false);
 
+        final int gameState = game.getGameState();
+
         /* Items which are visible for any hand, client player or opponent */
 
         if (! game.isBoardReset())
@@ -2401,6 +2468,13 @@ import javax.swing.UIManager;
         }
         knightsLab.setVisible(true);
         knightsSq.setVisible(true);
+        if (undosSq != null)
+        {
+            final boolean isNormalPlay = (gameState >= SOCGame.ROLL_OR_CARD);
+            undosLab.setVisible(isNormalPlay);
+            undosSq.setVisible(isNormalPlay);
+        }
+
         if (clothSq != null)
         {
             clothLab.setVisible(true);
@@ -2440,7 +2514,7 @@ import javax.swing.UIManager;
             vpSq.setToolTipText(strings.get("hpan.points.total.yours"));  // "Your victory point total"
 
             // show 'Victory Points' and hide "Start Button" if game in progress
-            if (game.getGameState() == SOCGame.NEW)
+            if (gameState == SOCGame.NEW)
             {
                 startBut.setVisible(true);
             }
@@ -2500,8 +2574,8 @@ import javax.swing.UIManager;
                 }
             }
             rollBut.setVisible(true);
-            doneButIsRestart = ((game.getGameState() <= SOCGame.START3B)
-                 || (game.getGameState() == SOCGame.OVER));
+            doneButIsRestart = ((gameState <= SOCGame.START3B)
+                 || (gameState == SOCGame.OVER));
             if (doneButIsRestart)
                 doneBut.setText(DONE_RESTART);
             else
@@ -2511,7 +2585,7 @@ import javax.swing.UIManager;
 
             // Remove all of the sit and take over buttons.
             // If game still forming, can lock seats (for fewer players/robots).
-            boolean gameForming = (game.getGameState() == SOCGame.NEW);
+            boolean gameForming = (gameState == SOCGame.NEW);
             for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
                 final SOCHandPanel hpan = playerInterface.getPlayerHandPanel(pn);
@@ -2608,7 +2682,8 @@ import javax.swing.UIManager;
 
         inPlay = true;
 
-        validate();  // doLayout() will lay things out for our hand or other player's hand
+        invalidate();
+        doLayout();
         if (blankStandIn != null)
             blankStandIn.setVisible(false);
         setVisible(true);
@@ -2639,11 +2714,44 @@ import javax.swing.UIManager;
     }
 
     /**
+     * When normal gameplay starts or has started,
+     * do any UI element updates which are needed exactly once.
+     * Does nothing if {@link #hasStartedNormalGameplay} is already true.
+     *<UL>
+     * <LI> If using gameopt {@code "UBL"}, shows the hidden {@link #undosSq} and {@link #undosLab}
+     * <LI> Sets {@link #hasStartedNormalGameplay}
+     *</UL>
+     * Called from {@link #updateAtTurn()}.
+     * @since 2.7.00
+     */
+    private void updateAtNormalGameplay()
+    {
+        if (hasStartedNormalGameplay)
+            return;
+
+        if (undosSq != null)
+        {
+            // Set actual value and un-hide at start of first regular turn,
+            // unless is hidden because this non-client player's panel isn't tall enough
+
+            if (undosSq.getIntValue() == 0)
+                updateValue(PlayerClientListener.UpdateType.UndosRemaining);
+            final boolean shouldShow = playerIsClient || roadSq.isVisible();
+            undosSq.setVisible(shouldShow);
+            undosLab.setVisible(shouldShow);
+        }
+
+        hasStartedNormalGameplay = true;
+    }
+
+    /**
      * Handpanel interface updates at start of each turn (not just our turn).
      * Calls {@link #updateTakeOverButton()}, and checks if current player (for hilight).
      * Called from client when server sends {@link soc.message.SOCMessage#TURN}.
-     * Called also at start of game by {@link SOCPlayerInterface#updateAtGameState()},
-     * because the server sends no TURN between the last road (gamestate START2B)
+     *<P>
+     * Also called by {@link SOCPlayerInterface#updateAtGameState()}
+     * at start of game or when joining a game in progress,
+     * because servers older than v2.5.00 sometimes send no TURN between the last road (gamestate START2B)
      * and the first player's turn (state ROLL_OR_CARD).
      * @since 1.1.00
      */
@@ -2679,9 +2787,9 @@ import javax.swing.UIManager;
         }
 
         updateTakeOverButton();
+        final int gs = game.getGameState();
         if (playerIsClient)
         {
-            final int gs = game.getGameState();
             boolean normalTurnStarting = (gs == SOCGame.ROLL_OR_CARD || gs == SOCGame.PLAY1);
             clearOffer(normalTurnStarting);  // Zero the square panel numbers, etc. (TODO) better descr.
                 // at any player's turn, not just when playerIsCurrent.
@@ -2710,6 +2818,9 @@ import javax.swing.UIManager;
         if (bankUndoBut.isEnabled())
             bankUndoBut.setEnabled(false);
 
+        if ((gs >= SOCGame.ROLL_OR_CARD) && ! hasStartedNormalGameplay)
+            updateAtNormalGameplay();
+
         // Although this method is called at the start of our turn,
         // the call to autoRollOrPromptPlayer() is not made here.
         // That call is made when the server says it's our turn to
@@ -2723,6 +2834,8 @@ import javax.swing.UIManager;
     /**
      * Client is current player; state changed.
      * Enable or disable the Roll, Done and Bank buttons.
+     * Also disables/enables Play Card and Inventory when entering/exiting
+     * Free Placement debug mode ({@link SOCGame#isDebugFreePlacement()}).
      *<P>
      * Should not be called except by client's playerinterface.
      * Call only when if player is client and is current player.
@@ -3004,6 +3117,7 @@ import javax.swing.UIManager;
     {
         if (game.getGameState() != SOCGame.NEW)
             return;  // TODO consider IllegalStateException
+
         final String buttonText, ttipText;
         if (game.getSeatLock(playerNumber) == SOCGame.SeatLockState.LOCKED)
         {
@@ -3020,7 +3134,8 @@ import javax.swing.UIManager;
         sitBut.setText(buttonText);
         sitBut.setToolTipText(ttipText);
         sitButIsLock = true;
-        validate();  // sitBut minimum width may change with text
+        invalidate();  // sitBut minimum width may change with text
+        doLayout();
         sitBut.repaint();
     }
 
@@ -3173,6 +3288,7 @@ import javax.swing.UIManager;
     public void rejectOfferAtClient()
     {
         messageSender.rejectOffer(game);
+
         messagePanel.setText(null);
         messagePanel.setVisible(false);
         offerPanel.setVisible(false);
@@ -3235,6 +3351,12 @@ import javax.swing.UIManager;
         {
             knightsLab.setVisible(hideTradeMsg);
             knightsSq.setVisible(hideTradeMsg);
+            if (undosSq != null)
+            {
+                final boolean show = (hideTradeMsg && (game.getGameState() >= SOCGame.ROLL_OR_CARD));
+                undosLab.setVisible(show);
+                undosSq.setVisible(show);
+            }
             if (clothSq != null)
             {
                 clothLab.setVisible(hideTradeMsg);
@@ -3557,6 +3679,10 @@ import javax.swing.UIManager;
      * {@link #rollBut}, {@link #doneBut}, {@link #bankBut}.
      * Call only if {@link #playerIsCurrent} and {@link #playerIsClient}.
      *<P>
+     * Free Placement debug mode: Disables Play Card button and {@link #inventory}
+     * if {@link SOCGame#isDebugFreePlacement()}, re-enables it after exiting that mode
+     * unless {@link #inventoryItems} is empty.
+     *<P>
      * v2.0.00+: In game state {@link SOCGame#PLACING_INV_ITEM}, the Play Card button's label
      * becomes {@link #CANCEL}, and {@link #inventory} is disabled, while the player places
      * an item on the board.  They can hit Cancel to return the item to their inventory instead.
@@ -3570,31 +3696,49 @@ import javax.swing.UIManager;
     private void updateRollDoneBankButtons()
     {
         final int gs = game.getGameState();
+
         rollBut.setEnabled(gs == SOCGame.ROLL_OR_CARD);
         doneBut.setEnabled
             ((gs <= SOCGame.START3B) || doneButIsRestart || game.canEndTurn(playerNumber));
         bankBut.setEnabled(gs == SOCGame.PLAY1);
 
-        if (game.hasSeaBoard)
+        if (game.hasSeaBoard && (gs == SOCGame.PLACING_INV_ITEM))
         {
-            if (gs == SOCGame.PLACING_INV_ITEM)
-            {
-                // in this state only, "Play Card" becomes "Cancel"
-                SOCInventoryItem placing = game.getPlacingItem();
-                if (placing != null)
-                    canCancelInvItemPlay = placing.canCancelPlay;
-                inventory.setEnabled(false);
+            // in this state only, "Play Card" becomes "Cancel"
+            SOCInventoryItem placing = game.getPlacingItem();
+            if (placing != null)
+                canCancelInvItemPlay = placing.canCancelPlay;
+            inventory.setEnabled(false);
+            playCardBut.setText(CANCEL);
+            playCardBut.setEnabled(canCancelInvItemPlay);
+        }
+        else if (game.isDebugFreePlacement() && inventory.isEnabled())
+        {
+            inventory.setEnabled(false);
+            playCardBut.setEnabled(false);
+        }
+        else if ((gs == SOCGame.PLACING_ROBBER) || (gs == SOCGame.PLACING_PIRATE))
+        {
+            final boolean canCancel =
+                (client.getServerVersion(game) >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD)
+                && game.canCancelPlayCurrentDevCard();  // is false if placing because rolled 7
+            playCardBut.setEnabled(canCancel);
+            if (canCancel)
                 playCardBut.setText(CANCEL);
-                playCardBut.setEnabled(canCancelInvItemPlay);
-            } else {
-                if (! inventory.isEnabled())
-                    inventory.setEnabled(true);  // note, may still visually appear disabled; repaint doesn't fix it
+        }
+        else
+        {
+            if (! inventory.isEnabled())
+                inventory.setEnabled(true);  // note, may still visually appear disabled; repaint doesn't fix it
 
-                if (playCardBut.getText().equals(CANCEL))
-                {
-                    playCardBut.setText(CARD);  // " Play Card "
-                    playCardBut.setEnabled(! inventoryItems.isEmpty());
-                }
+            if (playCardBut.getText().equals(CANCEL))
+            {
+                playCardBut.setText(CARD);  // " Play Card "
+                playCardBut.setEnabled(! inventoryItems.isEmpty());
+            }
+            else if (! (playCardBut.isEnabled() || inventoryItems.isEmpty() || player.hasPlayedDevCard()))
+            {
+                playCardBut.setEnabled(true);
             }
         }
     }
@@ -3737,15 +3881,15 @@ import javax.swing.UIManager;
     {
         boolean updateTotalResCount = false;
 
-        /**
-         * We say that we're getting the total vp, but
-         * for other players this will automatically get
-         * the public vp because we will assume their
-         * dev card vp total is zero.
-         */
         switch (utype)
         {
         case VictoryPoints:
+            /**
+             * We say that we're getting the total vp, but
+             * for other players this will automatically get
+             * the public vp because we will assume their
+             * dev card vp total is zero.
+             */
             {
                 int newVP = player.getTotalVP();
                 vpSq.setIntValue(newVP);
@@ -3857,6 +4001,11 @@ import javax.swing.UIManager;
             knightsSq.setIntValue(player.getNumKnights());
             break;
 
+        case UndosRemaining:
+            if (undosSq != null)
+                undosSq.setIntValue(player.getUndosRemaining());
+            break;
+
         case Cloth:
             if (clothSq != null)
                 clothSq.setIntValue(player.getCloth());
@@ -3893,7 +4042,6 @@ import javax.swing.UIManager;
             }
             break;
 
-        case GoldGains:
         case Warship:
         case Unknown:
             // do nothing (avoid compiler enum warning).
@@ -4036,7 +4184,7 @@ import javax.swing.UIManager;
      * this player can roll again, but they cannot.
      * To guard against this, use {@link #isClientAndCurrentlyCanRoll()} instead.
      *
-     * @see SOCPlayerInterface#clientIsCurrentPlayer()
+     * @see SOCPlayerInterface#isClientCurrentPlayer()
      * @since 1.1.00
      */
     public boolean isClientAndCurrentPlayer()
@@ -4203,7 +4351,6 @@ import javax.swing.UIManager;
             // If nonzero, should lay out per-resource count squares & dev card inventory starting at this Y-position
             int resourceInventoryTop = 0;
 
-            //if (true) {
             if (playerIsClient)
             {
                 /* This is our hand */
@@ -4220,7 +4367,7 @@ import javax.swing.UIManager;
                 //   (Clay, Ore, Sheep, Wheat, Wood, Total)
                 // To right below top area: Piece counts
                 //   (Soldiers, Roads, Settlements, Cities, Ships)
-                // To right below piece counts: Dev card list, Play button
+                // To right below piece counts: Dev card list, undo count, Play button
                 // Bottom of panel: 1 button row: Quit to left; Roll, Restart to right
 
                 final Dimension sqpDim = sqPanel.getSize();  // Trading SquaresPanel (doesn't include Give/Get labels)
@@ -4333,6 +4480,7 @@ import javax.swing.UIManager;
 
                 // Position the player's resource counts and dev card inventory
                 // in middle vertical area between bottom of Clear button, top of Quit button
+                // Layout is done later, at "if (resourceInventoryTop != 0)"
                 resourceInventoryTop = devCardsY;
 
                 // Bottom of panel:
@@ -4361,7 +4509,7 @@ import javax.swing.UIManager;
                 // MessagePanel or Trade offer/counteroffer appears in center when a trade is active
                 // Bottom has columns of item counts on left, right, having 3 or 4 rows:
                 //   Cloth (if that scenario), Soldiers, Res, Dev Cards to left;
-                //   Ships (if sea board), Roads, Settlements, Cities to right
+                //   Undos (if using gameopt UBL), Ships (if sea board), Roads, Settlements, Cities to right
                 //   Robot lock button (during play) in bottom center
 
                 final boolean wasHidesControls = offerHidesControls;  // if changes here, will call hideTradeMsgShowOthers
@@ -4463,6 +4611,9 @@ import javax.swing.UIManager;
                             (inset, py, offerW, ph);
                         counterOfferPanel.setBounds
                             (inset, py + ph + space, offerW, counterOfferHeight);
+
+                        if (resInventoryHeight > 0)
+                            resourceInventoryTop = topFaceAreaHeight + space;
                     }
 
                     if (miscInfoArea != null)
@@ -4538,7 +4689,7 @@ import javax.swing.UIManager;
                 final int stlmtsW;
                 {
                     int wmax = 0, w;
-                    JLabel[] labs = new JLabel[]{shipLab, roadLab, settlementLab, cityLab};
+                    JLabel[] labs = new JLabel[]{shipLab, roadLab, settlementLab, cityLab, undosLab};
                     for (JLabel L : labs)
                     {
                         if (L == null)
@@ -4605,11 +4756,30 @@ import javax.swing.UIManager;
                 }
 
                 // Lower-right: Column of piece counts:
-                // Roads, Settlements, Cities, Ships
+                // Undos, Roads, Settlements, Cities, Ships
                 int x = dim.width - inset - sqSize;  // squares' x-pos; labels will be to their left
                 y = lowerY;
                 if (shipSq == null)
                     y += (lineH + space);
+                if (undosSq != null)
+                {
+                    // goes above roadSq
+                    y -= (lineH + space);
+                    undosLab.setBounds(x - stlmtsW - space, y, stlmtsW, lineH);
+                    undosSq.setLocation(x, y);
+                    y += (lineH + space);
+
+                    // undosSq puts this column on same row as takeover/unlock button, so make that less wide
+                    // and align it flush left
+                    JButton btn = null;
+                    if (hasTakeoverBut)
+                        btn = takeOverBut;
+                    else if (hasSittingRobotLockBut)
+                        btn = sittingRobotLockBut;
+
+                    if (btn != null)
+                        btn.setBounds(inset, btn.getY(), x - stlmtsW - (3 * space) - inset, btn.getHeight());
+                }
                 roadLab.setBounds(x - stlmtsW - space, y, stlmtsW, lineH);
                 roadSq.setLocation(x, y);
                 y += (lineH + space);
@@ -4693,15 +4863,29 @@ import javax.swing.UIManager;
                 }
 
                 // To the right of resource counts:
-                // Development Card list, Play button below
+                // Development Card list, with Undo count and Play button below
                 final int clW = dim.width - (inset + sheepW + space + sqSize + (4 * space) + inset);
                 final int clX = inset + sheepW + space + sqSize + (4 * space);
                 final int pcW = 10 * displayScale + fm.stringWidth(CARD.replace(' ','_')); // Play Card; bug in stringWidth(" ")
                 tbY = resourceInventoryTop + ((lineH + space) / 2);
                 inventoryScroll.setBounds
                     (clX, tbY, clW, (4 * (lineH + space)) - 2 * displayScale);
-                playCardBut.setBounds
-                    (((clW - pcW) / 2) + clX, tbY + (4 * (lineH + space)), pcW, lineH);
+                y = tbY + (4 * (lineH + space));
+                int btnX;
+                if (undosSq != null)
+                {
+                    final int txtW = fm.stringWidth(undosLab.getText());
+                    btnX = clW - pcW + clX;  // playCardBut at right margin
+                    int sqX = clX + txtW + space;  // assume undosLab will be at clX,
+                        // but if undosSq needs to move left to avoid overlap, will also move undosLab
+                    if (sqX + sqSize + space > btnX)
+                        sqX = btnX - (sqSize + space);
+                    undosLab.setBounds(sqX - txtW - space, y, txtW + 2 * displayScale, lineH);
+                    undosSq.setLocation(sqX, y);
+                } else {
+                    btnX = ((clW - pcW) / 2) + clX;  // playCardBut centered
+                }
+                playCardBut.setBounds(btnX, y, pcW, lineH);
             }
         }
     }
@@ -4947,7 +5131,7 @@ import javax.swing.UIManager;
             throws IllegalStateException
         {
             super(hp, strings.get("board.trade.trade.port"));  // "Trade Port"
-            if (! hp.getPlayerInterface().clientIsCurrentPlayer())
+            if (! hp.getPlayerInterface().isClientCurrentPlayer())
                 throw new IllegalStateException("Not current player");
             init(typeFrom, hp.game, null, hp.resourceTradeCost[typeFrom], forThree1);
         }

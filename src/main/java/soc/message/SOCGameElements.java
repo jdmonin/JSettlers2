@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -71,9 +71,13 @@ public class SOCGameElements extends SOCMessageTemplateMi
          * Number of development cards remaining in the deck to be bought,
          * from {@link SOCGame#getNumDevCards()}.
          *<P>
-         * Sent to clients during game join/start. When a dev card is bought,
-         * is sent to clients as part of game data before action announcement/display:
-         * See {@link SOCBuyDevCardRequest} javadoc.
+         * Sent to clients during game join/start.
+         *<P>
+         * When a dev card is bought, is sent to clients older than v2.5.00
+         * ({@link SOCDevCardAction#VERSION_FOR_BUY_OMITS_GE_DEV_CARD_COUNT})
+         * as part of game data before action announcement/display:
+         * See {@link SOCBuyDevCardRequest} javadoc. Clients v2.5 and newer
+         * use {@link SOCSimpleAction#DEVCARD_BOUGHT}'s remaining-card count field instead.
          *<P>
          * Versions before v2.0.00 sent {@link SOCDevCardCount} instead.
          */
@@ -130,7 +134,43 @@ public class SOCGameElements extends SOCMessageTemplateMi
          * 
          * @since 2.3.00
          */
-        SPECIAL_BUILDING_AFTER_PLAYER(7);
+        SPECIAL_BUILDING_AFTER_PLAYER(7),
+
+        /**
+         * One ship edge coordinate from {@link SOCGame#getShipsPlacedThisTurn()}.
+         * Server may send multiple elements of this type in the same {@link SOCGameElements},
+         * one for each edge in the list, to clients v2.7.00 and newer when loading a saved game
+         * ({@link #VERSION_FOR_SHIP_PLACED_THIS_TURN_EDGE}).
+         *<P>
+         * Otherwise not sent to clients when joining a game: Can't take over a bot during its current turn,
+         * and the list is cleared at end of turn.
+         *<P>
+         * Older client versions assume they can't move any ships the same turn they've loaded and resumed a game,
+         * so they don't need this element type.
+         *
+         * @since 2.7.00
+         */
+        SHIP_PLACED_THIS_TURN_EDGE(8),
+
+        /**
+         * Value of {@link SOCGame#isPlacingRobberForKnightCard()}:
+         * Is 1 when the robber/pirate is currently being moved because the player
+         * played a Knight/Soldier card (not because 7 was rolled), 0 otherwise.
+         *<P>
+         * Sent when client joins a game while that flag is set, and used by {@link soc.server.savegame.SavedGameModel},
+         * v2.7.00 and newer ({@link SOCGame#VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD}).
+         * Not sent during normal gameplay: Instead, client sets or clears that flag based on various gameplay messages
+         * like {@link SOCDevCardAction}.
+         *
+         * @since 2.7.00
+         */
+        IS_PLACING_ROBBER_FOR_KNIGHT_CARD_FLAG(9);
+
+        /**
+         * Minimum version (2.7.00) of server and client which send and recognize {@link #SHIP_PLACED_THIS_TURN_EDGE}.
+         * @since 2.7.00
+         */
+        public final static int VERSION_FOR_SHIP_PLACED_THIS_TURN_EDGE = 2700;
 
         private int value;
 
@@ -203,7 +243,8 @@ public class SOCGameElements extends SOCMessageTemplateMi
      * Create a GameElements message about multiple elements.
      *
      * @param ga  name of the game
-     * @param etypes  element types to set, such as {@link GEType#DEV_CARD_COUNT}
+     * @param etypes  element types to set, such as {@link GEType#DEV_CARD_COUNT}.
+     *     Can contain repeats of the same type if needed (see {@link GEType#SHIP_PLACED_THIS_TURN_EDGE}).
      * @param values  new values for each element, corresponding to <tt>etypes[]</tt>
      * @see #SOCGameElements(String, GEType, int)
      * @throws NullPointerException if {@code etypes} null or {@code values} null
@@ -259,9 +300,13 @@ public class SOCGameElements extends SOCMessageTemplateMi
     public final int getMinimumVersion() { return MIN_VERSION; }
 
     /**
-     * Get the element types. These are ints to preserve values from unknown types from different versions.
+     * Get the element types.
+     * Can contain repeats of the same type if needed (see {@link GEType#SHIP_PLACED_THIS_TURN_EDGE}).
+     *<P>
+     * These are ints to preserve values from unknown types from different versions.
      * Converted at sending side with {@link GEType#getValue()}.
      * To convert at receiving side to a {@link GEType}, use {@link GEType#valueOf(int)}.
+     *
      * @return the element types such as {@link GEType#DEV_CARD_COUNT} as ints, each matching up
      *     with the same-index item of parallel array {@link #getValues()}.
      */
@@ -324,7 +369,7 @@ public class SOCGameElements extends SOCMessageTemplateMi
      * Handles elemNum=value pairs, undoes mapping of action constant integers -> strings ({@code "GAIN"} etc).
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters to finish parsing into a SOCMessage, or {@code null} if malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static List<String> stripAttribsToList(String messageStrParams)
     {

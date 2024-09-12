@@ -83,10 +83,10 @@ Depending on your computer's setup, you may need to point JSettlers at the
 appropriate JDBC drivers, by placing them in your java classpath.
 Your database system's JDBC drivers can be downloaded at these locations:
 
-- MariaDB: https://downloads.mariadb.org/ -> Connector/J
-- MySQL:   https://www.mysql.com/products/connector/
+- MariaDB: https://mariadb.org/download/ -> Connector/J
+- MySQL:   https://www.mysql.com/products/connector/ -> Connector/J
 - PostgreSQL:  https://jdbc.postgresql.org/download.html
-- SQLite:  https://bitbucket.org/xerial/sqlite-jdbc/downloads/
+- SQLite:  https://github.com/xerial/sqlite-jdbc/releases -> assets -> sqlite-jdbc-3.xx.y.jar
 
 In some cases, adding to the classpath won't work because of JVM restrictions
 about JAR files.  If you find that's the case, place the JDBC jar in the same
@@ -152,7 +152,7 @@ see above for instructions on starting the JSettlers server and connecting
 to the database.
 
 If you downloaded the JAR and not the full tar.gz, you can get the SQL scripts
-from https://github.com/jdmonin/JSettlers2/tree/master/src/main/bin/sql .
+from https://github.com/jdmonin/JSettlers2/tree/main/src/main/bin/sql .
 To get each script needed for your DB type: Click the SQL file to view it;
 click Raw; save to the folder containing your JSettlers JAR.
 

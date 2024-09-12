@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2012-2013,2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2012-2013,2015,2017-2020,2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -46,6 +46,8 @@ import soc.game.SOCVersionedItem;
  * If the client asks about an option too new for it to use,
  * by sending the option name or GAMEOPTIONGETINFOS("-"),
  * the server will respond with {@link SOCGameOption#OTYPE_UNKNOWN}.
+ * To clients v2.7.00 and newer ({@link SOCGameOption#VERSION_FOR_UNKNOWN_WITH_DESCRIPTION}),
+ * that response may include the option's description instead of "".
  *<P>
  * Special case: If the client is asking for any new options by sending
  * GAMEOPTIONGETINFOS("-"), but there aren't any new options, server responds with
@@ -73,7 +75,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * GAMEOPTIONINFO named "-" with type {@link SOCGameOption#OTYPE_UNKNOWN}.
      */
     public static final SOCGameOptionInfo OPTINFO_NO_MORE_OPTS
-        = new SOCGameOptionInfo(new SOCGameOption("-"), 0, null);
+        = new SOCGameOptionInfo(new SOCGameOption("-", null), 0, null);
 
     protected SOCGameOption opt = null;
 
@@ -137,7 +139,9 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * <LI> pal[8] = boolValue ('t' or 'f'; current, not default)
      * <LI> pal[9] = intValue (current, not default) or stringvalue; stringvalue of "" is stored as {@code null}
      * <LI> pal[10] = optFlags as integer -- before v2.0.00, only FLAG_DROP_IF_UNUSED ('t' or 'f')
-     * <LI> pal[11] = desc (displayed text) if present; required for all types except {@code OTYPE_UNKNOWN}
+     * <LI> pal[11] = desc (displayed text) if present; required for all types except {@code OTYPE_UNKNOWN};
+     *          may be sent for unknowns to client v2.7.00 and newer
+     *          ({@link SOCGameOption#VERSION_FOR_UNKNOWN_WITH_DESCRIPTION})
      * <LI> pal[12] and beyond, if present = each enum choice's text
      *</UL>
      * Any parameter which is {@link SOCMessage#EMPTYSTR} is changed to "" in place in {@code pal}.
@@ -198,7 +202,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         switch (otyp)  // OTYPE_*
         {
         case SOCGameOption.OTYPE_UNKNOWN:
-            opt = new SOCGameOption(params[0]);
+            opt = new SOCGameOption(params[0], (params.length > 11) ? params[11] : null);
             break;
 
         case SOCGameOption.OTYPE_BOOL:

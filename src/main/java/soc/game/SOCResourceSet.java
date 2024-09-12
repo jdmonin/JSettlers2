@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -29,6 +29,14 @@ import java.util.Arrays;
  * clay, ore, sheep, wheat, and wood resources.
  * Unknown resources are also tracked here.
  * Although it's possible to store negative amounts of resources, it's discouraged.
+ *<P>
+ * For a read-only set, cast to {@link ResourceSet}.
+ *
+ *<H3>Threads:</H3>
+ * Resource count updates are not thread-safe:
+ * Try to update resource counts only from a single thread;
+ * other threads may cache stale values for the resource count fields.
+ * A future version might improve that.
  *
  * @see SOCResourceConstants
  * @see SOCPlayingPiece#getResourcesToBuild(int)
@@ -48,7 +56,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * 5 = {@link SOCResourceConstants#WHEAT},
      * 6 = {@link SOCResourceConstants#UNKNOWN}.
      */
-    private int[] resources;
+    private int[] resources;  // TODO: refactor to use something like AtomicIntegerArray for thread-safe writes/reads
 
     /**
      * Make an empty resource set
@@ -123,11 +131,10 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     }
 
     /**
-     * Is this set empty, containing zero resources?
-     * @return true if set is completely empty, including its amount of unknown resources
+     * {@inheritDoc}
      * @see #getTotal()
      * @see #clear()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public boolean isEmpty()
     {
@@ -229,12 +236,9 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     {
         int typ = 0;
 
-        for (int i = SOCResourceConstants.MIN;
-                 i <= SOCResourceConstants.WOOD; ++i)
-        {
-            if (resources[i] != 0)
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+            if (resources[rtype] != 0)
                 ++typ;
-        }
 
         return typ;
     }
@@ -251,18 +255,15 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
     {
         int sum = 0;
 
-        for (int i = SOCResourceConstants.MIN;
-                 i <= SOCResourceConstants.WOOD; i++)
-        {
-            sum += resources[i];
-        }
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+            sum += resources[rtype];
 
         return sum;
     }
 
     /**
      * Set the amount of a resource.
-     * To set all resources from another set, use {@link #add(SOCResourceSet)},
+     * To set all resources from another set, use {@link #add(ResourceSet)},
      * {@link #subtract(ResourceSet)} or {@link #setAmounts(SOCResourceSet)}.
      *
      * @param rtype the type of resource, like {@link SOCResourceConstants#CLAY}
@@ -289,32 +290,63 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * subtract an amount from a resource.
-     * If we're subtracting more from a resource than there are of that resource,
-     * set that resource to zero, and then take the difference away from the
+     *<P>
+     * If we're subtracting more from a known resource than there are of that resource,
+     * sets that resource to 0, then takes the "excess" away from this set's
      * {@link SOCResourceConstants#UNKNOWN} resources.
-     * As a result, UNKNOWN may be less than zero afterwards.
+     * As a result, {@code UNKNOWN} field may be less than 0 afterwards.
+     *<P>
+     * To convert all known resources to {@code UNKNOWN} when subtracting an {@code UNKNOWN} rtype,
+     * call {@link #subtract(int, int, boolean)} instead.
      *
      * @param rtype the type of resource, like {@link SOCResourceConstants#CLAY}
      *     or {@link SOCResourceConstants#UNKNOWN}
      * @param amt   the amount; unlike in {@link #add(int, int)}, any amount that
      *              takes the resource below 0 is treated specially.
+     * @see #subtract(ResourceSet)
+     * @see #subtract(int)
      */
     public void subtract(int amt, int rtype)
     {
-        /**
-         * if we're subtracting more from a resource than
-         * there are of that resource, set that resource
-         * to zero, and then take the difference away
-         * from the UNKNOWN resources
-         */
-        if (amt > resources[rtype])
+        subtract(amt, rtype, false);
+    }
+
+    /**
+     * subtract an amount from a resource.
+     *<P>
+     * If we're subtracting more from a known resource than there are of that resource,
+     * sets that resource to 0, then takes the "excess" amount away from this set's
+     * {@link SOCResourceConstants#UNKNOWN} resources.
+     * As a result, {@code UNKNOWN} field may be less than 0 afterwards.
+     *<P>
+     * If {@code asUnknown} is true and we're subtracting an {@code UNKNOWN} rtype,
+     * converts this set's known resources to {@code UNKNOWN} before subtraction
+     * by calling {@link #convertToUnknown()}.
+     *
+     * @param rtype the type of resource, like {@link SOCResourceConstants#CLAY}
+     *     or {@link SOCResourceConstants#UNKNOWN}
+     * @param amt   the amount; unlike in {@link #add(int, int)}, any amount that
+     *     takes the resource below 0 is treated specially
+     * @param asUnknown  If true and subtracting {@link SOCResourceConstants#UNKNOWN},
+     *     calls {@link #convertToUnknown()} first
+     * @since 2.5.00
+     * @see #subtract(int)
+     */
+    public void subtract(final int amt, final int rtype, final boolean asUnknown)
+    {
+        if (asUnknown && (rtype == SOCResourceConstants.UNKNOWN))
         {
-            resources[SOCResourceConstants.UNKNOWN] -= (amt - resources[rtype]);
-            resources[rtype] = 0;
-        }
-        else
-        {
+            convertToUnknown();
             resources[rtype] -= amt;
+        } else {
+            final int ourAmt = resources[rtype];
+            if (amt > ourAmt)
+            {
+                resources[SOCResourceConstants.UNKNOWN] -= (amt - ourAmt);
+                resources[rtype] = 0;
+            } else {
+                resources[rtype] -= amt;
+            }
         }
 
         if (resources[SOCResourceConstants.UNKNOWN] < 0)
@@ -328,63 +360,125 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      *
      * @param toAdd  the resource set
      */
-    public void add(SOCResourceSet toAdd)
+    public void add(ResourceSet toAdd)
     {
-        resources[SOCResourceConstants.CLAY]    += toAdd.getAmount(SOCResourceConstants.CLAY);
-        resources[SOCResourceConstants.ORE]     += toAdd.getAmount(SOCResourceConstants.ORE);
-        resources[SOCResourceConstants.SHEEP]   += toAdd.getAmount(SOCResourceConstants.SHEEP);
-        resources[SOCResourceConstants.WHEAT]   += toAdd.getAmount(SOCResourceConstants.WHEAT);
-        resources[SOCResourceConstants.WOOD]    += toAdd.getAmount(SOCResourceConstants.WOOD);
-        resources[SOCResourceConstants.UNKNOWN] += toAdd.getAmount(SOCResourceConstants.UNKNOWN);
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.UNKNOWN; ++rtype)
+            resources[rtype] += toAdd.getAmount(rtype);
     }
 
     /**
-     * subtract an entire resource set. If any type's amount would go below 0, set it to 0.
-     * @param toReduce  the resource set to subtract
+     * subtract an entire resource set.
+     *<P>
+     * Loops for each resource type in {@code toSubtract}, including {@link SOCResourceConstants#UNKNOWN}.
+     * If any type's amount would go below 0, clips it to 0.
+     * Treats {@code UNKNOWN} no differently than the known types.
+     *<P>
+     * To instead subtract such "excess" amounts from this set's {@code UNKNOWN} field
+     * like {@link #subtract(int, int, boolean)} does,
+     * call {@link #subtract(ResourceSet, boolean)}.
+     *
+     * @param toSubtract  the resource set to subtract
+     * @see #subtract(int)
      */
-    public void subtract(ResourceSet toReduce)
+    public void subtract(ResourceSet toSubtract)
     {
-        resources[SOCResourceConstants.CLAY] -= toReduce.getAmount(SOCResourceConstants.CLAY);
+        subtract(toSubtract, false);
+    }
 
-        if (resources[SOCResourceConstants.CLAY] < 0)
+    /**
+     * subtract an entire resource set.
+     *<P>
+     * If {@code asUnknown} is true:
+     *<UL>
+     * <LI> If subtracting {@link SOCResourceConstants#UNKNOWN},
+     *      first converts this set's known resources to {@code UNKNOWN}
+     *      by calling {@link #convertToUnknown()}.
+     * <LI> Loops for each resource type in {@code toSubtract}, including {@link SOCResourceConstants#UNKNOWN}.
+     *      If any known type's amount would go below 0, clips it to 0 and subtracts the "excess"
+     *      from the {@code UNKNOWN} field, which can become less than 0.
+     *</UL>
+     * If false, behaves like {@link #subtract(ResourceSet)}.
+     *
+     * @param toSubtract  the resource set to subtract
+     * @param asUnknown  If true: Removes excess amounts from this set's {@link SOCResourceConstants#UNKNOWN}
+     *     field instead of clipping to 0; if subtracting {@code UNKNOWN},
+     *     calls {@link #convertToUnknown() this.convertToUnknown()} first
+     * @see #subtract(int)
+     * @since 2.5.00
+     */
+    public void subtract(final ResourceSet toSubtract, final boolean asUnknown)
+    {
+        final int amountSubtractUnknown = toSubtract.getAmount(SOCResourceConstants.UNKNOWN);
+
+        if (asUnknown && (amountSubtractUnknown > 0))
+            convertToUnknown();
+
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
         {
-            resources[SOCResourceConstants.CLAY] = 0;
+            resources[rtype] -= toSubtract.getAmount(rtype);
+            if (resources[rtype] < 0)
+            {
+                if (asUnknown)
+                    // subtract the excess from unknown
+                    resources[SOCResourceConstants.UNKNOWN] += resources[rtype];
+
+                resources[rtype] = 0;
+            }
         }
 
-        resources[SOCResourceConstants.ORE] -= toReduce.getAmount(SOCResourceConstants.ORE);
-
-        if (resources[SOCResourceConstants.ORE] < 0)
-        {
-            resources[SOCResourceConstants.ORE] = 0;
-        }
-
-        resources[SOCResourceConstants.SHEEP] -= toReduce.getAmount(SOCResourceConstants.SHEEP);
-
-        if (resources[SOCResourceConstants.SHEEP] < 0)
-        {
-            resources[SOCResourceConstants.SHEEP] = 0;
-        }
-
-        resources[SOCResourceConstants.WHEAT] -= toReduce.getAmount(SOCResourceConstants.WHEAT);
-
-        if (resources[SOCResourceConstants.WHEAT] < 0)
-        {
-            resources[SOCResourceConstants.WHEAT] = 0;
-        }
-
-        resources[SOCResourceConstants.WOOD] -= toReduce.getAmount(SOCResourceConstants.WOOD);
-
-        if (resources[SOCResourceConstants.WOOD] < 0)
-        {
-            resources[SOCResourceConstants.WOOD] = 0;
-        }
-
-        resources[SOCResourceConstants.UNKNOWN] -= toReduce.getAmount(SOCResourceConstants.UNKNOWN);
-
-        if (resources[SOCResourceConstants.UNKNOWN] < 0)
+        resources[SOCResourceConstants.UNKNOWN] -= amountSubtractUnknown;
+        if ((resources[SOCResourceConstants.UNKNOWN] < 0) && ! asUnknown)
         {
             resources[SOCResourceConstants.UNKNOWN] = 0;
         }
+    }
+
+    /**
+     * Subtract a certain amount of resources and return what was subtracted.
+     * @param subAmount  Amount to subtract: 0 &lt;= {@code subAmount} &lt;= {@link #getTotal()}.
+     * @return  The resources actually subtracted, or an empty set if {@code subAmount} == 0; never {@code null}
+     * @throws IllegalArgumentException  if {@code subAmount} &lt; 0 or &gt; {@link #getTotal()}
+     * @see #subtract(ResourceSet)
+     * @see #subtract(int, int)
+     * @since 2.6.00
+     */
+    public SOCResourceSet subtract(int subAmount)
+        throws IllegalArgumentException
+    {
+        if (subAmount < 0)
+            throw new IllegalArgumentException("< 0");
+        {
+            final int T = getTotal();
+            if (subAmount > T)
+                throw new IllegalArgumentException("subAmount " + subAmount + " > total " + T);
+        }
+
+        final SOCResourceSet subbed = new SOCResourceSet();
+
+        int resAmt = resources[SOCResourceConstants.UNKNOWN];
+        if ((subAmount > 0) && (resAmt > 0))
+        {
+            final int nSub = (subAmount < resAmt) ? subAmount : resAmt;
+            resources[SOCResourceConstants.UNKNOWN] -= nSub;
+            subbed.add(nSub, SOCResourceConstants.UNKNOWN);
+            subAmount -= nSub;
+        }
+
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+        {
+            if (subAmount == 0)
+                break;
+            resAmt = resources[rtype];
+            if (resAmt == 0)
+                continue;
+
+            final int nSub = (subAmount < resAmt) ? subAmount : resAmt;
+            resources[rtype] -= nSub;
+            subbed.add(nSub, rtype);
+            subAmount -= nSub;
+        }
+
+        return subbed;
     }
 
     /**
@@ -394,7 +488,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * <code>
      *    int numTotal = resSet.getTotal();
      *    resSet.clear();
-     *    resSet.setAmount (SOCResourceConstants.UNKNOWN, numTotal);
+     *    resSet.setAmount(SOCResourceConstants.UNKNOWN, numTotal);
      * </code>
      * @since 1.1.00
      */
@@ -407,7 +501,8 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * Are set A's resources each greater than or equal to set B's?
-     * @return true if each resource type in set A is >= each resource type in set B
+     * @return true if each resource type in set A is >= each resource type in set B.
+     *      True if {@code b} is null or empty.
      *
      * @param a   set A, cannot be {@code null}
      * @param b   set B, can be {@code null} for an empty resource set
@@ -540,7 +635,7 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      * @param other resource set to test against, of length 5 (clay, ore, sheep, wheat, wood) or 6 (with unknown),
      *    or {@code null} for an empty resource subset.
      * @return true if this set contains at least the resource amounts in {@code other}
-     *     for each of its resource types
+     *     for each of its resource types. True if {@code other} is null or empty.
      * @throws IllegalArgumentException if a non-null {@code other}'s length is not 5 or 6
      */
     public boolean contains(final int[] other)
@@ -609,9 +704,13 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
      *
      * @param set  the set to copy from
      */
-    public void setAmounts(SOCResourceSet set)
+    public void setAmounts(ResourceSet set)
     {
-        System.arraycopy(set.resources, 0, resources, 0, resources.length);
+        if (set instanceof SOCResourceSet)
+            System.arraycopy(((SOCResourceSet) set).resources, 0, resources, 0, resources.length);
+        else
+            for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.UNKNOWN; ++rtype)
+                resources[rtype] = set.getAmount(rtype);
     }
 
 }

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,8 +20,11 @@
 package soc.server;
 
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
 import soc.game.SOCPlayer;
+import soc.message.SOCDeclinePlayerRequest;
+import soc.message.SOCGameServerText;
 import soc.message.SOCGameState;
 import soc.message.SOCMessageForGame;
 import soc.message.SOCRollDicePrompt;
@@ -46,7 +49,7 @@ import soc.util.SOCGameList;
  *      See {@link SOCGame#resetAsCopy()} and {@link SOCGameListAtServer#resetBoard(String)}.
  *</UL>
  *
- * Interface and interaction:
+ *<H3>Interface and interaction:</H3>
  *<UL>
  * <LI> The {@link SOCServer} manages the "boundary" of the game: The list of all games;
  *      joining and leaving players and bots; creating and destroying games; game start time and the board reset framework.
@@ -109,6 +112,7 @@ public abstract class GameHandler
      * When creating a new game at the server, check its options and
      * if any of them require any optional client features, calculate
      * the required features and call {@link SOCGame#setClientFeaturesRequired(soc.util.SOCFeatureSet)}.
+     * Calls {@link SOCGameOption#hasValue()} on each such option to see if it's actually being used.
      * @param ga  Game to check features; not {@code null}
      */
     public abstract void calcGameClientFeaturesRequired(SOCGame ga);
@@ -199,6 +203,36 @@ public abstract class GameHandler
     public abstract void startGame(SOCGame ga);
 
     /**
+     * Decline a player client's request or requested action.
+     * Sends {@link SOCDeclinePlayerRequest} to clients v2.5 and newer ({@link SOCDeclinePlayerRequest#MIN_VERSION}),
+     * {@link SOCGameServerText} to older clients.
+     *
+     * @param playerConn  Client to send decline to; not null
+     * @param game {@code playerConn}'s game; not null
+     * @param withGameState  If true, send the optional gameState field or {@link SOCGameState} message.
+     *     Ignored for {@link SOCDeclinePlayerRequest#REASON_NOT_YOUR_TURN}, as if was false.
+     * @param eventPN  {@code playerConn}'s player number if this is a game event which should be recorded;
+     *     can be {@link SOCServer#PN_REPLY_TO_UNDETERMINED} or {@link SOCServer#PN_OBSERVER}.
+     *     Otherwise {@link SOCServer#PN_NON_EVENT}.
+     * @param reasonCode  Reason to decline the request:
+     *     {@link SOCDeclinePlayerRequest#REASON_NOT_NOW}, {@link SOCDeclinePlayerRequest#REASON_NOT_YOUR_TURN}, etc
+     * @param detailValue1  Optional detail, may be used by some {@code reasonCode}s, or 0
+     * @param detailValue2  Optional detail, may be used by some {@code reasonCode}s, or 0
+     * @param reasonTextKey  Optional reason text key to send to older clients,
+     *     like {@code "action.build.cannot.there.road"} or {@code "action.build.cannot.now.road"},
+     *     or {@code null} to send text based on {@code reasonCode}
+     * @param reasonTextParams  Any parameters to use with {@code reasonTextKey}
+     *     when calling {@link SOCServer#messageToPlayerKeyedSpecial(Connection, SOCGame, int, String, Object...)}
+     * @throws IllegalArgumentException if {@code playerConn} or {@code game} null
+     * @since 2.5.00
+     */
+    public abstract void sendDecline
+        (final Connection playerConn, final SOCGame game, final boolean withGameState, final int eventPN,
+         final int reasonCode, final int detailValue1, final int detailValue2,
+         final String reasonTextKey, final Object... reasonTextParams)
+        throws IllegalArgumentException;
+
+    /**
      * Announces this player's new trade offer to their game,
      * or send that info to one client that's joining the game now.
      * If player isn't currently offering, does nothing.
@@ -230,6 +264,43 @@ public abstract class GameHandler
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      */
     public abstract void endTurnIfInactive(final SOCGame ga, final long currentTimeMillis);
+
+    /**
+     * A bot is unresponsive, or a human player has left the game.
+     * End this player's turn cleanly, or force-end if needed,
+     * or force a discard or free-resource pick if not current player.
+     *<P>
+     * Can be called for a player still in the game, or for a player
+     * who has left ({@link SOCGame#removePlayer(String, boolean)} has been called).
+     * Can be called for a player who isn't current player; in that case
+     * it takes action if the game was waiting for the player (picking random
+     * resources for discard or gold-hex picks) but won't end the current turn.
+     *<P>
+     * If they were placing an initial road, also cancels that road's
+     * initial settlement.
+     *<P>
+     * <b>Locks:</b> Must not have ga.takeMonitor() when calling this method.
+     * May or may not have <tt>gameList.takeMonitorForGame(ga)</tt>;
+     * use <tt>hasMonitorFromGameList</tt> to indicate.
+     *<P>
+     * Before v2.5.00, this method was only in {@link SOCGameHandler}.
+     *
+     * @param ga   The game to end turn if called for current player, or to otherwise stop waiting for a player
+     * @param plNumber  player.getNumber; may or may not be current player
+     * @param plName    player.getName
+     * @param plConn    player's client connection
+     * @param hasMonitorFromGameList  if false, have not yet called
+     *          {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(ga)};
+     *          if false, this method will take this monitor at its start,
+     *          and release it before returning.
+     * @return true if the turn was ended and game is still active;
+     *          false if we find that all players have left and
+     *          the gamestate has been changed here to {@link SOCGame#OVER OVER}.
+     * @since 2.5.00
+     */
+    public abstract boolean endGameTurnOrForce
+        (SOCGame ga, final int plNumber, final String plName, Connection plConn,
+         final boolean hasMonitorFromGameList);
 
     /**
      * This member (player or observer) has left the game.

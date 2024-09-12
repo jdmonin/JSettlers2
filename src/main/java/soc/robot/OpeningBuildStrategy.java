@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
- * Portions of this file copyright (C) 2009-2013,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2013,2017-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -53,7 +53,7 @@ public class OpeningBuildStrategy {
 
     /**
      * Our {@link SOCBuildingSpeedEstimate} factory, from {@link #ourPlayerData}'s brain passed into constructor.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     protected final SOCBuildingSpeedEstimateFactory bseFactory;
 
@@ -106,19 +106,35 @@ public class OpeningBuildStrategy {
     }
 
     /**
-     * Get the node coordinate of a future settlement
-     * 2 nodes away from our most recent settlement node.
-     * Valid after calling {@link #planInitRoad()}.
-     * @since 2.0.00
+     * Callback from {@link SOCRobotBrain#cancelWrongPiecePlacement(soc.message.SOCCancelBuildRequest)}
+     * In case this OBS wants to take any other action to prevent re-sending the cancelled piece.
+     * Game state will still be the state in which this piece's placement was attempted:
+     * {@link SOCGame#START1A}, {@link SOCGame#START2B}, etc.
+     * Any overriders should call {@code super.cancelWrongPiecePlacement(..)}.
+     *<P>
+     * In versions before 2.5.00, if an initial road was cancelled, bot would call
+     * {@link SOCPlayer#clearPotentialSettlement(int) ourPlayerData.clearPotentialSettlement(nodeCoord)}
+     * on the future-planned settlement node we were aiming for,
+     * stored in this OBS's {@code plannedRoadDestinationNode} field.
+     * That action might not apply to every third-party bot's OBS.
+     *
+     * @param cancelPiece  Playing piece type and coordinate which were rejected by server; not null
+     * @since 2.5.00
      */
-    public int getPlannedInitRoadDestinationNode()
+    public void cancelWrongPiecePlacement(final SOCPlayingPiece cancelPiece)
     {
-        return plannedRoadDestinationNode;
+        if (cancelPiece instanceof SOCRoutePiece)
+        {
+            // needed for planInitRoad() calculations
+            if (plannedRoadDestinationNode > 0)
+                ourPlayerData.clearPotentialSettlement(plannedRoadDestinationNode);
+        }
     }
 
     /**
-     * figure out where to place the two settlements
+     * Figure out where to place the first settlement.
      * @return {@link #firstSettlement}, or 0 if no potential settlements for our player
+     * @see #planSecondSettlement()
      */
     public int planInitialSettlements()
     {
@@ -402,6 +418,7 @@ public class OpeningBuildStrategy {
     /**
      * figure out where to place the second settlement
      * @return {@link #secondSettlement}, or -1 if none
+     * @see #planInitialSettlements()
      */
     public int planSecondSettlement()
     {
@@ -547,18 +564,17 @@ public class OpeningBuildStrategy {
     }
 
     /**
-     * Plan and place a road attached to our most recently placed initial settlement,
+     * Plan and place a road attached to our most recently placed initial settlement
+     * {@link SOCPlayer#getLastSettlementCoord()},
      * in game states {@link SOCGame#START1B START1B}, {@link SOCGame#START2B START2B}, {@link SOCGame#START3B START3B}.
-     * Also sets {@link #getPlannedInitRoadDestinationNode()}.
      *<P>
      * Road choice is based on the best nearby potential settlements, and doesn't
      * directly check {@link SOCPlayer#isPotentialRoad(int) ourPlayerData.isPotentialRoad(edgeCoord)}.
-     * If the server rejects our road choice, then {@link SOCRobotBrain#cancelWrongPiecePlacementLocal(SOCPlayingPiece)}
-     * will need to know which settlement node we were aiming for,
-     * and call {@link SOCPlayer#clearPotentialSettlement(int) ourPlayerData.clearPotentialSettlement(nodeCoord)}.
-     * The {@link SOCRobotBrain#lastStartingRoadTowardsNode} field holds this coordinate.
+     *<P>
+     * If server rejects our road choice, bot will call {@link #cancelWrongPiecePlacement(SOCPlayingPiece)}
+     * in case the OBS wants to take action to prevent re-choosing the same wrong choice again.
      *
-     * @return road edge adjacent to initial settlement node
+     * @return road edge adjacent to initial settlement node {@link SOCPlayer#getLastSettlementCoord()}
      */
     public int planInitRoad()
     {
@@ -762,7 +778,7 @@ public class OpeningBuildStrategy {
         /**
          * check if this is on a 3:1 ports, only if we don't have one
          */
-        if (!ourPlayerData.getPortFlag(SOCBoard.MISC_PORT))
+        if (! ourPlayerData.getPortFlag(SOCBoard.MISC_PORT))
         {
             List<Integer> miscPortNodes = game.getBoard().getPortCoordinates(SOCBoard.MISC_PORT);
             bestSpotInANodeSet(nodes, miscPortNodes, miscPortWeight);
@@ -780,7 +796,7 @@ public class OpeningBuildStrategy {
              * if the chances of rolling a number on the resource is better than 1/3,
              * then it's worth looking at the port
              */
-            if ((resourceEstis[portType] > 33) && (!ourPlayerData.getPortFlag(portType)))
+            if ((resourceEstis[portType] > 33) && (! ourPlayerData.getPortFlag(portType)))
             {
                 List<Integer> portNodes = game.getBoard().getPortCoordinates(portType);
                 int estimatedPortWeight = (resourceEstis[portType] * portWeight) / 56;

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019,2021-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,12 @@
 package soc.util;
 
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Common helper functions for data and conversions.
@@ -33,19 +39,22 @@ import java.util.Collection;
 public abstract class DataUtils
 {
     /**
-     * For use in toString: Append int array contents to stringbuffer,
+     * For use in toString, append int array contents to a StringBuilder,
      * formatted as "{ 1 2 3 4 5 }".
      * @param ia  int array to append. 0 length is allowed, null is not.
-     * @param sb  StringBuffer to which <tt>ia</tt> will be appended, as "{ 1 2 3 4 5 }"
-     * @param useHex  If true, append <tt>ia</tt> as hexidecimal strings.
+     * @param sb  StringBuilder to which <tt>ia</tt> will be appended, as "{ 1 2 3 4 5 }"
+     * @param useHex  If true, append <tt>ia</tt> as hexadecimal strings.
      *            Uses {@link Integer#toHexString(int)} after checking the sign bit.
      *            (Added in 2.0.00)
      * @throws NullPointerException if <tt>ia</tt> or <tt>sb</tt> is null
      * @since 1.1.09
      */
-    public static final void arrayIntoStringBuf(final int[] ia, StringBuffer sb, final boolean useHex)
+    public static final void arrayIntoStringBuilder(final int[] ia, StringBuilder sb, final boolean useHex)
         throws NullPointerException
     {
+        if (ia == null)
+            throw new NullPointerException("ia");
+
         sb.append("{");
         for (int i = 0; i < ia.length; ++i)
         {
@@ -95,6 +104,70 @@ public abstract class DataUtils
 
             sb.append(s);
         }
+    }
+
+    /**
+     * Append map's contents to a StringBuilder, formatted by default as {@code "K1: V1; K2: v2"}.
+     * Will be sorted here by key unless {@code map} is already a {@link TreeMap}.
+     * Separators can be changed. Appends null as {@code "(null)"}, empty map as {@code "(empty)"}.
+     *
+     * @param map  Map to append.  Can be empty or {@code null}.
+     * @param sb  StringBuilder to which {@code map} will be appended; not {@code null}
+     * @param kvSeparator Separator to use between each key and its value, or {@code null} to use default {@code ": "}
+     * @param entrySeparator Separator to use between items, or {@code null} to use default {@code ", "}
+     * @throws NullPointerException if {@code sb} is null
+     * @since 2.6.00
+     */
+    public static final void mapIntoStringBuilder
+        (final Map<?, ?> map, final StringBuilder sb, String kvSeparator, String entrySeparator)
+        throws NullPointerException
+    {
+        if (map == null)
+        {
+            sb.append("(null)");
+            return;
+        }
+        else if (map.isEmpty())
+        {
+            sb.append("(empty)");
+            return;
+        }
+
+        if (kvSeparator == null)
+            kvSeparator = ": ";
+        if (entrySeparator == null)
+            entrySeparator = ", ";
+
+        final Set<?> sortedKeys = (map instanceof TreeMap) ? map.keySet() : new TreeSet<>(map.keySet());
+        boolean any = false;
+        for (Object k : sortedKeys)
+        {
+            if (any)
+                sb.append(entrySeparator);
+            else
+                any = true;
+
+            sb.append(k).append(kvSeparator).append(map.get(k));
+        }
+    }
+
+    /**
+     * Convert a list of boxed Integers to a primitive int array.
+     * @param li  List to convert, or {@code null}
+     * @return The list as an array, or {@code null} if {@code li} is {@code null}
+     * @since 2.5.00
+     */
+    public static final int[] intListToPrimitiveArray(final List<Integer> li)
+    {
+        if (li == null)
+            return null;
+
+        int[] arr = new int[li.size()];
+        Iterator<Integer> iterator = li.iterator();
+        for (int i = 0; i < arr.length; ++i)
+            arr[i] = iterator.next().intValue();
+
+        return arr;
     }
 
 }

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2024 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -81,6 +81,7 @@ import soc.message.SOCChannelTextMsg;
 import soc.message.SOCGameOptionGetDefaults;
 import soc.message.SOCGameOptionGetInfos;
 import soc.message.SOCGameOptionInfo;
+import soc.message.SOCGameStats;
 import soc.message.SOCJoinChannel;
 import soc.message.SOCJoinGame;
 import soc.message.SOCLocalizedStrings;
@@ -106,6 +107,11 @@ import soc.util.Version;
  *</UL>
  * Individual games are shown using {@link SOCPlayerInterface}
  * and channels use {@link ChannelFrame}.
+ *<P>
+ * Should be added directly to a {@link JFrame} or other {@link Frame}, not a subcontainer.
+ *<P>
+ * Also holds some GUI utility methods like {@link #checkDisplayScaleFactor(Component)}
+ * and {@link #isOSColorHighContrast()}.
  *<P>
  * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
  * Also converted from AWT to Swing in v2.0.00.
@@ -184,7 +190,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
     /** Connect-or-practice panel (if jar launch), in cardlayout.
      * Panel field is {@link #connectOrPracticePane}.
-     * Available if {@link #hasConnectOrPractice}.
+     * Shown at startup if {@link #hasConnectOrPractice}.
      * @since 1.1.00
      */
     private static final String CONNECT_OR_PRACTICE_PANEL = "connOrPractice";
@@ -316,12 +322,12 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     protected boolean hasJoinedServer;
 
     /**
-     * If true, we'll give the user a choice to
+     * If true, at startup we'll give the user a choice to
      * connect to a server, start a local server,
      * or a local practice game.
      * Used for when we're started from a jar, or
      * from the command line with no arguments.
-     * Uses {@link SOCConnectOrPracticePanel}.
+     * Uses {@link #connectOrPracticePane}.
      *
      * @see #cardLayout
      * @since 1.1.00
@@ -329,7 +335,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     protected final boolean hasConnectOrPractice;
 
     /**
-     * If applicable, is set up in {@link #initVisualElements()}.
+     * Is set up in {@link #initVisualElements()}.
      * Key for {@link #cardLayout} is {@link #CONNECT_OR_PRACTICE_PANEL}.
      * @see #hasConnectOrPractice
      * @since 1.1.00
@@ -341,6 +347,13 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * @since 1.1.07
      */
     public NewGameOptionsFrame newGameOptsFrame = null;
+
+    /**
+     * Currently showing {@link NewGameOptionsFrame NGOF}s from user clicking "Game Info" button.
+     * Uses Hashtable for thread-safety, in case a non-UI thread might want to update info in such a window.
+     * @since 2.7.00
+     */
+    private final Hashtable<String, NewGameOptionsFrame> gameInfoFrames = new Hashtable<>();
 
     // MainPanel GUI elements:
 
@@ -452,7 +465,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     protected JButton pg;
 
     /**
-     * "Game Info" button, shows a game's {@link SOCGameOption}s.
+     * "Game Info" button, shows a game's {@link SOCGameOption}s
+     * and (if server is new enough) overall status and duration.
      *<P>
      * Renamed in 2.0.00 to 'gi'; previously 'so' Show Options.
      * @since 1.1.07
@@ -982,12 +996,12 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         cardLayout = new CardLayout();
         setLayout(cardLayout);
 
+        connectOrPracticePane = new SOCConnectOrPracticePanel(this);
         if (hasConnectOrPractice)
-        {
-            connectOrPracticePane = new SOCConnectOrPracticePanel(this);
             add (connectOrPracticePane, CONNECT_OR_PRACTICE_PANEL);  // shown first
-        }
         add(messagePane, MESSAGE_PANEL); // shown first unless cpPane
+        if (! hasConnectOrPractice)
+            add (connectOrPracticePane, CONNECT_OR_PRACTICE_PANEL);
         add(mainPane, MAIN_PANEL);
 
         messageLabel.setText(strings.get("pcli.message.connecting.serv"));  // "Connecting to server..."
@@ -1276,8 +1290,9 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * Prepare to connect, give feedback by showing {@link #MESSAGE_PANEL}.
      * {@inheritDoc}
      */
-    public void connect(String cpass, String cuser)
+    public void connect(String chost, int cport, String cpass, String cuser)
     {
+        connectOrPracticePane.setServerHostPort(chost, cport);
         nick.setEditable(true);  // in case of reconnect. Will disable after starting or joining a game.
         pass.setEditable(true);
         pass.setText(cpass);
@@ -1496,10 +1511,12 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             // This game is either from the tcp server, or practice server,
             // both servers' games are in the same GUI list.
 
+            boolean isPractice = false;
             SOCGameOptionSet opts = null;
 
             if ((net.practiceServer != null) && (net.practiceServer.getGame(gm) != null))
             {
+                isPractice = true;
                 opts = net.practiceServer.getGameOptions(gm);  // won't ever need to parse from string on practice server
             }
             else if (client.serverGames != null)
@@ -1531,8 +1548,12 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             }
 
             // don't overwrite newGameOptsFrame field; this popup is to show an existing game.
-            NewGameOptionsFrame.createAndShow
-                (playerInterfaces.get(gm), this, gm, opts, false, true);
+            final NewGameOptionsFrame ngof = gameInfoFrames.get(gm);
+            if (ngof != null)
+                ngof.toFront();
+            else
+                showGameOptions(gm, opts, isPractice);
+
             return true;
         }
 
@@ -1892,8 +1913,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             // All done, present the options window frame
             if ((opts.newGameOpts == null) && (opts.knownOpts != null))
                 opts.newGameOpts = new SOCGameOptionSet(opts.knownOpts, true);
-            newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (null, this, null, opts.newGameOpts, forPracticeServer, false);
+            newGameOptsFrame = showGameOptions(null, opts.newGameOpts, forPracticeServer);
 
             return;  // <--- Early return: Show options to user ----
         }
@@ -1963,6 +1983,53 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
         // Once options are received, handlers will
         // create and show NewGameOptionsFrame.
+    }
+
+    /**
+     * Create a blank "New Game" {@link NewGameOptionsFrame} to make a new game, or
+     * create a Game Info NGOF for an existing game and add it to {@link #gameInfoFrames}.
+     * Calls {@link NewGameOptionsFrame#createAndShow(SOCPlayerInterface, MainDisplay, String, SOCGameOptionSet, boolean, boolean)}.
+     * When called for an existing game, asks server for timing info/status by sending {@link SOCGameStats}
+     * if we've auth'd and server is new enough.
+     *
+     * @param gaName  Name of existing game, or {@code null} for a new game
+     * @param gameOpts  Game's options, or {@code null} if server too old to support them
+     * @param forPracticeServer  True if game is on {@link ClientNetwork#practiceServer}, not a TCP server
+     * @return the new NGOF
+     * @since 2.7.00
+     */
+    private NewGameOptionsFrame showGameOptions
+        (final String gaName, final SOCGameOptionSet gameOpts, final boolean forPracticeServer)
+    {
+        final boolean isNew = (gaName == null);
+        final NewGameOptionsFrame ngof = NewGameOptionsFrame.createAndShow
+            (isNew ? null : playerInterfaces.get(gaName), this, gaName, gameOpts, forPracticeServer, ! isNew);
+        if (isNew)
+            return ngof; // <--- Early return: No existing game ---
+
+        gameInfoFrames.put(gaName, ngof);
+
+        if ((! forPracticeServer)
+            && (client.sVersion >= SOCGameStats.VERSION_FOR_TYPE_TIMING)
+            && ! nick.getText().trim().isEmpty())
+        {
+            if (! client.gotPassword)
+            {
+                if (! readValidNicknameAndPassword())
+                    return ngof;  // <--- Early return: Can't auth, so can't send SOCGameStats ---
+
+                net.putNet(new SOCAuthRequest
+                    (SOCAuthRequest.ROLE_GAME_PLAYER, client.getNickname(false), client.password,
+                     SOCAuthRequest.SCHEME_CLIENT_PLAINTEXT, net.getHost()).toCmd());
+
+                // ideally we'd wait for auth success reply before sending SOCGameStats,
+                // but this is already a corner case
+            }
+
+            net.putNet(new SOCGameStats(gaName, SOCGameStats.TYPE_TIMING, null).toCmd());
+        }
+
+        return ngof;
     }
 
     /**
@@ -2074,19 +2141,22 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * After network trouble, show the error panel ({@link #MESSAGE_PANEL})
      * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
      *<P>
-     * If {@link #hasConnectOrPractice we have the startup panel} (started as JAR client
-     * app, not applet) with buttons to connect to a server or practice, and
-     * {@code canPractice} is true, shows that panel instead of the simpler
-     * practice-only message panel.
+     * If {@code canPractice} is true, shows the {@code err} message using the startup panel with buttons to
+     * connect to a server or practice, instead of the simpler practice-only message panel.
      *
-     * @param err  Error message to show
+     * @param err  Error message to show; not {@code null}. Can be multi-line by including {@code \n}.
      * @param canPractice  In current state of client, can we start a practice game?
+     * @throws NullPointerException if {@code err} is {@code null}
      * @since 1.1.16
      */
-    public void showErrorPanel(final String err, final boolean canPractice)
+    public void showErrorPanel(String err, final boolean canPractice)
+        throws NullPointerException
     {
         // In case was WAIT_CURSOR while connecting
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+
+        if (err.indexOf('\n') != -1)
+            err = DataOutputUtils.newlinesToHTML(err);
 
         if (canPractice)
         {
@@ -2102,24 +2172,21 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             pgm.setVisible(false);
         }
 
-        if (hasConnectOrPractice && canPractice)
+        if (canPractice)
         {
-            // If we have the startup panel with buttons to connect to a server or practice,
-            // prep to show that by un-setting read-only fields we'll need again after connect.
+            // prep to show startup panel by un-setting read-only fields we'll need again after connect.
             nick.setEditable(true);
             pass.setText("");
             pass.setEditable(true);
 
             cardLayout.show(this, CONNECT_OR_PRACTICE_PANEL);
-            validate();
-            connectOrPracticePane.clickConnCancel();
-            connectOrPracticePane.setTopText(err);
-            connectOrPracticePane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            connectOrPracticePane.lostServerConnection(err);
+            revalidate();
         }
         else
         {
             cardLayout.show(this, MESSAGE_PANEL);
-            validate();
+            revalidate();
             if (canPractice)
             {
                 if (! hasAnyActiveGame(true))
@@ -2373,10 +2440,23 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         }
     }
 
+    public void gameTimingStatsReceived
+        (final String gameName, final long creationTimeSeconds,
+         final boolean isStarted, final int durationFinishedSeconds)
+    {
+        final NewGameOptionsFrame ngof = gameInfoFrames.get(gameName);
+        if (ngof != null)
+            ngof.gameTimingStatsReceived(creationTimeSeconds, isStarted, durationFinishedSeconds);
+    }
+
     public void dialogClosed(final NewGameOptionsFrame ngof)
     {
         if (ngof == newGameOptsFrame)
             newGameOptsFrame = null;
+
+        final String gaName = ngof.getExistingGameName();
+        if (gaName != null)
+            gameInfoFrames.remove(gaName);
     }
 
     public void leaveGame(SOCGame game)
@@ -2466,8 +2546,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
         if ((opts.newGameOpts == null) && (opts.knownOpts != null))
             opts.newGameOpts = new SOCGameOptionSet(opts.knownOpts, true);
-        newGameOptsFrame = NewGameOptionsFrame.createAndShow
-            (null, SwingMainDisplay.this, (String) null, opts.newGameOpts, isPractice, false);
+        newGameOptsFrame = showGameOptions(null, opts.newGameOpts, isPractice);
     }
 
     public void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow)
@@ -2494,9 +2573,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 final SOCGameOptionSet gameOpts = client.serverGames.parseGameOptions(gameInfoWaiting);
                 if (! isPractice)
                     client.checkGameoptsForUnknownScenario(gameOpts);
-                newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (playerInterfaces.get(gameInfoWaiting), SwingMainDisplay.this,
-                     gameInfoWaiting, gameOpts, isPractice, true);
+                showGameOptions(gameInfoWaiting, gameOpts, isPractice);
             }
             else if (newGameWaiting)
             {
@@ -2506,8 +2583,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                     if ((opts.newGameOpts == null) && (opts.knownOpts != null))
                         opts.newGameOpts = new SOCGameOptionSet(opts.knownOpts, true);
                 }
-                newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (null, SwingMainDisplay.this, (String) null, opts.newGameOpts, isPractice, false);
+                newGameOptsFrame = showGameOptions(null, opts.newGameOpts, isPractice);
             }
         }
     }
@@ -2776,7 +2852,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         cardLayout.show(this, MESSAGE_PANEL);
 
         // Connect to it
-        net.connect("localhost", tport);  // I18N: no need to localize this hostname
+        net.connect(null, tport);
 
         // Ensure we can't "connect" to another, too
         if (connectOrPracticePane != null)
@@ -2962,7 +3038,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             pcli.gameOptsTask = null;  // Clear reference to this soon-to-expire obj
             srvOpts.noMoreOptions(false);
             pcli.getClient().getMessageHandler().handleGAMEOPTIONINFO
-                (new SOCGameOptionInfo(new SOCGameOption("-"), Version.versionNumber(), null), false);
+                (new SOCGameOptionInfo(new SOCGameOption("-", null), Version.versionNumber(), null), false);
         }
 
     }  // GameOptionsTimeoutTask

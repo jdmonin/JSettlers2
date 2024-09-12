@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -71,6 +71,10 @@ import soc.message.SOCMessage;
  * in {@code server/strings/toClient_*.properties} to be sent to clients if needed.
  * At the client, scenario's text can be localized with {@link #setDesc(String, String)}.
  * See unit test {@link soctest.TestI18NGameoptScenStrings}.
+ *<P>
+ * To help with localizations, names can optionally start with a numeric "sort ranking".
+ * If found, that prefix is parsed and removed in v2.6.00 and newer.
+ * See {@link SOCVersionedItem#setDesc(String)} for details.
  *<P>
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -219,11 +223,11 @@ public class SOCScenario
              "Pirate Islands and Fortresses",
              "A pirate fleet patrols, attacking to steal resources from weak players with adjacent settlements/cities until "
              + "the player builds a strong fleet of Warships. Build ships directly to the "
-             + "Fortress of your color, which the pirates have captured from you. To win the game, you must reach the "
-             + "victory point goal and defeat the Fortress 3 times using warships. "
+             + "Fortress of your color, which the pirates have captured from you. "
              + "Ship routes can't branch out, only follow dotted lines to the Fortress. "
              + "Strengthen your fleet by playing Warship development cards to upgrade your ships. "
              + "When the pirate fleet attacks, you win if you have more Warships than the pirate fleet strength (randomly 1-6). "
+             + "To win the game, you must reach the victory point goal and defeat the Fortress 3 times using warships. "
              + "No robber or largest army. When 7 is rolled, any pirate fleet attack happens before the usual discards.",
              "_SC_PIRI=t,SBL=t,VP=t10,_SC_0RVP=t"));  // win condition: 10 VP _and_ defeat a pirate fortress
 
@@ -248,16 +252,19 @@ public class SOCScenario
                 // The "all 4 levels" win condition is also stored in SOCSpecialItem.SC_WOND_WIN_LEVEL.
 
         // Uncomment to test scenario sync/negotiation between server and client versions.
-        // Update the version numbers to current and current + 1.
+        // Update the "2000" and "2001" version numbers here to current and current + 1.
         // Assumptions for testing:
-        //   - Client and server are both current version (if current is v2.0.00, use 2000 here)
-        //   - For testing, client or server version has been temporarily set to current + 1 (2001)
+        //   - Client and server are both current version (example: if current is v2.4.00, use 2400 here)
+        //   - For testing, client or server version has been temporarily set to current + 1 (2401)
         // i18n/localization test reminder: resources/strings/server/toClient_*.properties:
         //   gamescen.SC_TSTNC.n = test-localizedname SC_TSTNC ...
         /*
         allSc.put("SC_TSTNC", new SOCScenario
             ("SC_TSTNC", 2000, 2001,
             "New: v+1 back-compat", null, "PLB=t,VP=t11,NT=y"));
+        allSc.put("SC_TSTNA", new SOCScenario
+            ("SC_TSTNA", 2000, 2001,
+            "New: v+1 another back-compat", null, "PLB=t,VP=t11,NT=y"));
         allSc.put("SC_TSTNO", new SOCScenario
             ("SC_TSTNO", 2001, 2001,
             "New: v+1 only", null, "PLB=t,VP=t15"));
@@ -307,6 +314,8 @@ public class SOCScenario
     /**
      * Scenario key {@code SC_TTD} for Through The Desert.
      * No main option or special rules, only a board layout and SVP.
+     * Awards 2 SVP for placing past the desert, but no SVP for placing at
+     * any node in the desert's interior (not adjacent to a non-desert Land Area).
      */
     public static final String K_SC_TTD = "SC_TTD";
 
@@ -420,6 +429,8 @@ public class SOCScenario
      * Scenario's {@link SOCGameOption}s, as a formatted string
      * from {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
      * Never {@code null} or empty; {@code "-"} if scenario has no game options.
+     * Typical scenarios are expected to have options because game code should check the
+     * game's option values, not its scenario.
      */
     public final String scOpts;
 
@@ -461,14 +472,21 @@ public class SOCScenario
      * @param desc    Descriptive brief text, to appear in the scenarios dialog.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     *            <BR>
+     *             To help with localizations, can optionally start with a numeric "sort ranking".
+     *             If found, that prefix is parsed and removed in v2.6.00 and newer.
+     *             Older clients will keep that prefix visible and use it to help sort alphabetically.
+     *             See {@link SOCVersionedItem#setDesc(String)} for details.
      * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
      *             from {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
      *             Never "" or {@code null}.
+     *             Would be {@code "-"} for a scenario with no game options, but scenarios are expected to have
+     *             options because game code should check the game's option values, not its scenario.
      * @throws IllegalArgumentException if key length is > 8 or not alphanumeric,
      *        or if opts is {@code null} or the empty string "",
-     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
-     *        or fail their described requirements,
+     *        or if desc or longDesc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     *        or fail their described requirements (including optional "sort ranking" prefix format),
      *        or if minVers or lastModVers is under 2000 but not -1
      */
     public SOCScenario
@@ -481,29 +499,11 @@ public class SOCScenario
 
     /**
      * Create a new game scenario - common constructor.
+     * See {@link #SOCScenario(String, int, int, String, String, String)} for most parameters' descriptions.
      * @param isKnown True if scenario is known here ({@link SOCVersionedItem#isKnown isKnown} true)
-     * @param key     Alphanumeric uppercase code for this scenario;
-     *                see {@link SOCVersionedItem#isAlphanumericUpcaseAscii(String)} for format.
-     *                Keys can be up to 8 characters long.
-     * @param minVers Minimum client version supporting this scenario, or -1.
-     *                Same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
-     *                If not -1, {@code minVers} must be at least 2000 ({@link #VERSION_FOR_SCENARIOS}).
-     *                To calculate the minimum version of a set of game options which might include a scenario,
-     *                use {@link SOCVersionedItem#itemsMinimumVersion(Map) SOCVersionedItem.itemsMinimumVersion(opts)}.
-     *                That calculation won't be done automatically by this constructor.
-     * @param lastModVers Last-modified version for this scenario, or version which added it.
-     *             This is the last change to the scenario itself as declared in {@link #getAllKnownScenarios()}:
-     *             Ignore changes to {@code opts} last-modified versions, because changed option info
-     *             is sent separately and automatically when the client connects.
-     * @param desc Descriptive brief text, to appear in the scenarios dialog.
-     *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
-     *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
-     * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
-     *             from {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}.
-     *             Never "" or {@code null}.
      * @throws IllegalArgumentException  if key is not alphanumeric or length is > 8,
-     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or if desc or longDesc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     *        or fail their described requirements (including optional "sort ranking" prefix format),
      *        or if opts is {@code null} or the empty string "",
      *        or if minVers or lastModVers is under 2000 but not -1
      */
@@ -866,11 +866,15 @@ public class SOCScenario
      * @param desc    Descriptive brief text, to appear in the scenarios dialog. Not null.
      *     Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *     and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     *    <BR>
+     *     To help with localizations, can optionally start with a numeric "sort ranking".
+     *     If found, that prefix is parsed and removed in v2.6.00 and newer.
+     *     Older clients will keep that prefix visible and use it to help sort alphabetically.
+     *     See {@link SOCVersionedItem#setDesc(String)} for details.
      * @param longDesc  Longer descriptive text, or null; see {@link #getLongDesc()} for requirements.
      *     If null, keeps scenario's current (probably hardcoded unlocalized) longDesc.
      * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or desc or longDesc fails {@link SOCMessage#isSingleLineAndSafe(String, boolean)}
-     * @see SOCVersionedItem#setDesc(String)
      */
     public void setDesc(final String desc, final String longDesc)
         throws IllegalArgumentException

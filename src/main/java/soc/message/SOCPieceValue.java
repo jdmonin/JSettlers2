@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2014,2017-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -100,16 +100,36 @@ public class SOCPieceValue extends SOCMessageTemplate4i
     public int getMinimumVersion() { return 2000; }
 
     /**
+     * Strip out the parameter/attribute names from {@link #toString()}'s format,
+     * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
+     * Converts {@code coord} to decimal from hexadecimal format.
+     * @param messageStrParams  Params part of a message string formatted by {@link #toString()}; not {@code null}
+     * @return  Message parameters without attribute names, or {@code null} if params are malformed
+     * @since 2.5.00
+     */
+    public static String stripAttribNames(String messageStrParams)
+    {
+        String s = SOCMessage.stripAttribNames(messageStrParams);
+        if (s == null)
+            return null;
+        String[] pieces = s.split(SOCMessage.sep2);
+        pieces[2] = Integer.toString(Integer.parseInt(pieces[2], 16));
+
+        return String.join(SOCMessage.sep2, pieces);
+    }
+
+    /**
      * Build a human-readable form of the message, with this class's field names
      * instead of generic names from {@link SOCMessageTemplate4i}.
-     * @return a human readable form of the message
-     * @since 2.4.50
+     * {@code coord} is hexadecimal like those in {@link SOCPutPiece}.
+     * @return a human-readable form of the message
+     * @since 2.5.00
      */
     @Override
     public String toString()
     {
         return "SOCPieceValue:game=" + game
-            + "|pieceType=" + p1 + "|coord=" + p2
+            + "|pieceType=" + p1 + "|coord=" + Integer.toHexString(p2)
             + "|pv1=" + p3 + "|pv2=" + p4;
     }
 

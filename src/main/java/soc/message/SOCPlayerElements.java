@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2014-2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2014-2015,2017-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@ package soc.message;
 import java.util.ArrayList;
 import java.util.List;
 
+import soc.game.ResourceSet;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.message.SOCPlayerElement.PEType;
@@ -32,6 +33,8 @@ import soc.message.SOCPlayerElement.PEType;
  *<P>
  * For a given player number and action type, contains multiple
  * pairs of (element type, amount).
+ *<P>
+ * Unlike {@link SOCPlayerElement}, has no "isNews" flag (client treats as if flagged false).
  *<P>
  * Defined in v1.1.09 but unused before v2.0.00, so {@link #getMinimumVersion()} returns 2000.
  *
@@ -140,7 +143,7 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
      * @throws NullPointerException if {@code rs} null
      * @since 2.0.00
      */
-    public SOCPlayerElements(String ga, int pn, int ac, final SOCResourceSet rs)
+    public SOCPlayerElements(String ga, int pn, int ac, final ResourceSet rs)
         throws NullPointerException
     {
         super(PLAYERELEMENTS, ga, null);
@@ -273,7 +276,7 @@ public class SOCPlayerElements extends SOCMessageTemplateMi
      * Handles elemNum=value pairs, undoes mapping of action constant integers -> strings ({@code "GAIN"} etc).
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters to finish parsing into a SOCMessage, or {@code null} if malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static List<String> stripAttribsToList(String messageStrParams)
     {

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2011,2013-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013-2021,2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -53,28 +53,48 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     /**
      * Constructor from a set of game names/objects; used at server side.
      *<P>
-     * Before v2.4.50 this was a static {@code toCmd(..)} method.
+     * Clients v2.7.00 or newer ({@link SOCGameOption#VERSION_FOR_UNKNOWN_WITH_DESCRIPTION})
+     * are sent {@link SOCGameOption#OTYPE_UNKNOWN OTYPE_UNKNOWN} options too, to show in the Game Info window.
+     * To older clients, unjoinable games are sent without game options ({@code "-"}).
+     *<P>
+     * Before v2.5.00 this was a static {@code toCmd(..)} method.
      *
-     * @param ga  the list of games, as a mixed-content list of Strings and/or {@link SOCGame}s;
-     *            if a client can't join a game, it should be a String prefixed with
+     * @param gamesToSend  the list of games, as a mixed-content list of Strings and/or {@link SOCGame}s;
+     *           <BR>
+     *            if a client can't join a game:
+     *           <UL>
+     *           <LI> To client v2.7.00 or newer, have {@link Boolean#FALSE} followed by the {@code SOCGame}
+     *           <LI> To older clients, have a String prefixed with
      *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     *           </UL>
      * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
      *            If any game's options need adjustment for an older client, cliVers triggers that.
      * @return    the command string
-     * @since 2.4.50
+     * @since 2.5.00
      */
-    public SOCGamesWithOptions(List<?> ga, final int cliVers)
+    public SOCGamesWithOptions(List<?> gamesToSend, final int cliVers)
     {
         this(null);
         pa = new ArrayList<String>();
 
-        for (int i = 0; i < ga.size(); ++i)
+        boolean isJoinable = true;
+        for (Object ob : gamesToSend)
         {
-            Object ob = ga.get(i);
-            if (ob instanceof SOCGame)
+            if (ob instanceof Boolean)
             {
-                SOCGameOptionSet opts = ((SOCGame) ob).getGameOptions();
-                pa.add(((SOCGame) ob).getName());
+                isJoinable = ((Boolean) ob).booleanValue();  // false, because Boolean.TRUE would be redundant
+            }
+            else if (ob instanceof SOCGame)
+            {
+                final SOCGame ga = (SOCGame) ob;
+                final SOCGameOptionSet opts = ga.getGameOptions();
+                String gaName = ga.getName();
+                if (! isJoinable)
+                {
+                    gaName = SOCGames.MARKER_THIS_GAME_UNJOINABLE + gaName;
+                    isJoinable = true;  // reset for next
+                }
+                pa.add(gaName);
                 pa.add(SOCGameOption.packOptionsToString
                     ((opts != null) ? opts.getAll() : null, false, false, cliVers));
             } else {

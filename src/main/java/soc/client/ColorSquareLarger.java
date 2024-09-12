@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2007,2016,2018-2019 Jeremy D. Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007,2016,2018-2020,2024 Jeremy D. Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -25,9 +25,8 @@ import java.awt.Color;
 
 /**
  * This is a larger square box with a background color and
- * possibly a number or X in it.  This box can be
- * interactive, or non-interactive.  The possible
- * colors of the box correspond to resources in SoC.
+ * possibly a number or X in it.
+ * See {@link ColorSquare} javadoc for details and behavior.
  *<P>
  * Because {@link ColorSquare}s and their dimensions are used widely,
  * having this subclass limits the changes needed for larger
@@ -47,8 +46,8 @@ public class ColorSquareLarger extends ColorSquare
      * Non-interactive. Calls {@link ColorSquare#ColorSquare(Color)}.
      *<P>
      * A tooltip with the resource name is created if {@code c} is one of the
-     * resource colors defined in ColorSquare ({@link ColorSquare#CLAY CLAY}, {@link ColorSquare#WHEAT WHEAT}, etc,
-     * or an element of {@link ColorSquare#RESOURCE_COLORS RESOURCE_COLORS}).
+     * resource colors defined in ColorSquare ({@link ColorSquare#CLAY CLAY}, {@link ColorSquare#WHEAT WHEAT},
+     * {@link ColorSquare#GOLD GOLD}, etc, or an element of {@link ColorSquare#RESOURCE_COLORS RESOURCE_COLORS}).
      *
      * @param c background color; creates resource-name tooltip if is a resource color
      * @since 2.0.00
@@ -64,8 +63,8 @@ public class ColorSquareLarger extends ColorSquare
      * Calls {@link ColorSquare#ColorSquare(int, boolean, Color)}.
      *<P>
      * A tooltip with the resource name is created if {@code c} is one of the
-     * resource colors defined in ColorSquare ({@link ColorSquare#CLAY CLAY}, {@link ColorSquare#WHEAT WHEAT}, etc,
-     * or an element of {@link ColorSquare#RESOURCE_COLORS RESOURCE_COLORS}).
+     * resource colors defined in ColorSquare ({@link ColorSquare#CLAY CLAY}, {@link ColorSquare#WHEAT WHEAT},
+     * {@link ColorSquare#GOLD GOLD}, etc, or an element of {@link ColorSquare#RESOURCE_COLORS RESOURCE_COLORS}).
      *
      * @param k Kind: NUMBER, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
      * @param in interactive flag allowing user interaction
@@ -83,8 +82,8 @@ public class ColorSquareLarger extends ColorSquare
      * NUMBER kinds.
      *<P>
      * A tooltip with the resource name is created if {@code c} is one of the
-     * resource colors defined in ColorSquare ({@link ColorSquare#CLAY CLAY}, {@link ColorSquare#WHEAT WHEAT}, etc,
-     * or an element of {@link ColorSquare#RESOURCE_COLORS RESOURCE_COLORS}).
+     * resource colors defined in ColorSquare ({@link ColorSquare#CLAY CLAY}, {@link ColorSquare#WHEAT WHEAT},
+     * {@link ColorSquare#GOLD GOLD}, etc, or an element of {@link ColorSquare#RESOURCE_COLORS RESOURCE_COLORS}).
      *
      * @param k Kind: NUMBER, YES_NO, CHECKBOX, BOUNDED_INC, BOUNDED_DEC
      * @param in interactive flag allowing user interaction

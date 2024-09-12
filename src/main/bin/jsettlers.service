@@ -1,0 +1,26 @@
+# example systemd unit for jsettlers, for automatic startup under linux
+# /etc/systemd/system/jsettlers.service
+# Before using: Update User, Group, WorkingDirectory, and exact filename of the JSettlersServer.jar you downloaded or built
+# and update ExecStart if your java binary isn't /usr/bin/java
+# To customize port number or other settings, create jsserver.properties in WorkingDirectory (see jsserver.properties.sample)
+
+[Unit]
+Description=JSettlers server
+Documentation=https://github.com/jdmonin/JSettlers2/blob/main/Readme.md#server-startup
+After=network.target
+
+[Service]
+Type=simple
+
+WorkingDirectory=/opt/jsettlers
+User=jsettlers
+Group=jsettlers
+ExecStart=/usr/bin/java -jar JSettlersServer.jar
+
+Restart=always
+SuccessExitStatus=143
+# 143 == 128 + SIGTERM (15)
+RestartSec=8
+
+[Install]
+WantedBy=multi-user.target

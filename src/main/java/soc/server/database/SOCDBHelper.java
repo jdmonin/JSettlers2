@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014-2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -82,6 +82,11 @@ import java.util.concurrent.Executors;
  *<P>
  * For database schema, see {@code src/main/bin/sql/template/jsettlers-tables-tmpl.sql}.
  *
+ *<H3>Basic connection:</H3>
+ * Call {@link #initialize(String, String, Properties)} to initially connect.
+ * Use {@link #isInitialized()} to see if still connected.
+ * (Private method {@code checkConnection()} will try to reconnect if not connected.)
+ *
  *<H3>Schema Upgrades:</H3>
  * Sometimes a new JSettlers version adds to the DB schema. When starting the JSettlers server, call
  * {@link #isSchemaLatestVersion()} to check, and if needed {@link #upgradeSchema(Set)}.
@@ -120,7 +125,7 @@ import java.util.concurrent.Executors;
  * transaction's SQL commands. See those methods' javadocs for details.
  *
  *<H3>Class history:</H3>
- * Before v2.4.50, {@code SOCDBHelper} methods were static. That version changed to non-static
+ * Before v2.5.00, {@code SOCDBHelper} methods were static. That version changed to non-static
  * so any third-party developers could extend or change DB functionality.
  *
  * @author Robert S. Thomas

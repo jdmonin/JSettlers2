@@ -22,7 +22,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/ .
 
-import os, re, sets, sys
+import os, re, sys
 import render  # current dir is checked for render.py before module path
 
 progname = sys.argv[0]
@@ -45,10 +45,10 @@ def check_py_token_dbs_same_names():
         all_same = False
         print(progname + ": render.py DB_TOKEN expected only 'fallthrough' for dbtype " + dbtype)
     elif token_name_set is None:
-      token_name_set = sets.ImmutableSet(render.DB_TOKENS[dbtype].keys())
+      token_name_set = frozenset(render.DB_TOKENS[dbtype].keys())
       token_name_set_src = dbtype
     else:
-      diffr = (token_name_set ^ (sets.ImmutableSet(render.DB_TOKENS[dbtype].keys())))
+      diffr = (token_name_set ^ (frozenset(render.DB_TOKENS[dbtype].keys())))
       if len(diffr):
         all_same = False
         print(progname + ": render.py DB_TOKEN sets differ: " + token_name_set_src
@@ -110,7 +110,7 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
              if f_line.startswith("private static String "):
                m = re.search(r"String\s+(\w+(,\s*\w+)+)\s*;", f_line)
                if m:
-                 token_names = sets.Set([tokname.strip() for tokname in m.group(1).split(',')])
+                 token_names = set([tokname.strip() for tokname in m.group(1).split(',')])
                  state = ''  # will read until BEGIN COMPARISON AREA
                else:
                  print_err("failed regex match: private static String ...")
@@ -206,17 +206,17 @@ def check_java_token_values_vs_py(dbh_java_fullpath):
           java_all_ok = False
           print(progname + ": SOCDBHelper.upgradeSchema token sets: Expected fallthrough for dbtype " + dbtype)
         continue
-      diffr = (token_names ^ (sets.ImmutableSet(token_dbtype_vals[dbtype].keys())))
+      diffr = (token_names ^ (frozenset(token_dbtype_vals[dbtype].keys())))
       if len(diffr):
         java_all_ok = False
         print(progname + ": SOCDBHelper.upgradeSchema token sets differ: String declaration vs dbtype "
           + dbtype + ": " + ", ".join(diffr))
 
     # Check that dbtypes here (besides default) are same as render.DB_TOKENS
-    dbtypes_set = sets.Set(token_dbtype_vals.keys())
+    dbtypes_set = set(token_dbtype_vals.keys())
     if 'default' in dbtypes_set:  # should be there, prevent error if not; presence is sanity-checked in above code
       dbtypes_set.remove('default')
-    diffr = (dbtypes_set ^ (sets.ImmutableSet(render.DB_TOKENS.keys())))
+    diffr = (dbtypes_set ^ (frozenset(render.DB_TOKENS.keys())))
     if len(diffr):
       java_all_ok = False
       print(progname + ": SOCDBHelper.upgradeSchema db types differ vs render.DB_TOKENS: "

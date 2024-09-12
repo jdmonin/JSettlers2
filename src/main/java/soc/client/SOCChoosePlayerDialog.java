@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2010,2012-2015,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010,2012-2015,2019-2020,2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -120,7 +120,7 @@ import javax.swing.SwingConstants;
         super
             (pi, strings.get("dialog.robchoose.choose.player"),  // "Choose Player"
              strings.get("dialog.robchoose.please.choose"),  // "Please choose a player to steal from:"
-             false);
+             false, false);
 
         number = (allowChooseNone) ? (num + 1) : num;
         players = p;

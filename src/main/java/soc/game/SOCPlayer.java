@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -25,6 +25,7 @@ package soc.game;
 import soc.disableDebug.D;
 
 import soc.message.SOCMessage;
+import soc.server.savegame.SavedGameModel;  // for javadocs only
 import soc.util.IntPair;
 import soc.util.NodeLenVis;
 
@@ -45,7 +46,8 @@ import java.util.Vector;
 
 /**
  * A class for holding and manipulating player data.
- * The player exists within one SOCGame, not persistent between games like SOCPlayerClient or SOCClientData.
+ * The player exists within one {@link SOCGame}, not persistent between games like SOCPlayerClient or SOCClientData.
+ * See {@link SavedGameModel.PlayerInfo} for the player data saved to {@code .game.json} savegame files.
  *<P>
  * At the start of each player's turn, {@link SOCGame#updateAtTurn()} will call {@link SOCPlayer#updateAtTurn()},
  * then call the current player's {@link #updateAtOurTurn()}.
@@ -67,7 +69,7 @@ import java.util.Vector;
  * {@link SOCBoard#BOARD_ENCODING_LARGE}, use these methods to update the player's board data
  * after {@link SOCBoard#makeNewBoard(SOCGameOptionSet)}, in this order:
  *<UL>
- * <LI> {@link #getPlayerNumber()}.{@link SOCPlayerNumbers#setLandHexCoordinates(int[]) setLandHexCoordinates(int[])}
+ * <LI> {@link #getNumbers()}.{@link SOCPlayerNumbers#setLandHexCoordinates(int[]) setLandHexCoordinates(int[])}
  * <LI> {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}
  * <LI> Optionally, {@link #setRestrictedLegalShips(int[])}
  *</UL>
@@ -77,7 +79,8 @@ import java.util.Vector;
  * also group roads and ships together. They are otherwise treated separately.
  *<P>
  * Some fields are for use at the server only, and are null at the client:
- * {@link #resourceStats}, {@link #pendingMessagesOut}, etc.
+ * {@link #pendingMessagesOut}, etc: Check field javadocs and {@link SOCGame#isAtServer}.
+ *<P>
  * To get the {@code Connection} to a SOCPlayer's client, use
  * {@code SOCServer.getConnection(player.{@link #getName()}).
  *
@@ -85,8 +88,8 @@ import java.util.Vector;
  */
 public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 {
-    /** Last field change was v2.4.50 (2450) */
-    private static final long serialVersionUID = 2450L;
+    /** Last field change was v2.7.00 (2700) */
+    private static final long serialVersionUID = 2700L;
 
     /**
      * Number of {@link SOCRoad}s a player can build (15).
@@ -130,6 +133,25 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @since 2.0.00
      */
     public static int STUBBORN_ROBOT_FORCE_END_TURN_THRESHOLD = 2;
+
+    /**
+     * Number of trade types tracked for stats; is also length of trade stats
+     * subarrays returned by {@link #getResourceTradeStats()}: currently 8.
+     * @since 2.6.00
+     */
+    public static final int TRADE_STATS_ARRAY_LEN = 8;
+
+    /**
+     * Index within {@link #getResourceTradeStats()} for 4:1 bank trades.
+     * @since 2.6.00
+     */
+    public static final int TRADE_STATS_INDEX_BANK = 6;
+
+    /**
+     * Index within {@link #getResourceTradeStats()} for total of all player trades.
+     * @since 2.6.00
+     */
+    public static final int TRADE_STATS_INDEX_PLAYER_ALL = 7;
 
     /**
      * the name of the player
@@ -239,6 +261,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * how many of each resource this player has
+     * @see #resourceStats
+     * @see #tradeStatsGive
      */
     private SOCResourceSet resources;
 
@@ -251,16 +275,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private SOCResourceSet rolledResources;
 
     /**
-     * For use at server by SOCGame, if the player's previous action this turn was a
-     * bank trade, the resources involved.  Used to decide if they can undo the trade.
-     *<P>
-     * Ignore unless {@link SOCGame#canUndoBankTrade(SOCResourceSet, SOCResourceSet)} is true.
-     *
-     * @since 1.1.13
-     */
-    SOCResourceSet lastActionBankTrade_give, lastActionBankTrade_get;
-
-    /**
      * For use at server, this player's count of forced end turns this game.
      * Useful for keeping track of buggy/slow ("stubborn") robots.
      * Is incremented by {@link #addForcedEndTurn()} and reset to 0 by {@link #setName(String)}.
@@ -270,14 +284,24 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     int forcedEndTurnCount;
 
     /**
-     * server-only total count of how many of each known resource the player has received this game
+     * Total count of how many of each known resource the player has received this game
      * from dice rolls.
      * The used indexes are {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD},
      * and also (in v2.0.00+) {@link SOCResourceConstants#GOLD_LOCAL}.
+     * Tracked at server, and usually at recent clients.
      * See {@link #getResourceRollStats()} for details.
+     * @see #tradeStatsGive
      * @since 1.1.09
      */
     private int[] resourceStats;
+
+    /**
+     * Stats for resources {@link #tradeStatsGive given} and {@link #tradeStatsGet received} in trades this game.
+     * Always tracked at server, and usually at recent clients. See {@link #getResourceTradeStats()} for details.
+     * @see #resourceStats
+     * @since 2.6.00
+     */
+    private SOCResourceSet[] tradeStatsGive, tradeStatsGet;
 
     /**
      * The {@link SOCDevCard development card}s this player holds,
@@ -293,31 +317,31 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Development cards played this game by this player, or null if none, at server:
      * See {@link #getDevCardsPlayed()} for details.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private List<Integer> devCardsPlayed;
 
     /**
      * How many Road Building cards ({@link SOCDevCardConstants#ROADS}) this player has played.
      * @see #getDevCardsPlayed()
-     * @see #updateDevCardsPlayed(int)
-     * @since 2.4.50
+     * @see #updateDevCardsPlayed(int, boolean)
+     * @since 2.5.00
      */
     public int numRBCards = 0;
 
     /**
      * How many Discovery/Year of Plenty cards ({@link SOCDevCardConstants#DISC}) this player has played.
      * @see #getDevCardsPlayed()
-     * @see #updateDevCardsPlayed(int)
-     * @since 2.4.50
+     * @see #updateDevCardsPlayed(int, boolean)
+     * @since 2.5.00
      */
     public int numDISCCards = 0;
 
     /**
      * How many Monopoly cards ({@link SOCDevCardConstants#MONO}) this player has played.
      * @see #getDevCardsPlayed()
-     * @see #updateDevCardsPlayed(int)
-     * @since 2.4.50
+     * @see #updateDevCardsPlayed(int, boolean)
+     * @since 2.5.00
      */
     public int numMONOCards = 0;
 
@@ -354,6 +378,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @since 1.1.00
      */
     private int finalTotalVP;
+
+    /**
+     * This player's number of undos remaining in the game,
+     * which starts at game option {@code "UBL"}'s value,
+     * or 0 if not using that option.
+     * @since 2.7.00
+     */
+    private int undosRemaining;
 
     /**
      * For some game scenarios, how many cloth does this player have?
@@ -527,9 +559,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private boolean hasPotentialSettlesInitInFog;
 
     /**
-     * a boolean array stating wheather this player is touching a
-     * particular kind of port.
-     * Index == port type, in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}
+     * Flags tracking which trade port types this player has; see {@link #getPortFlags()}.
      */
     private boolean[] ports;
 
@@ -541,7 +571,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * time when {@link #currentOffer} was last updated; see {@link #getCurrentOfferTime()}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     private long currentOfferTimeMillis;
 
@@ -645,6 +675,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private SOCPlayerNumbers ourNumbers;
 
     /**
+     * Flag for whether the player has been asked and then re-asked to discard resources this turn.
+     * For details see {@link #hasAskedDiscardTwiceThisTurn()}.
+     * @since 2.5.00
+     */
+    private boolean askedDiscardTwiceThisTurn;
+
+    /**
      * a guess at how many turns it takes to build
      */
 
@@ -691,7 +728,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (player.game == null)
             throw new IllegalArgumentException("game");
 
-        int i;
         game = player.game;
         name = (newName != null) ? newName : player.name;
         playerNumber = player.playerNumber;
@@ -714,7 +750,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 final int L = old.size();
                 try
                 {
-                    for (i = 0; i < L; ++i)
+                    for (int i = 0; i < L; ++i)
                     {
                         SOCSpecialItem itm = old.get(i);
                         anew.add((itm != null) ? itm.clone() : null);
@@ -731,6 +767,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         resources = player.resources.copy();
         resourceStats = new int[player.resourceStats.length];
         System.arraycopy(player.resourceStats, 0, resourceStats, 0, player.resourceStats.length);
+        tradeStatsGive = new SOCResourceSet[player.tradeStatsGive.length];
+        tradeStatsGet = new SOCResourceSet[player.tradeStatsGive.length];
+        for (int i = 0; i < player.tradeStatsGive.length; ++i)
+        {
+            tradeStatsGive[i] = new SOCResourceSet(player.tradeStatsGive[i]);
+            tradeStatsGet[i] = new SOCResourceSet(player.tradeStatsGet[i]);
+        }
         rolledResources = player.rolledResources.copy();
         try
         {
@@ -744,6 +787,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         buildingVP = player.buildingVP;
         specialVP = player.specialVP;
         finalTotalVP = 0;
+        undosRemaining = player.undosRemaining;
         numRBCards = player.numRBCards;
         numDISCCards = player.numDISCCards;
         numMONOCards = player.numMONOCards;
@@ -761,7 +805,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         ourNumbers = new SOCPlayerNumbers(player.ourNumbers);
         ports = new boolean[SOCBoard.WOOD_PORT + 1];
 
-        for (i = SOCBoard.MISC_PORT; i <= SOCBoard.WOOD_PORT; i++)
+        for (int i = SOCBoard.MISC_PORT; i <= SOCBoard.WOOD_PORT; i++)
         {
             ports[i] = player.ports[i];
         }
@@ -826,8 +870,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (ga == null)
             throw new IllegalArgumentException("game");
 
-        int i;
-
         game = ga;
         playerNumber = pn;
         numPieces = new int[SOCPlayingPiece.MAXPLUSONE];
@@ -851,6 +893,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         lrPaths = new Vector<SOCLRPathData>();
         resources = new SOCResourceSet();
         resourceStats = new int[1 + SOCResourceConstants.GOLD_LOCAL];
+        tradeStatsGive = new SOCResourceSet[TRADE_STATS_ARRAY_LEN];
+        tradeStatsGet = new SOCResourceSet[TRADE_STATS_ARRAY_LEN];
+        for (int i = 0; i < TRADE_STATS_ARRAY_LEN; ++i)
+        {
+            tradeStatsGive[i] = new SOCResourceSet();
+            tradeStatsGet[i] = new SOCResourceSet();
+        }
         rolledResources = new SOCResourceSet();
         inventory = new SOCInventory();
         numKnights = 0;
@@ -870,11 +919,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         // buildingSpeed = new SOCBuildingSpeedEstimate(this);
         ports = new boolean[SOCBoard.WOOD_PORT + 1];
-
-        for (i = SOCBoard.MISC_PORT; i <= SOCBoard.WOOD_PORT; i++)
-        {
-            ports[i] = false;
-        }
 
         roadNodes = new Vector<Integer>(20);
         roadNodeGraph = new Hashtable<Integer, int[]>();
@@ -933,6 +977,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * <LI> Clear {@link #getCurrentOffer()} in v2.4.00 and newer.
      *      In earlier versions this was cleared only at client, when server sent
      *      a {@code SOCClearOffer} message while ending previous player's turn.
+     * <LI> Clear {@link #hasAskedDiscardTwiceThisTurn()} flag
      *</UL>
      * @since 1.1.14
      */
@@ -940,6 +985,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         rolledResources.clear();
         setCurrentOffer(null);
+        askedDiscardTwiceThisTurn = false;
     }
 
     /**
@@ -953,6 +999,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * the player's {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
      *<UL>
      *<LI> Mark our new dev cards as old
+     *<LI> Clear our {@link #hasPlayedDevCard()} flag (in v2.5.00 and newer)
      *<LI> Set {@link #getNeedToPickGoldHexResources()} to 0
      *<LI> Clear the "last-action bank trade" flag/list
      *     used by {@link SOCGame#canUndoBankTrade(SOCResourceSet, SOCResourceSet) game.canUndoBankTrade}
@@ -962,8 +1009,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     void updateAtOurTurn()
     {
         inventory.newToOld();
-        lastActionBankTrade_give = null;
-        lastActionBankTrade_get = null;
+        playedDevCard = false;
         if (needToPickGoldHexResources > 0)
             needToPickGoldHexResources = 0;
     }
@@ -1032,7 +1078,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Set or clear the {@link #hasPlayedDevCard()} flag.
      *
      * @param value  new value of the flag
-     * @see #updateDevCardsPlayed(int)
+     * @see #updateDevCardsPlayed(int, boolean)
      */
     public void setPlayedDevCard(boolean value)
     {
@@ -1041,40 +1087,64 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Update player's {@link #getDevCardsPlayed()} list, and stats for Discovery/Year of Plenty, Monopoly,
-     * or Road Building dev cards when such a card is played: Increment {@link #numDISCCards}, {@link #numMONOCards},
-     * or {@link #numRBCards}.
+     * or Road Building dev cards when such a card is played or canceled:
+     * Increment or decrement {@link #numDISCCards}, {@link #numMONOCards}, or {@link #numRBCards}.
      *
      * @param ctype  Any development card type such as {@link SOCDevCardConstants#ROADS},
      *     {@link SOCDevCardConstants#UNIV}, or {@link SOCDevCardConstants#UNKNOWN}.
      *     Out-of-range values are allowed, not rejected with an Exception,
      *     for compatibility if range is expanded in a later version.
+     * @param isCancel  If true, the card just played is being canceled and returned to hand.
+     *     Decrement instead of increment its counter field.
      * @see #setPlayedDevCard(boolean)
      * @see SOCGame#playDiscovery()
      * @see SOCGame#playKnight()
      * @see SOCGame#playMonopoly()
      * @see SOCGame#playRoadBuilding()
-     * @since 2.4.50
+     * @since 2.5.00
      */
-    public synchronized void updateDevCardsPlayed(final int ctype)
+    public synchronized void updateDevCardsPlayed(final int ctype, final boolean isCancel)
     {
         switch (ctype)
         {
         case SOCDevCardConstants.DISC:
-            ++numDISCCards;
+            if (isCancel)
+                --numDISCCards;
+            else
+                ++numDISCCards;
             break;
 
         case SOCDevCardConstants.MONO:
-            ++numMONOCards;
+            if (isCancel)
+                --numMONOCards;
+            else
+                ++numMONOCards;
             break;
 
         case SOCDevCardConstants.ROADS:
-            ++numRBCards;
+            if (isCancel)
+                --numRBCards;
+            else
+                ++numRBCards;
             break;
         }
 
         if (devCardsPlayed == null)
             devCardsPlayed = new ArrayList<>();
-        devCardsPlayed.add(Integer.valueOf(ctype));
+        if (isCancel)
+        {
+            // remove most recent
+            for (int i = devCardsPlayed.size() - 1; i >= 0; --i)
+            {
+                if (devCardsPlayed.get(i) == ctype)
+                {
+                    devCardsPlayed.remove(i);
+                    break;
+                }
+            }
+        } else {
+            devCardsPlayed.add(Integer.valueOf(ctype));
+        }
     }
 
     /**
@@ -1082,12 +1152,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Elements are card type constants: {@link SOCDevCardConstants#ROADS}, {@link SOCDevCardConstants#UNIV}, etc.,
      * but can be any int value (for upwards compatibility).
      *<P>
-     * {@link #updateDevCardsPlayed(int)} adds to this list.
+     * {@link #updateDevCardsPlayed(int, boolean)} adds to or removes from this list.
      *<P>
      * At client, may be incomplete or null: Updated during game play, but not sent from server as client joins mid-game.
      *
      * @return copy of list of dev cards played, or {@code null} if none
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public List<Integer> getDevCardsPlayed()
     {
@@ -1214,6 +1284,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Set the number of gold-hex resources this player must now pick,
      * after a dice roll or placing their 2nd initial settlement.
      * See {@link #getNeedToPickGoldHexResources()} for details.
+     *<P>
+     * If {@code numRes} &gt; current {@link #getNeedToPickGoldHexResources()},
+     * increments stat {@link #getResourceRollStats()}[{@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL}]
+     * by that delta amount.
      *
      * @param numRes  Number of resources to pick, or 0 for no pick/pick has been completed
      * @since 2.0.00
@@ -1293,9 +1367,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Increment the forced-end-turn count that's checked by {@link #isStubbornRobot()}.
+     * Also includes forced discards / gold-hex resource picks when not current player.
      *<P>
-     * This method is not named {@code forceEndTurn()} because all turn-forcing actions are done in
-     * {@link soc.server.SOCGameHandler}.
+     * This method is not named {@code forceEndTurn()} because all turn-forcing actions are done by server code; see
+     * {@link soc.server.SOCGameHandler#endGameTurnOrForce(SOCGame, int, String, soc.server.genericServer.Connection, boolean)}.
      * @since 2.0.00
      */
     public void addForcedEndTurn()
@@ -1328,6 +1403,30 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public SOCPlayerNumbers getNumbers()
     {
         return ourNumbers;
+    }
+
+    /**
+     * Flag for whether the player has been asked and then re-asked to discard resources this turn.
+     * Helps prevent endless loops of server discard request + bot client's wrong-amount discard action
+     * if a bot is buggy or its resource amounts are wrong.
+     *<P>
+     * Is set by {@link #setAskedDiscardTwiceThisTurn()}, cleared by {@link #updateAtTurn()}.
+     *
+     * @return true if flag is set
+     * @since 2.5.00
+     */
+    public boolean hasAskedDiscardTwiceThisTurn()
+    {
+        return askedDiscardTwiceThisTurn;
+    }
+
+    /**
+     * Set the {@link #hasAskedDiscardTwiceThisTurn()} flag; see that method for details.
+     * @since 2.5.00
+     */
+    public void setAskedDiscardTwiceThisTurn()
+    {
+        askedDiscardTwiceThisTurn = true;
     }
 
     /**
@@ -2225,8 +2324,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Get the resources currently held in the player's hand.
-     * @return the resource set
+     * Get the resources held in the player's hand.
+     * @return reference to the player's resource set; not a read-only copy
+     * @see #getRolledResources()
+     * @see #getResourceTradeStats()
      */
     public SOCResourceSet getResources()
     {
@@ -2234,21 +2335,23 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * On server, get the current totals of resources received by dice rolls by this player.
+     * Get the current totals of resources received by dice rolls by this player.
      * Each resource type's total includes resources picked from a rolled {@link SOCBoardLarge#GOLD_HEX}.
      * For the {@link SOCScenario#K_SC_FOG Fog Scenario}, includes resources picked when building
      * a road or ship revealed gold from a {@link SOCBoardLarge#FOG_HEX}.
      *<P>
      * Please treat this as read-only.
      *<P>
-     * Not currently tracked at client.
+     * Tracked at server, and at client v2.7.00 and newer when game's server is v2.0.00 and newer.
      *
      * @return array of resource counts from dice rolls;
      *   the used indexes are {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
      *   Index 0 is unused.
      *   In v2.0.00 and newer, index {@link SOCResourceConstants#GOLD_LOCAL} tracks how many
      *   resource picks the player has received from gold hexes.
+     * @see #getRolledResources()
      * @see #addRolledResources(SOCResourceSet)
+     * @see #getResourceTradeStats()
      * @since 1.1.09
      */
     public int[] getResourceRollStats()
@@ -2262,6 +2365,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *     If longer than required length, extra elements are ignored.
      * @throws IllegalArgumentException if {@code stats} is null,
      *     or length &lt; 1 + {@link SOCResourceConstants#GOLD_LOCAL}
+     * @see #setResourceTradeStats(ResourceSet[][])
      * @since 2.3.00
      */
     public void setResourceRollStats(final int[] stats)
@@ -2275,8 +2379,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Add to this player's resources and resource-roll totals.
+     * Sets {@link #getRolledResources()}, updates {@link #getResourceRollStats()}.
      *<P>
-     * If {@link SOCGame#hasSeaBoard}, treat {@link SOCResourceConstants#GOLD_LOCAL}
+     * At server, if {@link SOCGame#hasSeaBoard} treat {@link SOCResourceConstants#GOLD_LOCAL}
      * as the gold-hex resources they must pick, and set
      * {@link #getNeedToPickGoldHexResources()} to that amount.
      * This method updates {@link #getResourceRollStats()}[{@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL}].
@@ -2284,9 +2389,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * game should update this player's {@link #getResourceRollStats()}.
      *<P>
      * Otherwise ignores rolled {@link SOCResourceConstants#UNKNOWN} resources.
+     *<P>
+     * Before v2.7.00, this was called only at server. Call at client is done in handler for the
+     * {@link soc.message.SOCDiceResultResources SOCDiceResultResources} message which is sent from
+     * server v2.0.00 and newer.
      *
      * @param rolled The resources gained by this roll, as determined
-     *     by {@link SOCGame#rollDice()}
+     *     by {@link SOCGame#rollDice()} or message from server
+     * @see #getRolledResources()
      * @since 1.1.09
      */
     public void addRolledResources(SOCResourceSet rolled)
@@ -2309,16 +2419,98 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Resources gained from dice roll of the current turn.
-     * Valid at server only, not at client.
+     * Valid at server only; known at client only if server sends the proper message type
+     * (server v2.0.00 and newer do so).
      * Please treat the returned set as read-only.
      * See {@link SOCGame#rollDice()} for details on what is and isn't included here.
      * @return the resources, if any, gained by this player from the
      *     current turn's {@link SOCGame#rollDice()}.
+     * @see #addRolledResources(SOCResourceSet)
+     * @see #getResources()
+     * @see #getResourceRollStats()
      * @since 2.0.00
      */
     public SOCResourceSet getRolledResources()
     {
         return rolledResources;
+    }
+
+    /**
+     * Get stats for resource totals given and received in trades this game.
+     * Updated by {@link #makeTrade(ResourceSet, ResourceSet)}
+     * and {@link #makeBankTrade(ResourceSet, ResourceSet)}.
+     *<P>
+     * Tracked at server, and at client v2.7.00 and newer when game's server is v2.5.00 and newer;
+     * not tracked by bots whose {@link soc.util.SOCRobotParameters#getTradeFlag()} is 0.
+     *<P>
+     * The stats are returned as an array indexed as {@code [give=0/get=1][trType]},
+     * where the {@code trType} subarray indexes are:
+     *<UL>
+     * <LI> 0: 3:1 port: {@link SOCBoard#MISC_PORT}
+     * <LI> 1: 2:1 port from {@link SOCResourceConstants#CLAY}: {@link SOCBoard#CLAY_PORT}
+     * <LI> 2: 2:1 port from {@link SOCResourceConstants#ORE}
+     * <LI> 3: 2:1 port from {@link SOCResourceConstants#SHEEP
+     * <LI> 4: 2:1 port from {@link SOCResourceConstants#WHEAT}
+     * <LI> 5: 2:1 port from {@link SOCResourceConstants#WOOD}: {@link SOCBoard#WOOD_PORT}
+     * <LI> 6: 4:1 (bank trades): {@link #TRADE_STATS_INDEX_BANK}
+     * <LI> 7: Total of all player trades: {@link #TRADE_STATS_INDEX_PLAYER_ALL}
+     *</UL>
+     * (Highest index is {@link #TRADE_STATS_ARRAY_LEN} - 1).
+     * Please treat the returned array as read-only or make a copy;
+     * it's by-reference and contents will change with future trades.
+     * If player hasn't traded anything, the returned resource sets will be empty (not null).
+     *
+     * @return the resources given/received by this player during all trades in the game
+     * @see #getResourceRollStats()
+     * @see #setResourceTradeStats(ResourceSet[][])
+     * @since 2.6.00
+     */
+    public SOCResourceSet[][] getResourceTradeStats()
+    {
+        return new SOCResourceSet[][]{ tradeStatsGive, tradeStatsGet };
+    }
+
+    /**
+     * Set this player's {@link #getResourceTradeStats()}. Useful for reloading a saved game snapshot
+     * and when joining a game in progress.
+     * Copies contents of {@code stats} into player's stats, instead of copying a reference.
+     * @param stats Stats to copy into player's data; see {@link #getResourceTradeStats()} for format; not null.
+     *     Elements in can be null; will treat as {@link SOCResourceSet#EMPTY_SET}.
+     *     If subarrays' length is shorter than {@link #TRADE_STATS_ARRAY_LEN}, will pad with empty resource sets.
+     *     If longer, extra elements are ignored.
+     * @throws IllegalArgumentException if {@code stats} is null or {@code stats.length} != 2
+     * @see #setResourceRollStats(int[])
+     * @since 2.6.00
+     */
+    public void setResourceTradeStats(ResourceSet[][] stats)
+    {
+        if ((stats == null) || (stats.length != 2))
+            throw new IllegalArgumentException("stats");
+
+        int n = stats[0].length;
+        if (n > TRADE_STATS_ARRAY_LEN)
+            n = TRADE_STATS_ARRAY_LEN;
+        else if (n < TRADE_STATS_ARRAY_LEN)
+        {
+            for (int ttype = n; ttype < TRADE_STATS_ARRAY_LEN; ++ttype)
+            {
+                tradeStatsGive[ttype].clear();
+                tradeStatsGet[ttype].clear();
+            }
+        }
+
+        for (int ttype = 0; ttype < n; ++ttype)
+        {
+            ResourceSet gave = stats[0][ttype], got = stats[1][ttype];
+            if (gave != null)
+                tradeStatsGive[ttype].setAmounts(gave);
+            else
+                tradeStatsGive[ttype].clear();
+            if (got != null)
+                tradeStatsGet[ttype].setAmounts(got);
+            else
+                tradeStatsGet[ttype].clear();
+        }
     }
 
     /**
@@ -2344,6 +2536,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get the player's army size (their number of knights in play).
      * @return the number of knights in play
      */
     public int getNumKnights()
@@ -2352,7 +2545,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set the number of knights in play
+     * set the player's army size (their number of knights in play).
      *
      * @param nk        the number of knights
      */
@@ -2362,7 +2555,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * increment the number of knights in play
+     * increment the player's army size (their number of knights in play).
      */
     public void incrementNumKnights()
     {
@@ -2391,6 +2584,50 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             return false;
 
         return p.getPlayerNumber() == playerNumber;
+    }
+
+    /**
+     * This player's number of undos remaining in the game,
+     * which at start of game is game option {@code "UBL"}'s value,
+     * or 0 if not using that option.
+     *<P>
+     * Is 0 before game starts; initialized in {@link SOCGame#updateAtBoardLayout()}.
+     *
+     * @return  Number of undos remaining, or 0 if none
+     * @see #decrementUndosRemaining()
+     * @since 2.7.00
+     */
+    public int getUndosRemaining()
+    {
+        return undosRemaining;
+    }
+
+    /**
+     * Set the player's {@link #getUndosRemaining()}.
+     * Game ignores this field if game option {@code "UBL"} not set.
+     * @param newRemain Number of undos remaining, or 0 if none
+     * @see #decrementUndosRemaining()
+     * @since 2.7.00
+     */
+    public void setUndosRemaining(final int newRemain)
+    {
+        undosRemaining = newRemain;
+    }
+
+    /**
+     * Reduce the player's {@link #getUndosRemaining()} by 1.
+     * Game ignores this field if game option {@code "UBL"} not set.
+     * @throws IllegalStateException if undosRemaining is already &lt;= 0
+     * @see #setUndosRemaining(int)
+     * @since 2.7.00
+     */
+    public void decrementUndosRemaining()
+        throws IllegalStateException
+    {
+        if (undosRemaining <= 0)
+            throw new IllegalStateException("undosRemaining");
+
+        --undosRemaining;
     }
 
     /**
@@ -2424,6 +2661,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * end of game, when they've been announced by server.
      * Special Victory Points (SVPs) are included, if the game scenario awards them.
      * Also includes any VP from {@link #getCloth() cloth}.
+     *<P>
+     * After end of game at server, {@code getPublicVP()} might still be &lt; {@link #getTotalVP()}
+     * because {@link #forceFinalVP(int)} is called only at clients.
      *
      * @return the number of publicly known victory points,
      *     or "final" VP if {@link #forceFinalVP(int)} was called
@@ -2458,6 +2698,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get this player's total VP: Buildings, longest/largest bonus, Special VP, VP cards/items.
+     * At client, for other players is same as {@link #getPublicVP()} until VP cards/items are revealed.
+     *
      * @return the actual number of victory points ({@link #getPublicVP()} + VP cards/items),
      *     or "final" VP if {@link #forceFinalVP(int)} was called
      * @see #getPublicVP()
@@ -2695,11 +2937,107 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return  time of most recent call to {@code setCurrentOffer(..)},
      *     or 0 if never called during game
      * @see #getCurrentOffer()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public long getCurrentOfferTime()
     {
         return currentOfferTimeMillis;
+    }
+
+    /**
+     * Update this player's data when completing a trade with another player.
+     * Assumes trade is valid.
+     * Also updates {@link #getResourceTradeStats()}[{@link #TRADE_STATS_INDEX_PLAYER_ALL}].
+     *<P>
+     * At client, calls {@link SOCResourceSet#subtract(ResourceSet, boolean) resources.subtract(give, true)}
+     * to use unknown resources if needed since client has incomplete info about other players.
+     *<P>
+     * Called by {@link SOCGame#makeTrade(int, int)}.
+     * @param give  Resources given by this player to the other player; not {@code null}
+     * @param get  Reosurces received by this player from the other player; not {@code null}
+     * @since 2.6.00
+     */
+    public void makeTrade(final ResourceSet give, final ResourceSet get)
+    {
+        resources.add(get);
+        resources.subtract(give, ! game.isAtServer);
+
+        tradeStatsGive[TRADE_STATS_INDEX_PLAYER_ALL].add(give);
+        tradeStatsGet[TRADE_STATS_INDEX_PLAYER_ALL].add(get);
+    }
+
+    /**
+     * Update this player's data when performing a bank trade, or undoing the last bank trade.
+     * Assumes trade is valid.
+     * Also updates {@link #getResourceTradeStats()}.
+     *<P>
+     * At client, calls {@link SOCResourceSet#subtract(ResourceSet, boolean) resources.subtract(give, true)}
+     * to use unknown resources if needed since client has incomplete info about other players.
+     *<P>
+     * Called by {@link SOCGame#makeBankTrade(SOCResourceSet, SOCResourceSet)} at server, and directly by client.
+     *
+     * @param  give  What the player will give to the bank; not {@code null}
+     * @param  get   What the player wants from the bank; not {@code null}
+     * @since 2.6.00
+     */
+    public void makeBankTrade(final ResourceSet give, final ResourceSet get)
+    {
+        resources.subtract(give, ! game.isAtServer);
+        resources.add(get);
+
+        /*
+         * Determine trade type & update player's bank/port trade stats.
+         * If get > give, is undo: Swap give/get, subtract instead of add.
+         * Look for ports first; remember that 2 sheep, 2 wheat -> 1 clay, 1 wood is a valid trade
+         * if player has the sheep port & wheat port, and should get credited in stats to both of those ports.
+         */
+        final boolean notUndo = (give.getTotal() > get.getTotal());
+        final SOCResourceSet gaveCopy = new SOCResourceSet(notUndo ? give : get),
+            gotCopy = new SOCResourceSet(notUndo ? get : give);
+        final boolean has_3_1_port = ports[SOCBoard.MISC_PORT];
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+        {
+            int amt = gaveCopy.getAmount(rtype);
+            if (amt == 0)
+                continue;
+
+            final int statIndex, gotAmt;
+            if (ports[rtype])
+            {
+                // 2:1
+                statIndex = rtype;
+                gotAmt = amt / 2;
+            } else if (has_3_1_port) {
+                // 3:1
+                statIndex = SOCBoard.MISC_PORT;
+                gotAmt = amt / 3;
+            } else {
+                continue;
+            }
+            gaveCopy.subtract(amt);
+            ResourceSet gotForType = gotCopy.subtract(gotAmt);
+            if (notUndo)
+            {
+                tradeStatsGive[statIndex].add(amt, rtype);
+                tradeStatsGet[statIndex].add(gotForType);
+            } else {
+                tradeStatsGive[statIndex].subtract(amt, rtype);
+                tradeStatsGet[statIndex].subtract(gotForType);
+            }
+        }
+
+        if (gaveCopy.getTotal() > 0)
+        {
+            // 4:1
+            if (notUndo)
+            {
+                tradeStatsGive[TRADE_STATS_INDEX_BANK].add(gaveCopy);
+                tradeStatsGet[TRADE_STATS_INDEX_BANK].add(gotCopy);
+            } else {
+                tradeStatsGive[TRADE_STATS_INDEX_BANK].subtract(gaveCopy);
+                tradeStatsGet[TRADE_STATS_INDEX_BANK].subtract(gotCopy);
+            }
+        }
     }
 
     /**
@@ -2787,12 +3125,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param piece        The piece to be put into play; coordinates are not checked for validity.
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
      *                     game's {@link SOCGameEventListener}.
+     * @return any side-effects of placing our own piece at server, or null (never an empty list)
      * @throws IllegalArgumentException  only if piece is a {@link SOCFortress}, and either
      *                     <tt>isTempPiece</tt>, or player already has a fortress set.
      */
-    public void putPiece(final SOCPlayingPiece piece, final boolean isTempPiece)
+    public List<GameAction.Effect> putPiece(final SOCPlayingPiece piece, final boolean isTempPiece)
         throws IllegalArgumentException
     {
+        List<GameAction.Effect> effects = null;
+
         /**
          * only do this stuff if it's our piece
          */
@@ -2809,7 +3150,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              */
             case SOCPlayingPiece.ROAD:
                 numPieces[SOCPlayingPiece.ROAD]--;
-                putPiece_roadOrShip((SOCRoutePiece) piece, board, isTempPiece);
+                effects = putPiece_roadOrShip((SOCRoutePiece) piece, board, isTempPiece);
                 break;
 
             /**
@@ -2828,7 +3169,24 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     } else {
                         numPieces[SOCPlayingPiece.SETTLEMENT]--;
                     }
-                    putPiece_settlement_checkTradeRoutes((SOCSettlement) piece, board);
+
+                    {
+                        List<SOCShip> newlyClosed =
+                            putPiece_settlement_checkTradeRoutes((SOCSettlement) piece, board);
+                        if ((newlyClosed != null) && game.isAtServer)
+                        {
+                            if (effects == null)
+                                effects = new ArrayList<>();
+
+                            final int L = newlyClosed.size();
+                            int[] edges = new int[L];
+                            for (int i = 0; i < L; ++i)
+                                edges[i] = newlyClosed.get(i).getCoordinates();
+
+                            effects.add(new GameAction.Effect(GameAction.EffectType.CLOSE_SHIP_ROUTE, edges));
+                        }
+                    }
+
                     settlements.addElement((SOCSettlement) piece);
                     lastSettlementCoord = settlementNode;
                     buildingVP++;
@@ -2871,8 +3229,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             if ((newSettleArea != 0)
                                 && (newSettleArea != startingLandArea1) && (newSettleArea != startingLandArea2))
                             {
-                                putPiece_settlement_checkScenarioSVPs
+                                List<GameAction.Effect> ef = putPiece_settlement_checkScenarioSVPs
                                     ((SOCSettlement) piece, newSettleArea, isTempPiece);
+                                if (ef != null)
+                                {
+                                    if (effects != null)
+                                        effects.addAll(ef);
+                                    else
+                                        effects = ef;
+                                }
                             }
                         }
                     }
@@ -2905,7 +3270,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              */
             case SOCPlayingPiece.SHIP:
                 numPieces[SOCPlayingPiece.SHIP]--;
-                putPiece_roadOrShip((SOCShip) piece, board, isTempPiece);
+                effects = putPiece_roadOrShip((SOCShip) piece, board, isTempPiece);
                 break;
 
             /**
@@ -2922,6 +3287,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
 
         updatePotentials(piece);
+
+        return effects;
     }
 
     /**
@@ -2933,17 +3300,20 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param board  The board
      * @param isTempPiece  Is this a temporary piece?  If so, do not check special edges or "gift" ports
      *     or close a Ship Route
+     * @return any side-effects of placing our own piece at server, or null (never an empty list)
      * @since 2.0.00
      */
-    private void putPiece_roadOrShip
+    private List<GameAction.Effect> putPiece_roadOrShip
         (final SOCRoutePiece piece, final SOCBoard board, final boolean isTempPiece)
     {
+        List<GameAction.Effect> effects = null;
+
         /**
          * before adding a non-temporary ship, check to see if its trade route is now closed,
          * or if it's reached a Special Edge or an _SC_FTRI "gift" trade port.
          */
         if ((piece instanceof SOCShip) && ! isTempPiece)
-            putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
+            effects = putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
                 ((SOCShip) piece, (SOCBoardLarge) board);
 
         /**
@@ -3031,6 +3401,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[0])+"]["+Integer.toHexString(nodeCoords[1])+"] = true");
         //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[1])+"]["+Integer.toHexString(nodeCoords[0])+"] = true");
+
+        return effects;
     }
 
     /**
@@ -3061,19 +3433,22 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *                 should not yet be added to {@link #roadsAndShips}
      * @param board  game board
+     * @return any side-effects of placing our own piece at server, or null (never an empty list)
      * @throws IllegalArgumentException if {@link SOCShip#isClosed() newShip.isClosed()} is already true
      * @since 2.0.00
      */
-    private void putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
+    private List<GameAction.Effect> putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
         (final SOCShip newShip, final SOCBoardLarge board)
         throws IllegalArgumentException
     {
         if (game.isAtServer && (game.getGameState() == SOCGame.LOADING))
-            return;  // <--- Early return ---
+            return null;  // <--- Early return ---
 
         final boolean boardHasVillages = game.isGameOptionSet(SOCGameOptionSet.K_SC_CLVI);
         final int edge = newShip.getCoordinates();
         final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(edge);
+        List<GameAction.Effect> effects = null;
+        List<SOCShip> allNewlyClosed = null;  // only at server, for effects
 
         for (int i = 0; i < 2; ++i)
         {
@@ -3096,6 +3471,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             final List<SOCShip> closedRoute = checkTradeRouteFarEndClosed(newShip, edgeFarNode);
             if (closedRoute != null)
             {
+                if (game.isAtServer)
+                {
+                    if (allNewlyClosed != null)
+                        allNewlyClosed.addAll(closedRoute);
+                    else
+                        allNewlyClosed = closedRoute;
+                }
+
                 if (pp instanceof SOCVillage)
                 {
                     final boolean gotCloth = ((SOCVillage) pp).addTradingPlayer(this);
@@ -3114,6 +3497,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                 break;
             }
+        }
+
+        if ((allNewlyClosed != null) && game.isAtServer)
+        {
+            final int L = allNewlyClosed.size();
+            int[] edges = new int[L];
+            for (int i = 0; i < L; ++i)
+                edges[i] = allNewlyClosed.get(i).getCoordinates();
+
+            if (effects == null)
+                effects = new ArrayList<>();
+            effects.add(new GameAction.Effect(GameAction.EffectType.CLOSE_SHIP_ROUTE, edges));
         }
 
         final int seType = board.getSpecialEdgeType(edge);
@@ -3172,6 +3567,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             game.removePort(this, edge);  // updates game state, fires SOCPlayerEvent.REMOVED_TRADE_PORT
         }
 
+        return effects;
     }
 
     /**
@@ -3180,11 +3576,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param newSettle  Our new settlement being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *            should not yet be added to {@link #settlements}
      * @param board  game board
+     * @return  all the newly-closed {@link SOCShip}s, or null if open
      * @since 2.0.00
      */
-    private void putPiece_settlement_checkTradeRoutes
+    private List<SOCShip> putPiece_settlement_checkTradeRoutes
         (SOCSettlement newSettle, SOCBoard board)
     {
+        List<SOCShip> newlyClosed = null;
         final int[] nodeEdges = board.getAdjacentEdgesToNode_arr
             (newSettle.getCoordinates());
 
@@ -3203,9 +3601,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             final int edgeFarNode =
                 ((SOCBoardLarge) board).getAdjacentNodeFarEndOfEdge
                   (edge, newSettle.getCoordinates());
-            checkTradeRouteFarEndClosed
-                (sh, edgeFarNode);
+            List<SOCShip> segment =
+                checkTradeRouteFarEndClosed(sh, edgeFarNode);
+
+            if (segment != null)
+                if (newlyClosed != null)
+                    newlyClosed.addAll(segment);
+                else
+                    newlyClosed = segment;
         }
+
+        return newlyClosed;
     }
 
     /**
@@ -3221,36 +3627,70 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param newSettleArea  Land area number of new settlement's location
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
      *            game's {@link SOCGameEventListener}.
+     * @return any {@link GameAction.Effect}s from setting those SVPs if at server and not {@code isTempPiece},
+     *     otherwise null
      * @since 2.0.00
      */
-    private final void putPiece_settlement_checkScenarioSVPs
+    private final List<GameAction.Effect> putPiece_settlement_checkScenarioSVPs
         (final SOCSettlement newSettle, final int newSettleArea, final boolean isTempPiece)
     {
+        List<GameAction.Effect> effects = null;
+
         if ((! hasPlayerEvent(SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA))
              && game.isGameOptionSet(SOCGameOptionSet.K_SC_SANY))
         {
+            final int prevSVP = specialVP, prevEvents = getPlayerEvents();
+
             setPlayerEvent(SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA);
             ++specialVP;
             newSettle.specialVP = 1;
             newSettle.specialVPEvent = SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA;
 
-            if ((game.gameEventListener != null) && ! isTempPiece)
-                game.gameEventListener.playerEvent
-                    (game, this, SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA, true, newSettle);
+            if (! isTempPiece)
+            {
+                if (game.gameEventListener != null)
+                    game.gameEventListener.playerEvent
+                        (game, this, SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA, true, newSettle);
+
+                if (game.isAtServer)
+                {
+                    if (effects == null)
+                        effects = new ArrayList<>();
+                    effects.add(new GameAction.Effect
+                        (GameAction.EffectType.PLAYER_GAIN_SVP,
+                         new int[]{ prevSVP, 1, prevEvents, SOCPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA.flagValue }));
+                }
+            }
         }
 
         final int laBit = (1 << (newSettleArea - 1));
         if ((0 == (laBit & scenario_svpFromEachLandArea_bitmask)) && game.isGameOptionSet(SOCGameOptionSet.K_SC_SEAC))
         {
+            final int prevSVP = specialVP, prevLAs = scenario_svpFromEachLandArea_bitmask;
+
             scenario_svpFromEachLandArea_bitmask |= laBit;
             specialVP += 2;
             newSettle.specialVP = 2;
             newSettle.specialVPEvent = SOCPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA;
 
-            if ((game.gameEventListener != null) && ! isTempPiece)
-                game.gameEventListener.playerEvent
-                    (game, this, SOCPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA, true, newSettle);
+            if (! isTempPiece)
+            {
+                if (game.gameEventListener != null)
+                    game.gameEventListener.playerEvent
+                        (game, this, SOCPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA, true, newSettle);
+
+                if (game.isAtServer)
+                {
+                    if (effects == null)
+                        effects = new ArrayList<>();
+                    effects.add(new GameAction.Effect
+                        (GameAction.EffectType.PLAYER_GAIN_SETTLED_LANDAREA,
+                         new int[]{ prevSVP, prevLAs, scenario_svpFromEachLandArea_bitmask }));
+                }
+            }
         }
+
+        return effects;
     }
 
     /**
@@ -3278,6 +3718,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * For roads, does not update longest road; if you need to,
      * call {@link #calcLongestRoad2()} after this call.
+     *<P>
+     * For cities, doesn't add a settlement at its location.
      *<P>
      * For removing second initial settlement (state START2B),
      *   will zero the player's resource cards.
@@ -3551,6 +3993,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Most callers will want to instead call {@link #undoPutPiece(SOCPlayingPiece, boolean)}
      * which calls removePiece and does more.
+     *<P>
+     * Removing a city doesn't add a settlement at its location.
      *<P>
      * Don't call removePiece for a {@link SOCFortress}; see {@link #getFortress()} javadoc.
      *<P>
@@ -3846,12 +4290,20 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * As part of
      * {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece, boolean) removePiece(SOCPlayingPiece, null, false)},
      * update player's {@link #specialVP} and related fields.
+     *<P>
      * Not called if the removed piece is being moved (a ship) or replaced by another one (settlement upgrade to city).
+     *<P>
+     * Does nothing in game state {@link SOCGame#UNDOING_ACTION}, because in that state the SVPs are removed
+     * by other code as part of undoing the piece placement and its {@link GameAction.Effect}s.
+     *
      * @param p  Our piece being removed, which has {@link SOCPlayingPiece#specialVP} != 0
      * @since 2.0.00
      */
     private final void removePieceUpdateSpecialVP(final SOCPlayingPiece p)
     {
+        if (game.getGameState() == SOCGame.UNDOING_ACTION)
+            return;
+
         specialVP -= p.specialVP;
 
         switch (p.specialVPEvent)
@@ -4104,7 +4556,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             final int edge = edges[i];
                             if ((edge == -9) || (edge == id))
                                 continue;
-                            if (null != getRoadOrShip(edge))
+                            if (getRoadOrShip(edge) instanceof SOCShip)  // adjacent roads aren't a branch
                             {
                                 foundOtherShips = true;
                                 break;
@@ -4112,14 +4564,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         }
 
                         if (foundOtherShips)
-                        {
                             for (int i = 0; i < 3; ++i)
-                            {
-                                final Integer edgeInt = Integer.valueOf(edges[i]);
-                                if (potentialShips.contains(edgeInt))
-                                    potentialShips.remove(edgeInt);
-                            }
-                        }
+                                potentialShips.remove(Integer.valueOf(edges[i]));
                     }
                 }
             }
@@ -4256,8 +4702,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get this player's current potential settlement nodes.
-     * At the start of the game (before/during initial placement), this is all legal nodes.
-     * Afterwards it's mostly empty, and follows from the player's road locations.
+     * At the start of the game (before/during initial placement), all legal nodes
+     * are potential; see {@link #getLegalSettlements()} for initialization.
+     * During regular gameplay it's mostly empty, and based on player's road and ship locations.
      *<P>
      * Please make no changes, treat the returned set as read-only.
      * @return the player's set of potential-settlement node coordinates.
@@ -4265,7 +4712,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @see #getPotentialSettlements_arr()
      * @see #hasPotentialSettlement()
      * @see #hasPotentialSettlementsInitialInFog()
-     * @see #getLegalSettlements()
      * @since 2.0.00
      */
     public HashSet<Integer> getPotentialSettlements()
@@ -4275,8 +4721,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Get this player's current potential settlement nodes.
-     * At the start of the game (before/during initial placement), this is all legal nodes.
-     * Afterwards it's mostly empty, and follows from the player's road locations.
+     * At the start of the game (before/during initial placement), all legal nodes
+     * are potential; see {@link #getLegalSettlements()} for initialization.
+     * During regular gameplay it's mostly empty, and based on player's road and ship locations.
      *<P>
      * This variant returns them as an array, for ease of use when traversing all potential settlements.
      * @return the player's set of potential-settlement node coordinates,
@@ -4408,7 +4855,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return The player's set of legal-settlement node coordinates; please treat as read-only.
      *     Not {@code null} unless {@link #destroyPlayer()} has been called.
      * @see #getPotentialSettlements()
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public Set<Integer> getLegalSettlements()
     {
@@ -4807,7 +5254,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Does this player have at least 2 potential roads (useful for Road Building),
      * or have 1 current potential plus another that becomes potential after placement there?
      * @return true if player has 2 such roads
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public boolean hasTwoPotentialRoads()
     {
@@ -5002,6 +5449,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                         && (settlementAtNodeCoord == null))
                                     {
                                         continue;  // Requires settlement/city to connect road to ship
+                                            // (if settlementAtNodeCoord not null, its ownership was already checked)
                                     }
                                 }
                             } else {
@@ -5202,6 +5650,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get the port flags array, which tracks which trade port types this player has.
+     * Array index == port type, in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}.
      * @return the ports array
      */
     public boolean[] getPortFlags()
@@ -5236,7 +5686,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @see #hasSettlementAtNode(int)
      * @see #hasCityAtNode(int)
      * @see #getSettlementOrCityAtNode(int)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public boolean hasSettlementOrCityAtNode(final int node)
     {
@@ -5248,7 +5698,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param node  the board node coordinate to check
      * @return true if we have a settlement at {@code node}
      * @see #hasSettlementOrCityAtNode(int)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public boolean hasSettlementAtNode(final int node)
     {
@@ -5264,7 +5714,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param node  the board node coordinate to check
      * @return true if we have a city at {@code node}
      * @see #hasSettlementOrCityAtNode(int)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public boolean hasCityAtNode(final int node)
     {
@@ -5280,7 +5730,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param edge  the board edge coordinate to check
      * @return true if we have a road or ship at {@code edge}
      * @see #getRoadOrShip(int)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public boolean hasRoadOrShipAtEdge(final int edge)
     {
@@ -5307,6 +5757,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         fortress = null;
         resources = null;
         resourceStats = null;
+        tradeStatsGive = null;
+        tradeStatsGet = null;
         inventory = null;
         ourNumbers = null;
         ports = null;

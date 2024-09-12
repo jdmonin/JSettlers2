@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2019 Colin Werner
  * Extracted in 2019 from SOCPlayerClient.java, so:
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -25,7 +25,6 @@ package soc.client;
 
 import java.awt.EventQueue;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +42,6 @@ import soc.game.SOCInventory;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
-import soc.game.SOCResourceSet;
 import soc.game.SOCScenario;
 import soc.game.SOCSettlement;
 import soc.game.SOCTradeOffer;
@@ -52,7 +50,6 @@ import soc.game.SOCVillage;
 import soc.message.*;
 import soc.message.SOCGameElements.GEType;
 import soc.message.SOCPlayerElement.PEType;
-
 import soc.util.SOCFeatureSet;
 import soc.util.SOCGameList;
 import soc.util.SOCStringManager;
@@ -62,33 +59,63 @@ import soc.util.Version;
  * Nested class for processing incoming messages (treating).
  * {@link ClientNetwork}'s reader thread calls
  * {@link #handle(SOCMessage, boolean)} to dispatch messages to their
- * handler methods (such as {@link #handleBANKTRADE(SOCBankTrade)}).
+ * handler methods such as {@link #handleBANKTRADE(SOCBankTrade, boolean)}.
  *<P>
  * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
  *
  * @author paulbilnoski
  * @since 2.0.00
  */
-/*package*/ final class MessageHandler
+public class MessageHandler
 {
-    private final SOCPlayerClient client;
-    private final GameMessageSender gms;
+    private SOCPlayerClient client;
+    private GameMessageSender gms;
 
-    MessageHandler(SOCPlayerClient client)
+    /**
+     * Create a MessageHandler.
+     * Must call {@link #init(SOCPlayerClient)} for initial setup before
+     * first call to {@link #handle(SOCMessage, boolean)}.
+     */
+    public MessageHandler()
     {
-        if (client == null)
-            throw new IllegalArgumentException("client is null");
-        this.client = client;
-        gms = client.getGameMessageSender();
+    }
 
+    /**
+     * Initial setup for {@code client} and {@code messageSender} fields.
+     * To allow subclassing, that isn't done in the constructor: The client constructor
+     * would want a MessageHandler, and the MessageHandler constructor would want a client.
+     *
+     * @param cli  Client for this MessageHandler; its {@link SOCPlayerClient#getGameMessageSender()} must not be null
+     * @throw IllegalArgumentException if {@code cli} or its {@code getGameMessageSender()} is null
+     * @since 2.5.00
+     */
+    public void init(final SOCPlayerClient cli)
+        throws IllegalArgumentException
+    {
+        if (cli == null)
+            throw new IllegalArgumentException("client is null");
+
+        this.client = cli;
+        gms = cli.getGameMessageSender();
         if (gms == null)
             throw new IllegalArgumentException("client GameMessageSender is null");
+    }
+
+    /**
+     * Get this MessageHandler's client.
+     * @since 2.5.00
+     */
+    public SOCPlayerClient getClient()
+    {
+        return client;
     }
 
     /**
      * Treat the incoming messages.
      * Messages of unknown type are ignored
      * ({@code mes} will be null from {@link SOCMessage#toMsg(String)}).
+     *<P>
+     * Must call {@link #init(SOCPlayerClient)} for initial setup before first call to {@code handle(..)}.
      *<P>
      * Before v2.0.00 this method was {@code SOCPlayerClient.treat(..)}.
      *
@@ -419,10 +446,18 @@ import soc.util.Version;
                 break;
 
             /**
+             * A player has discarded resources.
+             * Added 2021-11-26 for v2.5.00.
+             */
+            case SOCMessage.DISCARD:
+                handleDISCARD((SOCDiscard) mes);
+                break;
+
+            /**
              * a player has made a bank/port trade
              */
             case SOCMessage.BANKTRADE:
-                handleBANKTRADE((SOCBankTrade) mes);
+                handleBANKTRADE((SOCBankTrade) mes, isPractice);
                 break;
 
             /**
@@ -440,7 +475,8 @@ import soc.util.Version;
                 break;
 
             /**
-             * a player has rejected an offer
+             * a player has rejected an offer,
+             * or server has disallowed our trade-related request.
              */
             case SOCMessage.REJECTOFFER:
                 handleREJECTOFFER((SOCRejectOffer) mes);
@@ -461,7 +497,7 @@ import soc.util.Version;
                 break;
 
             /**
-             * the current number of development cards
+             * update game data, like the current number of development cards
              */
             case SOCMessage.DEVCARDCOUNT:
                 handleGAMEELEMENT(ga, GEType.DEV_CARD_COUNT, ((SOCDevCardCount) mes).getNumDevCards());
@@ -699,12 +735,55 @@ import soc.util.Version;
                 break;
 
             /**
-             * Report Robbery.
-             * Added 2020-09-15 for v2.4.50.
+             * Report robbery result.
+             * Added 2020-09-15 for v2.5.00.
              */
-            case SOCMessage.REPORTROBBERY:
-                handleREPORTROBBERY
-                    ((SOCReportRobbery) mes, client.games.get(((SOCReportRobbery) mes).getGame()));
+            case SOCMessage.ROBBERYRESULT:
+                handleROBBERYRESULT
+                    ((SOCRobberyResult) mes, client.games.get(((SOCMessageForGame) mes).getGame()));
+                break;
+
+            /**
+             * Player has Picked Resources.
+             * Added 2020-12-14 for v2.5.00.
+             */
+            case SOCMessage.PICKRESOURCES:
+                handlePICKRESOURCES
+                    ((SOCPickResources) mes, client.games.get(((SOCMessageForGame) mes).getGame()));
+                break;
+
+            /**
+             * Server has declined player's request.
+             * Added 2021-12-08 for v2.5.00.
+             */
+            case SOCMessage.DECLINEPLAYERREQUEST:
+                handleDECLINEPLAYERREQUEST((SOCDeclinePlayerRequest) mes);
+                break;
+
+            /**
+             * Undo moving or placing a piece.
+             * Added 2022-11-14 for v2.7.00.
+             */
+            case SOCMessage.UNDOPUTPIECE:
+                handleUNDOPUTPIECE((SOCUndoPutPiece) mes);
+                break;
+
+            /**
+             * Update last-action data.
+             * Added 2022-12-20 for v2.7.00.
+             */
+            case SOCMessage.SETLASTACTION:
+                SOCDisplaylessPlayerClient.handleSETLASTACTION
+                    ((SOCSetLastAction) mes, client.games.get(((SOCSetLastAction) mes).getGame()));
+                break;
+
+            /**
+             * Reopen or close a shipping trade route.
+             * Added 2022-12-18 for v2.7.00.
+             */
+            case SOCMessage.SETSHIPROUTECLOSED:
+                SOCDisplaylessPlayerClient.handleSETSHIPROUTECLOSED
+                    ((SOCSetShipRouteClosed) mes, client.games.get(((SOCSetShipRouteClosed) mes).getGame()));
                 break;
 
             }  // switch (mes.getType())
@@ -750,7 +829,7 @@ import soc.util.Version;
         // Check known game options vs server's version. (added in 1.1.07)
         // Server's responses will add, remove or change our "known options".
         // In v2.0.00 and later, also checks for game option localized descriptions.
-        // In v2.4.50 and later, also checks for 3rd-party game opts.
+        // In v2.5.00 and later, also checks for 3rd-party game opts.
 
         final int cliVersion = Version.versionNumber();
         final boolean sameVersion = (client.sVersion == cliVersion);
@@ -1002,7 +1081,8 @@ import soc.util.Version;
         case SOCStatusMessage.SV_SERVER_SHUTDOWN:
         {
             handleBCASTTEXTMSG(statusText);
-            client.getNet().disconnect();
+            client.getNet().ex = new RuntimeException(statusText);
+            client.shutdownFromNetwork();
         }
         break;
 
@@ -1180,7 +1260,8 @@ import soc.util.Version;
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
         throws IllegalStateException
     {
-        client.gotPassword = true;
+        if (! isPractice)
+            client.gotPassword = true;
 
         final SOCGameOptionSet knownOpts =
             ((isPractice) ? client.practiceServGameOpts : client.tcpServGameOpts).knownOpts;
@@ -1321,13 +1402,40 @@ import soc.util.Version;
      */
     protected void handleGAMESTATS(SOCGameStats mes)
     {
-        String ga = mes.getGame();
-        int[] scores = mes.getScores();
+        final String gaName = mes.getGame();
+        final int stype = mes.getStatType();
 
-        // If we're playing in a game, update the scores. (SOCPlayerInterface)
-        // This is used to show the true scores, including hidden
-        // victory-point cards, at the game's end.
-        client.updateGameEndStats(ga, scores);
+        SOCGame ga = client.games.get(gaName);
+        if (ga != null)
+            SOCDisplaylessPlayerClient.handleGAMESTATS(mes, ga);
+
+        switch (stype)
+        {
+        case SOCGameStats.TYPE_PLAYERS:
+            // If we're playing in a game, update the scores. (SOCPlayerInterface)
+            // This is used to show the true scores, including hidden
+            // victory-point cards, at the game's end.
+            if (ga != null)
+                client.updateGameEndStats(gaName, mes.getScores());
+            break;
+
+        case SOCGameStats.TYPE_TIMING:
+            {
+                // similar logic is in SOCDisplaylessPlayerClient.handleGAMESTATS
+
+                final long[] stats = mes.getScores();
+                final long timeCreated = stats[0], timeFinished = stats[2],
+                    timeNow = System.currentTimeMillis() / 1000;
+                if (timeCreated > timeNow)
+                    return;
+                final int durationFinishedSeconds =
+                    (timeFinished > timeCreated) ? ((int) (timeFinished - timeCreated)) : 0;
+
+                client.getMainDisplay().gameTimingStatsReceived
+                    (gaName, timeCreated, (stats[1] == 1), durationFinishedSeconds);
+                break;
+            }
+        }
     }
 
     /**
@@ -1474,23 +1582,21 @@ import soc.util.Version;
     }
 
     /**
-     * handle the "start game" message
+     * handle the "start game" message; calls {@link #handleGAMESTATE(SOCGame, int, boolean, boolean)}
+     * which will call {@link PlayerClientListener#gameStarted()} if needed.
      * @param mes  the message
      */
     protected void handleSTARTGAME(SOCStartGame mes)
     {
-        PlayerClientListener pcl = client.getClientListener(mes.getGame());
         final SOCGame ga = client.games.get(mes.getGame());
-        if ((pcl == null) || (ga == null))
+        if (ga == null)
             return;
 
-        if (ga.getGameState() == SOCGame.NEW)
-            // skip gameStarted call if handleGAMESTATE already called it
-            pcl.gameStarted();
+        handleGAMESTATE(ga, mes.getGameState(), false, false);
     }
 
     /**
-     * Handle the "game state" message; calls {@link #handleGAMESTATE(SOCGame, int)}.
+     * Handle the "game state" message; calls {@link #handleGAMESTATE(SOCGame, int, boolean, boolean)}.
      * @param mes  the message
      */
     protected void handleGAMESTATE(SOCGameState mes)
@@ -1499,7 +1605,7 @@ import soc.util.Version;
         if (ga == null)
             return;
 
-        handleGAMESTATE(ga, mes.getState());
+        handleGAMESTATE(ga, mes.getState(), false, false);
     }
 
     /**
@@ -1509,31 +1615,52 @@ import soc.util.Version;
      * Checks current {@link SOCGame#getGameState()}; if current state is {@link SOCGame#NEW NEW}
      * and {@code newState != NEW}, calls {@link PlayerClientListener#gameStarted()} before
      * its usual {@link PlayerClientListener#gameStateChanged(int)} call.
+     *<P>
+     * If current state is &lt; {@link SOCGame#ROLL_OR_CARD} and {@code newState == ROLL_OR_CARD},
+     * and server older than v2.5.00 hasn't sent {@link SOCTurn} to increment {@link SOCGame#getRoundCount()} from 0,
+     * calls {@link SOCGame#updateAtTurn()} to do so.
      *
      * @param ga  Game to update state; not null
      * @param newState  New state from message, like {@link SOCGame#ROLL_OR_CARD}, or 0. Does nothing if 0.
+     * @param isForTurn  True if being called from {@link #handleTURN(SOCTurn)}.
+     *     If true, will avoid calling {@link SOCGame#updateAtTurn()}; caller does so instead.
+     * @param isForDecline  True if being called from {@link #handleDECLINEPLAYERREQUEST(SOCDeclinePlayerRequest)}.
+     *     If true, won't call {@link SOCGame#setGameState(int)} if {@code newState} same as current state.
+     *     Also passed to {@code PlayerClientListener.gameStateChanged(..)}.
      * @see #handleGAMESTATE(SOCGameState)
      * @since 2.0.00
      */
-    protected void handleGAMESTATE(final SOCGame ga, final int newState)
+    protected void handleGAMESTATE
+        (final SOCGame ga, final int newState, final boolean isForTurn, final boolean isForDecline)
     {
         if (newState == 0)
             return;
 
-        final boolean gameStarted = (ga.getGameState() == SOCGame.NEW) && (newState != SOCGame.NEW);
+        final int gaState = ga.getGameState();
+        final boolean gameStarting = (gaState == SOCGame.NEW) && (newState != SOCGame.NEW);
 
-        ga.setGameState(newState);
+        if ((newState != gaState) || ! isForDecline)
+            ga.setGameState(newState);
+
+        if ((! (gameStarting || isForTurn))
+            && (gaState < SOCGame.ROLL_OR_CARD) && (newState == SOCGame.ROLL_OR_CARD)
+            && (ga.getRoundCount() == 0))
+        {
+            // Servers older than v2.5.00 didn't always send SOCTurn before game's first turn
+            // (SOCTurn.VERSION_FOR_SEND_BEGIN_FIRST_TURN)
+            ga.updateAtTurn();
+        }
 
         PlayerClientListener pcl = client.getClientListener(ga.getName());
         if (pcl == null)
             return;
 
-        if (gameStarted)
+        if (gameStarting)
         {
-            // call here, not just in handleSTARTGAME, in case we joined a game in progress
+            // call here, not in handleSTARTGAME, in case we joined a game in progress
             pcl.gameStarted();
         }
-        pcl.gameStateChanged(newState);
+        pcl.gameStateChanged(newState, false);
     }
 
     /**
@@ -1547,7 +1674,7 @@ import soc.util.Version;
         if (ga == null)
             return;
 
-        handleGAMESTATE(ga, mes.getGameState());
+        handleGAMESTATE(ga, mes.getGameState(), true, false);
 
         final int pnum = mes.getPlayerNumber();
         ga.setCurrentPlayerNumber(pnum);
@@ -1577,11 +1704,22 @@ import soc.util.Version;
         for (int i = 0; i < etypes.length; ++i)
             handlePLAYERELEMENT
                 (pcl, ga, pl, pn, action, PEType.valueOf(etypes[i]), amounts[i], false);
+
+        if ((action == SOCPlayerElement.SET) && (etypes.length == 5) && (etypes[0] == SOCResourceConstants.CLAY)
+            && (pl != null) && (ga.getGameState() == SOCGame.ROLL_OR_CARD))
+            // dice roll results: when sent all known resources, clear UNKNOWN to 0
+            pl.getResources().setAmount(0, SOCResourceConstants.UNKNOWN);
     }
 
     /**
      * handle the "player information" message: Finds game and its {@link PlayerClientListener} by name
-     * and calls {@link #handlePLAYERELEMENT(PlayerClientListener, SOCGame, SOCPlayer, int, int, PEType, int, boolean)}
+     * and calls {@link #handlePLAYERELEMENT(PlayerClientListener, SOCGame, SOCPlayer, int, int, PEType, int, boolean)}.
+     *<P>
+     * To update game information, that method defaults to calling
+     * {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_simple(SOCGame, SOCPlayer, int, int, PEType, int, String)}
+     * or {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}
+     * for elements that don't need special handling.
+     *
      * @param mes  the message
      */
     protected void handlePLAYERELEMENT(SOCPlayerElement mes)
@@ -1604,6 +1742,7 @@ import soc.util.Version;
      *<P>
      * To update game information, defaults to calling
      * {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_simple(SOCGame, SOCPlayer, int, int, PEType, int, String)}
+     * or {@link SOCDisplaylessPlayerClient#handlePLAYERELEMENT_numRsrc(SOCPlayer, int, int, int)}
      * for elements that don't need special handling for this client class.
      *
      * @param pcl  PlayerClientListener for {@code ga}, to update display if not null
@@ -1725,32 +1864,29 @@ import soc.util.Version;
         case RESOURCE_COUNT:
             if (amount != pl.getResources().getTotal())
             {
-                SOCResourceSet rsrcs = pl.getResources();
-
-                if (D.ebugOn)
-                {
-                    //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
-                }
+                // Update count if possible; convert known to unknown if needed.
+                // For our own player, server sends resource specifics, not just total count
 
                 boolean isClientPlayer = pl.getName().equals(client.getNickname(ga.isPractice));
-
-                //
-                //  fix it
-                //
-
                 if (! isClientPlayer)
                 {
-                    rsrcs.clear();
-                    rsrcs.setAmount(amount, SOCResourceConstants.UNKNOWN);
+                    SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                        (ga, pl, pn, action, etype, amount, null);
                     pcl.playerResourcesUpdated(pl);
                 }
             }
             break;
 
+        case NUM_UNDOS_REMAINING:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
+                (ga, pl, pn, action, etype, amount, null);
+            utype = PlayerClientListener.UpdateType.UndosRemaining;
+            break;
+
         case NUM_PICK_GOLD_HEX_RESOURCES:
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
                 (ga, pl, pn, action, etype, amount, null);
-            pcl.requestedGoldResourceCountUpdated(pl, 0);
+            pcl.requestedGoldResourceCountUpdated(pl, amount);
             break;
 
         case SCENARIO_SVP:
@@ -1835,7 +1971,7 @@ import soc.util.Version;
         {
             switch (etype)
             {
-            // SOCGameElements.ROUND_COUNT:
+            // SOCGameElements.GEType.ROUND_COUNT:
             // Doesn't need a case here because it's sent only during joingame;
             // SOCBoardPanel will check ga.getRoundCount() as part of joingame
 
@@ -2008,6 +2144,28 @@ import soc.util.Version;
     }
 
     /**
+     * A player has discarded resources. Update player data and announce the discard.
+     * @param mes  the message
+     * @since 2.5.00
+     */
+    protected void handleDISCARD(final SOCDiscard mes)
+    {
+        final String gaName = mes.getGame();
+        final SOCGame ga = client.games.get(gaName);
+        if (ga == null)
+            return;
+
+        final SOCPlayer pl = SOCDisplaylessPlayerClient.handleDISCARD(mes, ga);
+        if (pl == null)
+            return;
+
+        final PlayerClientListener pcl = client.getClientListener(gaName);
+        if (pcl == null)
+            return;
+        pcl.playerDiscarded(pl, mes.getResources());
+    }
+
+    /**
      * handle the "robber moved" or "pirate moved" message.
      * @param mes  the message
      */
@@ -2022,6 +2180,7 @@ import soc.util.Version;
          * functions to do the stealing.  We just want to say where
          * the robber moved without seeing if something was stolen.
          */
+        ga.setPlacingRobberForKnightCard(false);
         int newHex = mes.getCoordinates();
         final boolean isPirate = (newHex <= 0);
         if (! isPirate)
@@ -2085,41 +2244,46 @@ import soc.util.Version;
     }
 
     /**
-     * Handle the "report robbery" message.
+     * Handle the "robbery result" message.
      * @param mes  the message
      * @param ga  game object for {@link SOCMessageForGame#getGame() mes.getGame()}
-     * @since 2.4.50
+     * @since 2.5.00
      */
-    protected void handleREPORTROBBERY(final SOCReportRobbery mes, SOCGame ga)
+    protected void handleROBBERYRESULT(final SOCRobberyResult mes, SOCGame ga)
     {
-        SOCDisplaylessPlayerClient.handleREPORTROBBERY(mes, ga);
+        SOCDisplaylessPlayerClient.handleROBBERYRESULT(mes, ga);
 
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
         if (pcl != null)
-            pcl.reportRobbery
-                (mes.perpPN, mes.victimPN, mes.resType, mes.peType, mes.isGainLose, mes.amount, mes.victimAmount);
+            pcl.reportRobberyResult
+                (mes.perpPN, mes.victimPN, mes.resType, mes.resSet, mes.peType,
+                 mes.isGainLose, mes.amount, mes.victimAmount, mes.extraValue);
     }
 
     /**
      * handle the "bank trade" message from a v2.0.00 or newer server.
+     * Calls {@link SOCDisplaylessPlayerClient#handleBANKTRADE(SOCBankTrade, SOCGame)}
+     * if server is v2.5.00 or newer ({@link SOCBankTrade#VERSION_FOR_OMIT_PLAYERELEMENTS}).
+     *
      * @param mes  the message
+     * @param isPractice  Is the server {@link ClientNetwork#practiceServer}, not remote?
      * @since 2.0.00
      */
-    protected void handleBANKTRADE(final SOCBankTrade mes)
+    protected void handleBANKTRADE(final SOCBankTrade mes, final boolean isPractice)
     {
         final String gaName = mes.getGame();
         final SOCGame ga = client.games.get(gaName);
         if (ga == null)
             return;
+
+        if (isPractice || (client.sVersion >= SOCBankTrade.VERSION_FOR_OMIT_PLAYERELEMENTS))
+            SOCDisplaylessPlayerClient.handleBANKTRADE(mes, ga);
+
         PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;
 
-        final int pn = mes.getPlayerNumber();
-        if (pn >= 0)
-            pcl.playerBankTrade(ga.getPlayer(pn), mes.getGiveSet(), mes.getGetSet());
-        else
-            pcl.playerTradeDisallowed(-1, (pn == SOCBankTrade.PN_REPLY_NOT_YOUR_TURN));
+        pcl.playerBankTrade(ga.getPlayer(mes.getPlayerNumber()), mes.getGiveSet(), mes.getGetSet());
     }
 
     /**
@@ -2135,14 +2299,8 @@ import soc.util.Version;
 
         SOCTradeOffer offer = mes.getOffer();
         final int fromPN = offer.getFrom();
-        SOCPlayer from;
-        if (fromPN >= 0)
-        {
-            from = ga.getPlayer(fromPN);
-            from.setCurrentOffer(offer);
-        } else {
-            from = null;
-        }
+        SOCPlayer from = ga.getPlayer(fromPN);
+        from.setCurrentOffer(offer);
 
         PlayerClientListener pcl = client.getClientListener(gaName);
         pcl.requestedTrade(from, fromPN);
@@ -2161,29 +2319,50 @@ import soc.util.Version;
         final int pn = mes.getPlayerNumber();
         SOCPlayer player = null;
         if (pn != -1)
+        {
             player = ga.getPlayer(pn);
-
-        if (pn != -1)
-            ga.getPlayer(pn).setCurrentOffer(null);
-        else
+            player.setCurrentOffer(null);
+        } else {
             for (int i = 0; i < ga.maxPlayers; ++i)
                 ga.getPlayer(i).setCurrentOffer(null);
+        }
 
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
         pcl.requestedTradeClear(player, false);
     }
 
     /**
-     * handle the "reject offer" message
+     * handle the "reject offer"/"disallowed trade" message:
+     * a player has rejected an offer,
+     * or server has disallowed our trade-related request.
      * @param mes  the message
      */
     protected void handleREJECTOFFER(SOCRejectOffer mes)
     {
         SOCGame ga = client.games.get(mes.getGame());
-        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        final int pn = mes.getPlayerNumber();
+        SOCPlayer player = (pn >= 0) ? ga.getPlayer(pn) : null;
 
         PlayerClientListener pcl = client.getClientListener(mes.getGame());
-        pcl.requestedTradeRejection(player);
+
+        int rc = mes.getReasonCode();
+        switch (rc)
+        {
+        case 0:
+            pcl.requestedTradeRejection(player);
+            break;
+
+        case SOCRejectOffer.REASON_NOT_YOUR_TURN:
+            pcl.playerTradeDisallowed(-1, false, true);
+            break;
+
+        case SOCRejectOffer.REASON_CANNOT_MAKE_OFFER:
+            pcl.playerTradeDisallowed(pn, true, false);
+            break;
+
+        default:
+            pcl.playerTradeDisallowed(pn, false, false);
+        }
     }
 
     /**
@@ -2197,15 +2376,16 @@ import soc.util.Version;
         final SOCGame ga = client.games.get(gaName);
         if (ga == null)
             return;
+
+        SOCDisplaylessPlayerClient.handleACCEPTOFFER(mes, ga);
+
         PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;
 
-        final int offeringPN = mes.getOfferingNumber(), acceptingPN = mes.getAcceptingNumber();
-        if (acceptingPN >= 0)
-            pcl.playerTradeAccepted(ga.getPlayer(offeringPN), ga.getPlayer(acceptingPN));
-        else
-            pcl.playerTradeDisallowed(offeringPN, false);
+        pcl.playerTradeAccepted
+            (ga.getPlayer(mes.getOfferingNumber()), ga.getPlayer(mes.getAcceptingNumber()),
+             mes.getResToOfferingPlayer(), mes.getResToAcceptingPlayer());
     }
 
     /**
@@ -2226,7 +2406,13 @@ import soc.util.Version;
 
     /**
      * Handle the "development card action" message, which may have multiple cards.
-     * Updates game data, then calls {@link PlayerClientListener#playerDevCardsUpdated(SOCPlayer, boolean)}.
+     * Updates game data by calling {@link #handleDEVCARDACTION(SOCGame, SOCPlayer, boolean, int, int)},
+     * then calls {@link PlayerClientListener#playerDevCardsUpdated(SOCPlayer, boolean)}.
+     *<P>
+     * If message is about the player's own cards at end of game when server reveals all VP cards
+     * ({@link SOCDevCardAction#ADD_OLD} in state {@link SOCGame#OVER}),
+     * returns immediately and doesn't call those methods.
+     *
      * @param mes  the message
      */
     protected void handleDEVCARDACTION(final boolean isPractice, final SOCDevCardAction mes)
@@ -2238,19 +2424,19 @@ import soc.util.Version;
         final int pn = mes.getPlayerNumber();
         final SOCPlayer player = ga.getPlayer(pn);
         final PlayerClientListener pcl = client.getClientListener(mes.getGame());
-        final int clientPN = (pcl != null) ? pcl.getClientPlayerNumber() : -2;  // not -1: message may have that
+        final boolean isClientPlayer = (pcl != null) && (pn >= 0) && (pn == pcl.getClientPlayerNumber());
         final int act = mes.getAction();
 
-        if ((pn == clientPN) && (act == SOCDevCardAction.ADD_OLD) && (ga.getGameState() == SOCGame.OVER))
+        if (isClientPlayer && (act == SOCDevCardAction.ADD_OLD) && (ga.getGameState() == SOCGame.OVER))
         {
-            return;  // ignore messages at OVER about our own VP dev cards
+            return;
         }
 
         final List<Integer> ctypes = mes.getCardTypes();
         if (ctypes != null)
         {
             for (final int ctype : ctypes)
-                handleDEVCARDACTION(ga, player, act, ctype);
+                handleDEVCARDACTION(ga, player, isClientPlayer, act, ctype);
         } else {
             int ctype = mes.getCardType();
             if ((! isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_RENUMBERED_TYPES))
@@ -2260,7 +2446,8 @@ import soc.util.Version;
                 else if (ctype == SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X)
                     ctype = SOCDevCardConstants.UNKNOWN;
             }
-            handleDEVCARDACTION(ga, player, act, ctype);
+
+            handleDEVCARDACTION(ga, player, isClientPlayer, act, ctype);
         }
 
         if (pcl != null)
@@ -2271,10 +2458,22 @@ import soc.util.Version;
      * Handle one dev card's game data update for {@link #handleDEVCARDACTION(boolean, SOCDevCardAction)}.
      * In case this is part of a list of cards, does not call
      * {@link PlayerClientListener#playerDevCardsUpdated(SOCPlayer, boolean)}: Caller must do so afterwards.
+     * For {@link SOCDevCardAction#PLAY}, calls {@link SOCPlayer#updateDevCardsPlayed(int, boolean)}.
+     *
+     * @param ga  Game being updated
+     * @param player  Player in {@code ga} being updated
+     * @param isClientPlayer  True if {@code player} is our client playing in {@code ga}
+     * @param act  Action being done: {@link SOCDevCardAction#DRAW}, {@link SOCDevCardAction#PLAY PLAY},
+     *     {@link SOCDevCardAction#ADD_OLD ADD_OLD}, or {@link SOCDevCardAction#ADD_NEW ADD_NEW}
+     * @param ctype  Type of development card from {@link SOCDevCardConstants}
+     * @see SOCDisplaylessPlayerClient#handleDEVCARDACTION(SOCGame, SOCPlayer, int, int)
      */
-    private void handleDEVCARDACTION
-        (final SOCGame ga, final SOCPlayer player, final int act, final int ctype)
+    protected void handleDEVCARDACTION
+        (final SOCGame ga, final SOCPlayer player, final boolean isClientPlayer, final int act, final int ctype)
     {
+        // if you change this method, consider changing SOCDisplaylessPlayerClient.handleDEVCARDACTION
+        // and SOCRobotBrain.handleDEVCARDACTION too
+
         switch (act)
         {
         case SOCDevCardAction.DRAW:
@@ -2283,7 +2482,9 @@ import soc.util.Version;
 
         case SOCDevCardAction.PLAY:
             player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
-            player.updateDevCardsPlayed(ctype);
+            player.updateDevCardsPlayed(ctype, false);
+            if ((ctype == SOCDevCardConstants.KNIGHT) && ! ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
+                ga.setPlacingRobberForKnightCard(true);
             break;
 
         case SOCDevCardAction.ADD_OLD:
@@ -2309,6 +2510,24 @@ import soc.util.Version;
         SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
             (ga, null, mes.getPlayerNumber(), SOCPlayerElement.SET,
              PEType.PLAYED_DEV_CARD_FLAG, mes.hasPlayedDevCard() ? 1 : 0, null);
+    }
+
+    /**
+     * Handle the "Player has Picked Resources" message by updating player resource data.
+     * @param mes  the message
+     * @param ga  Game to update
+     * @since 2.5.00
+     */
+    public void handlePICKRESOURCES
+        (final SOCPickResources mes, final SOCGame ga)
+    {
+        if (! SOCDisplaylessPlayerClient.handlePICKRESOURCES(mes, ga))
+            return;
+
+        PlayerClientListener pcl = client.getClientListener(ga.getName());
+        if (pcl != null)
+            pcl.playerPickedResources
+                (ga.getPlayer(mes.getPlayerNumber()), mes.getResources(), mes.getReasonCode());
     }
 
     /**
@@ -2355,7 +2574,16 @@ import soc.util.Version;
     {
         client.getNet().disconnect();
 
-        client.getMainDisplay().showErrorPanel(mes.getText(), (client.getNet().ex_P == null));
+        String txt = mes.getText();
+        if (client.sVersion > 0)
+        {
+            StringBuilder sb = new StringBuilder
+                (client.strings.get("pcli.error.server.disconnected_by_version", Version.version(client.sVersion)));
+                    // "Disconnected by server version {0}:"
+            sb.append('\n').append(txt);
+            txt = sb.toString();
+        }
+        client.getMainDisplay().showErrorPanel(txt, (client.getNet().ex_P == null));
     }
 
     /**
@@ -2704,30 +2932,28 @@ import soc.util.Version;
      */
     private void handlePLAYERSTATS(SOCPlayerStats mes)
     {
-        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        final String gaName = mes.getGame();
+        PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;  // Not one of our games
+        final int clientPN = pcl.getClientPlayerNumber();
+        if (clientPN == -1)
+            return;  // Not one of our games
+
+        SOCDisplaylessPlayerClient.handlePLAYERSTATS(mes, pcl.getGame(), clientPN);  // update player data
 
         final int stype = mes.getStatType();
-        if (stype != SOCPlayerStats.STYPE_RES_ROLL)
-            return;  // not recognized in this version
-
-        final int[] rstat = mes.getParams();
-
-        EnumMap<PlayerClientListener.UpdateType, Integer> stats
-            = new EnumMap<PlayerClientListener.UpdateType, Integer>(PlayerClientListener.UpdateType.class);
-        stats.put(PlayerClientListener.UpdateType.Clay, Integer.valueOf(rstat[SOCResourceConstants.CLAY]));
-        stats.put(PlayerClientListener.UpdateType.Ore, Integer.valueOf(rstat[SOCResourceConstants.ORE]));
-        stats.put(PlayerClientListener.UpdateType.Sheep, Integer.valueOf(rstat[SOCResourceConstants.SHEEP]));
-        stats.put(PlayerClientListener.UpdateType.Wheat, Integer.valueOf(rstat[SOCResourceConstants.WHEAT]));
-        stats.put(PlayerClientListener.UpdateType.Wood, Integer.valueOf(rstat[SOCResourceConstants.WOOD]));
-        if (rstat.length > SOCResourceConstants.GOLD_LOCAL)
+        switch (stype)
         {
-            final int n = rstat[SOCResourceConstants.GOLD_LOCAL];
-            if (n != 0)
-                stats.put(PlayerClientListener.UpdateType.GoldGains, Integer.valueOf(n));
+        case SOCPlayerStats.STYPE_RES_ROLL:
+            // fallthrough
+        case SOCPlayerStats.STYPE_TRADES:
+            pcl.playerStats(stype, mes.getParams(), true, true);
+            break;
+
+        default:
+            System.err.println("handlePLAYERSTATS: unrecognized player stat type " + stype);
         }
-        pcl.playerStats(stats);
     }
 
     /**
@@ -2749,11 +2975,13 @@ import soc.util.Version;
      */
     private final void handleSIMPLEREQUEST(SOCSimpleRequest mes)
     {
-        PlayerClientListener pcl = client.getClientListener(mes.getGame());
+        final String gaName = mes.getGame();
+
+        PlayerClientListener pcl = client.getClientListener(gaName);
         if (pcl == null)
             return;  // Not one of our games
 
-        SOCDisplaylessPlayerClient.handleSIMPLEREQUEST(client.games, mes);  // update any game state
+        SOCDisplaylessPlayerClient.handleSIMPLEREQUEST(mes, client.games.get(gaName));  // update any game data
         pcl.simpleRequest(mes.getPlayerNumber(), mes.getRequestType(), mes.getValue1(), mes.getValue2());
     }
 
@@ -2781,19 +3009,22 @@ import soc.util.Version;
             // fall through: displayless sets game data, pcl.simpleAction displays updated board layout
 
         case SOCSimpleAction.TRADE_PORT_REMOVED:
-            SOCDisplaylessPlayerClient.handleSIMPLEACTION(client.games, mes);  // calls ga.removePort(..)
-            // fall through so pcl.simpleAction updates displayed board
-
         case SOCSimpleAction.DEVCARD_BOUGHT:
-            // fall through
+            SOCDisplaylessPlayerClient.handleSIMPLEACTION(mes, client.games.get(gaName));
+            // fall through so pcl.simpleAction updates displayed board and game data
+
         case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
             pcl.simpleAction(mes.getPlayerNumber(), atype, mes.getValue1(), mes.getValue2());
             break;
 
         default:
             // ignore unknown types
-            System.err.println
-                ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
+            {
+                final int mesPN = mes.getPlayerNumber();
+                if ((mesPN >= 0) && (mesPN == pcl.getClientPlayerNumber()))
+                    System.err.println
+                        ("handleSIMPLEACTION: Unknown type ignored: " + atype + " in game " + gaName);
+            }
         }
     }
 
@@ -2871,6 +3102,31 @@ import soc.util.Version;
             return;
         SOCPlayer player = ga.getPlayer(mes.getParam1());
         pcl.playerPieceRemoved(player, mes.getParam3(), mes.getParam2());
+    }
+
+    /**
+     * Handle an undo put piece / move piece.
+     * @since 2.7.00
+     */
+    private void handleUNDOPUTPIECE(final SOCUndoPutPiece mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = client.games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+
+        SOCDisplaylessPlayerClient.handleUNDOPUTPIECE(mes, ga);
+
+        PlayerClientListener pcl = client.getClientListener(gaName);
+        if (pcl == null)
+            return;  // Not one of our games
+        final int pn = mes.getPlayerNumber(),
+            pieceType = mes.getPieceType(),
+            fromCoord = mes.getMovedFromCoordinates();
+        if (pn >= 0)
+            pcl.playerPiecePlacementUndone(ga.getPlayer(pn), mes.getCoordinates(), fromCoord, pieceType);
+        else
+            pcl.playerPiecePlacementUndoDeclined(pieceType, (fromCoord != 0));
     }
 
     /**
@@ -3044,6 +3300,28 @@ import soc.util.Version;
                 mes.coord, mes.level, mes.sv);
             break;
         }
+    }
+
+    /**
+     * Server has declined our player's request.
+     * Calls {@link PlayerClientListener#playerRequestDeclined(int, int, int, String)}
+     * and maybe {@link #handleGAMESTATE(SOCGame, int, boolean, boolean)}.
+     * @since 2.5.00
+     */
+    private void handleDECLINEPLAYERREQUEST(final SOCDeclinePlayerRequest mes)
+    {
+        final String gaName = mes.getGame();
+        final PlayerClientListener pcl = client.getClientListener(gaName);
+        if (pcl == null)
+            return;
+        final SOCGame ga = client.games.get(gaName);
+        if (ga == null)
+            return;
+
+        pcl.playerRequestDeclined(mes.reasonCode, mes.detailValue1, mes.detailValue2, mes.reasonText);
+        final int currState = mes.gameState;
+        if (currState != 0)
+            handleGAMESTATE(ga, currState, false, true);
     }
 
 }  // class MessageHandler

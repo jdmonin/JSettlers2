@@ -4,7 +4,7 @@
   "gameMinVersion": -1,
   "gameName": "bad-field-contents",
   "comments": "Same game as classic-botturn, but edited with bad data in some fields: multiple elements, playerSeatLocks, devCardDeck, player 1 oldDevCards and elements",
-  "author": "Jeremy D Monin  2020",
+  "author": "Jeremy D Monin  2020,2023",
   "gameOptions": "BC\u003dt4,N7\u003dt7,PL\u003d4,RD\u003df",
   "gameDurationSeconds": 49,
   "gameState": 20,
@@ -13,9 +13,9 @@
     "LARGEST_ARMY_PLAYER": -1,
     "FIRST_PLAYER": 1,
     "CURRENT_PLAYER": 1,
-    "ROUND_COUNT": 2,
     "ABC_NOT_DEFINED": 44,
     "XYZ_NOT_DEFINED": 33,
+    "ROUND_COUNT": 2,
     "LONGEST_ROAD_PLAYER": -1
   },
   "devCardDeck": [
@@ -206,7 +206,7 @@
         "SETTLEMENTS": 4,
         "UNDEF_1": 44,
         "UNDEF_2": 33,
-        "NUMKNIGHTS": 0
+        "NUMKNIGHTS": 2
       },
       "oldDevCards": [
         "DISC",

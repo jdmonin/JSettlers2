@@ -1,6 +1,6 @@
 /**
  * Local ({@link StringConnection}) network message system.
- * This file Copyright (C) 2007-2009,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007-2009,2016-2017,2020-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@ import java.util.Vector;
 /**
  *
  * Clients who want to connect, call connectTo and are queued. (Thread.wait is used internally)
- * Server-side calls accept to retrieve them.
+ * Server-side calls {@link #accept()} to retrieve them.
  *
  *<PRE>
  *  1.0.0 - 2007-11-18 - initial release, becoming part of jsettlers v1.1.00
@@ -43,8 +43,11 @@ import java.util.Vector;
  *                       LocalStringServerSocket -> StringServerSocket. Remove unused broadcast(..).
  *  2.1.0 - 2020-01-09 - Only TCP-server changes: See {@link SOCServerSocket}
  *  2.3.0 - 2020-04-27 - no change in this file
+ *  2.5.0 - 2021-12-30 - no change in this file
  *</PRE>
  *
+ * @see NetServerSocket
+ * @see StringConnection
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.00
  */
@@ -55,7 +58,7 @@ public class StringServerSocket implements SOCServerSocket
 
     /**
      * Length of queue for accepting new connections; default 100.
-     * Changing it here affects future calls to connectTo() in all
+     * Changing it here affects future calls to {@link #connectTo(String, StringConnection)} in all
      * instances.
      */
     public static int ACCEPT_QUEUELENGTH = 100;
@@ -89,7 +92,7 @@ public class StringServerSocket implements SOCServerSocket
      *
      * @param name Stringport server name to connect to
      *
-     * @throws ConnectException If stringport name is not found, or is EOF,
+     * @throws ConnectException If stringport name is not found, or that port is at EOF,
      *                          or if its connect/accept queue is full.
      * @throws IllegalArgumentException If name is null
      */
@@ -107,7 +110,7 @@ public class StringServerSocket implements SOCServerSocket
      * @param name Stringport server name to connect to
      * @param client Existing unused connection object to connect with
      *
-     * @throws ConnectException If stringport name is not found, or is EOF,
+     * @throws ConnectException If stringport name is not found, or that port is at EOF,
      *                          or if its connect/accept queue is full.
      * @throws IllegalArgumentException If name is null, client is null,
      *                          or client is already peered/connected.
@@ -129,7 +132,7 @@ public class StringServerSocket implements SOCServerSocket
 
         StringServerSocket ss = allSockets.get(name);
         if (ss.isOutEOF())
-            throw new ConnectException("StringServerSocket name is EOF: " + name);
+            throw new ConnectException("StringServerSocket already EOF: " + name);
 
         StringConnection servSidePeer;
         try

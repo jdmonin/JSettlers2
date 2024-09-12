@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014,2016-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.message.SOCCancelBuildRequest;  // for CARD constant
 
 import java.awt.Color;
 import java.awt.Component;
@@ -77,7 +78,7 @@ import javax.swing.SwingConstants;
     static final String CITY = "city";
     static final String CARD = "card";
     static final String SHIP = "ship";  // Ship for large sea board; @since 2.0.00
-    private static final String SBP = "sbp";  // Special Building Phase button; @since 1.1.08
+    static final String SBP = "sbp";    // Special Building Phase button; @since 1.1.08
     JLabel title;
     JButton roadBut;
     JButton settlementBut;
@@ -188,14 +189,15 @@ import javax.swing.SwingConstants;
 
     /**
      * Piece-purchase button status; either all "Buy", or when placing a piece, 1 type "Cancel" and the rest disabled.
-     * When placing the second free road or free ship, this placement can be canceled, and the Road and Ship
+     * When placing a free road or free ship, this placement can be canceled, and the Road and Ship
      * buttons both say "Cancel".
      *<P>
      * Updated in {@link #updateButtonStatus()}.
      * Value is 0 for "Buy", or when placing a piece, a borrowed SOCGameState constant with the piece type:
      * {@link SOCGame#PLACING_ROAD PLACING_ROAD}, {@link SOCGame#PLACING_SETTLEMENT PLACING_SETTLEMENT},
      * {@link SOCGame#PLACING_CITY PLACING_CITY}, or {@link SOCGame#PLACING_SHIP PLACING_SHIP}.
-     * When placing the second free road or ship, {@link SOCGame#PLACING_FREE_ROAD2 PLACING_FREE_ROAD2}.
+     * When placing a free road or ship, {@link SOCGame#PLACING_FREE_ROAD1 PLACING_FREE_ROAD1}
+     * or {@link SOCGame#PLACING_FREE_ROAD2 PLACING_FREE_ROAD2}.
      *<P>
      * Before v2.0.00 and i18n, button state was checked by comparing the button text to "Buy" or "Cancel".
      * @since 2.0.00
@@ -220,7 +222,7 @@ import javax.swing.SwingConstants;
     public static final int MINHEIGHT = 2 + (4 * ColorSquare.HEIGHT) + (3 * 4) + 2;  // rowSpaceH == 4
 
     /**
-     * Client's player data.  Initially null; call setPlayer once seat is chosen.
+     * Client's player data.  Initially null; should call {@link #setPlayer()} once seat is chosen.
      *
      * @see #setPlayer()
      * @since 1.1.00
@@ -309,7 +311,7 @@ import javax.swing.SwingConstants;
 
         final int sqHeight = ColorSquare.HEIGHT * pi.displayScale;
 
-        cardT = new JLabel(strings.get("build.dev.card"));  // "Dev Card: "
+        cardT = new JLabel(strings.get("buy.dev.card"));  // "Dev Card: "
         cardT.setToolTipText(/*I*/"? VP  (largest army = 2 VP) "/*18N*/);
         add(cardT);
         cardC = new ArrowheadPanel(costsW, costsH, costsTooltip, arrowColorsFrom);
@@ -325,9 +327,9 @@ import javax.swing.SwingConstants;
         cardCountLab = new JLabel(strings.get("build.available"), SwingConstants.LEFT);  // "available"
         add(cardCountLab);
         cardCount = new ColorSquare(ColorSquare.GREY, 0, sqHeight, sqHeight);
-        cardCount.setToolTipText(strings.get("build.dev.cards.available"));  // "Development cards available to buy"
-        cardCount.setToolTipLowWarningLevel(strings.get("build.dev.cards.low"), 3);  // "Almost out of development cards to buy"
-        cardCount.setToolTipZeroText(strings.get("build.dev.cards.none"));  // "No more development cards available to buy"
+        cardCount.setToolTipText(strings.get("buy.dev.cards.available"));  // "Development cards available to buy"
+        cardCount.setToolTipLowWarningLevel(strings.get("buy.dev.cards.low"), 3);  // "Almost out of development cards to buy"
+        cardCount.setToolTipZeroText(strings.get("buy.dev.cards.none.common"));  // "No more development cards available to buy"
         add(cardCount);
 
         final SOCGame ga = pi.getGame();
@@ -818,7 +820,7 @@ import javax.swing.SwingConstants;
         {
             if (statsFrame != null)
                 statsFrame.dispose();
-            GameStatisticsFrame f = new GameStatisticsFrame(pi);
+            GameStatisticsFrame f = new GameStatisticsFrame(pi, pi.displayScale);
             f.register(pi.getGameStats());
             f.setLocation(this.getLocationOnScreen());
             f.setVisible(true);
@@ -855,10 +857,11 @@ import javax.swing.SwingConstants;
 
     /** Handle a click (Buy or Cancel) on a building-panel button.
      * Assumes client is currently allowed to build, and sends request to server.
-     * {@link SOCBoardPanel.BoardPopupMenu} also calls this method.
+     * {@link SOCBoardPanel.BoardPopupMenu} and the SBP hotkey also call this method.
      *
      * @param game   The game, for status
-     * @param target Button clicked, as returned by ActionEvent.getActionCommand
+     * @param target Button clicked, as returned by ActionEvent.getActionCommand:
+     *     {@link #ROAD}, {@link #CARD}, {@link #SBP}, etc
      * @param doNotClearPopup Do not call {@link SOCBoardPanel#popupClearBuildRequest()}
      * @since 1.1.00
      */
@@ -869,7 +872,7 @@ import javax.swing.SwingConstants;
         if (! doNotClearPopup)
             pi.getBoardPanel().popupClearBuildRequest();  // Just in case
 
-        final boolean isCurrent = pi.clientIsCurrentPlayer();
+        final boolean isCurrent = pi.isClientCurrentPlayer();
         final int gstate = game.getGameState();
         final boolean canAskSBP =
             game.canAskSpecialBuild(player.getPlayerNumber(), false)
@@ -882,8 +885,6 @@ import javax.swing.SwingConstants;
 
         int sendBuildRequest = -9;  // will send buildRequest if this changes
 
-        // TODO i18n: don't rely on label text
-
         if (target == ROAD)
         {
             if (pieceButtonsState == 0)
@@ -893,7 +894,9 @@ import javax.swing.SwingConstants;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
-            else if ((pieceButtonsState == SOCGame.PLACING_ROAD) || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
+            else if ((pieceButtonsState == SOCGame.PLACING_ROAD)
+                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD1)
+                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
             {
                 messageSender.cancelBuildRequest(game, SOCPlayingPiece.ROAD);
             }
@@ -928,7 +931,11 @@ import javax.swing.SwingConstants;
         }
         else if (target == CARD)
         {
-            if (pieceButtonsState == 0)
+            if ((gstate == SOCGame.PLACING_ROBBER) || (gstate == SOCGame.PLACING_PIRATE))
+            {
+                messageSender.cancelBuildRequest(game, SOCCancelBuildRequest.CARD);
+            }
+            else if (pieceButtonsState == 0)
             {
                 if (stateBuyOK || canAskSBP)
                 {
@@ -946,7 +953,9 @@ import javax.swing.SwingConstants;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
-            else if ((pieceButtonsState == SOCGame.PLACING_SHIP) || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
+            else if ((pieceButtonsState == SOCGame.PLACING_SHIP)
+                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD1)
+                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
             {
                 messageSender.cancelBuildRequest(game, SOCPlayingPiece.SHIP);
             }
@@ -955,7 +964,7 @@ import javax.swing.SwingConstants;
         {
             if (canAskSBP)
                 sendBuildRequest = -1;
-            else if (sbNeedsMorePlayers)
+            else if (sbNeedsMorePlayers && sbBut.isEnabled())
                 NotifyDialog.createAndShow
                     (pi.getMainDisplay(), pi,
                      strings.get("action.build.cannot.special.PLP.common"), null, true);
@@ -994,7 +1003,8 @@ import javax.swing.SwingConstants;
     }
 
     /**
-     * Update the status of the buttons. Each piece type's button is labeled "Buy" or disabled ("---")
+     * Update the status of the buttons after game state or client player resources change.
+     * Each piece type's button is labeled "Buy" or disabled ("---")
      * depending on game state and resources available, unless we're currently placing a bought piece.
      * In that case the bought piece type's button is labeled "Cancel", and the others are disabled with
      * their current labels until placement is complete.
@@ -1014,11 +1024,20 @@ import javax.swing.SwingConstants;
             final int gstate = game.getGameState();
             boolean currentCanBuy = (! isDebugFreePlacement)
                 && game.canBuyOrAskSpecialBuild(pnum);
+            final SOCPlayerClient pcli = pi.getClient();
 
-            if (isCurrent && ((gstate == SOCGame.PLACING_ROAD)
+            if (isCurrent && (gstate == SOCGame.PLACING_FREE_ROAD1)
+                && (game.isPractice
+                    || pcli.sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))
+            {
+                roadBut.setEnabled(true);
+                roadBut.setText(strings.get("base.cancel"));  // "Cancel"
+                pieceButtonsState = SOCGame.PLACING_FREE_ROAD1;
+            }
+            else if (isCurrent && ((gstate == SOCGame.PLACING_ROAD)
                     || ((gstate == SOCGame.PLACING_FREE_ROAD2)
                         && (game.isPractice
-                            || pi.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))))
+                            || pcli.sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))))
             {
                 roadBut.setEnabled(true);
                 roadBut.setText(strings.get("base.cancel"));  // "Cancel"
@@ -1076,6 +1095,14 @@ import javax.swing.SwingConstants;
                 cardBut.setEnabled(currentCanBuy);
                 cardBut.setText(strings.get("build.buy"));
             }
+            else if (isCurrent
+                && ((gstate == SOCGame.PLACING_ROBBER) || (gstate == SOCGame.PLACING_PIRATE))
+                && game.canCancelPlayCurrentDevCard()  // is false if placing because rolled 7
+                && (pcli.getServerVersion(game) >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD))
+            {
+                cardBut.setEnabled(true);
+                cardBut.setText(strings.get("base.cancel"));
+            }
             else
             {
                 cardBut.setEnabled(false);
@@ -1084,13 +1111,15 @@ import javax.swing.SwingConstants;
 
             if (shipBut != null)
             {
-                if (isCurrent && ((gstate == SOCGame.PLACING_SHIP) || (gstate == SOCGame.PLACING_FREE_ROAD2)))
+                if (isCurrent &&
+                    ((gstate == SOCGame.PLACING_SHIP)
+                     || (gstate == SOCGame.PLACING_FREE_ROAD2)
+                     || ((gstate == SOCGame.PLACING_FREE_ROAD1)
+                         && (game.isPractice || pcli.sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))))
                 {
                     shipBut.setEnabled(true);
                     shipBut.setText(strings.get("base.cancel"));
-                    pieceButtonsState = gstate;  // PLACING_SHIP or PLACING_FREE_ROAD2
-                    // ships were added after VERSION_FOR_CANCEL_FREE_ROAD2, so no need to check server version
-                    // to make sure the server supports canceling.
+                    pieceButtonsState = gstate;  // PLACING_SHIP or PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2
                 }
                 else if (game.couldBuildShip(pnum))
                 {
@@ -1174,7 +1203,8 @@ import javax.swing.SwingConstants;
 
     /**
      * Set our game and player data based on client's nickname,
-     * via game.getPlayer(client.getNickname()).
+     * by having {@link SOCPlayerInterface#getClientPlayer()}
+     * call {@code game.getPlayer(ourPlayerNumber)}.
      *<P>
      * Call only after {@link SOCPlayerInterface#addPlayer(String, int)} has been called for client player.
      *
@@ -1197,6 +1227,9 @@ import javax.swing.SwingConstants;
         player = cliPl;
         if (cliPl == null)
             throw new IllegalStateException("null PI.clientPlayer");
+
+        if ((statsFrame != null) && statsFrame.isVisible())
+            statsFrame.statsUpdated(null, null);
     }
 
     /**

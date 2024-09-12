@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -50,13 +50,14 @@ import soc.util.IntPair;
  * {@link #setPortsLayout(int[])}, {@link SOCGame#putPiece(SOCPlayingPiece)}, and
  * {@link #setLegalSettlements(Collection, int, HashSet[])} with data from the server.
  *<P>
- * See {@code SOCBoardAtServer}'s class javadoc, and its {@code makeNewBoard(SOCGameOptionSet)} javadoc,
+ * See {@link soc.server.SOCBoardAtServer}'s class javadoc, and its
+ * {@link soc.server.SOCBoardAtServer#makeNewBoard(SOCGameOptionSet) makeNewBoard(SOCGameOptionSet)} method,
  * for more details on layout creation.
  *<P>
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
  * Land areas are groups of nodes on land; call {@link #getNodeLandArea(int)} to find a node's land area number.
- * The starting land area is {@link #getStartingLandArea()}, if players must start in a certain area.
+ * If {@link #getStartingLandArea()} != 0, the players must start in that land area.
  * In some game scenarios, players and the robber can be
  * {@link #getPlayerExcludedLandAreas() excluded} from placing in some land areas.
  *<P>
@@ -182,7 +183,7 @@ import soc.util.IntPair;
  *</TR>
  *</table>
  *  Some of these geometry methods are specific to {@link SOCBoardLarge}
- *  and don't appear in the parent {@link SOCBoard}.
+ *  and don't appear in its parent class {@link SOCBoard}.
  *<P>
  * <h4> Coordinate System: </h4>
  *
@@ -216,6 +217,8 @@ import soc.util.IntPair;
  * (between two hex coordinates, which are to the west and east of
  * the edge); vertical edge row coordinates are odd like hexes.
  * Otherwise, edges get the coordinate of the node at their western end.
+ *<BR>
+ * Edge (0, 0) is not a valid placement location, to simplify some code.
  *<P>
  * The first few rows of nodes are: <pre>
  *       (0,2)  (0,4)  (0,6) ..
@@ -229,6 +232,8 @@ import soc.util.IntPair;
  *
  *   (6,1)  (6,3)  (6,5) ..
  *(6,0)  (6,2)  (6,4)  (6,6) .. </pre>
+ *
+ * Node (0, 0) is not a valid placement location; its hex would be cut off by the side of the board.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -260,7 +265,8 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Hex type for the Fog Hex, with actual type revealed when roads or ships are placed.
      * Used with some scenarios (see {@link SOCGameOptionSet#K_SC_FOG}).
-     * Bots can treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
+     * Bots can treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed,
+     * except the robber and pirate can't be moved onto a fog hex.
      *<P>
      * To simplify the bot, client, and network, hexes can be hidden only at the server during
      * {@link #makeNewBoard(SOCGameOptionSet)} before the board layout is finished and sent to the client.
@@ -505,7 +511,7 @@ public class SOCBoardLarge extends SOCBoard
      * The multiple land areas are used to restrict initial placement,
      * or for other purposes during the game.
      * If the players must start in a certain land area,
-     * {@link #startingLandArea} != 0, and
+     * then {@link #startingLandArea} != 0 and
      * <tt>landAreasLegalNodes[{@link #startingLandArea}]</tt>
      * is also the players' potential settlement nodes.
      *<P>
@@ -532,6 +538,8 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * The startingLandArea and {@link #landAreasLegalNodes} are sent
      * from the server to client as part of a <tt>POTENTIALSETTLEMENTS</tt> message.
+     *<P>
+     * See {@link #getStartingLandArea()} for other details.
      */
     protected int startingLandArea;
 
@@ -1618,16 +1626,17 @@ public class SOCBoardLarge extends SOCBoard
      * encoded in the hex layout; use {@link #getPortTypeFromNodeCoord(int)} instead.
      *<P>
      * The numeric value (7) for {@link #GOLD_HEX} is the same as
-     * the v1/v2 encoding's {@link SOCBoard#MISC_PORT_HEX}, and
+     * the v1/v2 board encoding format's {@link SOCBoard#MISC_PORT_HEX}, and
      * {@link #FOG_HEX} (8) is the same as {@link SOCBoard#CLAY_PORT_HEX}.
      * The ports aren't encoded that way in <tt>SOCBoardLarge</tt>, so there is no ambiguity
-     * as long as callers check the board encoding format.
+     * as long as callers check the board's {@link SOCBoard#getBoardEncodingFormat()}
+     * and call the correct method for that format.
      *
      * @param hex  the coordinates ("ID") for a hex
      * @return the type of hex:
-     *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
-     *         or {@link #WATER_HEX}.
+     *         Land in range {@link SOCBoard#CLAY_HEX} to {@link SOCBoard#WOOD_HEX},
+     *         {@link SOCBoard#DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
+     *         or {@link SOCBoard#WATER_HEX}.
      *         Invalid hex coordinates return -1.
      *
      * @see #getLandHexCoords()
@@ -1645,12 +1654,13 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Unlike the original {@link SOCBoard} encoding, port types are not
      * encoded in the hex layout; use {@link #getPortTypeFromNodeCoord(int)} instead.
+     * See {@link #getHexTypeFromCoord(int)} for details.
      *
      * @param hex  the number of a hex, or -1 for invalid
      * @return the type of hex:
-     *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
-     *         or {@link #WATER_HEX}.
+     *         Land in range {@link SOCBoard#CLAY_HEX} to {@link SOCBoard#WOOD_HEX},
+     *         {@link SOCBoard#DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
+     *         or {@link SOCBoard#WATER_HEX}.
      *         Invalid hex numbers return -1.
      *
      * @see #getHexTypeFromCoord(int)
@@ -1774,7 +1784,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Put a piece on the board.
      *<P>
-     * Except for {@link SOCVillage}, call
+     * Except for {@link SOCVillage} which is unowned, call
      * {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean) pl.putPiece(pp)}
      * for each player before calling this method.
      *
@@ -1793,6 +1803,33 @@ public class SOCBoardLarge extends SOCBoard
 
         default:
             super.putPiece(pp);
+        }
+    }
+
+    /**
+     * Reopen or close a trade route by calling {@link SOCShip#setClosed(boolean)} on each ship.
+     *
+     * @param closed  True to close, false to reopen, when calling {@link SOCShip#setClosed(boolean)}
+     * @param edges  List of edge coordinates with ships to update; does nothing if null or empty.
+     *     Contents aren't validated here before starting the update.
+     * @param startingIndex  0, or &gt; 0 to skip some elements of {@code edges[]}
+     * @throws IllegalArgumentException  if any edge in {@code edges[]} doesn't return a {@link SOCShip}
+     *     from {@link #roadOrShipAtEdge(int)}
+     * @since 2.7.00
+     */
+    public void setShipsClosed(final boolean closed, final int[] edges, final int startingIndex)
+        throws IllegalArgumentException
+    {
+        if (edges == null)
+            return;
+
+        for (int i = startingIndex; i < edges.length; ++i)
+        {
+            final int edge = edges[i];
+            SOCRoutePiece rs = roadOrShipAtEdge(edge);
+            if (! (rs instanceof SOCShip))
+                throw new IllegalArgumentException("Not a ship at 0x" + Integer.toHexString(edge));
+            ((SOCShip) rs).setClosed(closed);
         }
     }
 
@@ -2042,6 +2079,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Is this the coordinate of a land hex (not water)?
+     * Returns true for {@link #FOG_HEX} even though fog can sometimes be hidden water.
      * @param hexCoord  Hex coordinate, within the board's bounds
      * @return  True if land, false if water or not a valid hex coordinate
      * @see #isHexOnWater(int)
@@ -2056,6 +2094,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Is this the coordinate of a water hex (not land)?
+     * Returns false for {@link #FOG_HEX} even though fog can sometimes be hidden water.
      * @param hexCoord  Hex coordinate, within the board's bounds
      * @return  True if water, false if land or not a valid hex coordinate
      * @see #isHexOnLand(int)
@@ -2340,9 +2379,13 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Get the starting land area, if multiple "land areas" are used
      * and the players must start the game in a certain land area.
+     * Used by some game scenarios.
      *<P>
      * This is enforced during {@link #makeNewBoard(SOCGameOptionSet)}, by using
      * that land area for the only initial potential/legal settlement locations.
+     *<P>
+     * Must be &gt; 0 if using {@link soc.server.SOCBoardAtServer#getBonusExcludeLandArea()};
+     * see that getter for details.
      *
      * @return the starting land area number; also its index in
      *   {@link #getLandAreasLegalNodes()}.
@@ -2367,7 +2410,7 @@ public class SOCBoardLarge extends SOCBoard
      * The multiple land areas are used to restrict initial placement,
      * or for other purposes during the game.
      * If the players must start in a certain land area,
-     * {@link #startingLandArea} != 0.
+     * {@link #getStartingLandArea()} != 0.
      *<P>
      * See also {@link #getLegalSettlements()}
      * which returns the starting land area's nodes, or if no starting

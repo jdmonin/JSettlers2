@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013,2016,2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016,2019,2021 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -56,10 +56,13 @@ import java.util.Map;
 public class PropsFileParser
 {
     /**
-     * If a key starts with this prefix {@code "_nolocaliz"}, it should be present only in the
-     * source language (something.properties), and never localized (something_lang.properties).
+     * If a key contains this marker {@code "_nolocaliz"}, it should be present only in the
+     * source language (something.properties), and probably shouldn't be localized (something_lang.properties).
+     *<P>
+     * Before v1.2.1 this was {@code KEY_PREFIX_NO_LOCALIZE}, and editor checked for it only at
+     * start of key names.
      */
-    public static final String KEY_PREFIX_NO_LOCALIZE = "_nolocaliz";
+    public static final String KEY_MARKER_NO_LOCALIZE = "_nolocaliz";
 
     /**
      * Parse one properties file.  May include a header comment (separated by blank line(s) from the first key line),

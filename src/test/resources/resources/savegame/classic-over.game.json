@@ -33,7 +33,7 @@
     "ROADS",
     "KNIGHT",
     "DISC",
-    "TEMPLE",
+    "TEMPLE"
   ],
   "placingRobberForKnightCard": false,
   "robberyWithPirateNotRobber": false,

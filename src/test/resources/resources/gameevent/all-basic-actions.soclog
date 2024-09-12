@@ -1,0 +1,773 @@
+SOC game event log: type=F, version=2500, created_at=1633920526, now=1633921260, game_name=test
+# Game created at: 2021-10-10 22:48:46 -0400
+# Log written at:  2021-10-10 23:01:00 -0400
+# Added comments are (C) Jeremy D Monin 2021 (GPLv3)
+# This log has a complete game on the sea board,
+# including all basic actions: Roll dice, discard, build pieces, move ship,
+# buy and use each dev card type, trade with bank and players, do nothing,
+# move robber and pirate, choose player and rob, Special Building phase.
+# Starts with debug player and 1 robot; human player p2 takes over for bot just after initial placement.
+# Uses debug comands rsrcs, devnext.
+# For a log with the optional timestamp field, see has-timestamps.soclog.
+# For more complicated initial placement, see initial-placement-sea-cancel.soclog.
+all:SOCVersion:2500|str=2.5.00|verBuild=JM20211010|feats=;ch;|cliLocale=(null)
+all:SOCNewGameWithOptions:game=test|param1=2000|param2=BC=t4,N7=f7,RD=f,SBL=t,PL=4
+ob:SOCJoinGameAuth:game=test|bh=20|bw=21|vs=[-2, 1, 3, 0]
+ob:SOCSetSeatLock:game=test|states=LOCKED,LOCKED,UNLOCKED,UNLOCKED
+ob:SOCPotentialSettlements:game=test|playerNum=-1|list=(empty)
+ob:SOCGameElements:game=test|e4=-1
+ob:SOCPlayerElements:game=test|playerNum=0|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4,e13=15
+ob:SOCChangeFace:game=test|playerNumber=0|faceId=1
+ob:SOCDiceResult:game=test|param=-1
+ob:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4,e13=15
+ob:SOCChangeFace:game=test|playerNumber=1|faceId=1
+ob:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4,e13=15
+ob:SOCChangeFace:game=test|playerNumber=2|faceId=1
+ob:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4,e13=15
+ob:SOCChangeFace:game=test|playerNumber=3|faceId=1
+ob:SOCGameElements:game=test|e2=25,e1=0,e3=-1,e6=-1,e5=-1
+ob:SOCGameMembers:game=test|members=[debug]
+ob:SOCGameState:game=test|state=0
+all:SOCJoinGame:nickname=debug|password empty|host=	|game=test
+fo:SOCSitDown:game=test|nickname=	|playerNumber=3|robotFlag=false
+all:SOCSitDown:game=test|nickname=debug|playerNumber=3|robotFlag=false
+p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=0,e2=0,e3=0,e4=0,e5=0,e6=0
+all:SOCGameState:game=test|state=0
+all:SOCChangeFace:game=test|playerNumber=3|faceId=1
+f3:SOCChangeFace:game=test|playerNumber=0|faceId=2
+all:SOCChangeFace:game=test|playerNumber=3|faceId=2
+f3:SOCSetSeatLock:game=test|playerNumber=0|state=LOCKED
+all:SOCSetSeatLock:game=test|playerNumber=0|state=LOCKED
+f3:SOCSetSeatLock:game=test|playerNumber=1|state=LOCKED
+all:SOCSetSeatLock:game=test|playerNumber=1|state=LOCKED
+f3:SOCStartGame:game=test
+all:SOCGameServerText:game=test|text=Fetching a robot player...
+ob:SOCBotJoinGameRequest:game=test|playerNumber=2|opts=BC=t4,N7=f7,RD=f,SBL=t,PL=4
+ob:SOCJoinGameAuth:game=test|bh=20|bw=21|vs=[-2, 1, 3, 0]
+ob:SOCSetSeatLock:game=test|states=LOCKED,LOCKED,UNLOCKED,UNLOCKED
+ob:SOCSitDown:game=test|nickname=debug|playerNumber=3|robotFlag=false
+ob:SOCBoardLayout2:game=test|bef=3|VS={ -2 1 3 0 }
+ob:SOCPotentialSettlements:game=test|playerNum=-1|list=(empty)
+ob:SOCGameElements:game=test|e4=-1
+ob:SOCPlayerElements:game=test|playerNum=0|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4,e13=15
+ob:SOCChangeFace:game=test|playerNumber=0|faceId=1
+ob:SOCDiceResult:game=test|param=-1
+ob:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4,e13=15
+ob:SOCChangeFace:game=test|playerNumber=1|faceId=1
+ob:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4,e13=15
+ob:SOCChangeFace:game=test|playerNumber=2|faceId=1
+ob:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4,e13=15
+ob:SOCChangeFace:game=test|playerNumber=3|faceId=2
+ob:SOCGameElements:game=test|e2=25,e1=0,e3=-1,e6=-1,e5=-1
+ob:SOCGameMembers:game=test|members=[debug, robot 4]
+ob:SOCGameState:game=test|state=1
+all:SOCJoinGame:nickname=robot 4|password empty|host=	|game=test
+fo:SOCSitDown:game=test|nickname=	|playerNumber=2|robotFlag=true
+all:SOCSitDown:game=test|nickname=robot 4|playerNumber=2|robotFlag=true
+p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=0,e3=0,e4=0,e5=0,e6=0
+all:SOCGameState:game=test|state=1
+all:SOCChangeFace:game=test|playerNumber=2|faceId=1
+all:SOCBoardLayout2:game=test|bef=3|RH=777|LH={ 703 2 4 f03 2 a 904 5 b 504 1 8 305 3 5 b05 3 c 705 1 3 f05 3 5 506 4 a 906 5 6 1106 2 8 307 5 2 b07 4 9 707 1 b 508 4 9 908 5 5 1108 5 5 309 6 0 b09 2 a 709 2 4 50a 3 6 90a 4 8 70b 3 3 f0d 7 a 50e 7 9 d0e 6 0 30f 5 4 70f 4 b f0f 2 9 510 4 3 d10 1 5 711 1 4 d12 3 6 }|PL={ 2 4 1 0 5 3 0 0 0 5 0 3 4 204 207 40a 70c a0a c07 c04 903 503 80f c10 100d 1007 3 4 4 5 6 6 1 2 2 6 4 6 3 }|VS={ -2 1 3 0 }
+all:SOCPotentialSettlements:game=test|playerNum=-1|list=(null)|pan=1|la1=802 602 a03 803 603 403 404 204 c04 a04 804 604 205 405 a05 c05 805 605 206 406 c06 a06 606 806 207 407 a07 c07 607 807 208 408 c08 a08 608 808 209 409 609 a09 809 c09 20a 40a 60a 80a a0a c0a 40b 60b 80b a0b 60c 80c |la2=60d 40d 40e 20e 60e 80e 20f 40f 60f 80f 210 410 610 810 411 611 811 612 812 |la3=100c e0c e0d c0d 100d c0e e0e 100e c0f e0f 100f c10 e10 1010 c11 e11 c12 e12 c13 e13 |la4=1002 e02 e03 1003 e04 1004 e05 1005 1205 e06 1006 1206 1007 1207 1008 1208 1009 1209 
+all:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e10=15,e11=5,e12=4,e13=15
+all:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e10=15,e11=5,e12=4,e13=15
+all:SOCPlayerElement:game=test|playerNum=-1|actionType=SET|elementType=19|amount=0
+all:SOCGameElements:game=test|e2=25
+all:SOCGameServerText:game=test|text=Randomly picking a starting player...
+all:SOCStartGame:game=test|gameState=5
+all:SOCGameServerText:game=test|text=It's debug's turn to build a settlement.
+all:SOCTurn:game=test|playerNumber=3|gameState=5
+f2:SOCChangeFace:game=test|playerNumber=2|faceId=-1
+all:SOCChangeFace:game=test|playerNumber=2|faceId=-1
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=603
+all:SOCGameServerText:game=test|text=debug built a settlement.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=603
+all:SOCGameState:game=test|state=6
+all:SOCGameServerText:game=test|text=It's debug's turn to build a road or ship.
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=603
+all:SOCGameServerText:game=test|text=debug built a road.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=603
+all:SOCGameServerText:game=test|text=It's robot 4's turn to build a settlement.
+all:SOCTurn:game=test|playerNumber=2|gameState=5
+all:SOCRollDicePrompt:game=test|playerNumber=2
+f2:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=609
+all:SOCGameServerText:game=test|text=robot 4 built a settlement.
+all:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=609
+all:SOCGameState:game=test|state=6
+all:SOCGameServerText:game=test|text=It's robot 4's turn to build a road or ship.
+f2:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=509
+all:SOCGameServerText:game=test|text=robot 4 built a road.
+all:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=509
+all:SOCGameServerText:game=test|text=It's robot 4's turn to build a settlement.
+all:SOCTurn:game=test|playerNumber=2|gameState=10
+f2:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=806
+all:SOCGameServerText:game=test|text=robot 4 built a settlement.
+all:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=806
+all:SOCGameState:game=test|state=11
+all:SOCGameServerText:game=test|text=It's robot 4's turn to build a road or ship.
+f2:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=706
+all:SOCGameServerText:game=test|text=robot 4 built a road.
+all:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=706
+all:SOCGameServerText:game=test|text=It's debug's turn to build a settlement.
+all:SOCTurn:game=test|playerNumber=3|gameState=10
+all:SOCRollDicePrompt:game=test|playerNumber=3
+ob:SOCJoinGameAuth:game=test|bh=20|bw=21|vs=[-2, 1, 3, 0]
+ob:SOCSetSeatLock:game=test|states=LOCKED,LOCKED,UNLOCKED,UNLOCKED
+ob:SOCSitDown:game=test|nickname=robot 4|playerNumber=2|robotFlag=true
+ob:SOCSitDown:game=test|nickname=debug|playerNumber=3|robotFlag=false
+ob:SOCBoardLayout2:game=test|bef=3|RH=777|LH={ 703 2 4 f03 2 a 904 5 b 504 1 8 305 3 5 b05 3 c 705 1 3 f05 3 5 506 4 a 906 5 6 1106 2 8 307 5 2 b07 4 9 707 1 b 508 4 9 908 5 5 1108 5 5 309 6 0 b09 2 a 709 2 4 50a 3 6 90a 4 8 70b 3 3 f0d 7 a 50e 7 9 d0e 6 0 30f 5 4 70f 4 b f0f 2 9 510 4 3 d10 1 5 711 1 4 d12 3 6 }|PL={ 2 4 1 0 5 3 0 0 0 5 0 3 4 204 207 40a 70c a0a c07 c04 903 503 80f c10 100d 1007 3 4 4 5 6 6 1 2 2 6 4 6 3 }|VS={ -2 1 3 0 }
+ob:SOCPotentialSettlements:game=test|playerNum=0|list=802 a03 803 404 204 c04 a04 804 205 405 a05 c05 605 206 406 c06 a06 207 407 a07 c07 607 208 408 c08 a08 808 209 a09 809 c09 20a 40a 80a a0a c0a 40b 60b 80b a0b 60c 80c |pan=0|la1=802 602 a03 803 603 403 404 204 c04 a04 804 604 205 405 a05 c05 805 605 206 406 c06 a06 606 806 207 407 a07 c07 607 807 208 408 c08 a08 608 808 209 409 609 a09 809 c09 20a 40a 60a 80a a0a c0a 40b 60b 80b a0b 60c 80c |la2=60d 40d 40e 20e 60e 80e 20f 40f 60f 80f 210 410 610 810 411 611 811 612 812 |la3=100c e0c e0d c0d 100d c0e e0e 100e c0f e0f 100f c10 e10 1010 c11 e11 c12 e12 c13 e13 |la4=1002 e02 e03 1003 e04 1004 e05 1005 1205 e06 1006 1206 1007 1207 1008 1208 1009 1209 
+ob:SOCPotentialSettlements:game=test|playerNum=1|list=802 a03 803 404 204 c04 a04 804 205 405 a05 c05 605 206 406 c06 a06 207 407 a07 c07 607 208 408 c08 a08 808 209 a09 809 c09 20a 40a 80a a0a c0a 40b 60b 80b a0b 60c 80c 
+ob:SOCPotentialSettlements:game=test|playerNum=2|list=802 a03 803 404 204 c04 a04 804 205 405 a05 c05 605 206 406 c06 a06 207 407 a07 c07 607 208 408 c08 a08 808 209 a09 809 c09 20a 40a 80a a0a c0a 40b 60b 80b a0b 60c 80c 
+ob:SOCPotentialSettlements:game=test|playerNum=3|list=802 a03 803 404 204 c04 a04 804 205 405 a05 c05 605 206 406 c06 a06 207 407 a07 c07 607 208 408 c08 a08 808 209 a09 809 c09 20a 40a 80a a0a c0a 40b 60b 80b a0b 60c 80c 
+ob:SOCGameElements:game=test|e4=3
+ob:SOCPlayerElements:game=test|playerNum=0|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4,e13=15
+ob:SOCChangeFace:game=test|playerNumber=0|faceId=1
+ob:SOCDiceResult:game=test|param=-1
+ob:SOCPlayerElements:game=test|playerNum=1|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4,e13=15
+ob:SOCChangeFace:game=test|playerNumber=1|faceId=1
+ob:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=105|amount=1
+ob:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=609
+ob:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=509
+ob:SOCPutPiece:game=test|playerNumber=2|pieceType=1|coord=806
+ob:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=706
+ob:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e18=2054,e6=3,e15=0,e10=13,e11=3,e12=4,e13=15
+ob:SOCChangeFace:game=test|playerNumber=2|faceId=-1
+ob:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=105|amount=1
+ob:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=603
+ob:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=603
+ob:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e18=1539,e6=0,e15=0,e10=14,e11=4,e12=4,e13=15
+ob:SOCChangeFace:game=test|playerNumber=3|faceId=2
+ob:SOCGameElements:game=test|e2=25,e1=0,e3=3,e6=-1,e5=-1
+ob:SOCGameMembers:game=test|members=[debug, robot 4, p2]
+ob:SOCGameState:game=test|state=10
+all:SOCJoinGame:nickname=p2|password empty|host=	|game=test
+ob:SOCGameServerText:game=test|text=This game has started. To play, take over a robot.
+fo:SOCSitDown:game=test|nickname=	|playerNumber=2|robotFlag=false
+p2:SOCRobotDismiss:game=test
+f2:SOCLeaveGame:nickname=robot 4|host=-|game=test
+all:SOCLeaveGame:nickname=robot 4|host=-|game=test
+all:SOCGameServerText:game=test|text=robot 4 left the game.
+all:SOCSitDown:game=test|nickname=p2|playerNumber=2|robotFlag=false
+p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=2,e2=0,e3=0,e4=0,e5=1,e6=0
+all:SOCGameState:game=test|state=10
+all:SOCGameServerText:game=test|text=It's debug's turn to build a settlement.
+all:SOCChangeFace:game=test|playerNumber=2|faceId=1
+f2:SOCChangeFace:game=test|playerNumber=0|faceId=2
+all:SOCChangeFace:game=test|playerNumber=2|faceId=2
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=a08
+all:SOCGameServerText:game=test|text=debug built a settlement.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=a08
+all:SOCGameState:game=test|state=11
+all:SOCGameServerText:game=test|text=It's debug's turn to build a road or ship.
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a08
+all:SOCGameServerText:game=test|text=debug built a road.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=a08
+all:SOCTurn:game=test|playerNumber=3|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+f3:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=7
+all:SOCGameState:game=test|state=54
+all:SOCGameServerText:game=test|text=debug must choose to move the robber or the pirate.
+f3:SOCChoosePlayer:game=test|choice=-2
+all:SOCGameState:game=test|state=33
+all:SOCGameServerText:game=test|text=debug will move the robber.
+f3:SOCMoveRobber:game=test|playerNumber=3|coord=307
+all:SOCMoveRobber:game=test|playerNumber=3|coord=307
+all:SOCGameServerText:game=test|text=debug moved the robber.
+all:SOCGameState:game=test|state=20
+f3:SOCGameTextMsg:game=test|nickname=-|text=*savegame* test-first-turn
+un:SOCGameServerText:game=test|text=Saved game to test-first-turn.game.json
+# note: ^ committed as artifact ../savegame/all-basic-actions-first-turn.game.json
+f3:SOCGameTextMsg:game=test|nickname=-|text=rsrcs: 0 5 5 5 0 debug
+all:SOCPlayerElements:game=test|playerNum=3|actionType=GAIN|e2=5,e3=5,e4=5
+all:SOCGameServerText:game=test|text=### debug gets 0 5 5 5 0
+f3:SOCBuyDevCardRequest:game=test
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
+p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9
+!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
+all:SOCSimpleAction:game=test|pn=3|actType=1|v1=24|v2=0
+all:SOCGameState:game=test|state=20
+f3:SOCBuyDevCardRequest:game=test
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
+p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9
+!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
+all:SOCSimpleAction:game=test|pn=3|actType=1|v1=23|v2=0
+all:SOCGameState:game=test|state=20
+f3:SOCBuyDevCardRequest:game=test
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
+p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9
+!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
+all:SOCSimpleAction:game=test|pn=3|actType=1|v1=22|v2=0
+all:SOCGameState:game=test|state=20
+f3:SOCBuyDevCardRequest:game=test
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
+p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9
+!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
+all:SOCSimpleAction:game=test|pn=3|actType=1|v1=21|v2=0
+all:SOCGameState:game=test|state=20
+f3:SOCBuyDevCardRequest:game=test
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
+p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9
+!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
+all:SOCSimpleAction:game=test|pn=3|actType=1|v1=20|v2=0
+all:SOCGameState:game=test|state=20
+f3:SOCGameTextMsg:game=test|nickname=-|text=rsrcs: 0 5 5 5 0 debug
+all:SOCPlayerElements:game=test|playerNum=3|actionType=GAIN|e2=5,e3=5,e4=5
+all:SOCGameServerText:game=test|text=### debug gets 0 5 5 5 0
+f3:SOCGameTextMsg:game=test|nickname=-|text=devnext: 1
+all:SOCGameServerText:game=test|text=### Next dev card is set to a Road Building.
+f3:SOCBuyDevCardRequest:game=test
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
+p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=1
+!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
+all:SOCSimpleAction:game=test|pn=3|actType=1|v1=19|v2=0
+all:SOCGameState:game=test|state=20
+f3:SOCGameTextMsg:game=test|nickname=-|text=devnext: 2
+all:SOCGameServerText:game=test|text=### Next dev card is set to a Year of Plenty.
+f3:SOCBuyDevCardRequest:game=test
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
+p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=2
+!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
+all:SOCSimpleAction:game=test|pn=3|actType=1|v1=18|v2=0
+all:SOCGameState:game=test|state=20
+f3:SOCGameTextMsg:game=test|nickname=-|text=devnext: 3
+all:SOCGameServerText:game=test|text=### Next dev card is set to a Monopoly.
+f3:SOCBuyDevCardRequest:game=test
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
+p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=3
+!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
+all:SOCSimpleAction:game=test|pn=3|actType=1|v1=17|v2=0
+all:SOCGameState:game=test|state=20
+f3:SOCGameTextMsg:game=test|nickname=-|text=devnext: 4
+all:SOCGameServerText:game=test|text=### Next dev card is set to a Gov.House (+1VP).
+f3:SOCBuyDevCardRequest:game=test
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
+p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=4
+!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
+all:SOCSimpleAction:game=test|pn=3|actType=1|v1=16|v2=0
+all:SOCGameState:game=test|state=20
+f3:SOCGameTextMsg:game=test|nickname=-|text=devnext: 5
+all:SOCGameServerText:game=test|text=### Next dev card is set to a Market (+1VP).
+f3:SOCGameTextMsg:game=test|nickname=-|text=devnext: 8
+all:SOCGameServerText:game=test|text=### Next dev card is set to a Chapel (+1VP).
+f3:SOCGameTextMsg:game=test|nickname=-|text=devnext: 9
+all:SOCGameServerText:game=test|text=### Next dev card is set to a Soldier.
+f3:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=2|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=2
+f2:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=9
+all:SOCDiceResultResources:game=test|p=2|p=2|p=4|p=1|p=4|p=0|p=3|p=7|p=1|p=4
+p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=2,e2=0,e3=0,e4=1,e5=1
+p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=0,e2=2,e3=1,e4=3,e5=1
+all:SOCGameState:game=test|state=20
+f2:SOCBuildRequest:game=g|pieceType=0
+all:SOCPlayerElements:game=test|playerNum=2|actionType=LOSE|e1=1,e5=1
+all:SOCGameState:game=g|state=30
+f2:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=605
+all:SOCGameServerText:game=test|text=p2 built a road.
+all:SOCPutPiece:game=test|playerNumber=2|pieceType=0|coord=605
+all:SOCGameState:game=test|state=20
+f2:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=3|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+f3:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=8
+all:SOCDiceResultResources:game=test|p=1|p=3|p=8|p=1|p=1
+p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=1,e2=2,e3=1,e4=3,e5=1
+all:SOCGameState:game=test|state=20
+f3:SOCBuildRequest:game=test|pieceType=3
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e3=1,e5=1
+all:SOCGameState:game=test|state=35
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=602
+all:SOCGameServerText:game=test|text=debug built a ship.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=602
+all:SOCGameState:game=test|state=20
+f3:SOCPlayDevCardRequest:game=test|devCard=9
+all:SOCGameServerText:game=test|text=debug played a Soldier card.
+all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1
+all:SOCGameState:game=test|state=54
+all:SOCGameServerText:game=test|text=debug must choose to move the robber or the pirate.
+f3:SOCChoosePlayer:game=test|choice=-2
+all:SOCGameState:game=test|state=33
+all:SOCGameServerText:game=test|text=debug will move the robber.
+f3:SOCMoveRobber:game=test|playerNumber=3|coord=50a
+all:SOCMoveRobber:game=test|playerNumber=3|coord=50a
+# Choose player to rob: Added afterwards to test GameEventSequenceRecognizer; actual game has only 2 players
+all:SOCGameServerText:game=test|text=debug moved the robber. Must choose a victim.
+all:SOCGameState:game=test|state=51
+p3:SOCChoosePlayerRequest:game=test|choices=[true, false, true, false]
+f3:SOCChoosePlayer:game=test|choice=2
+# End of added section
+p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
+!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+all:SOCGameState:game=test|state=20
+f3:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=2|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=2
+f2:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=7
+all:SOCGameState:game=test|state=54
+all:SOCGameServerText:game=test|text=p2 must choose to move the robber or the pirate.
+f2:SOCChoosePlayer:game=test|choice=-3
+all:SOCGameState:game=test|state=34
+all:SOCGameServerText:game=test|text=p2 will move the pirate ship.
+f2:SOCMoveRobber:game=test|playerNumber=2|coord=-50c
+all:SOCMoveRobber:game=test|playerNumber=2|coord=-50c
+all:SOCGameServerText:game=test|text=p2 moved the pirate.
+all:SOCGameState:game=test|state=20
+f2:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=1|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=1|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCClearTradeMsg:game=test|playerNumber=-1
+f2:SOCClearOffer:game=test|playerNumber=0
+all:SOCClearOffer:game=test|playerNumber=2
+all:SOCClearTradeMsg:game=test|playerNumber=-1
+f2:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCMakeOffer:game=test|from=2|to=false,false,false,true|give=clay=0|ore=0|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCClearTradeMsg:game=test|playerNumber=-1
+f3:SOCRejectOffer:game=test|playerNumber=0
+all:SOCRejectOffer:game=test|playerNumber=3
+f2:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=3|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+f3:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=6
+all:SOCDiceResultResources:game=test|p=1|p=2|p=2|p=1|p=5
+p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=0,e3=0,e4=1,e5=1
+all:SOCGameState:game=test|state=20
+f3:SOCMakeOffer:game=test|from=3|to=false,false,true,false|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0
+all:SOCMakeOffer:game=test|from=3|to=false,false,true,false|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0
+all:SOCClearTradeMsg:game=test|playerNumber=-1
+f2:SOCAcceptOffer:game=test|accepting=0|offering=3
+all:SOCAcceptOffer:game=test|accepting=2|offering=3|toAccepting=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|toOffering=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0
+all:SOCClearOffer:game=test|playerNumber=-1
+f3:SOCPlayDevCardRequest:game=test|devCard=9
+all:SOCGameServerText:game=test|text=debug played a Soldier card.
+all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1
+all:SOCGameState:game=test|state=54
+all:SOCGameServerText:game=test|text=debug must choose to move the robber or the pirate.
+f3:SOCChoosePlayer:game=test|choice=-2
+all:SOCGameState:game=test|state=33
+all:SOCGameServerText:game=test|text=debug will move the robber.
+f3:SOCMoveRobber:game=test|playerNumber=3|coord=709
+all:SOCMoveRobber:game=test|playerNumber=3|coord=709
+p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=1|amount=1|isGainLose=true
+!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+all:SOCGameState:game=test|state=20
+f3:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=2|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=2
+f2:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=7
+# Changed afterwards to have 2 players discard instead of 1, to document that sequence
+all:SOCGameState:game=test|state=50
+all:SOCGameServerText:game=test|text=p2 and debug need to discard.
+p2:SOCDiscardRequest:game=test|numDiscards=4
+p3:SOCDiscardRequest:game=test|numDiscards=4
+f2:SOCDiscard:game=test|resources=clay=2|ore=0|sheep=0|wheat=2|wood=0|unknown=0
+p2:SOCDiscard:game=test|playerNum=2|resources=clay=2|ore=0|sheep=0|wheat=2|wood=0|unknown=0
+!p2:SOCDiscard:game=test|playerNum=2|resources=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=4
+# End of added section
+all:SOCGameState:game=test|state=50
+all:SOCGameServerText:game=test|text=debug needs to discard.
+f3:SOCDiscard:game=test|resources=clay=1|ore=1|sheep=0|wheat=2|wood=0|unknown=0
+p3:SOCDiscard:game=test|playerNum=3|resources=clay=1|ore=1|sheep=0|wheat=2|wood=0|unknown=0
+!p3:SOCDiscard:game=test|playerNum=3|resources=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=4
+all:SOCGameState:game=test|state=54
+all:SOCGameServerText:game=test|text=p2 must choose to move the robber or the pirate.
+f2:SOCChoosePlayer:game=test|choice=-3
+all:SOCGameState:game=test|state=34
+all:SOCGameServerText:game=test|text=p2 will move the pirate ship.
+f2:SOCMoveRobber:game=test|playerNumber=2|coord=-502
+all:SOCMoveRobber:game=test|playerNumber=2|coord=-502
+p2:SOCRobberyResult:game=test|perp=2|victim=3|resType=5|amount=1|isGainLose=true
+p3:SOCRobberyResult:game=test|perp=2|victim=3|resType=5|amount=1|isGainLose=true
+!p[2, 3]:SOCRobberyResult:game=test|perp=2|victim=3|resType=6|amount=1|isGainLose=true
+all:SOCGameState:game=test|state=20
+f2:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=3|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+f3:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=8
+all:SOCDiceResultResources:game=test|p=1|p=3|p=4|p=1|p=1
+p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=2,e2=1,e3=0,e4=1,e5=0
+all:SOCGameState:game=test|state=20
+f3:SOCPlayDevCardRequest:game=test|devCard=9
+all:SOCGameServerText:game=test|text=debug played a Soldier card.
+all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1
+all:SOCGameElements:game=test|e5=3
+all:SOCGameState:game=test|state=54
+all:SOCGameServerText:game=test|text=debug must choose to move the robber or the pirate.
+f3:SOCChoosePlayer:game=test|choice=-3
+all:SOCGameState:game=test|state=34
+all:SOCGameServerText:game=test|text=debug will move the pirate ship.
+f3:SOCMoveRobber:game=test|playerNumber=3|coord=-90c
+all:SOCMoveRobber:game=test|playerNumber=3|coord=-90c
+all:SOCGameServerText:game=test|text=debug moved the pirate. Must choose to steal cloth or steal resources.
+# Steal cloth: Added afterwards to test GameEventSequenceRecognizer; actual game doesn't have scenario SC_CLVI
+all:SOCGameState:game=test|state=55
+p3:SOCChoosePlayer:game=test|choice=2
+f3:SOCChoosePlayer:game=test|choice=-3
+all:SOCRobberyResult:game=test|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=4|isGainLose=false|victimAmount=3
+# End of added section
+all:SOCGameState:game=test|state=20
+f3:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=2|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=2
+f2:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=5
+all:SOCDiceResultResources:game=test|p=1|p=3|p=5|p=1|p=5
+p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=2,e2=1,e3=0,e4=1,e5=1
+all:SOCGameState:game=test|state=20
+f2:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=3|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+f3:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=7
+all:SOCGameState:game=test|state=54
+all:SOCGameServerText:game=test|text=debug must choose to move the robber or the pirate.
+f3:SOCChoosePlayer:game=test|choice=-2
+all:SOCGameState:game=test|state=33
+all:SOCGameServerText:game=test|text=debug will move the robber.
+f3:SOCMoveRobber:game=test|playerNumber=3|coord=508
+all:SOCMoveRobber:game=test|playerNumber=3|coord=508
+p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
+!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+all:SOCGameState:game=test|state=20
+f3:SOCPlayDevCardRequest:game=test|devCard=1
+all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+all:SOCGameServerText:game=test|text=debug played a Road Building card.
+all:SOCGameState:game=test|state=40
+p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704
+all:SOCGameServerText:game=test|text=debug built a road.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=704
+all:SOCGameState:game=test|state=41
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
+all:SOCGameServerText:game=test|text=debug built a road.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=804
+all:SOCGameState:game=test|state=20
+f3:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=2|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=2
+f2:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=2
+all:SOCGameServerText:game=test|text=No player gets anything.
+all:SOCGameState:game=test|state=20
+# Request Special Building Phase: Added afterwards to test GameEventSequenceRecognizer; actual game is on 4-player board
+f3:SOCBuildRequest:game=test|pieceType=-1
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=16|amount=1
+# End of added section
+f2:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+# Special Building phase: Added afterwards to test.
+all:SOCTurn:game=test|playerNumber=3|gameState=100
+all:SOCGameServerText:game=test|text=Special building phase: debug's turn to place.
+f3:SOCBuyDevCardRequest:game=test
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
+p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=4
+!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
+all:SOCSimpleAction:game=test|pn=3|actType=1|v1=31|v2=0
+all:SOCGameState:game=test|state=100
+f3:SOCEndTurn:game=test
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=16|amount=0
+all:SOCClearOffer:game=test|playerNumber=-1
+# End of added section
+all:SOCTurn:game=test|playerNumber=3|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+# Play Soldier, move robber, and steal before rolling dice: Added afterwards to test.
+f3:SOCPlayDevCardRequest:game=test|devCard=9
+all:SOCGameServerText:game=test|text=debug played a Soldier card.
+all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1
+all:SOCGameState:game=test|state=33
+all:SOCGameServerText:game=test|text=debug will move the robber.
+f3:SOCMoveRobber:game=test|playerNumber=3|coord=55
+all:SOCMoveRobber:game=test|playerNumber=3|coord=55
+all:SOCGameServerText:game=test|text=debug moved the robber. Must choose a victim.
+all:SOCGameState:game=test|state=51
+p3:SOCChoosePlayerRequest:game=test|choices=[true, false, true, false]
+f3:SOCChoosePlayer:game=test|choice=2
+p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=4|amount=1|isGainLose=true
+!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+all:SOCGameState:game=test|state=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+# End of added section
+f3:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=6
+all:SOCDiceResultResources:game=test|p=1|p=2|p=3|p=1|p=3|p=1|p=5
+p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=0,e3=1,e4=0,e5=2
+all:SOCGameState:game=test|state=20
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=905
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e5=1
+all:SOCGameServerText:game=test|text=debug built a road.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=905
+all:SOCGameElements:game=test|e6=3
+all:SOCGameState:game=test|state=20
+f3:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=2|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=2
+f2:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=12
+all:SOCGameServerText:game=test|text=No player gets anything.
+all:SOCGameState:game=test|state=20
+# Play Monopoly card, but no resources gained: Added afterwards to test.
+f2:SOCPlayDevCardRequest:game=test|devCard=3
+all:SOCDevCardAction:game=test|playerNum=2|actionType=PLAY|cardType=3
+all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=19|amount=1
+all:SOCGameServerText:game=test|text=p2 played a Monopoly card.
+all:SOCGameState:game=test|state=53
+f2:SOCPickResourceType:game=test|resType=5
+all:SOCPlayerElement:game=test|playerNum=2|actionType=GAIN|elementType=5|amount=0
+all:SOCSimpleAction:game=test|pn=2|actType=3|v1=0|v2=5
+all:SOCGameState:game=test|state=20
+# End of added section
+f2:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=3|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+f3:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=12
+all:SOCGameServerText:game=test|text=No player gets anything.
+all:SOCGameState:game=test|state=20
+f3:SOCPlayDevCardRequest:game=test|devCard=2
+all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=2
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+all:SOCGameServerText:game=test|text=debug played a Year of Plenty card.
+all:SOCGameState:game=test|state=52
+f3:SOCPickResources:game=test|resources=clay=0|ore=2|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCPickResources:game=test|resources=clay=0|ore=2|sheep=0|wheat=0|wood=0|unknown=0|pn=3|reason=2
+all:SOCGameState:game=test|state=20
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=a08
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=3,e4=2
+all:SOCGameServerText:game=test|text=debug built a city.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=a08
+all:SOCGameState:game=test|state=20
+f3:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=2|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=2
+f2:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=10
+all:SOCDiceResultResources:game=test|p=1|p=3|p=3|p=2|p=2
+p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=1,e2=2,e3=0,e4=0,e5=0
+all:SOCGameState:game=test|state=20
+f2:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=3|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+f3:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=9
+all:SOCDiceResultResources:game=test|p=1|p=3|p=5|p=2|p=4
+p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=1,e2=2,e3=0,e4=2,e5=0
+all:SOCGameState:game=test|state=20
+f3:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=602|toCoord=503
+all:SOCMovePiece:game=test|pn=3|pieceType=3|fromCoord=602|toCoord=503
+f3:SOCPlayDevCardRequest:game=test|devCard=3
+all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=3
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+all:SOCGameServerText:game=test|text=debug played a Monopoly card.
+all:SOCGameState:game=test|state=53
+f3:SOCPickResourceType:game=test|resType=3
+all:SOCPlayerElement:game=test|playerNum=2|actionType=SET|elementType=3|amount=0|news=Y
+all:SOCResourceCount:game=test|playerNum=2|count=2
+all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=3|amount=1
+all:SOCSimpleAction:game=test|pn=3|actType=3|v1=1|v2=3
+p2:SOCGameServerText:game=test|text=debug's Monopoly took your 1 sheep.
+all:SOCGameState:game=test|state=20
+f3:SOCBuyDevCardRequest:game=test
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=1,e3=1,e4=1
+p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=9
+!p3:SOCDevCardAction:game=test|playerNum=3|actionType=DRAW|cardType=0
+all:SOCSimpleAction:game=test|pn=3|actType=1|v1=15|v2=0
+all:SOCGameState:game=test|state=20
+f3:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=2|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=2
+f2:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=4
+all:SOCDiceResultResources:game=test|p=2|p=2|p=3|p=1|p=2|p=0|p=3|p=4|p=1|p=2
+p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=1,e3=0,e4=0,e5=2
+p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=1,e2=2,e3=0,e4=1,e5=0
+all:SOCGameState:game=test|state=20
+f2:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=3|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+f3:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=4
+all:SOCDiceResultResources:game=test|p=2|p=2|p=4|p=1|p=2|p=0|p=3|p=5|p=1|p=2
+p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=2,e3=0,e4=0,e5=2
+p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=1,e2=3,e3=0,e4=1,e5=0
+all:SOCGameState:game=test|state=20
+f3:SOCPlayDevCardRequest:game=test|devCard=9
+all:SOCGameServerText:game=test|text=debug played a Soldier card.
+all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1
+all:SOCGameState:game=test|state=54
+all:SOCGameServerText:game=test|text=debug must choose to move the robber or the pirate.
+f3:SOCChoosePlayer:game=test|choice=-2
+all:SOCGameState:game=test|state=33
+all:SOCGameServerText:game=test|text=debug will move the robber.
+f3:SOCMoveRobber:game=test|playerNumber=3|coord=50a
+all:SOCMoveRobber:game=test|playerNumber=3|coord=50a
+p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+all:SOCGameState:game=test|state=20
+f3:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=3
+f3:SOCBankTrade:game=test|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCBankTrade:game=test|give=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|pn=3
+f3:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0
+all:SOCBankTrade:game=test|give=clay=0|ore=3|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0|pn=3
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=804
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e1=1,e3=1,e4=1,e5=1
+all:SOCGameServerText:game=test|text=debug built a settlement.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=1|coord=804
+all:SOCGameState:game=test|state=20
+f3:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=2|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=2
+f2:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=7
+all:SOCGameState:game=test|state=54
+all:SOCGameServerText:game=test|text=p2 must choose to move the robber or the pirate.
+f2:SOCChoosePlayer:game=test|choice=-2
+all:SOCGameState:game=test|state=33
+all:SOCGameServerText:game=test|text=p2 will move the robber.
+f2:SOCMoveRobber:game=test|playerNumber=2|coord=504
+all:SOCMoveRobber:game=test|playerNumber=2|coord=504
+all:SOCGameServerText:game=test|text=p2 moved the robber.
+all:SOCGameState:game=test|state=20
+f2:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+# Do nothing this turn
+all:SOCTurn:game=test|playerNumber=3|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+f3:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=6
+all:SOCDiceResultResources:game=test|p=1|p=2|p=5|p=1|p=3|p=1|p=5
+p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=2,e3=1,e4=0,e5=2
+all:SOCGameState:game=test|state=20
+f3:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=2|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=2
+f2:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=6
+all:SOCDiceResultResources:game=test|p=1|p=2|p=7|p=1|p=3|p=1|p=5
+p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=2,e3=2,e4=0,e5=3
+all:SOCGameState:game=test|state=20
+f2:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=3|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+f3:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=6
+all:SOCDiceResultResources:game=test|p=1|p=2|p=9|p=1|p=3|p=1|p=5
+p2:SOCPlayerElements:game=test|playerNum=2|actionType=SET|e1=0,e2=2,e3=3,e4=0,e5=4
+all:SOCGameState:game=test|state=20
+f3:SOCPlayDevCardRequest:game=test|devCard=9
+all:SOCGameServerText:game=test|text=debug played a Soldier card.
+all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=9
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+all:SOCPlayerElement:game=test|playerNum=3|actionType=GAIN|elementType=15|amount=1
+all:SOCGameState:game=test|state=54
+all:SOCGameServerText:game=test|text=debug must choose to move the robber or the pirate.
+f3:SOCChoosePlayer:game=test|choice=-2
+all:SOCGameState:game=test|state=33
+all:SOCGameServerText:game=test|text=debug will move the robber.
+f3:SOCMoveRobber:game=test|playerNumber=3|coord=508
+all:SOCMoveRobber:game=test|playerNumber=3|coord=508
+p3:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+p2:SOCRobberyResult:game=test|perp=3|victim=2|resType=5|amount=1|isGainLose=true
+!p[3, 2]:SOCRobberyResult:game=test|perp=3|victim=2|resType=6|amount=1|isGainLose=true
+all:SOCGameState:game=test|state=20
+f3:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=2|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=2
+f2:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=9
+all:SOCDiceResultResources:game=test|p=1|p=3|p=3|p=2|p=4
+p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=0,e2=0,e3=0,e4=2,e5=1
+all:SOCGameState:game=test|state=20
+f2:SOCEndTurn:game=test
+all:SOCClearOffer:game=test|playerNumber=-1
+all:SOCTurn:game=test|playerNumber=3|gameState=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+# Play dev card Road Building before roll: Added afterwards to test.
+f3:SOCPlayDevCardRequest:game=test|devCard=1
+all:SOCDevCardAction:game=test|playerNum=3|actionType=PLAY|cardType=1
+all:SOCPlayerElement:game=test|playerNum=3|actionType=SET|elementType=19|amount=1
+all:SOCGameServerText:game=test|text=debug played a Road Building card.
+all:SOCGameState:game=test|state=40
+p3:SOCGameServerText:game=test|text=You may place 2 roads/ships.
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=70c
+all:SOCGameServerText:game=test|text=debug built a road.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=0|coord=70c
+all:SOCGameState:game=test|state=41
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=60c
+all:SOCGameServerText:game=test|text=debug built a ship.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=3|coord=60c
+all:SOCGameState:game=test|state=15
+all:SOCRollDicePrompt:game=test|playerNumber=3
+# End of added section
+f3:SOCRollDice:game=test
+all:SOCDiceResult:game=test|param=10
+all:SOCDiceResultResources:game=test|p=1|p=3|p=5|p=2|p=2
+p3:SOCPlayerElements:game=test|playerNum=3|actionType=SET|e1=0,e2=2,e3=0,e4=2,e5=1
+all:SOCGameState:game=test|state=20
+f3:SOCMakeOffer:game=test|from=3|to=false,false,true,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCMakeOffer:game=test|from=3|to=false,false,true,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|get=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCClearTradeMsg:game=test|playerNumber=-1
+f2:SOCAcceptOffer:game=test|accepting=0|offering=3
+all:SOCAcceptOffer:game=test|accepting=2|offering=3|toAccepting=clay=0|ore=0|sheep=0|wheat=0|wood=1|unknown=0|toOffering=clay=0|ore=1|sheep=0|wheat=0|wood=0|unknown=0
+all:SOCClearOffer:game=test|playerNumber=-1
+f3:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=603
+all:SOCPlayerElements:game=test|playerNum=3|actionType=LOSE|e2=3,e4=2
+all:SOCGameServerText:game=test|text=debug built a city.
+all:SOCPutPiece:game=test|playerNumber=3|pieceType=2|coord=603
+all:SOCGameElements:game=test|e4=3
+all:SOCGameState:game=test|state=1000
+all:SOCGameServerText:game=test|text=>>> debug has won the game with 10 points.
+all:SOCDevCardAction:game=test|playerNum=3|actionType=ADD_OLD|cardType=4
+all:SOCGameStats:game=test|0|0|2|10|false|false|false|false
+all:SOCGameServerText:game=test|text=This game was 12 rounds, and took 11 minutes 29 seconds.
+p2:SOCPlayerStats:game=test|p=1|p=0|p=2|p=4|p=1|p=5
+p3:SOCPlayerStats:game=test|p=1|p=2|p=6|p=0|p=5|p=1
+f3:SOCGameTextMsg:game=test|nickname=-|text=*savegame* test-over
+un:SOCGameServerText:game=test|text=Saved game to test-over.game.json
+# note: ^ committed as artifact ../savegame/all-basic-actions-over.game.json
+f3:SOCGameTextMsg:game=test|nickname=-|text=*savelog* -u test-all-basic-actions
+# End of log. Game state 1000
+# Player info:
+# - pn 2: total score 2: p2
+# - pn 3: total score 10: debug, Largest Army, Longest Road, Winner

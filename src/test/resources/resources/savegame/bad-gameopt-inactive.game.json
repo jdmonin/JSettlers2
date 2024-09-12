@@ -1,6 +1,6 @@
 {
   "modelVersion": 2400,
-  "savedByVersion": 2450,
+  "savedByVersion": 2500,
   "gameMinVersion": 2000,
   "gameName": "bad-gameopt-inactive",
   "comments": "Same game as classic-botturn, but edited to add inactive game opt _TESTACT created by TestLoadgame.setup()",

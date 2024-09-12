@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,9 +27,11 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
-import soc.game.SOCGameOption;
+import soc.server.SOCServer;  // for javadocs only
 import soc.server.savegame.SavedGameModel;  // for javadocs only
+import soc.util.DataUtils;
 import soc.util.SOCFeatureSet;
 import soc.util.Version;
 import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;  // for convenience in getAllKnownOptions()
@@ -40,7 +42,7 @@ import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;  // for convenience in
  *<P>
  * Internally this is a {@code Map} whose keys are the options' {@link SOCVersionedItem#key}s.
  *<P>
- * Before v2.4.50 such sets were represented by <tt>Map&lt;String, SOCGameOption&gt;</tt>
+ * Before v2.5.00 such sets were represented by <tt>Map&lt;String, SOCGameOption&gt;</tt>
  * and these methods were part of {@link SOCGameOption}.
  * So, some methods here are marked <tt>@since</tt> earlier version numbers.
  * Many classes still use the Map format for simplicity:
@@ -48,6 +50,8 @@ import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;  // for convenience in
  *
  *<H3>Known Options</H3>
  *
+ * For the list of all known options, see {@link #getAllKnownOptions()}.
+ *<P>
  * Methods to work with a set of Known Options:
  *
  *<H4>Synchronizing options between server/client versions</H4>
@@ -69,6 +73,11 @@ import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;  // for convenience in
  * <LI> {@link #setKnownOptionCurrentValue(SOCGameOption)}
  *</UL>
  *
+ *<H4>Groups of related Options</H4>
+ *<UL>
+ * <LI> {@link SOCGameOption#getGroupParentKey(String)}
+ *</UL>
+ *
  *<H4>Options available only when Activated or when client has a Feature</H4>
  *<UL>
  * <LI> {@link #optionsNotSupported(SOCFeatureSet)}
@@ -78,7 +87,7 @@ import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;  // for convenience in
  *</UL>
  *
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
- * @since 2.4.50
+ * @since 2.5.00
  */
 public class SOCGameOptionSet
     implements Iterable<SOCGameOption>
@@ -91,12 +100,14 @@ public class SOCGameOptionSet
 
     /**
      * Scenario key <tt>_SC_SANY</tt> for {@link SOCPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}.
+     * See that event's javadoc for details.
      * @since 2.0.00
      */
     public static final String K_SC_SANY = "_SC_SANY";
 
     /**
      * Scenario key <tt>_SC_SEAC</tt> for {@link SOCPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
+     * See that event's javadoc for details.
      * @since 2.0.00
      */
     public static final String K_SC_SEAC = "_SC_SEAC";
@@ -162,7 +173,7 @@ public class SOCGameOptionSet
      * server announces all resource and dev card details with actual types, not "unknown".
      * Useful for developers. Minimum client version 2.0.00.
      * @see #K_PLAY_VPO
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final String K_PLAY_FO = "PLAY_FO";
 
@@ -172,7 +183,7 @@ public class SOCGameOptionSet
      * server announces all dev card details with actual types, not "unknown".
      * Useful for developers. Minimum client version 2.0.00.
      * @see #K_PLAY_FO
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final String K_PLAY_VPO = "PLAY_VPO";
 
@@ -268,7 +279,7 @@ public class SOCGameOptionSet
     /**
      * Create and return a set of the Known Options.
      *<P>
-     * Before v2.4.50 this method was {@code SOCGameOption.initAllOptions()}.
+     * Before v2.5.00 this method was {@code SOCGameOption.initAllOptions()}.
      *
      * <h3>Current known options:</h3>
      *<UL>
@@ -283,13 +294,18 @@ public class SOCGameOptionSet
      *<LI> NT  No trading allowed
      *<LI> VP  Victory points (10-15)
      *<LI> SC  Game Scenario (optional groups of rules; see {@link SOCScenario})
+     *<LI> UB  Allow Undo Build and Move
+     *<LI> UBL   Limit each player to # undos per game
      *<LI> _BHW  Board height and width, if not default, for {@link SOCBoardLarge}: 0xRRCC.
      *           Used only at client, for board size received in JoinGame message from server
      *           to pass through SOCGame constructor into SOCBoard factory
+     *<LI> _VP_ALL  If true in server's Known Options, server's default VP is used for all scenarios, instead of scenario's higher VP amount
      *</UL>
      *  * Grouping: PLB, PLP are 3 characters, not 2, and the first 2 characters match an
      *    existing option. So in NewGameOptionsFrame, they appear on the lines following
      *    the PL option in client version 1.1.13 and above.
+     *<P>
+     * The original set of options (v1.1.07) was {@code PL, RD, N7, BC, NT}. All others were added in newer versions.
      *
      * <h3>Current Game Scenario options:</h3>
      *<UL>
@@ -370,7 +386,7 @@ public class SOCGameOptionSet
      *   For example, the boolean "PLB" can force use of the 6-player board in
      *   versions 1.1.08 - 1.1.12 by changing "PL"'s value to 5 or 6.
      *<LI> Within {@link SOCGame}, don't add any object fields due to the new option;
-     *   instead call {@link SOCGame#isGameOptionDefined(String)},
+     *   instead call {@link SOCGame#isGameOptionSet(String)},
      *   {@link SOCGame#getGameOptionIntValue(String)}, etc.
      *   Look for game methods where game behavior changes with the new option,
      *   and adjust those.
@@ -505,6 +521,18 @@ public class SOCGameOptionSet
             ("VP", -1, 2000, false, 10, 10, 20, FLAG_DROP_IF_UNUSED, "Victory points to win: #"));
             // If min or max changes, test client to make sure New Game dialog still shows it as a dropdown
             // (not a text box) for user convenience
+        opts.add(new SOCGameOption
+            ("_VP_ALL", 2000, 2500, false, FLAG_DROP_IF_UNUSED, "Use default VP in all scenarios"));
+        opts.add(new SOCGameOption
+            ("UB", 2700, 2700, false, FLAG_DROP_IF_UNUSED, "Allow undo piece builds and moves"));
+        opts.add(new SOCGameOption
+            ("UBL", 2700, 2700, true, 7, 1, 999, SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED,
+             "Limit undos to # per player"));
+
+        // NEW_OPTION - Add opt.put here at end of list, and update the
+        //       list of "current known options" in javadoc just above.
+        // If the new option calls setClientFeature here,
+        // consider updating TestSOCGameHandler.testCalcGameClientFeaturesRequired.
 
         final SOCGameOption optSC = new SOCGameOption
             ("SC", 2000, 2000, 8, false, FLAG_DROP_IF_UNUSED, "Game Scenario: #");
@@ -563,14 +591,11 @@ public class SOCGameOptionSet
         // Player info observability, for developers
 
         opts.add(new SOCGameOption
-            (K_PLAY_FO, 2000, 2450, false, SOCGameOption.FLAG_INACTIVE_HIDDEN | FLAG_DROP_IF_UNUSED,
+            (K_PLAY_FO, 2000, 2500, false, SOCGameOption.FLAG_INACTIVE_HIDDEN | FLAG_DROP_IF_UNUSED,
              "Show all player info and resources"));
         opts.add(new SOCGameOption
-            (K_PLAY_VPO, 2000, 2450, false, SOCGameOption.FLAG_INACTIVE_HIDDEN | FLAG_DROP_IF_UNUSED,
+            (K_PLAY_VPO, 2000, 2500, false, SOCGameOption.FLAG_INACTIVE_HIDDEN | FLAG_DROP_IF_UNUSED,
              "Show all VP/dev card info"));
-
-        // NEW_OPTION - Add opt.put here at end of list, and update the
-        //       list of "current known options" in javadoc just above.
 
         // ChangeListeners for client convenience:
         // Remember that a new server version can't update this code at an older client:
@@ -663,7 +688,7 @@ public class SOCGameOptionSet
         });
 
         // If SC (scenario) is chosen, also set SBL (use sea board)
-        // and VP (vp to win), unless already changed by user.
+        // and VP (vp to win), unless already changed by user or using "_VP_ALL".
         // This is for NGOF responsiveness during new-game option setup at the client:
         // Game creation at the server doesn't rely on these updates.
         // For game creation with scenario options, see adjustOptionsToKnown(doServerPreadjust=true).
@@ -677,11 +702,11 @@ public class SOCGameOptionSet
                 final String newSC = optSc.getStringValue();
                 final boolean isScenPicked = optSc.getBoolValue() && (newSC.length() != 0);
 
-                // check/update #VP if scenario specifies it, otherwise revert to standard
+                // check/update #VP if scenario specifies larger, otherwise revert to standard
                 SOCGameOption vp = currentOpts.get("VP");
-                if ((vp != null) && ! vp.userChanged)
+                if ((vp != null) && ! (vp.userChanged || currentOpts.isOptionSet("_VP_ALL")))
                 {
-                    int newVP = SOCGame.VP_WINNER_STANDARD;
+                    int newVP = vp.defaultIntValue;  // usually == SOCGame.VP_WINNER_STANDARD
                     if (isScenPicked)
                     {
                         final SOCScenario scen = SOCScenario.getScenario(newSC);
@@ -691,7 +716,11 @@ public class SOCGameOptionSet
                                 SOCGameOption.parseOptionsToMap(scen.scOpts, knownOpts);
                             final SOCGameOption scOptVP = (scenOpts != null) ? scenOpts.get("VP") : null;
                             if (scOptVP != null)
-                                newVP = scOptVP.getIntValue();
+                            {
+                                final int scenVP = scOptVP.getIntValue();
+                                if (scenVP > newVP)
+                                    newVP = scenVP;
+                            }
 
                             // TODO possibly update other scen opts, not just VP
                         }
@@ -748,6 +777,14 @@ public class SOCGameOptionSet
             ("DEBUGSTR", 1107, Version.versionNumber(), 20, false, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option str"));
         opts.add(new SOCGameOption
             ("DEBUGSTRHIDE", 1107, Version.versionNumber(), 20, true, SOCGameOption.FLAG_DROP_IF_UNUSED, "Test option strhide"));
+
+        opts.add(new SOCGameOption
+            ("N7_DROPP", 2000, Version.versionNumber(), false, SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED, "Test drop if parent N7 unused"));
+            // testing note: deliberately doesn't have FLAG_DROP_IF_UNUSED; an actual option would usually set that too
+        opts.add(new SOCGameOption
+            ("_3P", 2000, Version.versionNumber(), false, SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_DROP_IF_UNUSED, "Test third-party option"));
+        opts.add(new SOCGameOption
+            ("_3P2", 2000, Version.versionNumber(), false, SOCGameOption.FLAG_3RD_PARTY | SOCGameOption.FLAG_DROP_IF_UNUSED, "Second test third-party option"));
         */
 
         return opts;
@@ -901,6 +938,7 @@ public class SOCGameOptionSet
      * @return Option keys in the set, from each {@link SOCVersionedItem#key}, or an empty Set
      * @see #values()
      * @see #getAll()
+     * @see #iterator()
      */
     public Set<String> keySet()
     {
@@ -910,6 +948,8 @@ public class SOCGameOptionSet
     /**
      * For use in {@code for} loops, make and return an iterator;
      * calls {@link Map#values() map.values()}{@link Collection#iterator() .iterator()}.
+     * {@link Iterator#remove()} is supported.
+     * @see #keySet()
      */
     public Iterator<SOCGameOption> iterator()
     {
@@ -941,9 +981,9 @@ public class SOCGameOptionSet
     // Examining and updating values within the set:
 
     /**
-     * Is this boolean-valued game option currently set to true?
+     * Is this boolean-valued or intbool-valued game option currently set to true?
      *<P>
-     * Before v2.4.50 this method was {@code SOCGame.isGameOptionSet(opts, optKey)}.
+     * Before v2.5.00 this method was {@code SOCGame.isGameOptionSet(opts, optKey)}.
      *
      * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL},
      *     {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL} or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
@@ -964,7 +1004,7 @@ public class SOCGameOptionSet
     }
 
     /**
-     * Within this set, include a boolean option and make it true.
+     * Within this set, include a boolean or intbool option and make it true.
      * If the option object isn't already in the set, it will be cloned from {@code knownOpts}.
      * @param boKey   Key name for boolean option to set
      * @param knownOpts  Set of Known Options, if needed for adding the option
@@ -1104,10 +1144,11 @@ public class SOCGameOptionSet
     // For Known Options:
 
     /**
-     * Get information about a known option. See {@link #getAllKnownOptions()} for a summary of each known option.
+     * Get information about an option within this set of Known Options.
+     * See {@link #getAllKnownOptions()} for a summary of each known option.
      * Will return the info if known, even if option has {@link #FLAG_INACTIVE_HIDDEN}.
      *<P>
-     * Before v2.4.50 this method was {@code SOCGameOption.getOption(key, clone)}.
+     * Before v2.5.00 this method was {@code SOCGameOption.getOption(key, clone)}.
      *
      * @param key  Option key
      * @param clone  True if a copy of the option is needed; set this true
@@ -1196,6 +1237,10 @@ public class SOCGameOptionSet
      *<P>
      * To get the list of currently activated options compatible with a certain client version,
      * call {@link #optionsWithFlag(int, int) knownOpts.optionsWithFlag(FLAG_ACTIVATED, cliVersion)}.
+     *<P>
+     * At the server, activate needed options before any clients connect.
+     * Do so by editing/overriding {@link SOCServer#serverUp()} to call this method,
+     * or setting property {@link SOCServer#PROP_JSETTLERS_GAMEOPTS_ACTIVATE}.
      *
      * @param optKey  Known game option's alphanumeric keyname
      * @throws IllegalArgumentException if {@code optKey} isn't a known game option, or if that option
@@ -1521,6 +1566,8 @@ public class SOCGameOptionSet
      * This is a server-side equivalent to the client-side {@link SOCGameOption.ChangeListener}s.
      * For example, if <tt>"PL"</tt> (number of players) > 4, but <tt>"PLB"</tt> (use 6-player board)
      * is not set, <tt>doServerPreadjust</tt> wil set the <tt>"PLB"</tt> option.
+     * If {@code "VP=t..."} isn't in the set, will copy server's default VP (if any) from {@code knownOpts},
+     * or if set has a scenario, scenario's VP if larger than default and not using bool option <tt>"_VP_ALL"</tt>.
      * {@code doServerPreadjust} will also remove any game-internal options the client has sent.
      *<P>
      * Before any other adjustments when <tt>doServerPreadjust</tt>, will check for
@@ -1528,12 +1575,14 @@ public class SOCGameOptionSet
      * {@link SOCScenario#getScenario(String)}; the scenario name must be known.
      * Then, add that scenario's {@link SOCScenario#scOpts .scOpts} into this set.
      * Scenario option values always overwrite those already in the set, except for <tt>"VP"</tt>
-     * where current value (if any) is kept.
+     * whose current value is kept. If VP not in set but server has a default VP larger than scenario
+     * (or bool option <tt>"_VP_ALL"</tt> is set) that's used instead.
+     * For convenience, {@link SOCServer#checkScenarioOpts(Map, boolean, String)} may warn about such overwrites.
      *<P>
      * Client-side gameopt code also assumes all scenarios use the sea board,
      * and sets game option <tt>"SBL"</tt> when a scenario is chosen by the user.
      *<P>
-     * Before v2.4.50 this method was {@code SOCGameOption.adjustOptionsToKnown(newOpts, knownOpts, boolean)}.
+     * Before v2.5.00 this method was {@code SOCGameOption.adjustOptionsToKnown(newOpts, knownOpts, boolean)}.
      *
      * @param knownOpts Set of known {@link SOCGameOption}s to check against; not null.
      *     Caller can use {@link #getAllKnownOptions()} if they don't already have such a set.
@@ -1544,7 +1593,7 @@ public class SOCGameOptionSet
      * @param limitedCliFeats For {@link doServerPreadjust}, client's set of features if limited compared to
      *     the standard client; null if client doesn't have limited feats.
      *     See {@link soc.server.SOCClientData#hasLimitedFeats} for details.
-     * @return <tt>null</tt> if all are known; or, a human-readable problem description if:
+     * @return <tt>null</tt> if all are known; or, a map of game option keys to human-readable problem descriptions if:
      *     <UL>
      *       <LI> any option in this set not a Known Option
      *            or is inactive (has {@link SOCGameOption#FLAG_INACTIVE_HIDDEN})
@@ -1553,12 +1602,16 @@ public class SOCGameOptionSet
      *       <LI> or an opt requires a {@link SOCGameOption#getClientFeature()} which the client doesn't have
      *            (checked only if {@code limitedCliFeats} != null and {@code doServerPreadjust})
      *       <LI> set has option {@code "SC"} but its scenario keyname isn't known
-     *            by {@link SOCScenario#getScenario(String)}
+     *            by {@link SOCScenario#getScenario(String)}:
+     *            {@code "SC"}'s text value will be "unknown scenario " + the scenario keyname.
      *     </UL>
+     *     <P>
+     *      If you need to flatten the returned Map to something stringlike, call
+     *      {@link DataUtils#mapIntoStringBuilder(Map, StringBuilder, String, String)}.
      * @throws IllegalArgumentException if {@code knownOpts} is null
      * @since 1.1.07
      */
-    public StringBuilder adjustOptionsToKnown
+    public Map<String, String> adjustOptionsToKnown
         (final SOCGameOptionSet knownOpts, final boolean doServerPreadjust, final SOCFeatureSet limitedCliFeats)
         throws IllegalArgumentException
     {
@@ -1580,10 +1633,31 @@ public class SOCGameOptionSet
                 }
             }
 
-            // If has "VP" but boolean part is false, use server default instead
+            // Use server default for "VP" unless options has "VP" with boolean part true.
+            // If "VP" not known at server, client shouldn't have sent it; code later in method will handle that
+            int wantedVP = 0;
+            boolean using_VP_ALL = false;  // unless true, make sure _VP_ALL isn't in adjusted set of opts
             SOCGameOption opt = options.get("VP");
-            if ((opt != null) && ! opt.getBoolValue())
-                options.remove("VP");
+            {
+                final SOCGameOption knownOptVP = knownOpts.get("VP");
+
+                if (opt == null)
+                {
+                    if ((knownOptVP != null) && knownOptVP.getBoolValue())
+                        wantedVP = knownOptVP.getIntValue();
+                }
+                else if (opt.getBoolValue())
+                {
+                    wantedVP = opt.getIntValue();
+                }
+                else if (knownOptVP != null)
+                {
+                    if (knownOptVP.getBoolValue())
+                        wantedVP = knownOptVP.getIntValue();
+                    else
+                        options.remove("VP");
+                }
+            }
 
             // Apply scenario options, if any
             opt = options.get("SC");
@@ -1599,14 +1673,28 @@ public class SOCGameOptionSet
                     } else {
                         // include this scenario's opts,
                         // overwriting any values for those
-                        // opts if already in newOpts, except
-                        // keep VP if specified.
-                        opt = options.get("VP");
+                        // opts if already in options.
+                        // keep scen VP only if options don't specify VP
+                        // and scen's VP is greater than default
+                        // and "_VP_ALL" isn't set in server options
 
                         final Map<String, SOCGameOption> scOpts = SOCGameOption.parseOptionsToMap(sc.scOpts, knownOpts);
-                        if (scOpts.containsKey("VP") && (opt != null))
-                            scOpts.remove("VP");
-
+                        final boolean with_VP_ALL = knownOpts.isOptionSet("_VP_ALL");
+                        using_VP_ALL = with_VP_ALL && knownOpts.isOptionSet("VP") && ! isOptionSet("VP");
+                        opt = options.get("VP");
+                        final SOCGameOption scOptVP = scOpts.get("VP");
+                        if (scOptVP != null)
+                        {
+                            if (((opt == null) || ! opt.getBoolValue())
+                                && (scOptVP.getIntValue() > wantedVP)
+                                && scOptVP.getBoolValue()
+                                && ((wantedVP == 0) || ! with_VP_ALL))
+                            {
+                                wantedVP = 0;
+                            } else {
+                                scOpts.remove("VP");
+                            }
+                        }
                         options.putAll(scOpts);
                     }
                 }
@@ -1615,6 +1703,30 @@ public class SOCGameOptionSet
                 // the sea board, and sets game option "SBL" when a scenario
                 // is chosen by the user.
             }
+
+            if (wantedVP > 0)
+            {
+                SOCGameOption optVP = options.get("VP");
+                if (optVP == null)
+                {
+                    optVP = knownOpts.getKnownOption("VP", true);
+                    if (optVP != null)
+                        options.put("VP", optVP);
+                }
+
+                if (optVP != null)
+                {
+                    optVP.setBoolValue(true);
+                    optVP.setIntValue(wantedVP);
+                }
+            }
+
+            // If game has scenario, server's using _VP_ALL, and client didn't ask to override default/scenario VP,
+            // show that by setting _VP_ALL in the new game's options
+            if (! using_VP_ALL)
+                options.remove("_VP_ALL");
+            else if (! options.containsKey("_VP_ALL"))
+                add(knownOpts.getKnownOption("_VP_ALL", true));
 
             // NEW_OPTION: If you created a ChangeListener, you should probably add similar code
             //    here. Set or change options if it makes sense; if a user has deliberately
@@ -1631,16 +1743,14 @@ public class SOCGameOptionSet
 
         // OTYPE_* - adj javadoc above (re dropIfUnused) if a string-type or bool-type is added.
 
-        StringBuilder optProblems = new StringBuilder();
+        Map<String, String> optProblems = new TreeMap<>();
 
         boolean allKnown;
 
         if (unknownScenario != null)
         {
             allKnown = false;
-            optProblems.append("SC: unknown scenario ");
-            optProblems.append(unknownScenario);
-            optProblems.append(". ");
+            optProblems.put("SC", "unknown scenario " + unknownScenario);
         } else {
             allKnown = true;  // might be set false in loop below
         }
@@ -1664,36 +1774,25 @@ public class SOCGameOptionSet
             if (knownOp == null)
             {
                 allKnown = false;
-                optProblems.append(op.key);
-                optProblems.append(": unknown. ");
+                optProblems.put(op.key, "unknown");
             }
             else if (knownOp.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
             {
                 allKnown = false;
-                optProblems.append(op.key);
-                optProblems.append(": inactive. ");
+                optProblems.put(op.key, "inactive");
             }
             else if (knownOp.optType != op.optType)
             {
                 allKnown = false;
-                optProblems.append(op.key);
-                optProblems.append(": optType mismatch (");
-                optProblems.append(knownOp.optType);
-                optProblems.append(" != ");
-                optProblems.append(op.optType);
-                optProblems.append("). ");
+                optProblems.put(op.key, "optType mismatch (" + knownOp.optType + " != " + op.optType + ")");
             } else {
                 // Clip int values, check default values, check dropIfUnused
 
                 if (knownOp.lastModVersion != op.lastModVersion)
                 {
                     allKnown = false;
-                    optProblems.append(op.key);
-                    optProblems.append(": lastModVersion mismatch (");
-                    optProblems.append(knownOp.lastModVersion);
-                    optProblems.append(" != ");
-                    optProblems.append(op.lastModVersion);
-                    optProblems.append("). ");
+                    optProblems.put
+                        (op.key, "lastModVersion mismatch (" + knownOp.lastModVersion + " != " + op.lastModVersion + ")");
                 }
 
                 switch (op.optType)  // OTYPE_*
@@ -1715,14 +1814,8 @@ public class SOCGameOptionSet
                             op.setIntValue(iv);
                         }
 
-                        if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED)
-                            && (iv == knownOp.defaultIntValue))
-                        {
-                            // ignore boolValue unless also boolean-type: OTYPE_INTBOOL and OTYPE_ENUMBOOL.
-                            if ((op.optType == SOCGameOption.OTYPE_INT) || (op.optType == SOCGameOption.OTYPE_ENUM)
-                                || ! op.getBoolValue())
-                                ikv.remove();
-                        }
+                        if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED) && ! op.isSet())
+                            ikv.remove();
                     }
                     break;
 
@@ -1733,18 +1826,42 @@ public class SOCGameOptionSet
 
                 case SOCGameOption.OTYPE_STR:
                 case SOCGameOption.OTYPE_STRHIDE:
-                    if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED))
-                    {
-                        String sval = op.getStringValue();
-                        if ((sval == null) || (sval.length() == 0))
-                            ikv.remove();
-                    }
+                    if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED) && ! op.isSet())
+                        ikv.remove();
                     break;
 
                 // no default: all types should be handled above.
 
                 }
             }
+        }
+
+        if (doServerPreadjust)
+        {
+            // Now that we've removed any FLAG_DROP_IF_UNUSED opts from set,
+            // check for FLAG_DROP_IF_PARENT_UNUSED
+
+            for (Iterator<Map.Entry<String, SOCGameOption>> ikv = options.entrySet().iterator();
+                 ikv.hasNext(); )
+            {
+                Map.Entry<String, SOCGameOption> okv = ikv.next();
+                SOCGameOption op;
+                try {
+                    op = okv.getValue();
+                } catch (ClassCastException ce) {
+                    throw new IllegalArgumentException("wrong class, expected gameoption");
+                }
+                if (! op.hasFlag(SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED))
+                    continue;
+                final String parentKey = SOCGameOption.getGroupParentKey(op.key);
+                if (parentKey == null)
+                    continue;
+
+                final SOCGameOption par = options.get(parentKey);
+                if ((par == null) || ! par.isSet())
+                    ikv.remove();
+            }
+
         }
 
         if (doServerPreadjust && allKnown && (limitedCliFeats != null))
@@ -1758,12 +1875,7 @@ public class SOCGameOptionSet
             {
                 allKnown = false;
                 for (String okey : unsupportedOpts.keySet())
-                {
-                    if (optProblems.length() > 0)
-                        optProblems.append(", ");
-                    optProblems.append(okey);
-                }
-                optProblems.append(": requires missing feature(s). ");
+                    optProblems.put(okey, "requires missing feature(s)");
             } else {
                 final Map<String, SOCGameOption> trimmedOpts = optionsTrimmedForSupport(limitedCliFeats);
 

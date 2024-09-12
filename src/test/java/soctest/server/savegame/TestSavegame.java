@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,11 +31,13 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.*;
 
+import soc.game.SOCBoard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGame.SeatLockState;
 import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
+import soc.game.SOCInventory;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceSet;
 import soc.game.SOCScenario;
@@ -47,6 +49,7 @@ import soc.server.savegame.GameSaverJSON;
 import soc.server.savegame.SavedGameModel;
 import soc.server.savegame.SavedGameModel.UnsupportedSGMOperationException;
 import soc.util.Version;
+import soctest.game.TestPlayer;
 
 /**
  * A few tests for {@link GameSaverJSON} and {@link SavedGameModel},
@@ -95,7 +98,7 @@ public class TestSavegame
         SOCGameOption opt = srv.knownOpts.getKnownOption("SC", true);
         opt.setStringValue(SOCScenario.K_SC_PIRI);
         opts.put(opt);
-        opts.adjustOptionsToKnown(srv.knownOpts, true, null);  // apply SC's scenario game opts
+        assertNull(opts.adjustOptionsToKnown(srv.knownOpts, true, null));  // apply SC's scenario game opts
         assertTrue(opts.containsKey(SOCGameOptionSet.K_SC_PIRI));
         final SOCGame ga = new SOCGame("scen", opts, srv.knownOpts);
 
@@ -113,7 +116,10 @@ public class TestSavegame
         GameSaverJSON.saveGame(ga, testTmpFolder.getRoot(), "wontsave.game.json", srv);
     }
 
-    /** Save a basic game, reload it, check field contents */
+    /**
+     * Save a basic game, reload it, check field contents.
+     * For a more detailed test, see {@link #testSaveLoadPlayerMiscFields()}.
+     */
     @Test
     public void testBasicSaveLoad()
         throws IOException
@@ -228,7 +234,7 @@ public class TestSavegame
      * Test whether player dev-card stats fields like {@link SOCPlayer#numRBCards} are properly added into SGM;
      * doesn't need to actually save the file.
      * @throws IOException
-     * @since 2.4.50
+     * @since 2.5.00
      */
     @Test
     public void testSGM_playerDevCardStats()
@@ -241,16 +247,16 @@ public class TestSavegame
         ga.setGameState(SOCGame.ROLL_OR_CARD);  // no pieces placed, but can't save during initial placement
 
         SOCPlayer pl = ga.getPlayer(0);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS, false);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.ROADS, false);
         assertEquals(2, pl.numRBCards);
         assertEquals(0, pl.numDISCCards);
         assertEquals(0, pl.numMONOCards);
         assertEquals(Arrays.asList(SOCDevCardConstants.ROADS, SOCDevCardConstants.ROADS), pl.getDevCardsPlayed());
 
         pl = ga.getPlayer(3);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC);
-        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.DISC, false);
+        pl.updateDevCardsPlayed(SOCDevCardConstants.MONO, false);
         assertEquals(0, pl.numRBCards);
         assertEquals(1, pl.numDISCCards);
         assertEquals(1, pl.numMONOCards);
@@ -270,6 +276,138 @@ public class TestSavegame
         assertEquals(Integer.valueOf(1), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_DISC));
         assertEquals(Integer.valueOf(1), pi.elements.get(PEType.NUM_PLAYED_DEV_CARD_MONO));
         assertEquals(Arrays.asList(SOCDevCardConstants.DISC, SOCDevCardConstants.MONO), pi.playedDevCards);
+    }
+
+    /**
+     * Save a game, reload it, check various player statistics and misc other fields.
+     * @see #testBasicSaveLoad()
+     * @since 2.6.00
+     */
+    @Test
+    public void testSaveLoadPlayerMiscFields()
+        throws IOException
+    {
+        final SOCGame gaSave = new SOCGame("stats", null, null);
+        gaSave.addPlayer("p0", 0);
+        gaSave.addPlayer("third", 3);
+        assertFalse(gaSave.isSeatVacant(0));
+        assertTrue(gaSave.isSeatVacant(1));
+        assertTrue(gaSave.isSeatVacant(2));
+        assertFalse(gaSave.isSeatVacant(3));
+        gaSave.setSeatLock(0, SeatLockState.LOCKED);
+        gaSave.setSeatLock(3, SeatLockState.CLEAR_ON_RESET);
+
+        gaSave.startGame();  // create board layout
+        assertEquals(SOCGame.START1A, gaSave.getGameState());
+        final int firstPN = gaSave.getCurrentPlayerNumber();
+        assertEquals(firstPN, gaSave.getFirstPlayer());
+
+        // no pieces placed, but can't save during initial placement
+        gaSave.setGameState(SOCGame.ROLL_OR_CARD);
+        gaSave.getPlayer(0).addRolledResources(new SOCResourceSet(1, 3, 0, 2, 0, 0));
+
+        // workaround: give VP dev cards so players' VP != 0, so save/load code doesn't think they're vacant
+        gaSave.getPlayer(0).getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.UNIV);
+        gaSave.getPlayer(3).getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.CAP);
+
+        // resource roll stats
+        final int[][] RES_ROLLED = new int[][]
+            { {0, 3, 3, 5, 2, 4, 0}, null, null, {0, 0, 1, 0, 0, 0, 0} };
+
+        final SOCPlayer pl = gaSave.getPlayer(0);
+
+        // trade res stats
+        int[][][] plExpectedStats = new int[SOCPlayer.TRADE_STATS_ARRAY_LEN][2][5],  // [trType][give/get][resType]
+            plTradeExpectedStats  = new int[SOCPlayer.TRADE_STATS_ARRAY_LEN][2][5];
+        {
+            // simplified from TestPlayer.testTradeAndStats()
+
+            final SOCResourceSet ORE_1 = new SOCResourceSet(0, 1, 0, 0, 0, 0);
+
+            // player trade
+            {
+                final SOCPlayer plTrade = gaSave.getPlayer(3);
+
+                final SOCResourceSet SHEEP_WOOD_1 = new SOCResourceSet(0, 0, 1, 0, 1, 0);
+                pl.addRolledResources(SHEEP_WOOD_1);
+                plTrade.addRolledResources(ORE_1);
+                pl.makeTrade(SHEEP_WOOD_1, ORE_1);
+                plTrade.makeTrade(ORE_1, SHEEP_WOOD_1);
+                {
+                    plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][0] = new int[]{0, 0, 1, 0, 1};  // sheep, wood
+                    plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][1] = new int[]{0, 1, 0, 0, 0};  // ore
+                    plTradeExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][0] = new int[]{0, 1, 0, 0, 0};
+                    plTradeExpectedStats[SOCPlayer.TRADE_STATS_INDEX_PLAYER_ALL][1] = new int[]{0, 0, 1, 0, 1};
+                }
+                TestPlayer.assertTradeStatsEqual(plExpectedStats, pl);
+                TestPlayer.assertTradeStatsEqual(plTradeExpectedStats, plTrade);
+                assertArrayEquals(RES_ROLLED[3], plTrade.getResourceRollStats());
+            }
+
+            // basic 4:1 bank trade
+            final SOCResourceSet SHEEP_4 = new SOCResourceSet(0, 0, 4, 0, 0, 0);
+            pl.addRolledResources(SHEEP_4);
+            pl.makeBankTrade(SHEEP_4, ORE_1);
+            plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][0][2] += 4;  // SHEEP
+            plExpectedStats[SOCPlayer.TRADE_STATS_INDEX_BANK][1][1]++;  // ORE
+
+            // set and use 3:1
+            pl.setPortFlag(SOCBoard.MISC_PORT, true);
+            final SOCResourceSet WOOD_3 = new SOCResourceSet(0, 0, 0, 0, 3, 0);
+            pl.addRolledResources(WOOD_3);
+            pl.makeBankTrade(WOOD_3, ORE_1);
+            plExpectedStats[SOCBoard.MISC_PORT][0][4] += 3;  // WOOD
+            plExpectedStats[SOCBoard.MISC_PORT][1][1]++;  // ORE
+
+            // set and use 2:1
+            pl.setPortFlag(SOCBoard.CLAY_PORT, true);
+            final SOCResourceSet CLAY_2 = new SOCResourceSet(2, 0, 0, 0, 0, 0);
+            pl.addRolledResources(CLAY_2);
+            pl.makeBankTrade(CLAY_2, ORE_1);
+            plExpectedStats[SOCBoard.CLAY_PORT][0][0] += 2;  // CLAY
+            plExpectedStats[SOCBoard.CLAY_PORT][1][1]++;  // ORE
+
+            TestPlayer.assertTradeStatsEqual(plExpectedStats, pl);
+            assertArrayEquals(RES_ROLLED[0], pl.getResourceRollStats());
+        }
+
+        // misc other fields
+        gaSave.setPlacingRobberForKnightCard(true);
+        pl.setUndosRemaining(2);
+
+        File saveFile = testTmpFolder.newFile("stats.game.json");
+        GameSaverJSON.saveGame(gaSave, testTmpFolder.getRoot(), saveFile.getName(), srv);
+
+        final SavedGameModel sgm = GameLoaderJSON.loadGame(saveFile, srv);
+        assertNotNull(sgm);
+        assertEquals(SavedGameModel.MODEL_VERSION, sgm.modelVersion);
+        assertEquals(Version.versionNumber(), sgm.savedByVersion);
+        final SOCGame ga = sgm.getGame();
+
+        assertEquals("stats", ga.getName());
+        assertEquals(4, ga.maxPlayers);
+        assertEquals(firstPN, ga.getCurrentPlayerNumber());
+        assertEquals(firstPN, ga.getFirstPlayer());
+
+        final String[] NAMES = {"p0", null, null, "third"};
+        final SeatLockState[] LOCKS =
+            {SeatLockState.LOCKED, SeatLockState.UNLOCKED, SeatLockState.UNLOCKED, SeatLockState.CLEAR_ON_RESET};
+        final int[] TOTAL_VP = {1, 0, 0, 1};
+        final int[][] RESOURCES = {{1, 7, 0, 2, 0}, null, null, {0, 0, 1, 0, 1}};
+        final int[] PIECES_ALL = {15, 5, 4, 0, 0};
+        final int[][] PIECE_COUNTS = {PIECES_ALL, PIECES_ALL, PIECES_ALL, PIECES_ALL};
+        TestLoadgame.checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
+        // check player stats
+        final SOCPlayer plLoaded = ga.getPlayer(0), plTradeLoaded = ga.getPlayer(3);
+        assertEquals(1, plLoaded.getInventory().getAmount(SOCInventory.OLD, SOCDevCardConstants.UNIV));
+        TestPlayer.assertTradeStatsEqual(plExpectedStats, plLoaded);
+        TestPlayer.assertTradeStatsEqual(plTradeExpectedStats, plTradeLoaded);
+        assertArrayEquals(RES_ROLLED[0], plLoaded.getResourceRollStats());
+        assertArrayEquals(RES_ROLLED[3], plTradeLoaded.getResourceRollStats());
+
+        // check misc other fields
+        assertTrue(ga.isPlacingRobberForKnightCard());
+        assertEquals(2, plLoaded.getUndosRemaining());
     }
 
     /**

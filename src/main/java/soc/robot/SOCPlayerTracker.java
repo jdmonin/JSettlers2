@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
@@ -57,7 +58,7 @@ import java.util.TreeMap;
 
 /**
  * This class is used by the SOCRobotBrain to track
- * strategic planning information such as
+ * per-player strategic planning information such as
  * possible building spots for itself and other players.
  * Also used for prediction of other players' possible upcoming moves.
  *<P>
@@ -256,7 +257,7 @@ public class SOCPlayerTracker
     /**
      * Recalculate all ETAs: Calls {@link #recalcLargestArmyETA()},
      * {@link #recalcLongestRoadETA()}, {@link #recalcWinGameETA()}.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void recalculateAllETAs()
     {
@@ -691,6 +692,7 @@ public class SOCPlayerTracker
         //
         final SOCBoard board = game.getBoard();
         Collection<Integer> adjNodeEnum = board.getAdjacentNodesToEdge(rs.getCoordinates());
+        final SOCBuildingSpeedEstimateFactory bsef = brain.getEstimatorFactory();
 
         for (Integer adjNode : adjNodeEnum)
         {
@@ -718,7 +720,7 @@ public class SOCPlayerTracker
                     // else, add new possible settlement
                     //
                     //D.ebugPrintln("$$$ adding new possible settlement at "+Integer.toHexString(adjNode.intValue()));
-                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(player, adjNode.intValue(), null);
+                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(player, adjNode.intValue(), null, bsef);
                     newPosSet.setNumberOfNecessaryRoads(0);
                     possibleSettlements.put(adjNode, newPosSet);
                     updateSettlementConflicts(newPosSet, trackers);
@@ -922,6 +924,7 @@ public class SOCPlayerTracker
         //
         //D.ebugPrintln("$$$ checking for possible settlements");
         //
+        final SOCBuildingSpeedEstimateFactory bsef = brain.getEstimatorFactory();
         for (Integer adjNode : board.getAdjacentNodesToEdge(tgtRoadEdge))
         {
             if (dummy.canPlaceSettlement(adjNode.intValue()))
@@ -964,7 +967,7 @@ public class SOCPlayerTracker
                     List<SOCPossibleRoad> nr = new ArrayList<SOCPossibleRoad>();
                     nr.add(targetRoad);
 
-                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(pl, adjNode.intValue(), nr);
+                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(pl, adjNode.intValue(), nr, bsef);
                     newPosSet.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + 1);
                     possibleSettlements.put(adjNode, newPosSet);
                     targetRoad.addNewPossibility(newPosSet);
@@ -1444,7 +1447,7 @@ public class SOCPlayerTracker
      *
      * @param settlement Location of our bad settlement
      *
-     * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
+     * @see SOCRobotBrain#cancelWrongPiecePlacement(soc.message.SOCCancelBuildRequest)
      * @since 1.1.00
      */
     public void cancelWrongSettlement(SOCSettlement settlement)
@@ -2021,7 +2024,7 @@ public class SOCPlayerTracker
      *
      * @param city Location of our bad city
      *
-     * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
+     * @see SOCRobotBrain#cancelWrongPiecePlacement(soc.message.SOCCancelBuildRequest)
      * @since 1.1.00
      */
     public void cancelWrongCity(SOCCity city)
@@ -2234,7 +2237,7 @@ public class SOCPlayerTracker
         {
             SOCPossibleRoad posRoad = posRoadsIter.next();
 
-            if (!posRoad.isThreatUpdated())
+            if (! posRoad.isThreatUpdated())
             {
                 //D.ebugPrintln("&&&& examining road at "+Integer.toHexString(posRoad.getCoordinates()));
 
@@ -2334,7 +2337,7 @@ public class SOCPlayerTracker
         {
             SOCPossibleSettlement posSet = posSetsIter.next();
 
-            if (!posSet.isThreatUpdated())
+            if (! posSet.isThreatUpdated())
             {
                 //D.ebugPrintln("&&&& examining settlement at "+Integer.toHexString(posSet.getCoordinates()));
 
@@ -2782,6 +2785,7 @@ public class SOCPlayerTracker
             needLR = false;
             needLA = false;
             winGameETA = 0;
+            HashSet<Integer> printedWarnSettleCoords = new HashSet<>();
 
             SOCPlayerNumbers tempPlayerNumbers = new SOCPlayerNumbers(player.getNumbers());
             boolean[] tempPortFlags = new boolean[SOCBoard.WOOD_PORT + 1];
@@ -2903,7 +2907,7 @@ public class SOCPlayerTracker
 
                     SOCPossibleSettlement chosenSet = null;
 
-                    if ((settlementPiecesLeft > 0) && (!posSetsCopy.isEmpty()))
+                    if ((settlementPiecesLeft > 0) && (! posSetsCopy.isEmpty()))
                     {
                         Iterator<SOCPossibleSettlement> posSetsIter = posSetsCopy.values().iterator();
 
@@ -2928,7 +2932,7 @@ public class SOCPlayerTracker
                         ///
                         if (chosenSet != null)
                         {
-                            final int totalNecRoads = calcTotalNecessaryRoads(chosenSet);
+                            final int totalNecRoads = calcTotalNecessaryRoads(chosenSet, printedWarnSettleCoords);
 
                             fastestETA = (settlementETA + (totalNecRoads * roadETA));
                             D.ebugPrintlnINFO("WWW # necesesary roads = " + totalNecRoads);
@@ -3216,7 +3220,7 @@ public class SOCPlayerTracker
                                 ///  as long as this settlement needs roads
                                 ///  add a roadETA to the ETA for this settlement
                                 ///
-                                int totalNecRoads = calcTotalNecessaryRoads(chosenSet[i]);
+                                int totalNecRoads = calcTotalNecessaryRoads(chosenSet[i], printedWarnSettleCoords);
 
                                 D.ebugPrintlnINFO("WWW # necesesary roads = " + totalNecRoads);
                                 D.ebugPrintlnINFO("WWW this settlement eta = " + (settlementETA + (totalNecRoads * roadETA)));
@@ -3474,7 +3478,7 @@ public class SOCPlayerTracker
                         ///  as long as this settlement needs roads
                         ///  add a roadETA to the ETA for this settlement
                         ///
-                        int totalNecRoads = calcTotalNecessaryRoads(chosenSet[0]);
+                        int totalNecRoads = calcTotalNecessaryRoads(chosenSet[0], printedWarnSettleCoords);
 
                         D.ebugPrintlnINFO("WWW # necesesary roads = " + totalNecRoads);
                         D.ebugPrintlnINFO("WWW this settlement eta = " + (settlementETA + (totalNecRoads * roadETA)));
@@ -3880,12 +3884,16 @@ public class SOCPlayerTracker
      * the end of the queue, until a road is found which has no necessary roads. That road's "distance" is returned.
      *
      * @param ps  The settlement to calculate this for
+     * @param printedWarnSettleCoords  The set tracking which potential settlement locations for which
+     *     we've already printed "Necessary Road Path too long" or "Necessary Road Path length unresolved";
+     *     if print that here for {@code ps}, will add its node coord to this set
      * @return  0 if {@code ps.getNecessaryRoads()} is empty; <BR>
      *     40 if there were too many necessary roads or they somehow formed a loop; <BR>
      *     otherwise the total number of roads needed before {@code ps} can be built
      * @since 2.0.00
      */
-    private static int calcTotalNecessaryRoads(final SOCPossibleSettlement ps)
+    private static int calcTotalNecessaryRoads
+        (final SOCPossibleSettlement ps, final HashSet<Integer> printedWarnSettleCoords)
     {
         if (ps.getNecessaryRoads().isEmpty())
         {
@@ -3893,6 +3901,7 @@ public class SOCPlayerTracker
         }
 
         int totalNecRoads = 0;
+        int psNodeAddWarn = -1;  // if >= 0, will add to printedWarnSettleCoords
 
         /** Queue to track each unvisited possible road's "distance" from ps and its own necessary roads */
         Queue<Pair<Integer, List<SOCPossibleRoad>>> necRoadQueue = new Queue<Pair<Integer, List<SOCPossibleRoad>>>();
@@ -3914,9 +3923,14 @@ public class SOCPlayerTracker
                 if (necRoadQueue.size() + necRoadsToCurrent.size() > 40)
                 {
                     // Too many necessary, or dupes led to loop. Bug in necessary road construction?
-                    System.err.println
-                        ("PT.calcTotalNecessaryRoads L3889: Necessary Road Path too long for settle at 0x"
-                         + Integer.toHexString(ps.getCoordinates()));
+                    final int psNode = ps.getCoordinates();
+                    if (! printedWarnSettleCoords.contains(psNode))
+                    {
+                        System.err.println
+                            ("PT.calcTotalNecessaryRoads L3889: Necessary Road Path too long for settle at 0x"
+                             + Integer.toHexString(psNode));
+                        psNodeAddWarn = psNode;
+                    }
                     totalNecRoads = 40;
                     necRoadQueue.clear();
                     break;
@@ -3931,11 +3945,19 @@ public class SOCPlayerTracker
         if (! necRoadQueue.empty())
         {
             // Dupes in various dependent roads? Bug in necessary road construction?
-            System.err.println
-                ("PT.calcTotalNecessaryRoads L3906: Necessary Road Path length unresolved for settle at 0x"
-                 + Integer.toHexString(ps.getCoordinates()));
+            final int psNode = ps.getCoordinates();
+            if (! printedWarnSettleCoords.contains(psNode))
+            {
+                System.err.println
+                    ("PT.calcTotalNecessaryRoads L3906: Necessary Road Path length unresolved for settle at 0x"
+                     + Integer.toHexString(psNode));
+                psNodeAddWarn = psNode;
+            }
             totalNecRoads = 40;
         }
+
+        if (psNodeAddWarn >= 0)
+            printedWarnSettleCoords.add(psNodeAddWarn);
 
         return totalNecRoads;
     }

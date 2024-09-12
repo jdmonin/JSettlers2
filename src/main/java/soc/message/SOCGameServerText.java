@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014,2016-2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  *
  * This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ import java.util.StringTokenizer;
  * This message contains a text message or announcement from the server
  * for a SoC game.  Sent by {@link soc.server.SOCServer server}.
  * Player chat text is sent as {@link SOCGameTextMsg} instead.
+ * Server text that should appear in the client's main window is {@link SOCStatusMessage} instead.
  *<P>
  * Robots ignore this message type so they won't be dependent on brittle
  * text parsing. For the benefit of robots and to help client responsiveness,
@@ -34,7 +35,7 @@ import java.util.StringTokenizer;
  * such as {@link SOCAcceptOffer}.
  *<P>
  * Occasionally, game text is sent with additional information
- * via {@link SOCSVPTextMessage} instead of using this message type.
+ * via {@link SOCSVPTextMessage} or {@link SOCDeclinePlayerRequest} instead of using this message type.
  * Some simple actions or prompts are sent by the server with {@link SOCSimpleAction}
  * or {@link SOCSimpleRequest} instead of as text.
  *<P>
@@ -63,7 +64,7 @@ public class SOCGameServerText extends SOCMessage
      *<P>
      * {@link SOCGameTextMsg} overrides {@code sep2} instead.
      *<P>
-     * Before v2.4.50, this was private and named {@code unlikely_char1}.
+     * Before v2.5.00, this was private and named {@code unlikely_char1}.
      */
     public static final String UNLIKELY_CHAR1 = Character.toString( (char) 1 );
 
@@ -159,7 +160,7 @@ public class SOCGameServerText extends SOCMessage
      * Changes separator after game to the {@link #UNLIKELY_CHAR1} expected by {@link #parseDataStr(String)}.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(String messageStrParams)
     {

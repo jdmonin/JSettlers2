@@ -1,9 +1,10 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,7 +42,7 @@ import java.util.Random;
  * {@link SOCBoard.BoardFactory#createBoard(SOCGameOptionSet, boolean, int)}
  * whenever you need to construct a new SOCBoard.
  *<P>
- * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
+ * A {@link SOCGame} uses this board; the board does not hold a reference to the game or players, to enforce layering
  * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
  * Calling board methods won't change the game state.
  *<P>
@@ -483,8 +484,9 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *  client's visual "North" (index 15, hex coordinate 0x11) on that
      *  board is West internally in the board layout.
      *
-         @see #getHexTypeFromNumber(int)
-         @see #getAdjacentNodeToHex(int, int)
+     * @see #getHexTypeFromNumber(int)
+     * @see #getAdjacentNodeToHex(int, int)
+     * @see #portsLayout
      *
      **/
     private int[] hexLayout =   // initially all WATER_HEX
@@ -570,13 +572,13 @@ public abstract class SOCBoard implements Serializable, Cloneable
      */
     private int[] numToHexID =
     {
-        0x17, 0x39, 0x5B, 0x7D,
-        0x15, 0x37, 0x59, 0x7B, 0x9D,
-        0x13, 0x35, 0x57, 0x79, 0x9B, 0xBD,
+                 0x17, 0x39, 0x5B, 0x7D,
+              0x15, 0x37, 0x59, 0x7B, 0x9D,
+           0x13, 0x35, 0x57, 0x79, 0x9B, 0xBD,
         0x11, 0x33, 0x55, 0x77, 0x99, 0xBB, 0xDD,
-        0x31, 0x53, 0x75, 0x97, 0xB9, 0xDB,
-        0x51, 0x73, 0x95, 0xB7, 0xD9,
-        0x71, 0x93, 0xB5, 0xD7
+           0x31, 0x53, 0x75, 0x97, 0xB9, 0xDB,
+              0x51, 0x73, 0x95, 0xB7, 0xD9,
+                 0x71, 0x93, 0xB5, 0xD7
     };
 
     /**
@@ -664,7 +666,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     protected List<Integer>[] ports = new ArrayList[6];  // 1 per resource type, MISC_PORT to WOOD_PORT
 
     /**
-     * roads on the board; a list of of {@link SOCRoad}s.
+     * roads on the board; a list of {@link SOCRoad}s.
      * On the large sea board ({@link SOCBoardLarge}), also
      * contains all {@link SOCShip}s on the board.
      *<P>
@@ -1542,10 +1544,10 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *<P>
      * This method should not be called frequently.
      *<P>
-     * A scenario of {@link SOCBoardLarge} has movable ports; a port's edge there might
-     * temporarily be -1.  Ignore this port if so, it's not currently placed on the board.
-     * This happens only with {@link SOCBoardLarge} (layout encoding v3), not the original or 6-player
-     * (v1 or v2) {@link SOCBoard} layouts.
+     * One scenario on {@link SOCBoardLarge} has movable ports; a port's edge there might
+     * temporarily be -1. Ignore that port if so, it's not currently placed on the board.
+     * This happens only with {@link SOCBoardLarge} (layout encoding v3), not the
+     * original {@link SOCBoard4p} or 6-player {@link SOCBoard6p} layouts.
      *
      * @return the ports' edges
      * @see #getPortsFacing()
@@ -1857,7 +1859,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
     public int getHexNumFromCoord(final int hexCoord)
         throws UnsupportedOperationException
     {
-        if ((hexCoord >= 0) && (hexCoord <= hexIDtoNum.length))
+        if ((hexCoord >= 0) && (hexCoord < hexIDtoNum.length))
             return hexIDtoNum[hexCoord];
         else
             return -1;
@@ -1871,6 +1873,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
      *         or {@link #DESERT_HEX},
      *         or {@link #MISC_PORT_HEX} or another port type ({@link #CLAY_PORT_HEX}, etc),
+     *         or {@link SOCBoardLarge#GOLD_HEX} on a sea board,
      *         or {@link #WATER_HEX}
      *         or -1 for invalid hex coordinate
      *
@@ -1880,7 +1883,10 @@ public abstract class SOCBoard implements Serializable, Cloneable
      */
     public int getHexTypeFromCoord(final int hex)
     {
-        return getHexTypeFromNumber(hexIDtoNum[hex]);
+        if ((hex >= 0) && (hex < hexIDtoNum.length))
+            return getHexTypeFromNumber(hexIDtoNum[hex]);
+        else
+            return -1;
     }
 
     /**
@@ -1966,6 +1972,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
 
     /**
      * remove a piece from the board.
+     * If removing a city, doesn't add a settlement at its location.
      *<P>
      * If you're calling {@link SOCPlayer#undoPutPiece(SOCPlayingPiece, boolean)},
      * call this method first.

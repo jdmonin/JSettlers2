@@ -1,0 +1,223 @@
+SOC game event log: type=F, version=2500, created_at=1636724878, now=1636724953, game_name=g
+# Game created at: 2021-11-12 08:47:58 -0500
+# Log written at:  2021-11-12 08:49:13 -0500
+# Added comments are (C) Jeremy D Monin 2021 (GPLv3)
+# This log has the start of a game on the classic board; entries have the optional timestamp field.
+# For a log without timestamp field, see all-basic-actions.soclog.
+0:00.012:all:SOCVersion:2500|str=2.5.00|verBuild=JM20211111|feats=;ch;|cliLocale=(null)
+0:00.012:all:SOCNewGameWithOptions:game=g|param1=-1|param2=BC=t4,N7=f7,RD=f,PL=4
+0:00.013:ob:SOCJoinGameAuth:game=g
+0:00.013:ob:SOCSetSeatLock:game=g|states=LOCKED,UNLOCKED,UNLOCKED,UNLOCKED
+0:00.014:ob:SOCPotentialSettlements:game=g|playerNum=-1|list=83 85 87 89 8b 8d 94 96 98 9a 9c 23 25 a5 27 a7 a9 ab ad 32 34 36 b6 38 b8 ba bc 43 45 47 c7 49 c9 cb cd 52 54 56 58 d8 5a da dc 63 65 67 69 6b 72 74 76 78 7a 7c 
+0:00.014:ob:SOCGameElements:game=g|e4=-1
+0:00.015:ob:SOCPlayerElements:game=g|playerNum=0|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:00.015:ob:SOCChangeFace:game=g|playerNumber=0|faceId=1
+0:00.015:ob:SOCDiceResult:game=g|param=-1
+0:00.016:ob:SOCPlayerElements:game=g|playerNum=1|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:00.016:ob:SOCChangeFace:game=g|playerNumber=1|faceId=1
+0:00.016:ob:SOCPlayerElements:game=g|playerNum=2|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:00.016:ob:SOCChangeFace:game=g|playerNumber=2|faceId=1
+0:00.016:ob:SOCPlayerElements:game=g|playerNum=3|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:00.016:ob:SOCChangeFace:game=g|playerNumber=3|faceId=1
+0:00.016:ob:SOCGameElements:game=g|e2=25,e1=0,e3=-1,e6=-1,e5=-1
+0:00.016:ob:SOCGameMembers:game=g|members=[j]
+0:00.016:ob:SOCGameState:game=g|state=0
+0:00.017:all:SOCJoinGame:nickname=j|password empty|host=	|game=g
+0:01.474:fo:SOCSitDown:game=g|nickname=	|playerNumber=3|robotFlag=false
+0:01.474:all:SOCSitDown:game=g|nickname=j|playerNumber=3|robotFlag=false
+0:01.475:p3:SOCPlayerElements:game=g|playerNum=3|actionType=SET|e1=0,e2=0,e3=0,e4=0,e5=0,e6=0
+0:01.475:all:SOCGameState:game=g|state=0
+0:01.475:all:SOCChangeFace:game=g|playerNumber=3|faceId=1
+0:01.530:f3:SOCChangeFace:game=g|playerNumber=0|faceId=2
+0:01.530:all:SOCChangeFace:game=g|playerNumber=3|faceId=2
+0:02.654:f3:SOCSetSeatLock:game=g|playerNumber=0|state=LOCKED
+0:02.654:all:SOCSetSeatLock:game=g|playerNumber=0|state=LOCKED
+0:03.384:f3:SOCStartGame:game=g
+0:03.385:all:SOCGameServerText:game=g|text=Fetching a robot player...
+0:03.385:all:SOCGameServerText:game=g|text=Fetching a robot player...
+0:03.385:ob:SOCBotJoinGameRequest:game=g|playerNumber=1|opts=BC=t4,N7=f7,RD=f,PL=4
+0:03.385:ob:SOCBotJoinGameRequest:game=g|playerNumber=2|opts=BC=t4,N7=f7,RD=f,PL=4
+0:03.386:ob:SOCJoinGameAuth:game=g
+0:03.386:ob:SOCSetSeatLock:game=g|states=LOCKED,UNLOCKED,UNLOCKED,UNLOCKED
+0:03.386:ob:SOCSitDown:game=g|nickname=j|playerNumber=3|robotFlag=false
+0:03.386:ob:SOCBoardLayout:game=g|hexLayout={ 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 }|numberLayout={ -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 }|robberHex=0xffffffff
+0:03.386:ob:SOCPotentialSettlements:game=g|playerNum=-1|list=83 85 87 89 8b 8d 94 96 98 9a 9c 23 25 a5 27 a7 a9 ab ad 32 34 36 b6 38 b8 ba bc 43 45 47 c7 49 c9 cb cd 52 54 56 58 d8 5a da dc 63 65 67 69 6b 72 74 76 78 7a 7c 
+0:03.386:ob:SOCGameElements:game=g|e4=-1
+0:03.386:ob:SOCPlayerElements:game=g|playerNum=0|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:03.386:ob:SOCChangeFace:game=g|playerNumber=0|faceId=1
+0:03.386:ob:SOCDiceResult:game=g|param=-1
+0:03.386:ob:SOCPlayerElements:game=g|playerNum=1|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:03.386:ob:SOCChangeFace:game=g|playerNumber=1|faceId=1
+0:03.386:ob:SOCPlayerElements:game=g|playerNum=2|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:03.386:ob:SOCChangeFace:game=g|playerNumber=2|faceId=1
+0:03.386:ob:SOCPlayerElements:game=g|playerNum=3|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:03.386:ob:SOCChangeFace:game=g|playerNumber=3|faceId=2
+0:03.386:ob:SOCGameElements:game=g|e2=25,e1=0,e3=-1,e6=-1,e5=-1
+0:03.386:ob:SOCGameMembers:game=g|members=[j, robot 3]
+0:03.386:ob:SOCGameState:game=g|state=1
+0:03.386:all:SOCJoinGame:nickname=robot 3|password empty|host=	|game=g
+0:03.387:ob:SOCJoinGameAuth:game=g
+0:03.387:ob:SOCSetSeatLock:game=g|states=LOCKED,UNLOCKED,UNLOCKED,UNLOCKED
+0:03.387:ob:SOCSitDown:game=g|nickname=j|playerNumber=3|robotFlag=false
+0:03.387:ob:SOCBoardLayout:game=g|hexLayout={ 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 }|numberLayout={ -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 }|robberHex=0xffffffff
+0:03.387:ob:SOCPotentialSettlements:game=g|playerNum=-1|list=83 85 87 89 8b 8d 94 96 98 9a 9c 23 25 a5 27 a7 a9 ab ad 32 34 36 b6 38 b8 ba bc 43 45 47 c7 49 c9 cb cd 52 54 56 58 d8 5a da dc 63 65 67 69 6b 72 74 76 78 7a 7c 
+0:03.387:ob:SOCGameElements:game=g|e4=-1
+0:03.387:ob:SOCPlayerElements:game=g|playerNum=0|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:03.387:ob:SOCChangeFace:game=g|playerNumber=0|faceId=1
+0:03.387:ob:SOCDiceResult:game=g|param=-1
+0:03.387:ob:SOCPlayerElements:game=g|playerNum=1|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:03.387:ob:SOCChangeFace:game=g|playerNumber=1|faceId=1
+0:03.387:ob:SOCPlayerElements:game=g|playerNum=2|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:03.387:ob:SOCChangeFace:game=g|playerNumber=2|faceId=1
+0:03.387:ob:SOCPlayerElements:game=g|playerNum=3|actionType=SET|e18=0,e6=0,e15=0,e10=15,e11=5,e12=4
+0:03.387:ob:SOCChangeFace:game=g|playerNumber=3|faceId=2
+0:03.387:ob:SOCGameElements:game=g|e2=25,e1=0,e3=-1,e6=-1,e5=-1
+0:03.387:ob:SOCGameMembers:game=g|members=[j, robot 3, robot 4]
+0:03.387:ob:SOCGameState:game=g|state=1
+0:03.387:all:SOCJoinGame:nickname=robot 4|password empty|host=	|game=g
+0:03.402:fo:SOCSitDown:game=g|nickname=	|playerNumber=1|robotFlag=true
+0:03.402:all:SOCSitDown:game=g|nickname=robot 3|playerNumber=1|robotFlag=true
+0:03.402:p1:SOCPlayerElements:game=g|playerNum=1|actionType=SET|e1=0,e2=0,e3=0,e4=0,e5=0,e6=0
+0:03.402:all:SOCGameState:game=g|state=1
+0:03.402:all:SOCChangeFace:game=g|playerNumber=1|faceId=1
+0:03.402:fo:SOCSitDown:game=g|nickname=	|playerNumber=2|robotFlag=true
+0:03.402:all:SOCSitDown:game=g|nickname=robot 4|playerNumber=2|robotFlag=true
+0:03.402:p2:SOCPlayerElements:game=g|playerNum=2|actionType=SET|e1=0,e2=0,e3=0,e4=0,e5=0,e6=0
+0:03.402:all:SOCGameState:game=g|state=1
+0:03.402:all:SOCChangeFace:game=g|playerNumber=2|faceId=1
+0:03.405:all:SOCBoardLayout:game=g|hexLayout={ 51 6 69 6 6 4 5 2 66 8 3 1 5 4 6 6 3 1 4 2 4 11 33 2 1 0 3 6 6 5 5 3 12 7 6 100 6 }|numberLayout={ -1 -1 -1 -1 -1 5 7 6 -1 -1 1 3 4 9 -1 -1 4 2 8 1 8 -1 -1 0 6 -1 2 -1 -1 3 7 5 -1 -1 -1 -1 -1 }|robberHex=0x97
+0:03.405:all:SOCPlayerElements:game=g|playerNum=1|actionType=SET|e10=15,e11=5,e12=4
+0:03.405:all:SOCPlayerElements:game=g|playerNum=2|actionType=SET|e10=15,e11=5,e12=4
+0:03.405:all:SOCPlayerElements:game=g|playerNum=3|actionType=SET|e10=15,e11=5,e12=4
+0:03.405:all:SOCPlayerElement:game=g|playerNum=-1|actionType=SET|elementType=19|amount=0
+0:03.405:all:SOCGameElements:game=g|e2=25
+0:03.406:all:SOCGameServerText:game=g|text=Randomly picking a starting player...
+0:03.406:all:SOCStartGame:game=g|gameState=5
+0:03.406:all:SOCGameServerText:game=g|text=It's j's turn to build a settlement.
+0:03.406:all:SOCTurn:game=g|playerNumber=3|gameState=5
+0:03.425:f2:SOCChangeFace:game=g|playerNumber=2|faceId=-1
+0:03.425:all:SOCChangeFace:game=g|playerNumber=2|faceId=-1
+0:03.428:f1:SOCChangeFace:game=g|playerNumber=1|faceId=-1
+0:03.428:all:SOCChangeFace:game=g|playerNumber=1|faceId=-1
+0:05.211:f3:SOCPutPiece:game=g|playerNumber=3|pieceType=1|coord=43
+0:05.214:all:SOCGameServerText:game=g|text=j built a settlement.
+0:05.214:all:SOCPutPiece:game=g|playerNumber=3|pieceType=1|coord=43
+0:05.214:all:SOCGameState:game=g|state=6
+0:05.214:all:SOCGameServerText:game=g|text=It's j's turn to build a road.
+0:05.841:f3:SOCPutPiece:game=g|playerNumber=3|pieceType=0|coord=43
+0:05.842:all:SOCGameServerText:game=g|text=j built a road.
+0:05.842:all:SOCPutPiece:game=g|playerNumber=3|pieceType=0|coord=43
+0:05.842:all:SOCGameServerText:game=g|text=It's robot 3's turn to build a settlement.
+0:05.842:all:SOCTurn:game=g|playerNumber=1|gameState=5
+0:06.400:f1:SOCPutPiece:game=g|playerNumber=1|pieceType=1|coord=58
+0:06.401:all:SOCGameServerText:game=g|text=robot 3 built a settlement.
+0:06.401:all:SOCPutPiece:game=g|playerNumber=1|pieceType=1|coord=58
+0:06.401:all:SOCGameState:game=g|state=6
+0:06.401:all:SOCGameServerText:game=g|text=It's robot 3's turn to build a road.
+0:07.907:f1:SOCPutPiece:game=g|playerNumber=1|pieceType=0|coord=48
+0:07.907:all:SOCGameServerText:game=g|text=robot 3 built a road.
+0:07.907:all:SOCPutPiece:game=g|playerNumber=1|pieceType=0|coord=48
+0:07.907:all:SOCGameServerText:game=g|text=It's robot 4's turn to build a settlement.
+0:07.907:all:SOCTurn:game=g|playerNumber=2|gameState=5
+0:08.436:f2:SOCPutPiece:game=g|playerNumber=2|pieceType=1|coord=7a
+0:08.436:all:SOCGameServerText:game=g|text=robot 4 built a settlement.
+0:08.436:all:SOCPutPiece:game=g|playerNumber=2|pieceType=1|coord=7a
+0:08.436:all:SOCGameState:game=g|state=6
+0:08.436:all:SOCGameServerText:game=g|text=It's robot 4's turn to build a road.
+0:09.939:f2:SOCPutPiece:game=g|playerNumber=2|pieceType=0|coord=6a
+0:09.939:all:SOCGameServerText:game=g|text=robot 4 built a road.
+0:09.939:all:SOCPutPiece:game=g|playerNumber=2|pieceType=0|coord=6a
+0:09.939:all:SOCGameServerText:game=g|text=It's robot 4's turn to build a settlement.
+0:09.939:all:SOCTurn:game=g|playerNumber=2|gameState=10
+0:12.944:f2:SOCPutPiece:game=g|playerNumber=2|pieceType=1|coord=5a
+0:12.944:all:SOCGameServerText:game=g|text=robot 4 built a settlement.
+0:12.944:all:SOCPutPiece:game=g|playerNumber=2|pieceType=1|coord=5a
+0:12.944:all:SOCGameState:game=g|state=11
+0:12.944:all:SOCGameServerText:game=g|text=It's robot 4's turn to build a road.
+0:14.447:f2:SOCPutPiece:game=g|playerNumber=2|pieceType=0|coord=49
+0:14.448:all:SOCGameServerText:game=g|text=robot 4 built a road.
+0:14.448:all:SOCPutPiece:game=g|playerNumber=2|pieceType=0|coord=49
+0:14.448:all:SOCGameServerText:game=g|text=It's robot 3's turn to build a settlement.
+0:14.448:all:SOCTurn:game=g|playerNumber=1|gameState=10
+0:14.951:f1:SOCPutPiece:game=g|playerNumber=1|pieceType=1|coord=b6
+0:14.951:all:SOCGameServerText:game=g|text=robot 3 built a settlement.
+0:14.951:all:SOCPutPiece:game=g|playerNumber=1|pieceType=1|coord=b6
+0:14.951:all:SOCGameState:game=g|state=11
+0:14.951:all:SOCGameServerText:game=g|text=It's robot 3's turn to build a road.
+0:16.453:f1:SOCPutPiece:game=g|playerNumber=1|pieceType=0|coord=a6
+0:16.454:all:SOCGameServerText:game=g|text=robot 3 built a road.
+0:16.454:all:SOCPutPiece:game=g|playerNumber=1|pieceType=0|coord=a6
+0:16.454:all:SOCGameServerText:game=g|text=It's j's turn to build a settlement.
+0:16.454:all:SOCTurn:game=g|playerNumber=3|gameState=10
+0:26.252:f3:SOCPutPiece:game=g|playerNumber=3|pieceType=1|coord=78
+0:26.252:all:SOCGameServerText:game=g|text=j built a settlement.
+0:26.252:all:SOCPutPiece:game=g|playerNumber=3|pieceType=1|coord=78
+0:26.253:all:SOCGameState:game=g|state=11
+0:26.253:all:SOCGameServerText:game=g|text=It's j's turn to build a road.
+0:28.134:f3:SOCPutPiece:game=g|playerNumber=3|pieceType=0|coord=78
+0:28.134:all:SOCGameServerText:game=g|text=j built a road.
+0:28.134:all:SOCPutPiece:game=g|playerNumber=3|pieceType=0|coord=78
+0:28.134:all:SOCTurn:game=g|playerNumber=3|gameState=15
+0:28.135:all:SOCRollDicePrompt:game=g|playerNumber=3
+0:29.756:f3:SOCRollDice:game=g
+0:29.756:all:SOCDiceResult:game=g|param=2
+0:29.756:all:SOCDiceResultResources:game=g|p=1|p=3|p=4|p=1|p=2
+0:29.756:p3:SOCPlayerElements:game=g|playerNum=3|actionType=SET|e1=1,e2=1,e3=0,e4=1,e5=1
+0:29.756:all:SOCGameState:game=g|state=20
+0:31.164:f3:SOCEndTurn:game=g
+0:31.164:all:SOCClearOffer:game=g|playerNumber=-1
+0:31.164:all:SOCTurn:game=g|playerNumber=1|gameState=15
+0:31.164:all:SOCRollDicePrompt:game=g|playerNumber=1
+0:31.165:f1:SOCRollDice:game=g
+0:31.165:all:SOCDiceResult:game=g|param=5
+0:31.165:all:SOCDiceResultResources:game=g|p=2|p=1|p=3|p=1|p=1|p=0|p=3|p=5|p=1|p=1
+0:31.165:p1:SOCPlayerElements:game=g|playerNum=1|actionType=SET|e1=1,e2=0,e3=1,e4=0,e5=1
+0:31.165:p3:SOCPlayerElements:game=g|playerNum=3|actionType=SET|e1=2,e2=1,e3=0,e4=1,e5=1
+0:31.165:all:SOCGameState:game=g|state=20
+0:31.252:f1:SOCBuildRequest:game=g|pieceType=0
+0:31.252:all:SOCPlayerElements:game=g|playerNum=1|actionType=LOSE|e1=1,e5=1
+0:31.252:all:SOCGameState:game=g|state=30
+0:31.753:f1:SOCPutPiece:game=g|playerNumber=1|pieceType=0|coord=96
+0:31.753:all:SOCGameServerText:game=g|text=robot 3 built a road.
+0:31.753:all:SOCPutPiece:game=g|playerNumber=1|pieceType=0|coord=96
+0:31.753:all:SOCGameState:game=g|state=20
+0:34.257:f1:SOCEndTurn:game=g
+0:34.257:all:SOCClearOffer:game=g|playerNumber=-1
+0:34.257:all:SOCTurn:game=g|playerNumber=2|gameState=15
+0:34.257:all:SOCRollDicePrompt:game=g|playerNumber=2
+0:34.258:f2:SOCRollDice:game=g
+0:34.258:all:SOCDiceResult:game=g|param=10
+0:34.258:all:SOCDiceResultResources:game=g|p=2|p=1|p=3|p=2|p=5|p=0|p=2|p=3|p=2|p=5
+0:34.258:p1:SOCPlayerElements:game=g|playerNum=1|actionType=SET|e1=0,e2=0,e3=1,e4=0,e5=2
+0:34.258:p2:SOCPlayerElements:game=g|playerNum=2|actionType=SET|e1=0,e2=0,e3=0,e4=0,e5=3
+0:34.258:all:SOCGameState:game=g|state=20
+0:34.357:f2:SOCBankTrade:game=g|give=clay=0|ore=0|sheep=0|wheat=0|wood=2|unknown=0|get=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0
+0:34.358:all:SOCBankTrade:game=g|give=clay=0|ore=0|sheep=0|wheat=0|wood=2|unknown=0|get=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=2
+0:36.359:f2:SOCBuildRequest:game=g|pieceType=0
+0:36.359:all:SOCPlayerElements:game=g|playerNum=2|actionType=LOSE|e1=1,e5=1
+0:36.359:all:SOCGameState:game=g|state=30
+0:36.861:f2:SOCPutPiece:game=g|playerNumber=2|pieceType=0|coord=38
+0:36.861:all:SOCGameServerText:game=g|text=robot 4 built a road.
+0:36.861:all:SOCPutPiece:game=g|playerNumber=2|pieceType=0|coord=38
+0:36.861:all:SOCGameState:game=g|state=20
+0:39.364:f2:SOCEndTurn:game=g
+0:39.364:all:SOCClearOffer:game=g|playerNumber=-1
+0:39.364:all:SOCTurn:game=g|playerNumber=3|gameState=15
+0:39.364:all:SOCRollDicePrompt:game=g|playerNumber=3
+0:39.942:f3:SOCRollDice:game=g
+0:39.942:all:SOCDiceResult:game=g|param=10
+0:39.942:all:SOCDiceResultResources:game=g|p=2|p=1|p=5|p=2|p=5|p=0|p=2|p=2|p=2|p=5
+0:39.942:p1:SOCPlayerElements:game=g|playerNum=1|actionType=SET|e1=0,e2=0,e3=1,e4=0,e5=4
+0:39.942:p2:SOCPlayerElements:game=g|playerNum=2|actionType=SET|e1=0,e2=0,e3=0,e4=0,e5=2
+0:39.942:all:SOCGameState:game=g|state=20
+0:44.866:f3:SOCPutPiece:game=g|playerNumber=3|pieceType=0|coord=89
+0:44.866:all:SOCPlayerElements:game=g|playerNum=3|actionType=LOSE|e1=1,e5=1
+0:44.867:all:SOCGameServerText:game=g|text=j built a road.
+0:44.867:all:SOCPutPiece:game=g|playerNumber=3|pieceType=0|coord=89
+0:44.867:all:SOCGameState:game=g|state=20
+1:04.429:fo:SOCGameTextMsg:game=g|nickname=-|text=entry with timestamp >= 1 minute
+# End of log. Game state 20
+# Player info:
+# - pn 1: total score 2: robot 3
+# - pn 2: total score 2: robot 4
+# - pn 3: total score 2: j

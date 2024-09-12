@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2012-2013,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2013,2017,2019-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -194,7 +194,7 @@ import javax.swing.WindowConstants;
                     return;
 
                 tf.setText("");
-                md.sendToChannel(cname, s + "\n");
+                md.sendToChannel(cname, s);
 
                 history.setElementAt(s, history.size() - 1);
                 history.addElement("");
@@ -228,7 +228,7 @@ import javax.swing.WindowConstants;
         }
     }
 
-    /** when the window is destroyed, tell the applet to leave the group */
+    /** When the channel frame is closed/destroyed, tells the app that client user's leaving the channel. */
     private class CFWindowListener extends WindowAdapter
     {
         public void windowClosing(WindowEvent e)
@@ -236,6 +236,7 @@ import javax.swing.WindowConstants;
             md.getClient().leaveChannel(cname);
             dispose();
         }
+
         public void windowOpened(WindowEvent e)
         {
             tf.requestFocus();

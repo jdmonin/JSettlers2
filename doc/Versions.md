@@ -4,7 +4,7 @@ Project home and source history are at [https://github.com/jdmonin/JSettlers2](h
 Source history for version `1.1.06` and earlier is at [https://github.com/jdmonin/JSettlers1](https://github.com/jdmonin/JSettlers1).
 
 JARs for recent JSettlers versions can be downloaded from
-[https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases) .
+[https://github.com/jdmonin/JSettlers2/releases](https://github.com/jdmonin/JSettlers2/releases).
 
 
 ## `3.0.00` (build JX202xxxxx)
@@ -13,39 +13,268 @@ JARs for recent JSettlers versions can be downloaded from
 - Major refactoring: Game data types, etc, thanks to Ruud Poutsma
 
 
-## `2.4.50` (build JM20201xxx)
+## `2.7.00` (build JM2022xxxx)
 - Currently being developed
 - Gameplay:
+	- Player can cancel Monopoly, Year of Plenty cards while choosing resources,
+	  or Knight card while moving the robber or pirate
+	    - Dev card is returned to their hand
+	    - That player's client must be v2.7.00 or newer; other players can use older clients
+	- New optional house rule: Allow undo building and moving pieces (new game option `UB`; requires client v2.7.00 or newer)
+- I18N:
+	- Added German translation (thank you Eudoxia and Quasigroup)
+	- Updated Polish translation (thank you KotCzarny)
+- Client:
+	- Game window:
+	    - For visibility when a player builds, highlight most recently placed piece until end of their turn
+	    - Bank/port trade: Bugfix: After making a trade, if player wants to undo that trade but accidentally clicks "Bank/Port" instead of "Undo", couldn't then click Undo because hand panel forgot previous trade
+	    - Discard, Year of Plenty dialogs: Each resource pick square won't go past prompted amount  
+	      (was no limit in previous versions)
+	    - `*STATS*`: De-clutter player resource trade stats output
+	        - If hasn't made trades of a type, show "None" instead of all 0s
+	        - 2:1 ports: Show as `4 -> (0, 0, 0, 1, 1)` instead of `(0, 0, 4, 0, 0) -> ...`
+	    - Statistics dialog shows client player's resource rolls and trades
+	    - Bugfix when Window Close button clicked: Don't hide the window if user wants to continue playing or reset board
+	      (thanks KotCzarny for reporting github issue #103)
+	- New Game dialog:
+	    - If any of the chosen Game Options require a minimum client version, list those options in the confirmation dialog
+	      so user knows what to leave out if they don't want that requirement
+	    - Bugfix: No longer shows second VersionConfirmDialog if user hit Enter key in New Game dialog
+	- Game Info/Options popup:
+	    - Show game duration and status (not started yet, in progress, finished)
+	    - Even if client can't join game, show its options (with server v2.7.00 or newer)
+	    - Added context menu to copy game name to clipboard
+	- When started with command line params, and then connection to server is lost, show same buttons as when started with none: Reconnect, practice, etc (issue #108)
+	- Don't set gotPassword field while joining a practice game
+	- Game stats:
+	    - Update players' resource stats during game play (previously done only at server)
+	        - Roll stats when playing on server 2.0.00 or newer
+	        - Trade stats when server 2.5.00 or newer
+- Server:
+	- Bugfix: If player cancels Road Building with Cancel Ship button, server now clears player's hasPlayedDevCard() so another can be played
+	- `*STATS*`: Sort the client version list
+- Network/Message traffic:
+	- When client is this version or newer:
+	    - Client is sent every game's list of options; previous versions omitted options of any unjoinable game
+	    - If asked for info about a game option not compatible with client,
+	      server's "unknown option" `SOCGameOptionInfo` reply includes that option's description
+	    - When joining game:
+	        - Server sends `SOCGameStats(TYPE_TIMING)` with info on game duration
+	        - If game has started and has game option `UBL`, sends each player's getUndosRemaining()
+	        - If current player is playing a Knight/Soldier now, sends SOCGameElement(IS_PLACING_ROBBER_FOR_KNIGHT_CARD_FLAG)
+	    - When sitting down to take over a bot's seat, send their player stats
+	    - When client is sent `SOCDevCardAction(PLAY, KNIGHT)`, should set game's isPlacingRobberForKnightCard flag, then clear it after placement or cancellation
+	    - Can send `SOCCancelBuildRequest(CARD)` to cancel the dev card being played
+- For developers:
+	- Enhanced GameAction class to start unifying info about actions and their side-effects
+	- Save/load games:
+	    - After loading, current player can now resume game and move a ship immediately
+	      if client is this version or newer, instead of waiting until their next turn
+	    - `*LOADGAME*`: If SavedGameModel.devCardDeck has an unknown card type, give card's index in warning to user
+	    - TestRecorder.connectLoadJoinResumeGame: Resume any loaded game file
+	- Robots: If SOCGame.restoreLargestArmyState called before saveLargestArmyState, do nothing
+	- Gradle 7 compatibility
+	- Gradle build auto-selects `python3` or `python` command to run tests
+- Code internals:
+	- Refactored soc.game.GameAction out of soc.extra.robot.GameActionLog.Action
+	- Refactored SOCGame.lastAction out of SOCPlayer.lastActionBankTrade_give, _get
+	- SOCVersionedItem.getMinVersion, itemsMinimumVersion map keys are now always String
+	- SOCPlayerInterface.print +addStarPrefix instead of calling print("* " + someText)
+	- Changed DataUtils.arrayIntoStringBuf to arrayIntoStringBuilder
+
+
+## `2.6.10` (build JM20220705)
+- Server:
+	- At end of game, also show players their resource trade `*STATS*` if client is v2.6.00 or newer
+
+
+## `2.6.00` (build JM20220612)
+- I18N:
+	- Added Polish translation (thank you KotCzarny)
+	- Game option and scenario names can optionally start with a numeric "sort ranking" which is parsed and hidden
+- Client:
+	- Game window:
+	    - Moving robber: If hex is desert, don't ask "are you sure" when you have an adjacent settlement/city
+	    - Less flicker while resizing window
+	- More consistent sound quality on Windows 10
+	- If rejected while connecting to server, show server's version as part of error text
+- Game `*STATS*`: Show player's resource trade totals given/received with ports, bank, other players
+  if client and server are v2.6.00 or newer
+- Game options:
+	- Client removes unused options before sending new game request
+	- If client requests a new game with unknown game option(s), server replies once with SOCGameOptionInfo messages to mark them as unknown.
+	  Client will now use that info to update options used in New Game dialog.
+- Database:
+	- Setup scripts: mysql:
+	    - Allow SOC user to connect from anywhere (useful for containers)
+	    - Fix `robotparams` table syntax error when server in strict date mode
+- For developers:
+	- Save/load games:
+	    - SavedGameModel:
+	        - PlayerInfo: Add field for new resource trade stats; omit resRollStats if seat's VP == 0
+	        - MODEL_VERSION still 2400; earlier server versions will ignore that added field while loading a savegame
+	- Client: Added DataOutputUtils for html conversion and escapes
+	- Robots: SOCRobotNegotiator +setTargetPiece(pn, SOCBuildPlan) to supply more plan info (upstreamed from STAC Project)
+	- SOCForceEndTurnThread: Name thread to identify in server thread dumps
+- Code internals:
+	- Convert SOCPlayerInterface from AWT to Swing JFrame
+
+
+## `2.5.00` (build JM20211230)
+- Gameplay:
+	- Road Building: If player cancels placement or ends turn before placing the first free road or ship,
+	  the dev card is returned to their hand
 	- When a trade is offered to bots and humans, bots wait longer before responding.
 	  Was 3 seconds, is now 8, changeable with server property `jsettlers.bot.human.pause`
 	  (thank you Lee Passey)
+	- Recalc Longest Route when building coastal settlement to connect a player's roads to ships
+	  (thanks kotc for reporting issue #95)
+	- Pirate Islands scenario: Ship placement: Fix client bug where placing a coastal ship
+	  next to a road would prevent any further ship building, based on "no branches in route" rule
+	- Through the Desert scenario: No longer incorrectly gives 2 SVP to a player
+	  building a settlement within the desert (thanks kotc for reporting #86)
+	- If knight card is played by bot, then returned because bot is unresponsive,
+	  server updates their army size and largest army (thanks kotc for reporting #91)
+- I18N:
+	- Added French translation (thank you Lee Passey)
+- Client:
+	- Game window:
+	    - Added hotkey Ctrl-B/Alt-B/Cmd-B to ask to Special Build in 6-player game
+	    - Hand Panel: Shrink unused space above trading squares
+	    - Board panel: Better performance and quicker resizing, thanks to tiehfood's discussion in github issue #84
+	    - Discards: List resources you discarded, not just total amount, in game action textarea
+	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
+	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
+	- New Game dialog:
+	    - Sort game option descriptions case-insensitively, in case of acronyms
+	    - If server has increased default VP to win, use that as minimum when picking a scenario
+	    - Options with keynames longer than 3 chars aren't grouped under a 2-character "parent" option
+	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
+	- If client starts a TCP server, keep it running; previous versions timed out after being idle an hour
+	  (thanks kotc for reporting issue #81)
+	- If client starts a TCP server, can turn on Debug Mode for that server
+	  by adding `-Djsettlers.allow.debug=Y` before `-jar` on java command line
+	- If server announces it's shutting down with StatusMessage(SV_SERVER_SHUTDOWN), show Connect or Practice panel
+	- If server connection is lost, show Connect or Practice panel with error text and only its 3 main buttons, all enabled
+	- Linux/Unix: Use sub-pixel font antialiasing if available (thanks kotc for issue #92)
+	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
+	- When receiving SOCResourceCount or RESOURCE_COUNT player element, try to avoid converting that player's resources to unknowns
+	- PlayerClientListener.playerElementUpdated(ResourceTotalAndDetails): Do same updates as single-resource calls
+	- When receiving SOCGameOptionGetDefaults: Update default fields in set of known options, not just current values
+- Bots/AI:
+	- Shorten pause after bot requests a bank trade
+	- Limit the number of failed trade offers/bank trades per turn
+- Server:
+	- During game reset, don't send chat recap: Chat text is still in clients' game windows
+	- When game has been loaded but not yet resumed, humans can sit down at any player's seat (human or robot)
+	- If client's New Game request doesn't set game option `VP`, and server config has a default, use that for new game's `VP`
+	- If default VP is set on command line or properties, will also be minimum VP for any scenario
+	- To use default VP in all scenarios (not just as minimum VP), start server with new game option `-o _VP_ALL=t`
+	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
+	- Print console "joined the game", "left the game" messages as 24-hour local "HH:mm:ss"
+	  like client connect/disconnect times, instead of locale-dependent 12-hour times
+	- Startup: If problem with game options in properties file or command line,
+	  improve error messages to tell whether option is unknown or malformed
+	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
 - Network/Message traffic:
-	- For efficiency and third-party bots' parsing, use data messages instead of text when clients are new enough:
-		- Report robbery with `SOCReportRobbery`
-		- Reject disallowed trade requests with `SOCBankTrade` or `SOCAcceptOffer` reason codes
-	- When Monopoly card played, server announces amount gained instead of player's total amount of that resource
+	- For efficiency and third-party bots' understanding, server sends data messages instead of text when clients are this version or newer:
+		- Report robbery results with `SOCRobberyResult`
+		- Announce Discovery card/gold hex free resource picks with `SOCPickResources`
+		- Reject disallowed trade requests with `SOCRejectOffer` reason codes
+		- Reject other disallowed requests or actions with `SOCDeclinePlayerRequest`
+	- Initial Placement:
+		- Don't send SOCRollDicePrompt
+		- Always send SOCTurn (not just to bots) at start of each placement round
+		  and end of initial placement/start of first regular turn
+		- To fix cosmetic off-by-one bug for rounds-played count in v2.0 - 2.4, at start of first regular turn
+		  clients v2.4 and older are sent SOCGameState instead of SOCTurn unless current player is changing
+	- Bank Trade and Accept Offer messages have resource info, so server no longer sends redundant `SOCPlayerElement`s
+	- Begin Turn sequence:
+		- `SOCTurn` no longer preceded by SOCPlayerElement(PLAYED_DEV_CARD_FLAG) except to older clients
+		- `SOCTurn` uses game state field even when game has v1.x clients
+		- If a player gains winning points during another player's turn, and wins when it becomes their own turn,
+		  send `SOCTurn` instead of SOCGameElements(CURRENT_PLAYER) and SOCGameState(OVER)
+	- Resource changes sent as 1 `SOCPlayerElements` instead of group of `SOCPlayerElement`s
+		- Still sends `SOCPlayerElement` when only 1 resource type changing
+		- Sequences: Discard, buy playing piece, buy dev card, gold hex gain,
+		  client v2.0 - 2.4 bank/player trades, build a Wonder
+	- Dice roll results:
+		- New game state is sent only after resources or other gains/losses by players, to indicate end of sequence
+		- When game contains v1.x and v2.x clients, no longer sends v1.x-compatible SOCPlayerElement(pn, GAIN, ...)
+		  or SOCResourceCounts to v2.x clients. Those clients are already sent SOCDiceResultResources,
+		  and the extra messages could lead to incorrect resource tracking.
+	- Discard:
+		- If client sends discard with incorrect total, server re-sends SOCDiscardRequest which includes required amount
+		- Server sends SOCDiscard instead of SOCPlayerElement to clients v2.5 and newer
+		- After a player discards, if others still must discard, server sends SOCGameState(WAITING_FOR_DISCARDS) for clarity although state hasn't changed
+			- Not sent to clients older than v2.5
+	- Buy Dev card:
+		- Server omits redundant SOCGameElements(DEV_CARD_COUNT) to clients v2.5 and newer
+	- When Monopoly card played:
+		- Server announces amount gained instead of player's total amount of that resource
+		- Now sends resource gain/loss messages before, not after, SOCSimpleAction(RSRC_TYPE_MONOPOLIZED)
+		  so client's game data's is updated by the time it sees that action message, and sends
+		  SOCResourceCount for clients which may have tracked some of the victims' lost resource as unknowns
+	- When Discovery card played:
+		- If client sends wrong number of resources, server responds with SOCSimpleRequest(PROMPT_PICK_RESOURCES, 2)
+	- End Turn:
+		- If client sends SOCEndTurn but player can't end turn yet, server responds with SOCGameState as a prompt
+	- Special Building Phase:
+		- When server sends SOCTurn(SPECIAL_BUILDING), no longer follows with text prompt
+	- Pirate Islands scenario: Attacks by pirate fleet:
+		- Results announced as SOCRobberyResult
+		- Also announces ties
+	- When client joins a game:
+		- If any player currently picking free resources, server sends SOCPlayerElement(NUM_PICK_GOLD_HEX_RESOURCES)
+	- SOCGameTextMsg, SOCChannelTextMsg: Clients and server remove extraneous trailing `\n` when sending message
 - For developers:
-	- Upstreamed and reintegrated from STAC Project fork https://github.com/sorinMD/StacSettlers :
+	- New debug command `devnext: cardType` to rearrange the Development Card deck
+	- Bugfix: When Free Placement debug mode active, disallow playing dev cards: SOCBoardPanel was ignoring "move robber" clicks in that mode
+	- Upstreamed and reintegrated from STAC Project fork https://github.com/ruflab/StacSettlers :
 	    - Various player and game statistic fields/methods and misc code
-	    - Encapsulate robot's build stack as SOCBuildPlan
+	    - Misc bot API refactoring; encapsulate robot's build stack as SOCBuildPlan
 	    - soc.message methods to parse human-readable toString logging format: parseMsgStr, stripAttribNames
 	    - Extend soc.debug / disableDebug logging: 4 debug levels INFO, WARNING, ERROR, FATAL
 	    - SOCDBHelper is no longer a static/unextendable singleton
+	    - Many thanks to Morgan Giraud for collaboration on this work
 	- Enhanced server's recordGameEvent framework for more detailed game recording
+	    - GameEventLog entries note their audience (all of game, specific player, etc)
+	    - `*SAVELOG*` debug command of soc.extra.server.RecordingSOCServer can save logs to files
+	- Message sequences/network traffic:
+	    - Game action message sequences documented in [Message-Sequences-for-Game-Actions.md](Message-Sequences-for-Game-Actions.md)
+	    - Sample code/unit tests recognize and extract game actions from message sequences: See [GameActionExtractor.md](extra/GameActionExtractor.md)
+	    - Unit tests TestRecorder and TestActionsMessages prevent unexpected changes to game event message sequences
+	    - Unit test TestToCmdToStringParse for backwards-compatible parsing of logged event messages
 	- More accessible robot-related methods and data classes
 	- For third-party bots, added more granular override points like
-	  `endTurnActions`, `handleTradeResponse`, `planAndDoActionForPLAY1`, `SOCBuildingSpeedEstimateFactory`
+	  `endTurnActions`, `handleTradeResponse`, `planAndDoActionForPLAY1`, `SOCBuildingSpeedEstimateFactory`,
+	  `OpeningBuildStrategy.cancelWrongPiecePlacement`
 	- Made some data classes Serializable
 	- Save/load games:
+	    - Load: If must add a suffix for unique game name, but that makes it longer than max length,
+	      shorten name instead of failing to resume game play
 	    - SavedGameModel:
+	        - Game: add field playingRoadBuildingCardForLastRoad
 	        - PlayerInfo: add fields for number of Discovery, Monopoly, Road Building cards played,
 	          list of dev cards played; TradeOffer add timestamp
 	        - MODEL_VERSION still 2400; earlier server versions will ignore these added fields while loading a savegame
 	        - GLAS field made non-static so unit tests can safely run in parallel for quicker builds
 	- Unit tests and extraTests against running server for core game actions and message sequences
 	- Server consistently uses Properties if passed into constructors
+	- Server waits for `serverUp()` to return before starting to accept connections
+	- If `SOCServer.stopServer()` called before it's fully running, shuts down cleanly
+	  instead of NullPointerException in InboundMessageQueue.stopMessageProcessing
 	- extraTest TestBoardLayoutsRounds: Exit early if needed to avoid failure from 30-second timeout
-	- For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
+	- Bots:
+	    - When forcing end turn, omit previous/current turn messages if stubborn
+	    - Added server property `jsettlers.debug.bots.datacheck.rsrc` to check bot resource accuracy every turn
+	    - For tests using robot-only games, added server behavior flag SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER
+	- Server extensibility:
+	    - Added public `createGameAndBroadcast` method
+	    - Added factory methods like `buildServerMessageHandler`
+	    - Made some methods and fields less private
+	- New package `soc.extra` for useful or reusable code like `GameEventLog`
+	  which is developed with the main code but shouldn't be part of the built JARs
 	- Refactored message classes:
 	    - Server now mostly calls constructors, not static toCmd methods
 	    - Add toString to several message types to clarify fields
@@ -55,34 +284,22 @@ JARs for recent JSettlers versions can be downloaded from
 	        - To avoid clutter, normally hidden and not sent to connecting clients
 	        - Activate in server config if needed: `jsettlers.gameopts.activate=PLAY_VPO,OTHEROPT`
 	        - For details see [Readme.developer.md](Readme.developer.md) section "Game rules, Game Options"
-	    - New inactive options, to show or help debug gameplay details:
+	    - New inactive options, to show or help debug gameplay details, from STAC concepts:
 	        - `PLAY_VPO`: Show all players' VP/dev card info
 	        - `PLAY_FO`: Show all player info as fully observable: Resources, VP/dev cards
 	    - "Third-Party Options" concept: Gameopts defined by a 3rd-party client, bot, or server JSettlers fork,
-	      as a way to add features or flags but remain backwards-compatible with standard JSettlers.
+	      as a way to add features or flags but remain compatible with standard JSettlers.
 	        - When connecting, client must ask server if it knows about all such gameopts, regardless of version
 	        - Associated with a given client feature; server looks for feature when a client connects
 	    - Refactored option maps to SOCGameOptionSet
 	    - Robot clients no longer ignore game option info sync messages
 	    - SGH.calcGameClientFeaturesRequired checks each gameopt for features
-- Server:
-	- When game has been loaded but not yet resumed, humans can sit down at any player's seat (human or robot)
-	- If human takes over a player in a formerly bots-only game and stays until the end, don't delete that game immediately
-	- Fix cosmetic StringConnection IllegalStateException seen for bots during server shutdown
-- Network/Message traffic:
-	- If client's discard has incorrect total, server re-sends SOCDiscardRequest which includes required total
-- Client:
-	- New Game dialog:
-	    - Sort game option descriptions case-insensitively, in case of acronyms
-	    - Options with keynames longer than 3 chars aren't grouped under a 2-character "parent" option
-	      (`"PLAY_"` isn't under coincidental `"PL"`), use `_` instead to look for possible parent option
-	- Game window:
-	    - Hand Panel: Shrink unused space above trading squares
-	    - Forgotten Tribe scenario: Much less flicker while placing gift ports
-	    - Chat panel: If text to be sent contains `|`, show a popup to say that can't be sent
-	- Net debug: If `jsettlers.debug.traffic=Y` is set and message from server can't be parsed, print it to console
 - Code internals:
 	- Fixed lint warnings for switch fallthrough, variable shadowing, renamed a few obscure fields
+	- Renames for consistency:
+	    - SOCDevCardConstants.TEMP -> TEMPLE
+	    - SOCPlayerInterface.clientIsCurrentPlayer -> isClientCurrentPlayer
+	- Added 76 unit tests (new total is 203)
 
 
 ## `2.4.00` (build JM20200704)
@@ -184,11 +401,11 @@ JARs for recent JSettlers versions can be downloaded from
 	  - `*BOTLIST*` no longer invites all bots to join admin user's game
 	  - `*DBSETTINGS*` also shows whether game results are saved in DB
 - For developers:
-	- Can save/load games using local files and debug commands
+	- Can save/load games with local json files and debug commands
 	  - This is work in progress: Currently works with classic and sea board games, but no scenarios
 	  - Server config must designate a directory
 	  - Optional GSON jar must be on classpath or same dir as server
-	  - For details see [Readme.developer.md](Readme.developer.md): Search text for `*SAVEGAME*`
+	  - For details see [Readme.developer.md](Readme.developer.md): Search for `*SAVEGAME*`
 	- Bugfix: Free Placement debug mode with Forgotten Tribe scenario:
 	  - Handle Gift Port pickup and placement for current player, decline it for other players
 	  - Use new ship's player, not current player, for SVP and dev card gifts

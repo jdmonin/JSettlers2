@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015,2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015,2017,2019-2020,2022-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file from SOCGameOption.java Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import soc.message.SOCMessage;
 
@@ -47,6 +49,29 @@ import soc.message.SOCMessage;
  */
 public abstract class SOCVersionedItem implements Cloneable
 {
+    /**
+     * For reference, the string that compiles into {@link #REGEX_SORT_RANK_PREFIX}.
+     * @since 2.6.00
+     */
+    public static final String REGEX_SORT_RANK_PREFIX_STRING = "^(\\p{Nd}+) -|\\[(\\p{Nd}[^\\]]*)\\]";
+        /*
+         * "n -" is ^(\p{Nd}+) -
+         * "[n]" is ^\[(\p{Nd}[^\]]*)\]
+         */
+
+    /**
+     * Regex for the optional sort rank prefix recognized by {@link #setDesc(String)}.
+     * Matches and groups for the initial {@code "n -"} or {@code "[n]"}.
+     *<P>
+     * Groups:
+     *<OL>
+     * <LI> {@code "n"} from dashed non-bracketed version, if present
+     * <LI> {@code "n"} from bracketed version, if present
+     *</OL>
+     * @see #REGEX_SORT_RANK_PREFIX_STRING
+     * @since 2.6.00
+     */
+    public static final Pattern REGEX_SORT_RANK_PREFIX = Pattern.compile(REGEX_SORT_RANK_PREFIX_STRING);
 
     /**
      * Item key name: Short alphanumeric name (uppercase, starting with a letter, '_' permitted)
@@ -88,10 +113,21 @@ public abstract class SOCVersionedItem implements Cloneable
     /**
      * Descriptive text for the item. Must not contain the network delimiter
      * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
-     * See {@link #getDesc()} for more info about this field.
+     * See {@link #getDesc()} for more info about this field,
+     * including the optional "sort ranking" prefix added in v2.6.00
+     * that sets {@link #sortRank}.
+     *<P>
+     * Is {@code protected} for convenience, but call {@link #setDesc(String)} instead of directly changing its value.
      */
     protected String desc;  // OTYPE_* - if a new SOCGameOption type is added, update this field's javadoc
         // and getDesc() javadoc.
+
+    /**
+     * Item's optional sorting rank for localization, or default of {@link Integer#MAX_VALUE};
+     * see {@link #getSortRank()} for details.
+     * @since 2.6.00
+     */
+    private int sortRank = Integer.MAX_VALUE;
 
     /**
      * Create a new unknown item ({@link #isKnown == false}).
@@ -122,6 +158,8 @@ public abstract class SOCVersionedItem implements Cloneable
      * @param desc Descriptive brief text, to appear in the user interface.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     *             See {@link #setDesc(String)} for format of optional sort ranking prefix,
+     *             which is parsed and removed in v2.6.00 and newer.
      * @throws IllegalArgumentException if key is not alphanumeric,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
@@ -143,13 +181,15 @@ public abstract class SOCVersionedItem implements Cloneable
         minVersion = minVers;
         lastModVersion = lastModVers;
         this.isKnown = isKnown;
-        this.desc = desc;
+        setDesc(desc);  // use setter, because might also need to parse sort ranking prefix or reset rank to default
     }
 
     /**
      * Descriptive text for the item. Must not contain the network delimiter
      * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
      * If ! {@link #isKnown}, will be {@link #key} or an empty string.
+     * Exception: Server v2.7.00 and newer may send description strings for
+     * specific {@link SOCGameOption}s which can't be used by the client which asked about them.
      *<P>
      * Subclass <b>{@link SOCGameOption}</b>:<BR>
      * If option type is integer-valued ({@link SOCGameOption#OTYPE_ENUM}, {@link SOCGameOption#OTYPE_INTBOOL}, etc),
@@ -160,6 +200,7 @@ public abstract class SOCVersionedItem implements Cloneable
      * change the field contents, so {@code getDesc()} and {@link #setDesc(String)} were added.
      *
      * @return  the description; never null
+     * @see #getSortRank()
      * @since 2.0.00
      */
     public final String getDesc()
@@ -170,7 +211,17 @@ public abstract class SOCVersionedItem implements Cloneable
     }
 
     /**
-     * Update this item's description text.  See {@link #getDesc()} for formatting rules and info.
+     * Update this item's description text and optional sort rank.
+     * See {@link #getDesc()} for formatting rules and info.
+     *<P>
+     * To help with localizations, {@code newDesc} can optionally start with a numeric "sort ranking",
+     * to set {@link #getSortRank()}. If found, that prefix is parsed and removed (in v2.6.00 and newer)
+     * and won't be returned as part of {@link #getDesc()}'s value. Older clients will keep that desc string prefix
+     * visible and use it to help sort alphabetically.
+     *<BR>
+     * Its format is either {@code "[n] "} or {@code "n - "},
+     * where {@code n} is 1 or more digit characters per {@link Character#isDigit(char)}.
+     * Uses {@link #REGEX_SORT_RANK_PREFIX}.
      *<P>
      * Before v2.0.00, {@code desc} was a public final field. This gave easy access without allowing changes to the
      * description which might violate the formatting rules. For i18n, v2.0.00 needed to be able to change the
@@ -179,16 +230,59 @@ public abstract class SOCVersionedItem implements Cloneable
      * @param newDesc Descriptive brief text, to appear in the user interface. Not null.
      *             Must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
+     * @throws IllegalArgumentException if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *     or starts but doesn't finish a sort ranking prefix: Missing space after {@code "[n]"} or {@code "n -"}
+     *     or non-digit within brackets after {@code "[n"}
      * @since 2.0.00
      */
-    public void setDesc(final String newDesc)
+    public void setDesc(String newDesc)
         throws IllegalArgumentException
     {
         if (! SOCMessage.isSingleLineAndSafe(newDesc))
             throw new IllegalArgumentException("desc fails isSingleLineAndSafe");
 
+        Matcher m = REGEX_SORT_RANK_PREFIX.matcher(newDesc);
+        if (m.find())
+        {
+            String rankValue = m.group(1);  // from "n -"
+            if (rankValue == null)
+                rankValue = m.group(2);  // from "[n]"
+
+            // check for required space before changing sortRank field, not after
+            final int L = newDesc.length();
+            int idxAfter = m.end();
+            if (idxAfter >= L)
+                throw new IllegalArgumentException("failed to parse rank prefix: nothing after prefix: " + newDesc);
+            if (newDesc.charAt(idxAfter) != ' ')
+                throw new IllegalArgumentException("failed to parse rank prefix: trailing space required: " + newDesc);
+
+            try
+            {
+                sortRank = Integer.parseInt(rankValue);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("failed to parse rank prefix: " + newDesc, e);
+            }
+
+            newDesc = newDesc.substring(idxAfter + 1);
+        } else {
+            sortRank = Integer.MAX_VALUE;
+        }
+
         desc = newDesc;
+    }
+
+    /**
+     * Get this item's sort rank, used by some localizations which want a specific sorting order.
+     * Updated by {@link #setDesc(String)} based on optional numeric prefix text.
+     * All items without a sort ranking prefix are placed together at the end and sorted alphabetically.
+     * @return rank parsed from description (lower values are sorted ahead of higher values),
+     *     or default of {@link Integer#MAX_VALUE}
+     * @see #getDesc()
+     * @since 2.6.00
+     */
+    public int getSortRank()
+    {
+        return sortRank;
     }
 
     /**
@@ -220,7 +314,7 @@ public abstract class SOCVersionedItem implements Cloneable
      *     depending on the item subclass.
      * @see #itemsMinimumVersion(Map)
      */
-    public int getMinVersion(Map<?, ? extends SOCVersionedItem> items)
+    public int getMinVersion(Map<String, ? extends SOCVersionedItem> items)
     {
         return minVersion;
     }
@@ -271,16 +365,16 @@ public abstract class SOCVersionedItem implements Cloneable
      * Calls at the client to {@code itemsMinimumVersion} should keep this in mind, especially if
      * a client's game option's {@link #lastModVersion} is newer than the server.
      *<P>
-     * Calls {@link #itemsMinimumVersion(Map, boolean) itemsMinimumVersion(items, false)}.
+     * Calls {@link #itemsMinimumVersion(Map, boolean, Map) itemsMinimumVersion(items, false, null)}.
      *
      * @param items  a set of items; may be empty or {@code null}
      * @return the highest 'minimum version' among these items, or -1
-     * @see #itemsMinimumVersion(Map, boolean)
+     * @see #itemsMinimumVersion(Map, boolean, Map)
      * @see #getMinVersion(Map)
      */
-    public static int itemsMinimumVersion(final Map<?, ? extends SOCVersionedItem> items)
+    public static int itemsMinimumVersion(final Map<String, ? extends SOCVersionedItem> items)
     {
-        return itemsMinimumVersion(items, false);
+        return itemsMinimumVersion(items, false, null);
     }
 
     /**
@@ -298,6 +392,10 @@ public abstract class SOCVersionedItem implements Cloneable
      * Calls at the client to {@code itemsMinimumVersion} should keep this in mind, especially if
      * a client's game option's {@link #lastModVersion} is newer than the server.
      *<P>
+     * When {@code items} are {@link SOCGameOption}s, will check for {@link SOCGameOption#FLAG_DROP_IF_PARENT_UNUSED}:
+     * Items with that flag will be ignored unless their parent is part of {@code items}
+     * and parent's {@link SOCGameOption#isSet()} is true.
+     *<P>
      * <b>Backwards-compatibility support: {@code calcMinVersionForUnchanged} parameter:</b><br>
      * Occasionally, an older client version supports a new item, but only by changing
      * the value of some other items it recognizes.  If this parameter is true,
@@ -311,26 +409,50 @@ public abstract class SOCVersionedItem implements Cloneable
      * @param items  a set of items; may be empty or {@code null}
      * @param calcMinVersionForUnchanged  If true, return the minimum version at which these
      *         options' values aren't changed (for compatibility) by the presence of new options.
+     * @param itemsMins  If not {@code null}, an empty map to which to add any item keys which have a minimum version
+     *         in order to return that info
      * @return the highest 'minimum version' among these options, or -1.
      *         If {@code calcMinVersionForUnchanged}, the returned version will either be -1 or >= 1107
      *         (the first version with game options).
+     * @throws IllegalArgumentException if {@code itemsMins} != null but isn't empty
      * @see #itemsMinimumVersion(Map)
      * @see #getMinVersion(Map)
      */
     public static int itemsMinimumVersion
-        (final Map<?, ? extends SOCVersionedItem> items, final boolean calcMinVersionForUnchanged)
+        (final Map<String, ? extends SOCVersionedItem> items, final boolean calcMinVersionForUnchanged,
+         final Map<String, Integer> itemsMins)
+        throws IllegalArgumentException
     {
         if (items == null)
             return -1;
+        if ((itemsMins != null) && ! itemsMins.isEmpty())
+            throw new IllegalArgumentException("itemsMins");
 
         int minVers = -1;
-        final Map<?, ? extends SOCVersionedItem> itemsChk = calcMinVersionForUnchanged ? items : null;
+        final Map<String, ? extends SOCVersionedItem> itemsChk = calcMinVersionForUnchanged ? items : null;
 
         for (SOCVersionedItem itm : items.values())
         {
             int itmMin = itm.getMinVersion(itemsChk);  // includes any item-value checking for minVers
+            if (itmMin == -1)
+                continue;
+
+            if ((itm instanceof SOCGameOption)
+                && ((SOCGameOption) itm).hasFlag(SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED))
+            {
+                final String parKey = SOCGameOption.getGroupParentKey(itm.key);
+                if (parKey != null)
+                {
+                    SOCVersionedItem par = items.get(parKey);
+                    if (! ((par instanceof SOCGameOption) && ((SOCGameOption) par).isSet()))
+                        continue;
+                }
+            }
+
             if (itmMin > minVers)
                 minVers = itmMin;
+            if (itemsMins != null)
+                itemsMins.put(itm.key, itmMin);
         }
 
         return minVers;

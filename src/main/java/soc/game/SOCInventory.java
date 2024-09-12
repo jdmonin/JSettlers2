@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007,2009,2012-2014,2018-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007,2009,2012-2014,2018-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -219,6 +219,7 @@ public class SOCInventory implements Cloneable, Serializable
      * @return  the number of new + of old cards/items of this type
      * @see #getAmount(int, int)
      * @see #getAmountByState(int, int)
+     * @see #getByState(int)
      * @since 2.0.00
      */
     public int getAmount(final int ctype)
@@ -301,6 +302,7 @@ public class SOCInventory implements Cloneable, Serializable
      * @return the total number of development cards and special items
      * @see #getNumUnplayed()
      * @see #getNumVPItems()
+     * @see #getByState(int)
      */
     public int getTotal()
     {
@@ -345,7 +347,7 @@ public class SOCInventory implements Cloneable, Serializable
      *
      * @param amt   the amount; 1, except for debugging or maybe joining a game in progress
      * @param age   either {@link #OLD} or {@link #NEW}
-     * @param ctype the type of development card, at least
+     * @param ctype the type of development card, like {@link SOCDevCardConstants#MONO}. Value must be at least
      *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
      * @see #addItem(SOCInventoryItem)
      * @see #add(SOCInventory)
@@ -380,7 +382,7 @@ public class SOCInventory implements Cloneable, Serializable
      * @see #addDevCard(int, int, int)
      * @see #addItem(SOCInventoryItem)
      * @see #SOCInventory(SOCInventory)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public void add(final SOCInventory inv)
         throws CloneNotSupportedException
@@ -530,6 +532,8 @@ public class SOCInventory implements Cloneable, Serializable
     /**
      * Some card types stay in your hand after being played.
      * Count only the unplayed ones (old or new); kept VP cards are skipped.
+     *<P>
+     * Before v2.0.00 this was handled by {@code SOCDevCardSet.getNumNewCards()}.
      *
      * @return the number of unplayed cards in this set
      * @see #getNumVPItems()

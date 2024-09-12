@@ -1,6 +1,6 @@
 /**
  * JSettlers network message system.
- * This file Copyright (C) 2007-2009,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007-2009,2016-2017,2020-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -32,6 +32,8 @@ import java.net.SocketException;
  *<P>
  * Before version 2.0.00 this class was an inner class {@code NetStringServerSocket} in {@link Server}.
  *
+ * @see StringServerSocket
+ * @see NetConnection
  * @since 2.0.00
  */
 /*package*/ class NetServerSocket implements SOCServerSocket

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2012,2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2012,2014,2016-2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -36,6 +36,9 @@ import java.util.StringTokenizer;
  * piece counts, current player, etc. This sequence begins with {@link SOCJoinGameAuth}
  * (sometimes preceded by optional {@link SOCScenarioInfo} or
  * {@link SOCLocalizedStrings}({@link SOCLocalizedStrings#TYPE_SCENARIO TYPE_SCENARIO})),
+ * includes {@link SOCSitDown} for basic info on all players,
+ * also includes misc data like {@link SOCSetLastAction} and
+ * {@link SOCGameStats}({@link SOCGameStats#TYPE_TIMING TYPE_TIMING}),
  * and ends with: {@link SOCGameMembers}, {@link SOCGameState}.
  * {@code SOCGameMembers} thus tells the client that the server is ready for its input.
  *<P>
@@ -184,7 +187,7 @@ public class SOCGameMembers extends SOCMessage
      * by calling {@link #stripAttribNamesToMemberList(String, String)}.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Member list for {@link #parseDataStr(String)}, or {@code null} if params are malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(String messageStrParams)
     {

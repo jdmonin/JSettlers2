@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2020,2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,7 +42,7 @@ public class SOCGameStatistics
 
     public interface Listener
     {
-        void statsUpdated(SOCGameStatistics stats);
+        void statsUpdated(SOCGameStatistics stats, GameStatisticsEvent event);
 
         //HACK: because the frame itself has no lifecycle and there is not an easy way to pass disposal
         //      in to its parent (building panel), pass dispose notification through this listener interface
@@ -54,7 +54,15 @@ public class SOCGameStatistics
         void unregister();
     }
 
+    /**
+     * Game statistics event types, for listener callback to more efficiently refresh.
+     * @author jdmonin
+     * @since 2.7.00
+     */
+    public static class GameStatisticsEvent {}
+
     public static class DiceRollEvent
+        extends GameStatisticsEvent
     {
         /** Dice result number (2-12) */
         public final int roll;
@@ -74,6 +82,31 @@ public class SOCGameStatistics
         {
             return "DiceRollEvent[" + roll + " " + player.getName() + ":" + player.getPlayerNumber() + "]";
         }
+    }
+
+    /**
+     * A resource has been received by the client player from dice roll, or player has been requested
+     * to pick free resources for their gold hex gains.
+     * Currently holds no details, because GameStatisticsFrame gets all trade stats from their {@link SOCPlayer} data.
+     * @author jdmonin
+     * @since 2.7.00
+     */
+    public static class ResourceRollReceivedEvent
+        extends GameStatisticsEvent
+    {
+        public static final ResourceRollReceivedEvent SINGLETON = new ResourceRollReceivedEvent();
+    }
+
+    /**
+     * A resource trade (with bank, port, or a player) has been made by the client player.
+     * Currently holds no details, because GameStatisticsFrame gets all trade stats from their {@link SOCPlayer} data.
+     * @author jdmonin
+     * @since 2.7.00
+     */
+    public static class ResourceTradeEvent
+        extends GameStatisticsEvent
+    {
+        public static final ResourceTradeEvent SINGLETON = new ResourceTradeEvent();
     }
 
     public SOCGameStatistics(final SOCGame game)
@@ -105,11 +138,11 @@ public class SOCGameStatistics
         };
     }
 
-    protected void fire()
+    protected void fire(final GameStatisticsEvent evt)
     {
         Listener ears = listener.get();
         if (ears != null)
-            ears.statsUpdated(this);
+            ears.statsUpdated(this, evt);
     }
 
     /** Update stats and call listeners for a Dice Roll event. */
@@ -118,13 +151,32 @@ public class SOCGameStatistics
         try
         {
             rolls.rollCounts[evt.player.getPlayerNumber()].incrementAndGet(evt.roll);
-            fire();
+            fire(evt);
         }
         catch (Exception e)
         {
             System.err.println("Failed updating dice roll " + evt);
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Call listeners when client player receives resources from dice roll or request to pick gold hex resources.
+     * (a {@link ResourceRollReceivedEvent}).
+     * @since 2.7.00
+     */
+    public void resourceRollReceived()
+    {
+        fire(ResourceRollReceivedEvent.SINGLETON);
+    }
+
+    /**
+     * Call listeners when client player trades resources (a {@link ResourceTradeEvent}).
+     * @since 2.7.00
+     */
+    public void resourceTraded()
+    {
+        fire(ResourceTradeEvent.SINGLETON);
     }
 
     /**

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,11 +25,14 @@ import java.lang.reflect.Modifier;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import soc.game.GameAction;
 import soc.game.SOCBoard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
@@ -59,7 +62,7 @@ import static org.junit.Assert.*;
  * <LI> {@link SOCMessage#stripAttribsToList(String)}
  *</UL>
  * @see TestTemplatesAbstracts
- * @since 2.4.50
+ * @since 2.5.00
  */
 public class TestToCmdToStringParse
 {
@@ -84,6 +87,7 @@ public class TestToCmdToStringParse
             boolean parseOnly = false;  // if true, not round-trip
             boolean skipParseToString = false;  // if true, not round-trip
             Set<String> ignoreObjFields = null;
+
             // look for test options/params
             for (int i = 3; i < compareCase.length; ++i)
             {
@@ -186,18 +190,42 @@ public class TestToCmdToStringParse
         assertTrue("mExpected instanceof " + className, msgClass.isInstance(mExpected));
         assertTrue("mActual instanceof " + className, msgClass.isInstance(mActual));
 
+        ArrayList<Field> fields = new ArrayList<>();
         for (Field f : msgClass.getDeclaredFields())
         {
             if (Modifier.isStatic(f.getModifiers()))
                 continue;
-
-            final String fName = f.getName();
-            if ((ignoreObjFields != null) && ignoreObjFields.contains(fName))
+            if ((ignoreObjFields != null) && ignoreObjFields.contains(f.getName()))
                 continue;
+
+            fields.add(f);
+        }
+
+        // If message's superclass extends SOCMessage,
+        // like SOCMessageTemplateJoinGame -> SOCJoinGame,
+        // gather that super's fields too
+        for (Class<?> msgSuper = msgClass.getSuperclass();
+             ! msgSuper.equals(SOCMessage.class);
+             msgSuper = msgSuper.getSuperclass())
+        {
+            for (Field f : msgSuper.getDeclaredFields())
+            {
+                if (Modifier.isStatic(f.getModifiers()))
+                    continue;
+                if ((ignoreObjFields != null) && ignoreObjFields.contains(f.getName()))
+                    continue;
+
+                fields.add(f);
+            }
+        }
+
+        // actually compare the fields
+        for (Field f : fields)
+        {
+            final String fName = f.getName();
 
             try
             {
-
                 f.setAccessible(true);
                 Object valueExpected = f.get(mExpected),
                     valueActual = f.get(mActual);
@@ -220,6 +248,12 @@ public class TestToCmdToStringParse
                             res.append
                                 (" field " + fName + ": expected " + str(valueExpected) + ", got " + str(valueActual));
                     }
+                    else if ((valueExpected instanceof long[]) && (valueActual instanceof long[]))
+                    {
+                        if (! Arrays.equals((long[]) valueExpected, (long[]) valueActual))
+                            res.append
+                                (" field " + fName + ": expected " + str(valueExpected) + ", got " + str(valueActual));
+                    }
                     else if ((valueExpected instanceof boolean[]) && (valueActual instanceof boolean[]))
                     {
                         if (! Arrays.equals((boolean[]) valueExpected, (boolean[]) valueActual))
@@ -231,6 +265,45 @@ public class TestToCmdToStringParse
                         if (! Arrays.equals((Object[]) valueExpected, (Object[]) valueActual))
                             res.append
                                 (" field " + fName + ": expected " + str(valueExpected) + ", got " + str(valueActual));
+                    }
+                    else if ((valueExpected instanceof Map<?, ?>) && (valueActual instanceof Map<?, ?>))
+                    {
+                        // if values are arrays, Map.equals won't do a deep compare, just thinks they're different
+                        final Set<?> ksE = ((Map<?, ?>) valueExpected).keySet(),
+                            ksA = ((Map<?, ?>) valueActual).keySet();
+                        if (! ksE.equals(ksA))
+                        {
+                            res.append
+                                (" field " + fName + ": expected keys " + str(valueExpected) + ", got " + str(valueActual));
+                        } else {
+                            boolean allOK = true;
+
+                            for (final Object k : ksE)
+                            {
+                                final Object vE = ((Map<?, ?>) valueExpected).get(k),
+                                    vA = ((Map<?, ?>) valueActual).get(k);
+                                if (! (vE.getClass().isAssignableFrom(vA.getClass())))
+                                {
+                                    allOK = false;
+                                } else if (vE instanceof int[]) {
+                                    if (! Arrays.equals((int[]) vE, (int[]) vA))
+                                        allOK = false;
+                                } else if (vE instanceof Object[]) {
+                                    if (! Arrays.deepEquals((Object[]) vE, (Object[]) vA))
+                                        allOK = false;
+                                } else {
+                                    if (! vE.equals(vA))
+                                        allOK = false;
+                                }
+
+                                if (! allOK)
+                                    break;
+                            }
+
+                            if (! allOK)
+                                res.append
+                                    (" field " + fName + ": expected values " + str(valueExpected) + ", got " + str(valueActual));
+                        }
                     }
                     else if (! valueExpected.equals(valueActual))
                     {
@@ -251,7 +324,8 @@ public class TestToCmdToStringParse
      * <LI> int[][] -> [[1, 2, 3], [3079, -3083, 3335]]
      * <LI> boolean[] -> [false, true, true, true]
      * <LI> Object[] -> [each elem.toString]
-     * <LI> null -> null
+     * <LI> Map -> {k=v, k=v, ...}
+     * <LI> null -> null as string
      *<UL>
      * @param val value to render, or {@code null}
      * @return value as string
@@ -272,6 +346,23 @@ public class TestToCmdToStringParse
             ret = Arrays.toString((boolean[]) val);
         else if (val instanceof Object[])
             ret = Arrays.toString((Object[]) val);
+        else if (val instanceof Map<?, ?>)
+        {
+            StringBuilder res = new StringBuilder();
+            res.append('{');
+            boolean first = true;
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) val).entrySet())
+            {
+                if (first)
+                    first = false;
+                else
+                    res.append(", ");
+
+                res.append(entry.getKey()).append('=').append(str(entry.getValue()));
+            }
+            res.append('}');
+            ret = res.toString();
+        }
         else
             ret = val.toString();
 
@@ -349,7 +440,11 @@ public class TestToCmdToStringParse
     private static final Object[][] TOCMD_TOSTRING_COMPARES =
     {
         {new SOCAcceptOffer("ga", 2, 3), "1039|ga,2,3", "SOCAcceptOffer:game=ga|accepting=2|offering=3"},
-        {new SOCAcceptOffer("ga", -2, 3), "1039|ga,-2,3", "SOCAcceptOffer:game=ga|accepting=-2|offering=3"},
+        {
+            new SOCAcceptOffer("ga", 2, 3, new SOCResourceSet(0, 0, 2, 0, 0, 0), new SOCResourceSet(1, 0, 0, 0, 4, 0)),
+            "1039|ga,2,3,0,0,2,0,0,1,0,0,0,4",
+            "SOCAcceptOffer:game=ga|accepting=2|offering=3|toAccepting=clay=0|ore=0|sheep=2|wheat=0|wood=0|unknown=0|toOffering=clay=1|ore=0|sheep=0|wheat=0|wood=4|unknown=0"
+        },
         // TODO? SOCAdminPing
         {new SOCAdminReset(), "1065", "SOCAdminReset:"},
         // TODO SOCAuthRequest
@@ -357,12 +452,6 @@ public class TestToCmdToStringParse
             new SOCBankTrade("ga", new SOCResourceSet(0, 0, 2, 0, 0, 0), new SOCResourceSet(1, 0, 0, 0, 0, 0), 3),
             "1040|ga,0,0,2,0,0,1,0,0,0,0,3",
             "SOCBankTrade:game=ga|give=clay=0|ore=0|sheep=2|wheat=0|wood=0|unknown=0|get=clay=1|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=3"
-        },
-        {
-            new SOCBankTrade("ga", new SOCResourceSet(), SOCResourceSet.EMPTY_SET, SOCBankTrade.PN_REPLY_NOT_YOUR_TURN),
-                // tests server's disallow reply using both of the likely SOCResourceSet param forms
-            "1040|ga,0,0,0,0,0,0,0,0,0,0,-3",
-            "SOCBankTrade:game=ga|give=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=0|pn=-3"
         },
         {new SOCBCastTextMsg("msg text"), "1062|msg text", "SOCBCastTextMsg:text=msg text"},
         {
@@ -374,7 +463,33 @@ public class TestToCmdToStringParse
             "1014|ga,50,6,65,6,6,5,3,4,10,8,2,3,1,0,6,6,1,1,4,3,4,11,8,2,5,5,2,6,6,5,3,4,100,19,6,101,6,-1,-1,-1,-1,-1,1,4,0,-1,-1,5,2,6,-1,-1,-1,7,3,8,7,3,-1,-1,6,4,1,5,-1,-1,9,8,2,-1,-1,-1,-1,-1,155",
             "SOCBoardLayout:game=ga|hexLayout={ 50 6 65 6 6 5 3 4 10 8 2 3 1 0 6 6 1 1 4 3 4 11 8 2 5 5 2 6 6 5 3 4 100 19 6 101 6 }|numberLayout={ -1 -1 -1 -1 -1 1 4 0 -1 -1 5 2 6 -1 -1 -1 7 3 8 7 3 -1 -1 6 4 1 5 -1 -1 9 8 2 -1 -1 -1 -1 -1 }|robberHex=0x9b"
         },
-        // TODO SOCBoardLayout2
+        // empty board layout before game starts (server v2.5.00 records in game log, sends to v1.x clients)
+        {
+            new SOCBoardLayout
+                ("ga",
+                 new int[]{6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6},
+                 new int[]{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+                 -1, true),
+            "1014|ga,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1",
+            "SOCBoardLayout:game=ga|hexLayout={ 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 }|numberLayout={ -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 }|robberHex=0xffffffff"
+        },
+        {
+            new SOCBoardLayout2
+                ("ga", 3,
+                 /* LH */ new int[]{1795, 4, 8, 3843, 4, 6, 2308, 2, 4, 1284, 1, 10, 773, 4, 5, 2821, 5, 11, 1797, 3, 3,
+                    3845, 3, 3, 1286, 4, 9, 2310, 5, 6, 4358, 2, 5, 775, 5, 2, 2823, 1, 12, 1799, 3, 11, 1288, 3, 4,
+                    2312, 2, 5, 4360, 2, 11, 777, 4, 6, 2825, 3, 9, 1801, 6, 0, 1290, 2, 3, 2314, 5, 10, 1803, 1, 8,
+                    3853, 1, 9, 1294, 5, 9, 3342, 7, 4, 783, 6, 0, 1807, 7, 4, 3855, 5, 5, 1296, 4, 10, 3344, 3, 8,
+                    1809, 2, 5, 3346, 1, 10},
+                 /* PL */ new int[]{2, 0, 5, 1, 0, 4, 0, 3, 0, 4, 5, 0, 3, 516, 519, 1034, 1804, 2570, 3079, 3076, 2307,
+                    1283, 2063, 3088, 4109, 4103, 3, 4, 4, 5, 6, 6, 1, 2, 2, 6, 4, 6, 3},
+                 1801, 0, null, null,
+                 Collections.singletonMap("VS", new int[]{-2, 1, 3, 0})),
+            "1084|ga,3,RH,1801,LH,[99,1795,4,8,3843,4,6,2308,2,4,1284,1,10,773,4,5,2821,5,11,1797,3,3,3845,3,3,1286,4,9,2310,5,6,4358,2,5,775,5,2,2823,1,12,1799,3,11,1288,3,4,2312,2,5,4360,2,11,777,4,6,2825,3,9,1801,6,0,1290,2,3,2314,5,10,1803,1,8,3853,1,9,1294,5,9,3342,7,4,783,6,0,1807,7,4,3855,5,5,1296,4,10,3344,3,8,1809,2,5,3346,1,10,PL,[39,2,0,5,1,0,4,0,3,0,4,5,0,3,516,519,1034,1804,2570,3079,3076,2307,1283,2063,3088,4109,4103,3,4,4,5,6,6,1,2,2,6,4,6,3,VS,[4,-2,1,3,0",
+            "SOCBoardLayout2:game=ga|bef=3|RH=1801|LH={ 703 4 8 f03 4 6 904 2 4 504 1 a 305 4 5 b05 5 b 705 3 3 f05 3 3 506 4 9 906 5 6 1106 2 5 307 5 2 b07 1 c 707 3 b 508 3 4 908 2 5 1108 2 b 309 4 6 b09 3 9 709 6 0 50a 2 3 90a 5 a 70b 1 8 f0d 1 9 50e 5 9 d0e 7 4 30f 6 0 70f 7 4 f0f 5 5 510 4 a d10 3 8 711 2 5 d12 1 a }|PL={ 2 0 5 1 0 4 0 3 0 4 5 0 3 204 207 40a 70c a0a c07 c04 903 503 80f c10 100d 1007 3 4 4 5 6 6 1 2 2 6 4 6 3 }|VS={ -2 1 3 0 }"
+        },
+        // TODO SOCBoardLayout2 other fields? incl toString w/ HL, NL base 10, others base 16
+        {new SOCBotGameDataCheck("ga", 42, new int[]{3, 4, 7, 9}), "1103|ga|42|3|4|7|9", "SOCBotGameDataCheck:game=ga|p=42|p=3|p=4|p=7|p=9"},
         {
             new SOCBotJoinGameRequest("ga", 3, (SOCGameOptionSet) null),
             "1023|ga,3,-",
@@ -406,6 +521,7 @@ public class TestToCmdToStringParse
             // v1.x was SOCBuyCardRequest:
         {new SOCBuyDevCardRequest("ga"), "1045|ga", "SOCBuyCardRequest:game=ga", OPT_PARSE_ONLY},
         {new SOCCancelBuildRequest("ga", SOCPlayingPiece.CITY), "1044|ga,2", "SOCCancelBuildRequest:game=ga|pieceType=2"},
+        {new SOCCancelBuildRequest("ga", SOCCancelBuildRequest.CARD), "1044|ga,-2", "SOCCancelBuildRequest:game=ga|pieceType=-2"},
         {new SOCChangeFace("ga", 3, 7), "1058|ga,3,7", "SOCChangeFace:game=ga|playerNumber=3|faceId=7"},
         {new SOCChannelMembers("cha", Arrays.asList("player0", "droid 1", "robot 2", "debug")), "1002|cha,player0,droid 1,robot 2,debug", "SOCChannelMembers:channel=cha|members=[player0, droid 1, robot 2, debug]"},
         {new SOCChannelMembers("cha", Arrays.asList("m")), "1002|cha,m", "SOCChannelMembers:channel=cha|members=[m]"},  // shortest list
@@ -440,6 +556,13 @@ public class TestToCmdToStringParse
         // TODO? SOCCreateAccount
         {new SOCDebugFreePlace("ga", 3, true), "1087|ga,3,0,1", "SOCDebugFreePlace:game=ga|playerNumber=3|pieceType=0|coord=0x1"},
         {new SOCDebugFreePlace("ga", 3, SOCPlayingPiece.SETTLEMENT, 0x405), "1087|ga,3,1,1029", "SOCDebugFreePlace:game=ga|playerNumber=3|pieceType=1|coord=0x405"},
+        {new SOCDeclinePlayerRequest("ga1", 0, 0, 0, 0, null), "1104|ga1,0,0", "SOCDeclinePlayerRequest:game=ga1|state=0|reason=0"},
+        {new SOCDeclinePlayerRequest("ga2", 0, 0, 0, 0, "reason,with,commas"), "1104|ga2,0,0,0,0,reason,with,commas", "SOCDeclinePlayerRequest:game=ga2|state=0|reason=0|detail1=0|detail2=0|text=reason,with,commas"},
+        {new SOCDeclinePlayerRequest("ga3", 20, 1, 0, 0, null), "1104|ga3,20,1", "SOCDeclinePlayerRequest:game=ga3|state=20|reason=1"},
+        {new SOCDeclinePlayerRequest("ga4", 100, 1, 0, 0, "reason"), "1104|ga4,100,1,0,0,reason", "SOCDeclinePlayerRequest:game=ga4|state=100|reason=1|detail1=0|detail2=0|text=reason"},
+        {new SOCDeclinePlayerRequest("ga5", 0, -1, 7, 0, null), "1104|ga5,0,-1,7,0", "SOCDeclinePlayerRequest:game=ga5|state=0|reason=-1|detail1=7|detail2=0"},
+        {new SOCDeclinePlayerRequest("ga6", 50, 4, 7, -7, null), "1104|ga6,50,4,7,-7", "SOCDeclinePlayerRequest:game=ga6|state=50|reason=4|detail1=7|detail2=-7"},
+        {new SOCDeclinePlayerRequest("ga7", 50, 4, 7, -7, "reason,with,commas"), "1104|ga7,50,4,7,-7,reason,with,commas", "SOCDeclinePlayerRequest:game=ga7|state=50|reason=4|detail1=7|detail2=-7|text=reason,with,commas"},
         {new SOCDeleteChannel("ch name"), "1007|ch name", "SOCDeleteChannel:channel=ch name"},
         {new SOCDeleteGame("ga"), "1015|ga", "SOCDeleteGame:game=ga"},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_OLD, 6), "1046|ga,3,3,6", "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_OLD|cardType=6"},
@@ -450,10 +573,23 @@ public class TestToCmdToStringParse
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.DRAW, 2), "1046|ga,3,0,2", "SOCDevCard:game=ga|playerNum=3|actionType=0|cardType=2", OPT_PARSE_ONLY},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT), null, "SOCDevCard:game=ga|playerNum=3|actionType=0|cardType=0", OPT_PARSE_ONLY},
         {
-            // v2.x end-of-game form
+            // v2.x end-of-game form, multiple cards
             new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_OLD, Arrays.asList(new Integer[]{5, 4})),
             "1046|ga,3,3,5,4",
             "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_OLD|cardTypes=[5, 4]"
+        },
+        {
+            // v2.x end-of-game form, 1 card, server v2.5 and newer constructor builds single-item format
+            new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_OLD, Arrays.asList(new Integer[]{7})),
+            "1046|ga,3,3,7",
+            "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_OLD|cardType=7"
+        },
+        {
+            // compat: v2.x end-of-game form, 1 card but server v2.0 - 2.4 constructor still built as array
+            new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_OLD, Arrays.asList(new Integer[]{7})),
+            "1046|ga,3,3,7",
+            "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_OLD|cardTypes=[7]",
+            OPT_PARSE_ONLY
         },
         {new SOCDevCardCount("ga", 22), "1047|ga,22", "SOCDevCardCount:game=ga|numDevCards=22"},
         {new SOCDiceResult("ga", 9), "1028|ga,9", "SOCDiceResult:game=ga|param=9"},
@@ -465,14 +601,24 @@ public class TestToCmdToStringParse
             new HashSet<String>(Arrays.asList("playerNum", "playerRsrc", "playerResTotal"))
         },
         {
-            new SOCDiscard("ga", 3, new SOCResourceSet(2, 1, 3, 1, 2, 0)),
+            new SOCDiscard("ga", -1, new SOCResourceSet(2, 1, 3, 1, 2, 0)),
             "1033|ga,2,1,3,1,2,0",
             "SOCDiscard:game=ga|resources=clay=2|ore=1|sheep=3|wheat=1|wood=2|unknown=0"
+        },
+        {
+            new SOCDiscard("ga", 3, new SOCResourceSet(2, 1, 3, 1, 2, 0)),
+            "1033|ga,p3,2,1,3,1,2,0",
+            "SOCDiscard:game=ga|playerNum=3|resources=clay=2|ore=1|sheep=3|wheat=1|wood=2|unknown=0"
         },
         {
             new SOCDiscard("ga", 2, 1, 3, 1, 2, 0),
             "1033|ga,2,1,3,1,2,0",
             "SOCDiscard:game=ga|resources=clay=2|ore=1|sheep=3|wheat=1|wood=2|unknown=0"
+        },
+        {
+            new SOCDiscard("ga", 3, 2, 1, 3, 1, 2, 0),
+            "1033|ga,p3,2,1,3,1,2,0",
+            "SOCDiscard:game=ga|playerNum=3|resources=clay=2|ore=1|sheep=3|wheat=1|wood=2|unknown=0"
         },
         {new SOCDiscardRequest("ga", 4), "1029|ga,4", "SOCDiscardRequest:game=ga|numDiscards=4"},
         {new SOCEndTurn("ga"), "1032|ga", "SOCEndTurn:game=ga"},
@@ -485,6 +631,14 @@ public class TestToCmdToStringParse
             "1096|ga|2|25|1|2|3|1|6|-1|5|-1",
             "SOCGameElements:game=ga|e2=25,e1=2,e3=1,e6=-1,e5=-1"
         },
+        {
+            // having multiple of same GEType, as sent during loadgame
+            new SOCGameElements
+                ("ga", new GEType[]{GEType.SHIP_PLACED_THIS_TURN_EDGE, GEType.SHIP_PLACED_THIS_TURN_EDGE, GEType.SHIP_PLACED_THIS_TURN_EDGE, GEType.SHIP_PLACED_THIS_TURN_EDGE},
+                 new int[]{0x701, 0x601, 0x602, 0x603}),
+            "1096|ga|8|1793|8|1537|8|1538|8|1539",
+            "SOCGameElements:game=ga|e8=1793,e8=1537,e8=1538,e8=1539"
+        },
         {new SOCGameMembers("ga", Arrays.asList("player0", "droid 1", "robot 2", "debug")), "1017|ga,player0,droid 1,robot 2,debug", "SOCGameMembers:game=ga|members=[player0, droid 1, robot 2, debug]"},
         {new SOCGameMembers("ga", Arrays.asList("p")), "1017|ga,p", "SOCGameMembers:game=ga|members=[p]"},  // shortest list
             // v1.x: slightly different list format, same message type name
@@ -496,17 +650,27 @@ public class TestToCmdToStringParse
         {new SOCGameOptionGetInfos(Arrays.asList("SC", "PLP"), false, false), "1081|SC,PLP", "SOCGameOptionGetInfos:options=SC,PLP"},
         {new SOCGameOptionGetInfos(Arrays.asList("SC", "PLP"), true, false), "1081|SC,PLP,?I18N", "SOCGameOptionGetInfos:options=SC,PLP,?I18N"},
         {
-            new SOCGameOptionGetInfos(Arrays.asList(new SOCGameOption("N7"), new SOCGameOption("PL")), false),
+            new SOCGameOptionGetInfos(Arrays.asList(new SOCGameOption("N7", null), new SOCGameOption("PL", null)), false),
             "1081|N7,PL",
             "SOCGameOptionGetInfos:options=N7,PL"
         },
         {
-            new SOCGameOptionGetInfos(Arrays.asList(new SOCGameOption("N7"), new SOCGameOption("PL")), true),
+            new SOCGameOptionGetInfos(Arrays.asList(new SOCGameOption("N7", null), new SOCGameOption("PL", null)), true),
             "1081|N7,PL,?I18N",
             "SOCGameOptionGetInfos:options=N7,PL,?I18N"
         },
         // For SOCGameOptionGetInfos forms with OPTKEY_GET_ANY_CHANGES, see testMiscMessageForms()
-        // TODO SOCGameOptionInfo
+        {
+            new SOCGameOptionInfo(new SOCGameOption("UB", null), -1, null),  // OTYPE_UNKNOWN
+            "1082|UB|0|2147483647|2147483647|f|0|0|0|f|0|f|UB",
+            "SOCGameOptionInfo:p=UB|p=0|p=2147483647|p=2147483647|p=f|p=0|p=0|p=0|p=f|p=0|p=f|p=UB"
+        },
+        {
+            new SOCGameOptionInfo(new SOCGameOption("UB", "Allow undo piece builds and moves"), -1, null),  // OTYPE_UNKNOWN
+            "1082|UB|0|2147483647|2147483647|f|0|0|0|f|0|f|Allow undo piece builds and moves",
+            "SOCGameOptionInfo:p=UB|p=0|p=2147483647|p=2147483647|p=f|p=0|p=0|p=0|p=f|p=0|p=f|p=Allow undo piece builds and moves"
+        },
+        // TODO SOCGameOptionInfo for other OTYPEs
         // TODO? SOCGames
         {
             new SOCGameServerText("ga", "You stole a wheat from robot 2."),
@@ -515,6 +679,7 @@ public class TestToCmdToStringParse
         },
         {new SOCGameState("ga", 20), "1025|ga,20", "SOCGameState:game=ga|state=20"},
         {new SOCGameStats("ga", new int[]{10,  4, 3, 2}, new boolean[]{false, true, true, true}), "1061|ga,10,4,3,2,false,true,true,true", "SOCGameStats:game=ga|10|4|3|2|false|true|true|true"},
+        {new SOCGameStats("ga", SOCGameStats.TYPE_TIMING, new long[]{7, 8, 9}), "1061|ga,t2,7,8,9", "SOCGameStats:game=ga|stype=2|7|8|9"},
         // TODO? SOCGamesWithOptions
         {
             new SOCGameTextMsg("ga", SOCGameTextMsg.SERVERNAME, "testp3 built a road, text,may=contain,delimiters"),
@@ -554,7 +719,10 @@ public class TestToCmdToStringParse
         {new SOCJoinChannelAuth("m name", "ch name"), "1020|m name,ch name", "SOCJoinChannelAuth:nickname=m name|channel=ch name"},
             // v1.x was SOCJoinAuth:
         {new SOCJoinChannelAuth("m name", "ch name"), "1020|m name,ch name", "SOCJoinAuth:nickname=m name|channel=ch name", OPT_PARSE_ONLY},
-        {new SOCJoinGame("testp2", "", SOCMessage.EMPTYSTR, "ga"), "1013|testp2,\t,\t,ga", "SOCJoinGame:nickname=testp2|password empty|host=\t|game=ga"},
+        {new SOCJoinGame("testp1", "", SOCMessage.EMPTYSTR, "ga"), "1013|testp1,\t,\t,ga", "SOCJoinGame:nickname=testp1|password empty|host=\t|game=ga"},
+        {new SOCJoinGame("testp2", SOCMessage.EMPTYSTR, SOCMessage.EMPTYSTR, "ga"), "1013|testp2,\t,\t,ga", "SOCJoinGame:nickname=testp2|password empty|host=\t|game=ga"},
+        {new SOCJoinGame("testp3", "", "-", "ga"), "1013|testp3,\t,-,ga", "SOCJoinGame:nickname=testp3|password empty|host=-|game=ga"},
+        {new SOCJoinGame("testp4", "***", SOCMessage.EMPTYSTR, "ga"), "1013|testp4,***,\t,ga", "SOCJoinGame:nickname=testp4|password=***|host=\t|game=ga"},
         {new SOCJoinGameAuth("ga"), "1021|ga", "SOCJoinGameAuth:game=ga"},
         {new SOCJoinGameAuth("ga", 20, 21, new int[]{-2, 1, 3, 0}), "1021|ga,20,21,S,-2,1,3,0", "SOCJoinGameAuth:game=ga|bh=20|bw=21|vs=[-2, 1, 3, 0]"},
         {new SOCLargestArmy("ga", 2), "1067|ga,2", "SOCLargestArmy:game=ga|playerNumber=2"},
@@ -596,7 +764,9 @@ public class TestToCmdToStringParse
                 (SOCLocalizedStrings.TYPE_SCENARIO, 0, Arrays.asList("SC_FOG", "name text", null)),
             "1100|S|0|SC_FOG|name text|\t",
             "SOCLocalizedStrings:type=S|flags=0x0|strs=SC_FOG|name text|(null)",
-            OPT_SKIP_PARSE
+            OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS, new HashSet<String>(Arrays.asList("pa"))
+            // TODO SOCLocalizedStrings +stripAttribNames: (null) or "" -> null, etc
         },
         {
             new SOCLocalizedStrings
@@ -635,27 +805,32 @@ public class TestToCmdToStringParse
                  new SOCResourceSet(0, 1, 0, 1, 0, 0),
                  new SOCResourceSet(0, 0, 1, 0, 0, 0))),
             "1041|ga,3,false,false,true,false,0,1,0,1,0,0,0,1,0,0",
-            "SOCMakeOffer:game=ga|offer=game=ga|from=3|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"
+            "SOCMakeOffer:game=ga|from=3|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0"
         },
         {
+            // parse from old "offer=" format, which is in some STACSettlers soclog files:
             new SOCMakeOffer("ga", new SOCTradeOffer
-                ("ga", -2, new boolean[]{false,  false, false, false},
-                 SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET)),
-            "1041|ga,-2,false,false,false,false,0,0,0,0,0,0,0,0,0,0",
-            "SOCMakeOffer:game=ga|offer=game=ga|from=-2|to=false,false,false,false|give=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=0|get=clay=0|ore=0|sheep=0|wheat=0|wood=0|unknown=0"
+                ("ga", 3, new boolean[]{false,  false,  true, false},
+                 new SOCResourceSet(0, 1, 0, 1, 0, 0),
+                 new SOCResourceSet(0, 0, 1, 0, 0, 0))),
+            "1041|ga,3,false,false,true,false,0,1,0,1,0,0,0,1,0,0",
+            "SOCMakeOffer:game=ga|offer=game=ga|from=3|to=false,false,true,false|give=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0|get=clay=0|ore=0|sheep=1|wheat=0|wood=0|unknown=0",
+            OPT_PARSE_ONLY
         },
         {
-            new SOCMovePiece("ga", 1, SOCPlayingPiece.SHIP, 3078, 3846),
+            new SOCMovePiece("ga", 1, SOCPlayingPiece.SHIP, 0xc06, 0xf06),
             "1093|ga,1,3,3078,3846",
-            "SOCMovePiece:game=ga|pn=1|pieceType=3|fromCoord=3078|toCoord=3846"
+            "SOCMovePiece:game=ga|pn=1|pieceType=3|fromCoord=c06|toCoord=f06"
         },
         {new SOCMoveRobber("ga", 3, 0x305), "1034|ga,3,773", "SOCMoveRobber:game=ga|playerNumber=3|coord=305"},
         {new SOCNewChannel("ch name"), "1001|ch name", "SOCNewChannel:channel=ch name"},
         {new SOCNewGame("ga"), "1016|ga", "SOCNewGame:game=ga"},
         {
-            new SOCNewGameWithOptions("ga", SOCGameOption.parseOptionsToSet("BC=t4,RD=f", knownOpts), -1, 0),
-            "1079|ga,-1,BC=t4,RD=f",
-            "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f"
+            new SOCNewGameWithOptions("ga", SOCGameOption.parseOptionsToSet("BC=t4,RD=f,SBL=t", knownOpts), -1, 0),
+            "1079|ga,-1,BC=t4,RD=f,SBL=t",
+            "SOCNewGameWithOptions:game=ga|param1=-1|param2=BC=t4,RD=f,SBL=t",
+            OPT_IGNORE_OBJ_FIELDS, new HashSet<String>(Arrays.asList("p2"))
+            // TODO +stripAttribNames
         },
         {
             new SOCNewGameWithOptionsRequest("uname", "", "-", "newgame", "N7=t7,PL=4"),
@@ -666,13 +841,19 @@ public class TestToCmdToStringParse
             // TODO +stripAttribNames
         },
         {new SOCPickResources("ga", new SOCResourceSet(0, 1, 0, 0, 1, 0)), "1052|ga,0,1,0,0,1", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0"},
+        {new SOCPickResources("ga", new SOCResourceSet(0, 1, 0, 0, 1, 0), 0, SOCPickResources.REASON_DISCOVERY),
+            "1052|ga,0,1,0,0,1,0,2", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0|pn=0|reason=2"},
+        {new SOCPickResources("ga", new SOCResourceSet(0, 1, 0, 0, 1, 0), 5, 0),
+            "1052|ga,0,1,0,0,1,5,0", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0|pn=5|reason=0"},
+        {new SOCPickResources("ga", new SOCResourceSet(0, 1, 0, 0, 1, 0), 5, SOCPickResources.REASON_GOLD_HEX),
+            "1052|ga,0,1,0,0,1,5,3", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0|pn=5|reason=3"},
         {new SOCPickResources("ga", 0, 1, 0, 0, 1), "1052|ga,0,1,0,0,1", "SOCPickResources:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0"},
             // v1.x was SOCDiscoveryPick:
         {new SOCPickResources("ga", 0, 1, 0, 0, 1), "1052|ga,0,1,0,0,1", "SOCDiscoveryPick:game=ga|resources=clay=0|ore=1|sheep=0|wheat=0|wood=1|unknown=0", OPT_PARSE_ONLY},
         {new SOCPickResourceType("ga", SOCResourceConstants.SHEEP), "1053|ga,3", "SOCPickResourceType:game=ga|resType=3"},
             // v1.x was SOCMonopolyPick:
         {new SOCPickResourceType("ga", SOCResourceConstants.WHEAT), "1053|ga,4", "SOCMonopolyPick:game=ga|resource=4", OPT_PARSE_ONLY},
-        {new SOCPieceValue("ga", SOCPlayingPiece.VILLAGE, 0xa06, 4, 0), "1095|ga,5,2566,4,0", "SOCPieceValue:game=ga|pieceType=5|coord=2566|pv1=4|pv2=0"},
+        {new SOCPieceValue("ga", SOCPlayingPiece.VILLAGE, 0xa06, 4, 0), "1095|ga,5,2566,4,0", "SOCPieceValue:game=ga|pieceType=5|coord=a06|pv1=4|pv2=0"},
         {new SOCPlayDevCardRequest("ga", SOCDevCardConstants.KNIGHT), "1049|ga,9", "SOCPlayDevCardRequest:game=ga|devCard=9"},
         {new SOCPlayerElement("ga", 1, SOCPlayerElement.SET, 105, 1), "1024|ga,1,100,105,1", "SOCPlayerElement:game=ga|playerNum=1|actionType=SET|elementType=105|amount=1"},
         {new SOCPlayerElement("ga", 2, SOCPlayerElement.LOSE, 4, 1, true), "1024|ga,2,102,4,1,Y", "SOCPlayerElement:game=ga|playerNum=2|actionType=LOSE|elementType=4|amount=1|news=Y"},
@@ -751,40 +932,12 @@ public class TestToCmdToStringParse
             "SOCPotentialSettlements:game=ga|playerNum=3|list=(empty)|pan=0|la1=a0f |la2=60a |lse={{c07-c0b,e04-e0a},{},{d07-d0b,a03},{}}"
         },
         {new SOCPutPiece("ga", 3, 0, 1034), "1009|ga,3,0,1034", "SOCPutPiece:game=ga|playerNumber=3|pieceType=0|coord=40a"},
+        {new SOCPutPiece("ga", -1, 5, 0x80c), "1009|ga,-1,5,2060", "SOCPutPiece:game=ga|playerNumber=-1|pieceType=5|coord=80c"},
         {new SOCRejectConnection("reason msg"), "1059|reason msg", "SOCRejectConnection:reason msg"},
         {new SOCRejectOffer("ga", 2), "1037|ga,2", "SOCRejectOffer:game=ga|playerNumber=2"},
+        {new SOCRejectOffer("ga", 2, SOCRejectOffer.REASON_CANNOT_MAKE_OFFER), "1037|ga,2,3", "SOCRejectOffer:game=ga|playerNumber=2|reasonCode=3"},
+        {new SOCRejectOffer("ga", 2, -5), "1037|ga,2,-5", "SOCRejectOffer:game=ga|playerNumber=2|reasonCode=-5"},
         {new SOCRemovePiece("ga", 2, SOCPlayingPiece.SHIP, 0xe04), "1094|ga,2,3,3588", "SOCRemovePiece:game=ga|pn=2|pieceType=3|coord=3588"},
-        {
-            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.UNKNOWN, true, 1, 0),
-            "1102|ga,2,3,R,6,T,1",
-            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=6|isGainLose=true|amount=1"
-        },
-        {
-            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.WHEAT, true, 1, 0),
-            "1102|ga,2,3,R,4,T,1",
-            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=4|isGainLose=true|amount=1"
-        },
-        {
-            new SOCReportRobbery("ga", -1, -1, SOCResourceConstants.WHEAT, true, 1, 0),
-                // pn -1 is only for future scenario/expansion use
-            "1102|ga,-1,-1,R,4,T,1",
-            "SOCReportRobbery:game=ga|perp=-1|victim=-1|resType=4|isGainLose=true|amount=1"
-        },
-        {
-            new SOCReportRobbery("ga", 2, 3, SOCResourceConstants.WHEAT, false, 5, 7),
-            "1102|ga,2,3,R,4,F,5,7",
-            "SOCReportRobbery:game=ga|perp=2|victim=3|resType=4|isGainLose=false|amount=5|victimAmount=7"
-        },
-        {
-            new SOCReportRobbery("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, true, 1, 0),
-            "1102|ga,3,2,E,106,T,1",
-            "SOCReportRobbery:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|isGainLose=true|amount=1"
-        },
-        {
-            new SOCReportRobbery("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, false, 5, 7),
-            "1102|ga,3,2,E,106,F,5,7",
-            "SOCReportRobbery:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|isGainLose=false|amount=5|victimAmount=7"
-        },
         {new SOCResetBoardAuth("ga", 3, 2), "1074|ga,3,2", "SOCResetBoardAuth:game=ga|rejoinPN=3|requestingPN=2"},
             // parse from old field names, which are in some STACSettlers soclog files:
         {new SOCResetBoardAuth("ga", 3, 2), "1074|ga,3,2", "SOCResetBoardAuth:game=ga|param1=3|param2=2", OPT_PARSE_ONLY},
@@ -794,21 +947,125 @@ public class TestToCmdToStringParse
             // parse from old field names, which are in some STACSettlers soclog files:
         {new SOCResetBoardVote("ga", 3, true), "1076|ga,3,1", "SOCResetBoardVote:game=ga|param1=3|param2=1", OPT_PARSE_ONLY},
         {new SOCResetBoardVoteRequest("ga", 3), "1075|ga,3", "SOCResetBoardVoteRequest:game=ga|param=3"},
-        {new SOCResourceCount("ga", 3, 11), "1063|ga,3,11", "SOCResourceCount:game=ga|playerNumber=3|count=11"},
-        {new SOCRevealFogHex("ga", 3340, SOCBoard.WOOD_HEX, 12), "10001|ga,3340,5,12", "SOCRevealFogHex:game=ga|hexCoord=3340|hexType=5|diceNum=12"},
+        {new SOCResourceCount("ga", 3, 11), "1063|ga,3,11", "SOCResourceCount:game=ga|playerNum=3|count=11"},
+            // parse from old pre-2.5.00 field names, which are in some STACSettlers soclog files:
+        {new SOCResourceCount("ga", 3, 11), "1063|ga,3,11", "SOCResourceCount:game=ga|playerNumber=3|count=11", OPT_PARSE_ONLY},
+        {new SOCRevealFogHex("ga", 0xd0c, SOCBoard.WOOD_HEX, 12), "10001|ga,3340,5,12", "SOCRevealFogHex:game=ga|hexCoord=d0c|hexType=5|diceNum=12"},
+        {
+            new SOCRobberyResult("ga", 2, 3, SOCResourceConstants.UNKNOWN, true, 1, 0, 0),
+            "1102|ga,2,3,R,6,1,T",
+            "SOCRobberyResult:game=ga|perp=2|victim=3|resType=6|amount=1|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", 2, 3, SOCResourceConstants.WHEAT, true, 1, 0, 0),
+            "1102|ga,2,3,R,4,1,T",
+            "SOCRobberyResult:game=ga|perp=2|victim=3|resType=4|amount=1|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", -1, -1, SOCResourceConstants.WHEAT, true, 1, 0, 0),
+                // pn -1 is only for future scenario/expansion use
+            "1102|ga,-1,-1,R,4,1,T",
+            "SOCRobberyResult:game=ga|perp=-1|victim=-1|resType=4|amount=1|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", -1, -1, SOCResourceConstants.WHEAT, true, 1, 0, 4),
+                // pn -1 is only for future scenario/expansion use
+            "1102|ga,-1,-1,R,4,1,T,0,4",
+            "SOCRobberyResult:game=ga|perp=-1|victim=-1|resType=4|amount=1|isGainLose=true|extraValue=4"
+        },
+        {
+            new SOCRobberyResult("ga", 2, 3, SOCResourceConstants.WHEAT, false, 5, 7, 0),
+            "1102|ga,2,3,R,4,5,F,7",
+            "SOCRobberyResult:game=ga|perp=2|victim=3|resType=4|amount=5|isGainLose=false|victimAmount=7"
+        },
+        {
+            new SOCRobberyResult("ga", 2, 3, SOCResourceConstants.WHEAT, false, 5, 7, 4),
+            "1102|ga,2,3,R,4,5,F,7,4",
+            "SOCRobberyResult:game=ga|perp=2|victim=3|resType=4|amount=5|isGainLose=false|victimAmount=7|extraValue=4"
+        },
+        {
+            // scenario SC_PIRI: to announce player won vs pirate attack, "rob" 0 unknown resources
+            new SOCRobberyResult("ga", -1, 3, SOCResourceConstants.UNKNOWN, true, 0, 0, 2),
+            "1102|ga,-1,3,R,6,0,T,0,2",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resType=6|amount=0|isGainLose=true|extraValue=2"
+        },
+        {
+            // scenario SC_PIRI: to announce pirate attack result is tied, "rob" 0 resources of type 0
+            new SOCRobberyResult("ga", -1, 3, 0, true, 0, 0, 2),
+            "1102|ga,-1,3,R,0,0,T,0,2",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resType=0|amount=0|isGainLose=true|extraValue=2"
+        },
+        {
+            new SOCRobberyResult("ga", -1, 3, new SOCResourceSet(7, 0, 0, 6, 0, 0), 0),  // clay != 0 to test that part of parsing
+            "1102|ga,-1,3,S,1,7,4,6,T",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resSet=clay=7|ore=0|sheep=0|wheat=6|wood=0|unknown=0|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", -1, 3, new SOCResourceSet(7, 0, 0, 6, 0, 0), 4),  // extraValue field
+            "1102|ga,-1,3,S,1,7,4,6,T,0,4",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resSet=clay=7|ore=0|sheep=0|wheat=6|wood=0|unknown=0|isGainLose=true|extraValue=4"
+        },
+        {
+            new SOCRobberyResult("ga", -1, 3, new SOCResourceSet(0, 8, 0, 6, 7, 0), 0),  // 3 resource types
+            "1102|ga,-1,3,S,2,8,4,6,5,7,T",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resSet=clay=0|ore=8|sheep=0|wheat=6|wood=7|unknown=0|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", -1, 3, new SOCResourceSet(0, 7, 0, 0, 0, 0), 0),  // 1 resource type
+            "1102|ga,-1,3,S,2,7,T",
+            "SOCRobberyResult:game=ga|perp=-1|victim=3|resSet=clay=0|ore=7|sheep=0|wheat=0|wood=0|unknown=0|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, true, 1, 0, 0),
+            "1102|ga,3,2,E,106,1,T",
+            "SOCRobberyResult:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=1|isGainLose=true"
+        },
+        {
+            new SOCRobberyResult("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, true, 1, 0, 4),
+            "1102|ga,3,2,E,106,1,T,0,4",
+            "SOCRobberyResult:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=1|isGainLose=true|extraValue=4"
+        },
+        {
+            new SOCRobberyResult("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, false, 5, 7, 0),
+            "1102|ga,3,2,E,106,5,F,7",
+            "SOCRobberyResult:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=5|isGainLose=false|victimAmount=7"
+        },
+        {
+            new SOCRobberyResult("ga", 3, 2, PEType.SCENARIO_CLOTH_COUNT, false, 5, 7, 4),
+            "1102|ga,3,2,E,106,5,F,7,4",
+            "SOCRobberyResult:game=ga|perp=3|victim=2|peType=SCENARIO_CLOTH_COUNT|amount=5|isGainLose=false|victimAmount=7|extraValue=4"
+        },
         {new SOCRobotDismiss("ga"), "1056|ga", "SOCRobotDismiss:game=ga"},
         {new SOCRollDice("ga"), "1031|ga", "SOCRollDice:game=ga"},
         {new SOCRollDicePrompt("ga", 3), "1072|ga,3", "SOCRollDicePrompt:game=ga|playerNumber=3"},
         // can ignore unused SOCRollDiceRequest
-        {new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), false), "1101|[|KEY1|KEY2", "SOCScenarioInfo:p=[|p=KEY1|p=KEY2", OPT_SKIP_PARSE},
-        {new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), true), "1101|[|KEY1|KEY2|?", "SOCScenarioInfo:p=[|p=KEY1|p=KEY2|p=?", OPT_SKIP_PARSE},
-        {new SOCScenarioInfo("KEY3", true), "1101|KEY3|0|-2", "SOCScenarioInfo:key=KEY3|minVers=0|lastModVers=MARKER_KEY_UNKNOWN", OPT_SKIP_PARSE},
+        {
+            new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), false),
+            "1101|[|KEY1|KEY2",
+            "SOCScenarioInfo:p=[|p=KEY1|p=KEY2", OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("pa"))
+        },
+        {
+            new SOCScenarioInfo(new ArrayList<>(SCENS_KEY_LIST), true),
+            "1101|[|KEY1|KEY2|?",
+            "SOCScenarioInfo:p=[|p=KEY1|p=KEY2|p=?", OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("pa"))
+        },
+        {
+            new SOCScenarioInfo("KEY3", true),
+            "1101|KEY3|0|-2",
+            "SOCScenarioInfo:key=KEY3|minVers=0|lastModVers=MARKER_KEY_UNKNOWN", OPT_SKIP_PARSE,
+            OPT_IGNORE_OBJ_FIELDS,
+            new HashSet<String>(Arrays.asList("pa"))
+        },
         {
             new SOCScenarioInfo("KEY4", false),
             "1101|[|KEY4",
             "SOCScenarioInfo:p=[|p=KEY4", OPT_SKIP_PARSE,
             OPT_IGNORE_OBJ_FIELDS,
-            new HashSet<String>(Arrays.asList("scKey", "noMoreScens"))
+            new HashSet<String>(Arrays.asList("scKey", "noMoreScens", "pa"))
         },
         {
             new SOCScenarioInfo(SOCScenario.getScenario(SOCScenario.K_SC_NSHO), "new shores", null),  // has no long desc
@@ -816,7 +1073,7 @@ public class TestToCmdToStringParse
             "SOCScenarioInfo:key=SC_NSHO|minVers=2000|lastModVers=2000|opts=_SC_SEAC=t,SBL=t,VP=t13|title=new shores",
             OPT_SKIP_PARSE,
             OPT_IGNORE_OBJ_FIELDS,
-            new HashSet<String>(Arrays.asList("scKey", "noMoreScens"))
+            new HashSet<String>(Arrays.asList("scKey", "noMoreScens", "pa"))
         },
         {
             new SOCScenarioInfo(SOCScenario.getScenario(SOCScenario.K_SC_4ISL), "4 islands", "long desc, 4 islands"),
@@ -824,15 +1081,42 @@ public class TestToCmdToStringParse
             "SOCScenarioInfo:key=SC_4ISL|minVers=2000|lastModVers=2000|opts=_SC_SEAC=t,SBL=t,VP=t12|title=4 islands|desc=long desc, 4 islands",
             OPT_SKIP_PARSE,
             OPT_IGNORE_OBJ_FIELDS,
-            new HashSet<String>(Arrays.asList("scKey", "noMoreScens"))
+            new HashSet<String>(Arrays.asList("scKey", "noMoreScens", "pa"))
         },
         {new SOCServerPing(42), "9999|42", "SOCServerPing:sleepTime=42"},
+        {
+            new SOCSetLastAction("ga", GameAction.ActionType.BUILD_PIECE.value, 1, 3337, 3),
+            "1106|ga,40,1,3337,3",
+            "SOCSetLastAction:game=ga|actType=BUILD_PIECE|p1=1|p2=3337|p3=3",
+        },
+        {
+            new SOCSetLastAction("ga", GameAction.ActionType.MOVE_PIECE.value, 1, 3337, 2059, new SOCResourceSet(1, 0, 0, 0, 4, 0), null),
+            "1106|ga,60,1,3337,2059,R1,1,0,0,0,4",
+            "SOCSetLastAction:game=ga|actType=MOVE_PIECE|p1=1|p2=3337|p3=2059|rs1=[clay=1|ore=0|sheep=0|wheat=0|wood=4|unknown=0]",
+        },
+        {
+            // with RS2 but not RS1
+            new SOCSetLastAction("ga", GameAction.ActionType.BUILD_PIECE.value, 1, 3337, 3, null, new SOCResourceSet(0, 2, 0, 2, 0, 0)),
+            "1106|ga,40,1,3337,3,R2,0,2,0,2,0",
+            "SOCSetLastAction:game=ga|actType=BUILD_PIECE|p1=1|p2=3337|p3=3|rs2=[clay=0|ore=2|sheep=0|wheat=2|wood=0|unknown=0]",
+        },
+        {
+            // with both RS
+            new SOCSetLastAction("ga", GameAction.ActionType.BUILD_PIECE.value, 1, 3337, 3, new SOCResourceSet(1, 0, 0, 0, 4, 0), new SOCResourceSet(0, 2, 0, 2, 0, 0)),
+            "1106|ga,40,1,3337,3,R1,1,0,0,0,4,R2,0,2,0,2,0",
+            "SOCSetLastAction:game=ga|actType=BUILD_PIECE|p1=1|p2=3337|p3=3|rs1=[clay=1|ore=0|sheep=0|wheat=0|wood=4|unknown=0]|rs2=[clay=0|ore=2|sheep=0|wheat=2|wood=0|unknown=0]",
+        },
         {new SOCSetPlayedDevCard("ga", 2, false), "1048|ga,2,false", "SOCSetPlayedDevCard:game=ga|playerNumber=2|playedDevCard=false"},
         {new SOCSetSeatLock("ga", 2, SeatLockState.LOCKED), "1068|ga,2,true", "SOCSetSeatLock:game=ga|playerNumber=2|state=LOCKED"},
         {
             new SOCSetSeatLock("ga", new SeatLockState[]{SeatLockState.UNLOCKED, SeatLockState.CLEAR_ON_RESET, SeatLockState.LOCKED, SeatLockState.UNLOCKED}),
             "1068|ga,false,clear,true,false",
             "SOCSetSeatLock:game=ga|states=UNLOCKED,CLEAR_ON_RESET,LOCKED,UNLOCKED"
+        },
+        {
+            new SOCSetShipRouteClosed("ga", true, new int[]{2315, 2570, 2826, 3081, 3080}),
+            "10002|ga|1|2315|2570|2826|3081|3080",
+            "SOCSetShipRouteClosed:game=ga|p=1|p=2315|p=2570|p=2826|p=3081|p=3080"
         },
         {
             new SOCSetSpecialItem("ga", SOCSetSpecialItem.OP_CLEAR_PICK, "_SC_WOND", 2, 0, 3),
@@ -856,15 +1140,18 @@ public class TestToCmdToStringParse
         {new SOCTimingPing("ga"), "1088|ga", "SOCTimingPing:game=ga"},
         {new SOCTurn("ga", 3, 0), "1026|ga,3", "SOCTurn:game=ga|playerNumber=3"},
         {new SOCTurn("ga", 3, SOCGame.ROLL_OR_CARD), "1026|ga,3,15", "SOCTurn:game=ga|playerNumber=3|gameState=15"},
+        {new SOCUndoPutPiece("ga", 3, 0, 0x40a), "1105|ga,3,0,1034", "SOCUndoPutPiece:game=ga|playerNumber=3|pieceType=0|coord=40a"},
+        {new SOCUndoPutPiece("ga", -1, 2, 0x40a), "1105|ga,-1,2,1034", "SOCUndoPutPiece:game=ga|playerNumber=-1|pieceType=2|coord=40a"},
+        {new SOCUndoPutPiece("ga", 4, 3, 0x40a, 0x40b), "1105|ga,4,3,1034,1035", "SOCUndoPutPiece:game=ga|playerNumber=4|pieceType=3|coord=40a|movedFromCoord=40b"},
         {
             new SOCUpdateRobotParams(new soc.util.SOCRobotParameters(120, 35, 0.13f, 1.0f, 1.0f, 3.0f, 1.0f, 0, 1)),
             "1071|120,35,0.13,1.0,1.0,3.0,1.0,0,1",
             "SOCUpdateRobotParams:mgl=120|me=35|ebf=0.13|af=1.0|laf=1.0|dcm=3.0|tm=1.0|st=0|tf=1"
         },
         {
-            new SOCVersion(2450, "2.4.50", "JM20200801", ";6pl;sb;", "en_US"),
-            "9998|2450,2.4.50,JM20200801,;6pl;sb;,en_US",
-            "SOCVersion:2450|str=2.4.50|verBuild=JM20200801|feats=;6pl;sb;|cliLocale=en_US"
+            new SOCVersion(2500, "2.5.00", "JM20210701", ";6pl;sb;", "en_US"),
+            "9998|2500,2.5.00,JM20210701,;6pl;sb;,en_US",
+            "SOCVersion:2500|str=2.5.00|verBuild=JM20210701|feats=;6pl;sb;|cliLocale=en_US"
         },
         {
             new SOCVersion(1118, "1.1.18", "OV20130402", null, null),

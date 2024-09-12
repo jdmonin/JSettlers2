@@ -1,7 +1,7 @@
 package soc.util;
 
 // Version.java - mchenryc@acm.org Chadwick A. McHenry
-// Portions copyright (C) 2008,2010,2011,2013-2015,2017,2020 Jeremy D Monin <jeremy@nand.net>
+// Portions copyright (C) 2008,2010,2011,2013-2015,2017,2020,2022 Jeremy D Monin <jeremy@nand.net>
 
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -48,7 +48,7 @@ public class Version {
 
   /** ints for comparisons, concatentated and stored as JRE_MIN_VERSION */
   private static int jreMinMajor = 1;
-  private static int jreMinMinor = 5;
+  private static int jreMinMinor = 8;
   private static int jreMinEdit = 0;
 
   static {

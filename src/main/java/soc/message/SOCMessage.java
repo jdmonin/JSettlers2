@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -41,6 +41,9 @@ import java.util.StringTokenizer;
  * Text announcements ({@link SOCGameServerText} or {@link SOCGameTextMsg})
  * are often sent after data messages. Bots ignore text messages except for
  * a few bot-debug commands.
+ *<P>
+ * A list of basic game actions and their message sequences is in
+ * {@code /doc/Message-Sequences-for-Game-Actions.md}.
  *
  *<H3>Implementation:</H3>
  * No {@code Object}s, only strings and integers, are to be sent over the network
@@ -72,7 +75,7 @@ import java.util.StringTokenizer;
  * that someone might want to read and interpret later. For documentation, we recommend including the current
  * {@link soc.util.Version#versionNumber()} or a {@link SOCVersion} message near the start of such a log.
  *<P>
- * Starting in v2.4.50, the {@code toString()} form must be parsable back into {@code SOCMessage}
+ * Starting in v2.5.00, the {@code toString()} form must be parsable back into {@code SOCMessage}
  * through {@link #parseMsgStr(String)}. This "round-trip" parsing is useful for third-party projects
  * which wrote human-readable message logs and want to interpret or replay them later.
  * See that method's javadoc for details.
@@ -105,10 +108,11 @@ import java.util.StringTokenizer;
  *      Set <tt>serialVersionUID</tt> to the version it's added in.
  *      for example, if adding for version 1.1.09:
  *      <code> private static final long serialVersionUID = 1109L;</code>
- * <LI> Add to the switch in SOCPlayerClient.treat and/or SOCServerMessageHandler.dispatch
- *      or its game type's GameMessageHandler.dispatch.  Note the JSettlers version with a comment.
+ * <LI> Add to the switch in {@link soc.client.MessageHandler#handle(SOCMessage, boolean)}
+ *      and/or {@code SOCServerMessageHandler.dispatch} or its game type's {@code GameMessageHandler.dispatch}.
+ *      Note the JSettlers version with a comment.
  *      <P>
- *      <em>Note:</em> Most things added to SOCPlayerClient.treat should also be added to
+ *      <em>Note:</em> Most things added to client {@code MessageHandler.handle} should also be added to
  *      {@link soc.baseclient.SOCDisplaylessPlayerClient#treat(SOCMessage)}. If robots
  *      should react, also add to {@link soc.robot.SOCRobotClient#treat(SOCMessage)}
  *      and maybe also {@link soc.robot.SOCRobotBrain#run()}.
@@ -118,7 +122,7 @@ import java.util.StringTokenizer;
  * <LI> If the {@link #toString()} form has fields that can't be automatically parsed by {@link #parseMsgStr(String)},
  *      such as hex values or int constant strings, write a {@code stripAttribNames(..)} method to help: See
  *      {@code parseMsgStr(..)} javadocs for details.
- * <LI> Add it to unit test {@code soctest.message.TestToCmdToStringParse}'s {@code TOCMD_TOSTRING_COMPARES} array
+ * <LI> Add it to unit test {@link soctest.message.TestToCmdToStringParse}'s {@code TOCMD_TOSTRING_COMPARES} array
  *</UL>
  *
  *<H3>Backwards compatibility:</H3>
@@ -140,9 +144,9 @@ import java.util.StringTokenizer;
  *
  *<H3>Renaming a message or improving its {@link #toString()} form:</H3>
  * For debugging purposes, it's sometimes useful to make the output of {@link #toString()} more meaningful:
- * Translating enum integers like {@code pieceType} to their strings, etc.
+ * Translating integer field values like {@code pieceType} to their declared constant names, etc.
  *<P>
- * In versions after 2.4.50: If you must make an incompatible change to a message's toString form,
+ * In versions after 2.5.00: If you must make an incompatible change to a message's toString form,
  * and a previous version's {@link #parseMsgStr(String)} wouldn't be able to parse that new form,
  * rename the message class and make sure the old name can still be parsed with its old format
  * (see {@link #MESSAGE_RENAME_MAP}, write a static {@code stripAttribNames(messageTypeName, messageStrParams)}, etc.)
@@ -447,10 +451,34 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int SCENARIOINFO = 1101;    // Scenario info, 20150920, v2.0.00
 
     /**
-     * {@link SOCReportRobbery} - Info from server about a robbery's perpetrator, victim, and what was stolen.
-     * @since 2.4.50
+     * {@link SOCRobberyResult} - Info reported from server about a robbery's perpetrator, victim, and what was stolen.
+     * @since 2.5.00
      */
-    public static final int REPORTROBBERY = 1102;  // Report Robbery, 20200915, v2.4.50
+    public static final int ROBBERYRESULT = 1102;  // Report robbery result, 20200915, v2.5.00
+
+    /**
+     * {@link SOCBotGameDataCheck} - Check if all bots still have an accurate copy of various game data.
+     * @since 2.5.00
+     */
+    public static final int BOTGAMEDATACHECK = 1103;  // Bot game data consistency check, 20210930, v2.5.00
+
+    /**
+     * {@link SOCDeclinePlayerRequest} - Decline a player's request or requested action.
+     * @since 2.5.00
+     */
+    public static final int DECLINEPLAYERREQUEST = 1104;  // Decline player's request, 20211208, v2.5.00
+
+    /**
+     * {@link SOCUndoPutPiece} - Undo a piece placement or move.
+     * @since 2.7.00
+     */
+    public static final int UNDOPUTPIECE = 1105;  // Undo put piece/move piece, 20221109, v2.7.00
+
+    /**
+     * {@link SOCSetLastAction} - Send {@link soc.game.GameAction} game data from server to client joining a game.
+     * @since 2.7.00
+     */
+    public static final int SETLASTACTION = 1106;  // for Undo put piece/move piece, 20221220, v2.7.00
 
 
     /////////////////////////////////////////
@@ -477,7 +505,17 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static final int REVEALFOGHEX = 10001;  // fog hexes, 20121108, v2.0.00
 
+    /**
+     * {@link SOCSetShipRouteClosed} - Reopen or close a trade route.
+     * @since 2.7.00
+     */
+    public static final int SETSHIPROUTECLOSED = 10002;  // for Undo put piece/move piece, 20221218, v2.7.00
 
+
+
+    //////////////////////////////////////////////
+    // General message token constants          //
+    //////////////////////////////////////////////
 
     /**
      * Token separators. At most one SEP per message; multiple SEP2 are allowed after SEP.
@@ -490,7 +528,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /**
      * Main {@link #sep SEP} separator, in regexp form for splits and replacements.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final String sepRE = "\\|";
 
@@ -587,7 +625,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Simple human-readable delimited representation, used for debug purposes:
      * {@code SOCPutPiece:game=test5|playerNumber=3|pieceType=0|coord=40a}
      *<BR>
-     * Could also be used by a {@link soc.server.SOCServer#recordGameEvent(String, SOCMessage)} implementation.
+     * Could also be used by a {@link soc.server.SOCServer#recordGameEvent(String, SOCMessage)} implementation
+     * like {@link soc.extra.server.GameEventLog.EventEntry}.
      *<P>
      * Within this representation, message parameters should be in same order used by {@link #toCmd()} and
      * {@code parseDataStr(..)}. Should be parseable by {@link #parseMsgStr(String)} which calls
@@ -1038,13 +1077,28 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case SCENARIOINFO:         // Scenario info, 20150920, v2.0.00
                 return SOCScenarioInfo.parseDataStr(multiData, data);
 
-            case REPORTROBBERY:        // Report Robbery, 20200915, v2.4.50
-                return SOCReportRobbery.parseDataStr(data);
+            case ROBBERYRESULT:        // Report robbery result, 20200915, v2.5.00
+                return SOCRobberyResult.parseDataStr(data);
+
+            case BOTGAMEDATACHECK:      // Bot game data consistency check, 20210930, v2.5.00
+                return SOCBotGameDataCheck.parseDataStr(multiData);
+
+            case DECLINEPLAYERREQUEST:  // Decline player's request, 20211208, v2.5.00
+                return SOCDeclinePlayerRequest.parseDataStr(data);
+
+            case UNDOPUTPIECE:          // Undo put piece/move piece, 20221109, v2.7.00
+                return SOCUndoPutPiece.parseDataStr(data);
+
+            case SETLASTACTION:         // for Undo put piece/move piece, 20221220, v2.7.00
+                return SOCSetLastAction.parseDataStr(data);
 
             // gametype-specific messages:
 
             case REVEALFOGHEX:      // fog hexes, 20121108, v2.0.00
                 return SOCRevealFogHex.parseDataStr(data);
+
+            case SETSHIPROUTECLOSED:    // for Undo put piece/move piece, 20221218, v2.7.00
+                return SOCSetShipRouteClosed.parseDataStr(multiData);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
@@ -1065,9 +1119,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * Key is old name of message type, value is new name (SOCMessage subclass).
      * See {@code parseMsgStr(..)} javadoc for more details, including expected
      * static {@code stripAttribNames(messageTypeName, messageStrParams)} method.
-     * @since 2.4.50
+     * @since 2.5.00
      */
-    public static Map<String, String> MESSAGE_RENAME_MAP = new HashMap<>();
+    public static final Map<String, String> MESSAGE_RENAME_MAP = new HashMap<>();
     static
     {
         for (final String[] fromTo : new String[][]
@@ -1107,13 +1161,13 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * and {@code parseDataStr(String or List<String>)} methods
      * if available, otherwise {@link SOCMessage#stripAttribNames(String)}.
      * @param messageStr  Message as delimited string from {@link #toString()}; not null
-     * @return parsed message if successful, throws exception otherwise
+     * @return parsed message if successful, throws exception otherwise; not null
      * @throws InputMismatchException if message can't be parsed and
      *     {@link #parseMsgStr(String)} returned null
      * @throws ParseException if message class name not parsed or class not found,
      *     reflection error (method not static, etc), or if message's
      *     {@link #stripAttribNames(String)} or {@link #parseMsgStr(String)} threw an exception
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static SOCMessage parseMsgStr(final String messageStr)
         throws ParseException, InputMismatchException
@@ -1259,10 +1313,15 @@ public abstract class SOCMessage implements Serializable, Cloneable
     }
 
     /**
-     * Strip out the parameter/attribute names from {@link #toString()}'s format,
-     * returning message parameters as a comma-delimited list for {@link #parseMsgStr(String)}
+     * Strip out the parameter/attribute names from {@link #toString()}'s pipe-delimited ({@code '|'}) format,
+     * returning message parameter values as a comma-delimited list for {@link #parseMsgStr(String)}
      * to pass to the message class's {@code parseDataStr(String)}.
      *<P>
+     * For each parameter:
+     *<UL>
+     * <LI> If includes {@code '='}, uses only the value: {@code 'coord=40a'} -> {@code '40a'}
+     * <LI> If no {@code '='}, uses the entire parameter: {@code 'example'} -> {@code 'example'}
+     *</UL>
      * Some messages will need to override this (new game with options,
      * any of the types which use hex encoding of coordinates).
      * Message types which have been renamed, and the old name used an incompatibly different toString format,
@@ -1271,11 +1330,13 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *<P>
      * For {@link SOCMessageMulti} subclasses, use or override {@link #stripAttribsToList(String)} instead.
      *
-     * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
-     * @return Message parameters without attribute names, or {@code null} if params are malformed.
+     * @param messageStrParams Params part of a message string formatted by {@link #toString()},
+     *     typically delimited by {@code '|'}; not {@code null}
+     * @return Comma-delimited message parameters ({@link #sep2_char}) without attribute names,
+     *     or {@code null} if params are malformed.
      *     If {@code messageStrParams} is "", returns "".
      * @see #stripAttribsToList(String)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(String messageStrParams)
     {
@@ -1300,7 +1361,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *     If {@code messageStrParams} is "", returns a list with "" as its sole element.
      *     The returned List might not support optional methods like {@link List#add(int, Object)}.
      * @see #stripAttribNames(String)
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static List<String> stripAttribsToList(String messageStrParams)
     {

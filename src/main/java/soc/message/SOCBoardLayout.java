@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +32,10 @@ import soc.util.DataUtils;
  * This message contains the board layout information: The hex layout, the
  * dice number layout, and the robber location.  Does not contain information
  * about any player's pieces on the board (see {@link SOCPutPiece PUTPIECE}).
+ *<P>
+ * Sent to a client who is joining a game as an observer or player,
+ * after {@link SOCSitDown} messages about current players.
+ * Also sent during start of the game when its board is generated.
  *<P>
  * This message sends the classic board layout for the original
  * 4-player game, {@link #BOARD_ENCODING_ORIGINAL}.
@@ -318,10 +322,10 @@ public class SOCBoardLayout extends SOCMessage
     /**
      * Strip out the parameter/attribute names from {@link #toString()}'s format,
      * returning message parameters as a comma-delimited list for {@link SOCMessage#parseMsgStr(String)}.
-     * Converts robber hex coordinate to decimal from hexadecimal format.
+     * Converts robber hex coordinate to decimal from {@code 0x...} hexadecimal format.
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(final String messageStrParams)
     {
@@ -342,8 +346,9 @@ public class SOCBoardLayout extends SOCMessage
             ret.append(s.replace(' ', sep2_char));
         }
 
-        // robber hex: need to convert from hex string to int - strip 0x and parse with radix=16
-        int robber = Integer.parseInt(pieces[3].substring(2), 16);
+        // robber hex: need to convert from hex string to int; strip leading 0x
+        // If robber hex is -1, will be 0xffffffff
+        int robber = Integer.parseUnsignedInt(pieces[3].substring(2), 16);
         ret.append(robber);
 
         return ret.toString();
@@ -352,19 +357,19 @@ public class SOCBoardLayout extends SOCMessage
     /**
      * Render the SOCBoardLayout in human-readable form.
      * In version 1.1.09 and later, the hexLayout and numberLayout contents are included,
-     * and for convenience robberHex is in hexadecimal instead of base-10.
+     * and for convenience robberHex is in hexadecimal (and {@code 0x} prefix) instead of base-10.
      * Returns the same remapped "network" values for WATER_HEX, DESERT_HEX, and dice numbers as {@link #toCmd()},
      * not the "standard" ones returned by {@link #getHexLayout() and {@link #getNumberLayout()}.
      * @return a human readable form of the message
      */
     public String toString()
     {
-        StringBuffer sb = new StringBuffer("SOCBoardLayout:game=");
+        StringBuilder sb = new StringBuilder("SOCBoardLayout:game=");
         sb.append(game);
         sb.append("|hexLayout=");
-        DataUtils.arrayIntoStringBuf(hexLayout, sb, false);
+        DataUtils.arrayIntoStringBuilder(hexLayout, sb, false);
         sb.append("|numberLayout=");
-        DataUtils.arrayIntoStringBuf(numberLayout, sb, false);
+        DataUtils.arrayIntoStringBuilder(numberLayout, sb, false);
         sb.append("|robberHex=0x");
         sb.append(Integer.toHexString(robberHex));
 

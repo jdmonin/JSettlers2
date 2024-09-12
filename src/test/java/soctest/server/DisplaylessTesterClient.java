@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,6 +26,7 @@ import java.net.Socket;
 
 import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.baseclient.ServerConnectInfo;
+import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
@@ -37,13 +38,14 @@ import soc.util.Version;
 
 /**
  * Non-testing class: Robot utility client to help run the actual tests.
- * Works with {@link RecordingTesterServer}.
+ * Used with {@link RecordingSOCServer}.
+ *<P>
  * Debug Traffic flag is set, which makes unit test logs larger but is helpful when troubleshooting.
  * Unlike parent class, this client connects and authenticates as a "human" player, not a bot,
  * to see same messages a human would be shown.
  * To help set a known test environment, always uses locale {@code "en_US"} unless constructor says otherwise.
  *
- * @since 2.4.50
+ * @since 2.5.00
  */
 public class DisplaylessTesterClient
     extends SOCDisplaylessPlayerClient
@@ -87,6 +89,7 @@ public class DisplaylessTesterClient
             this.knownOpts = knownOpts;
 
         debugTraffic = true;
+        ignorePlayerStats = false;
     }
 
     /**
@@ -104,7 +107,7 @@ public class DisplaylessTesterClient
             if (serverConnectInfo.stringSocketName == null)
             {
                 sock = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
-                sock.setSoTimeout(300000);
+                sock.setSoTimeout(300000);  // should be a few minutes longer than SOCServerRobotPinger.sleepTime
                 in = new DataInputStream(sock.getInputStream());
                 out = new DataOutputStream(sock.getOutputStream());
             }

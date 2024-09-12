@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2021,2023 Jeremy D Monin <jeremy@nand.net>
  * Some contents were formerly part of SOCServer.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
@@ -41,6 +41,7 @@ import java.util.MissingResourceException;
 import java.util.NoSuchElementException;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import soc.debug.D;
@@ -86,20 +87,20 @@ public class SOCServerMessageHandler
      * along with dashes (-) and underscores (_).
      * @since 2.3.00
      */
-    private static final Pattern DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX
+    protected static final Pattern DEBUG_COMMAND_SAVEGAME_FILENAME_REGEX
         = Pattern.compile("^[\\p{IsLetter}\\p{IsDigit}_-]+$");
 
-    private final SOCServer srv;
+    protected final SOCServer srv;
 
     /**
      * List of {@link #srv}'s games.
      */
-    private final SOCGameListAtServer gameList;
+    protected final SOCGameListAtServer gameList;
 
     /**
      * List of {@link #srv}'s chat channels.
      */
-    private final SOCChannelList channelList;
+    protected final SOCChannelList channelList;
 
     public SOCServerMessageHandler
         (SOCServer srv, final SOCGameListAtServer gameList, final SOCChannelList channelList)
@@ -294,7 +295,7 @@ public class SOCServerMessageHandler
 
         /**
          * Game option messages. For the best writeup of these messages' interaction with
-         * the client, see {@link soc.client.SOCPlayerClient.GameOptionServerSet}'s javadoc.
+         * the client, see {@link soc.client.ServerGametypeInfo}'s javadoc.
          * Added 2009-06-01 for v1.1.07.
          */
 
@@ -665,6 +666,7 @@ public class SOCServerMessageHandler
         final boolean wantsLocalDescs =
             scd.wantsI18N
             && ! SOCServer.i18n_gameopt_PL_desc.equals(c.getLocalized("gameopt.PL"));
+        final boolean unknownsWithDescs = (cliVers >= SOCGameOption.VERSION_FOR_UNKNOWN_WITH_DESCRIPTION);
 
         if (wantsLocalDescs)
         {
@@ -686,7 +688,17 @@ public class SOCServerMessageHandler
                 SOCGameOption opt = srv.knownOpts.getKnownOption(okey, false);
 
                 if ((opt == null) || (opt.minVersion > cliVers))  // don't use dynamic opt.getMinVersion(Map) here
-                    opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
+                {
+                    String localDesc = null;
+                    if (unknownsWithDescs && (opt != null))
+                        try {
+                            localDesc = c.getLocalized("gameopt." + okey);
+                        } catch (MissingResourceException e) {
+                            localDesc = opt.getDesc();
+                        }
+
+                    opt = new SOCGameOption(okey, localDesc);  // OTYPE_UNKNOWN
+                }
 
                 opts.put(okey, opt);
             }
@@ -723,7 +735,7 @@ public class SOCServerMessageHandler
         // Overwrites any which happened to already be in opts (unknown or otherwise).
         // See also SOCGameOptionSet.adjustOptionsToKnown which has very similar code for limited client feats.
 
-        // Unsupported 3rd-party opts aren't sent unless client asked about them by key.
+        // Unsupported 3rd-party opts won't be sent unless client asked about them by key.
 
         SOCFeatureSet limitedCliFeats = srv.checkLimitClientFeaturesForServerDisallows(scd.feats);
         if ((limitedCliFeats == null) && hasLimitedFeats)
@@ -733,7 +745,7 @@ public class SOCServerMessageHandler
             (limitedCliFeats != null) ? srv.knownOpts.optionsNotSupported(limitedCliFeats) : null;
         if (unsupportedOpts != null)
             for (SOCGameOption opt : unsupportedOpts.values())
-                opts.put(opt.key, new SOCGameOption(opt.key));  // OTYPE_UNKNOWN
+                opts.put(opt.key, new SOCGameOption(opt.key, opt.getDesc()));  // OTYPE_UNKNOWN
 
         final Map<String, SOCGameOption> trimmedOpts =
             (limitedCliFeats != null) ? srv.knownOpts.optionsTrimmedForSupport(limitedCliFeats) : null;
@@ -758,7 +770,7 @@ public class SOCServerMessageHandler
 
                     if ((requestedKeys != null) && requestedKeys.contains(okey))
                     {
-                        opts.put(okey, new SOCGameOption(okey));  // OTYPE_UNKNOWN
+                        opts.put(okey, new SOCGameOption(okey, opt.getDesc()));  // OTYPE_UNKNOWN
                     } else {
                         opts.remove(okey);
                         if (wantsLocalDescs)
@@ -782,13 +794,22 @@ public class SOCServerMessageHandler
 
             if (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
             {
-                if ((opt.minVersion > cliVers)
-                    || (hasLimitedFeats && unsupportedOpts.containsKey(okey)))
-                    opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
-                else if (wantsLocalDescs)
+                final boolean sendAsUnknown = (opt.minVersion > cliVers)
+                    || (hasLimitedFeats && unsupportedOpts.containsKey(okey));
+
+                if (wantsLocalDescs || (sendAsUnknown && unknownsWithDescs))
                     try {
                         localDesc = c.getLocalized("gameopt." + okey);
-                    } catch (MissingResourceException e) {}
+                    } catch (MissingResourceException e) {
+                        if (sendAsUnknown)
+                            localDesc = opt.getDesc();
+                    }
+
+                if (sendAsUnknown)
+                {
+                    opt = new SOCGameOption(okey, localDesc);  // OTYPE_UNKNOWN
+                    localDesc = null;
+                }
             }
 
             if (wantsLocalDescs)
@@ -797,7 +818,7 @@ public class SOCServerMessageHandler
                 optsToLocal.remove(okey);
 
                 if (opt.getDesc().equals(localDesc))
-                    // don't send desc if not localized, client already has unlocalized desc string
+                    // don't send desc if not localized: client already has unlocalized desc string
                     localDesc = null;
             }
 
@@ -1033,7 +1054,7 @@ public class SOCServerMessageHandler
      */
     void handleCHANNELTEXTMSG(final Connection c, final SOCChannelTextMsg mes)
     {
-        final String chName = mes.getChannel(), mName = c.getData(), txt = mes.getText();
+        final String chName = mes.getChannel(), mName = c.getData(), txt = mes.getText().trim();
 
         if (srv.isDebugUserEnabled() && mName.equals("debug"))
         {
@@ -1133,7 +1154,7 @@ public class SOCServerMessageHandler
 
         //currentGameEventRecord.setSnapshot(ga);
 
-        final String cmdText = gameTextMsgMes.getText();
+        final String cmdText = gameTextMsgMes.getText().trim();
         String cmdTxtUC = null;
 
         if (canChat && (cmdText.charAt(0) == '*'))
@@ -1306,7 +1327,7 @@ public class SOCServerMessageHandler
      * @return true if {@code cmdText} is an admin command and has been handled here, false otherwise
      * @since 2.3.00
      */
-    boolean processAdminCommand
+    public boolean processAdminCommand
         (final Connection c, final SOCGame ga, final String cmdText, final String cmdTextUC)
     {
         final String gaName = ga.getName();
@@ -1484,12 +1505,19 @@ public class SOCServerMessageHandler
             "stats.game.rounds", gameData.getRoundCount());  // Rounds played: 20
 
         // player's stats
-        if (c.getVersion() >= SOCPlayerStats.VERSION_FOR_RES_ROLL)
+        final int cliVers = c.getVersion();
+        if (cliVers >= SOCPlayerStats.VERSION_FOR_RES_ROLL)
         {
             SOCPlayer cp = gameData.getPlayer(c.getData());
             if (cp != null)
-                srv.messageToPlayer(c, gaName, cp.getPlayerNumber(),
+            {
+                final int pn = cp.getPlayerNumber();
+                srv.messageToPlayer(c, gaName, pn,
                     new SOCPlayerStats(cp, SOCPlayerStats.STYPE_RES_ROLL));
+                if (cliVers >= SOCPlayerStats.VERSION_FOR_TRADES)
+                    srv.messageToPlayer(c, gaName, pn,
+                        new SOCPlayerStats(cp, SOCPlayerStats.STYPE_TRADES));
+            }
         }
 
         // time
@@ -1601,11 +1629,10 @@ public class SOCServerMessageHandler
                     (li, "Client versions since startup",
                      "all " + Version.version(srv.clientPastVersionStats.keySet().iterator().next()));
             } else {
-                // TODO sort it
                 listAddStat(li, "Client versions since startup", "(includes bots)");
-                for (Integer v : srv.clientPastVersionStats.keySet())
+                for (Map.Entry<Integer, AtomicInteger> e : srv.clientPastVersionStats.entrySet())
                     listAddStat
-                        (li, "  ", Version.version(v) + ": " + srv.clientPastVersionStats.get(v));
+                        (li, "  ", Version.version(e.getKey()) + ": " + e.getValue());
             }
         }
 
@@ -1851,7 +1878,7 @@ public class SOCServerMessageHandler
 
         try
         {
-            GameSaverJSON.saveGame(ga, srv.savegameDir, fname, srv);
+            GameSaverJSON.saveGame(ga, srv.savegameDir, fname, srv);  // <--- The actual save game method ---
 
             srv.messageToPlayerKeyed
                 (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
@@ -1963,11 +1990,11 @@ public class SOCServerMessageHandler
             {
                 // Check if using user admins; if not, if using debug user
 
-                final String uname = c.getData();
+                final String cliUsername = c.getData();
                 final boolean isAdmin =
                     (c instanceof StringConnection)  // practice game
-                    || srv.isUserDBUserAdmin(uname)
-                    || (srv.isDebugUserEnabled() && uname.equals("debug"));
+                    || srv.isUserDBUserAdmin(cliUsername)
+                    || (srv.isDebugUserEnabled() && cliUsername.equals("debug"));
                 if (! isAdmin)
                 {
                     srv.messageToPlayerKeyed(c, gaName, SOCServer.PN_NON_EVENT, "reply.must_be_admin.view");
@@ -2121,7 +2148,7 @@ public class SOCServerMessageHandler
     {
         final SOCClientData scd = (SOCClientData) c.getAppData();
         final boolean mustSetUsername = (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME));
-        final String msgUser = c.getData();
+        final String msgUsername = c.getData();
             // if mustSetUsername, will tell client to set nickname to original case from db case-insensitive search
 
         /**
@@ -2173,9 +2200,9 @@ public class SOCServerMessageHandler
             }
         } else {
             c.put(new SOCStatusMessage
-                (SOCStatusMessage.SV_OK_SET_NICKNAME, msgUser + SOCMessage.sep2_char + txt));
+                (SOCStatusMessage.SV_OK_SET_NICKNAME, msgUsername + SOCMessage.sep2_char + txt));
         }
-        c.put(new SOCJoinChannelAuth(msgUser, ch));
+        c.put(new SOCJoinChannelAuth(msgUsername, ch));
 
         /**
          * Add the Connection to the channel
@@ -2203,7 +2230,7 @@ public class SOCServerMessageHandler
 
             try
             {
-                channelList.createChannel(ch, msgUser);
+                channelList.createChannel(ch, msgUsername);
                 scd.createdChannel();
             }
             catch (Exception e)
@@ -2215,7 +2242,7 @@ public class SOCServerMessageHandler
             srv.broadcast(new SOCNewChannel(ch));
             c.put(new SOCChannelMembers(ch, channelList.getMembers(ch)));
             if (D.ebugOn)
-                D.ebugPrintlnINFO("*** " + msgUser + " joined new channel " + ch + " at "
+                D.ebugPrintlnINFO("*** " + msgUsername + " joined new channel " + ch + " at "
                     + DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date()));
             channelList.takeMonitorForChannel(ch);
 
@@ -2234,7 +2261,7 @@ public class SOCServerMessageHandler
         /**
          * let everyone know about the change
          */
-        srv.messageToChannel(ch, new SOCJoinChannel(msgUser, "", SOCMessage.EMPTYSTR, ch));
+        srv.messageToChannel(ch, new SOCJoinChannel(msgUsername, "", SOCMessage.EMPTYSTR, ch));
 
         /**
          * Send recap; same sequence is in SOCGameHandler.joinGame with different message type
@@ -2459,6 +2486,9 @@ public class SOCServerMessageHandler
             return;  // <--- Early return: No active game found ---
         }
 
+        final SOCClientData scd = (SOCClientData) c.getAppData();
+        final boolean isArrivingRobot = (scd != null) && ((SOCClientData) scd).isRobot;
+
         /**
          * make sure this player isn't already sitting
          */
@@ -2530,7 +2560,7 @@ public class SOCServerMessageHandler
                 final boolean isLoadingState =
                     (gameState == SOCGame.LOADING) || (gameState == SOCGame.LOADING_RESUMING);
                 boolean isloadingBot =
-                    isLoadingState && ((SOCClientData) c.getAppData()).isRobot;
+                    isLoadingState && isArrivingRobot;
                 final boolean canTakeOverPlayer =
                     seatedPlayer.isRobot()
                     || (isLoadingState && (isloadingBot || ! gameList.isMember(seatedName, gaName)));
@@ -2558,10 +2588,6 @@ public class SOCServerMessageHandler
 
                     if ((robotCon != null) && gameList.isMember(robotCon, gaName))
                     {
-                        sentBotDismiss = true;
-                        srv.messageToPlayer(robotCon, gaName, pn,
-                            new SOCRobotDismiss(gaName));
-
                         /**
                          * this connection has to wait for the robot to leave,
                          * will then be told they've sat down
@@ -2571,12 +2597,13 @@ public class SOCServerMessageHandler
 
                         if (disRequests == null)
                         {
-                            disRequests = new Vector<SOCReplaceRequest>();
-                            disRequests.addElement(req);
+                            disRequests = new Vector<>();
                             srv.robotDismissRequests.put(gaName, disRequests);
-                        } else {
-                            disRequests.addElement(req);
                         }
+                        disRequests.addElement(req);
+
+                        sentBotDismiss = true;
+                        srv.messageToPlayer(robotCon, gaName, pn, new SOCRobotDismiss(gaName));
                     } else {
                         /**
                          * robotCon wasn't in the game.
@@ -2604,24 +2631,21 @@ public class SOCServerMessageHandler
         //D.ebugPrintln("canSit 2 = "+canSit);
         if (canSit)
         {
-            srv.sitDown(ga, c, pn, mes.isRobot(), false);
+            srv.sitDown(ga, c, pn, isArrivingRobot, false);
 
             // loadgame: If seat was temporarily unlocked while fetching bot to sit here, re-lock it.
             // Don't do so in state LOADING_RESUMING, because that change might have been done by a human player.
 
-            if ((gameState == SOCGame.LOADING) && (ga.savedGameModel != null)
-                && (((SavedGameModel) ga.savedGameModel).playerSeatLocks != null))
+            if ((gameState == SOCGame.LOADING) && isArrivingRobot
+                 && (ga.savedGameModel != null)
+                 && (((SavedGameModel) ga.savedGameModel).playerSeatLocks != null))
             {
-                final SOCClientData scd = (SOCClientData) c.getAppData();
-                if ((scd != null) && scd.isRobot)
+                SOCGame.SeatLockState gaLock = ga.getSeatLock(pn),
+                    modelLock = ((SavedGameModel) ga.savedGameModel).playerSeatLocks[pn];
+                if ((gaLock != modelLock) && (modelLock != null))
                 {
-                    SOCGame.SeatLockState gaLock = ga.getSeatLock(pn),
-                        modelLock = ((SavedGameModel) ga.savedGameModel).playerSeatLocks[pn];
-                    if ((gaLock != modelLock) && (modelLock != null))
-                    {
-                        ga.setSeatLock(pn, modelLock);
-                        srv.messageToGame(gaName, true, new SOCSetSeatLock(gaName, pn, modelLock));
-                    }
+                    ga.setSeatLock(pn, modelLock);
+                    srv.messageToGame(gaName, true, new SOCSetSeatLock(gaName, pn, modelLock));
                 }
             }
         }
@@ -2631,7 +2655,7 @@ public class SOCServerMessageHandler
              * if the robot can't sit, tell it to go away.
              * otherwise if game is full, tell the player.
              */
-            if (mes.isRobot())
+            if (isArrivingRobot)
             {
                 srv.messageToPlayer(c, gaName, SOCServer.PN_OBSERVER, new SOCRobotDismiss(gaName));
             } else if (gameAlreadyStarted) {

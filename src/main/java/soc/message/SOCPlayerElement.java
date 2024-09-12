@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2014,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2014,2017-2023 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@ import soc.game.SOCGameOptionSet;  // for javadocs only
 import soc.game.SOCPlayer;  // for javadocs only
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants; // for javadocs only
+import soc.game.SOCScenario;  // for javadocs only
 
 
 /**
@@ -46,6 +47,13 @@ import soc.game.SOCResourceConstants; // for javadocs only
  *   for each resource type gained by each player from the roll. Newer clients are instead sent
  *   {@link SOCDiceResultResources}. Afterwards the current player (any client version) is sent their currently
  *   held amounts for each resource as a group of <tt>SOCPlayerElement(pn, {@link #SET}, ...)</tt> messages.
+ * <LI> When dice roll result is 7 and player(s) must discard, server announces
+ *   game state {@link SOCGame#WAITING_FOR_DISCARDS}, then prompts individual players to discard;
+ *   see {@link SOCDiceResult} docs for more of that sequence.
+ *   Once a players's chosen their resources to discard, server announces they've done so
+ *   with a <tt>SOCPlayerElement(playerNum, {@link #LOSE LOSE}, {@link PEType#UNKNOWN_RESOURCE}, total)</tt>
+ *   while game is still in state {@code WAITING_FOR_DISCARDS}; any {@code LOSE} message in that
+ *   game state is for a discard.
  * <LI> Most other situations send single PlayerElement messages or their sequence doesn't matter.
  *</UL>
  *<P>
@@ -62,8 +70,18 @@ import soc.game.SOCResourceConstants; // for javadocs only
  * newer client versions are sent a more specific message instead of
  * several {@code SOCPlayerElement} and {@link SOCGameServerText}s:
  *<UL>
- * <LI> {@link SOCDiceResultResources}: v2.0.00 and newer
- * <LI> {@link SOCReportRobbery}: v2.4.50 and newer
+ * <LI> v2.0.00 and newer:
+ *  <UL>
+ *   <LI> {@link SOCDiceResultResources}
+ *  </UL>
+ * <LI> v2.5.00 and newer:
+ *  <UL>
+ *   <LI> {@link SOCAcceptOffer}
+ *   <LI> {@link SOCBankTrade}
+ *   <LI> {@link SOCDiscard}
+ *   <LI> {@link SOCPickResources}
+ *   <LI> {@link SOCRobberyResult}
+ *  </UL>
  *</UL>
  *
  * @author Robert S Thomas
@@ -149,7 +167,12 @@ public class SOCPlayerElement extends SOCMessage
         SHIPS(13),
 
         /**
-         * Number of knights in player's army; sent after a Soldier card is played.
+         * Number of knights in player's army; sent after a Soldier card is played
+         * or (from server v2.7.00 or newer) cancelled.
+         *<P>
+         * If playing a {@code KNIGHT} card leads to Largest Army, server announces with
+         * {@link SOCGameElements}({@link SOCGameElements.GEType#LARGEST_ARMY_PLAYER LARGEST_ARMY_PLAYER})
+         * after {@code SOCPlayerElement}({@link #PLAYED_DEV_CARD_FLAG}) before {@code SOCGameState}.
          *<P>
          * If server is older than v2.4.00 ({@link SOCGame#VERSION_FOR_LONGEST_LARGEST_FROM_SERVER}):
          * During normal gameplay, "largest army" indicator at client is updated
@@ -182,6 +205,7 @@ public class SOCPlayerElement extends SOCMessage
          *<P>
          * Games with clients older than v2.0.00 use {@link SOCResourceCount} messages instead of this element:
          * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+         * Client game-data updates from this element and {@code SOCResourceCount} should use the same code or logic.
          *
          * @see PEType#UNKNOWN_RESOURCE
          * @since 2.0.00
@@ -206,6 +230,17 @@ public class SOCPlayerElement extends SOCMessage
          *<P>
          * Games with clients older than v2.0.00 use {@link SOCSetPlayedDevCard} messages instead of this element:
          * Check version against {@link #VERSION_FOR_CARD_ELEMENTS}.
+         *<P>
+         * This element is sent as part of start-of-turn sequence, preceding {@link SOCTurn},
+         * by servers older than v2.5.00 ({@link SOCTurn#VERSION_FOR_FLAG_CLEAR_AND_SBP_TEXT}).
+         * Clients of that version and newer must instead clear the dev card flag when they receive {@link SOCTurn}.
+         *<P>
+         * This element is sent as part of sequence canceling the dev card currently being played
+         * by server v2.7.00 and newer (and v2.5.00 and newer for Road Building if no roads already placed).
+         * So when receiving a message to {@code SET} this element to 0 for the current player,
+         * or {@link SOCSetPlayedDevCard}(0), clients should also call
+         * {@link SOCGame#setPlacingRobberForKnightCard(boolean) game.setPlacingRobberForKnightCard(false)}.
+         *
          * @since 2.0.00
          */
         PLAYED_DEV_CARD_FLAG(19),
@@ -238,7 +273,7 @@ public class SOCPlayerElement extends SOCMessage
          * Dev card stats: Value of {@link SOCPlayer#numDISCCards}.
          *<P>
          * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
-         * @since 2.4.50
+         * @since 2.5.00
          */
         NUM_PLAYED_DEV_CARD_DISC(22),
 
@@ -246,7 +281,7 @@ public class SOCPlayerElement extends SOCMessage
          * Dev card stats: Value of {@link SOCPlayer#numMONOCards}.
          *<P>
          * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
-         * @since 2.4.50
+         * @since 2.5.00
          */
         NUM_PLAYED_DEV_CARD_MONO(23),
 
@@ -254,9 +289,18 @@ public class SOCPlayerElement extends SOCMessage
          * Dev card stats: Value of {@link SOCPlayer#numRBCards}.
          *<P>
          * Not sent to clients over network; used only by {@link soc.server.savegame.SavedGameModel} when value > 0.
-         * @since 2.4.50
+         * @since 2.5.00
          */
         NUM_PLAYED_DEV_CARD_ROADS(24),
+
+        /**
+         * Number of remaining undos: Value of {@link SOCPlayer#getUndosRemaining()}.
+         * When joining a game in progress, send only after the board layout message:
+         * Client may use layout message as a cue to set each player's {@code getUndosRemaining()}
+         * to the initial value in the game's {@code "UBL"} SOCGameOption.
+         * @since 2.7.00
+         */
+        NUM_UNDOS_REMAINING(25),
 
         //
         // Elements related to scenarios and sea boards:
@@ -306,12 +350,17 @@ public class SOCPlayerElement extends SOCMessage
          * Sent only at reconnect, because these are also tracked during play at the client.
          * At client, should be set before placing any pieces to avoid SVP scoring problems.
          * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
+         *<P>
+         * Server v2.5.00 and newer will also send this at the end of initial placement if
+         * game is using a scenario like {@link SOCScenario#K_SC_TTD SC_TTD} which uses
+         * {@link soc.server.SOCBoardAtServer#getBonusExcludeLandArea()} (an uncommon situation).
+         *
          * @since 2.0.00
          */
         STARTING_LANDAREAS(105),
 
         /**
-         * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
+         * For scenario {@link SOCScenario#K_SC_CLVI SC_CLVI} on the {@link soc.game.SOCBoardLarge large sea board},
          * the number of cloth held by this player.
          * This element is {@link #SET} to 0 or to the player's cloth count
          * from {@link SOCPlayer#getCloth()}.
@@ -325,7 +374,7 @@ public class SOCPlayerElement extends SOCMessage
         SCENARIO_CLOTH_COUNT(106),
 
         /**
-         * For scenario game option <tt>_SC_PIRI</tt>,
+         * For scenario game option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},
          * the player's total number of ships that have been converted to warships.
          * See SOCPlayer.getNumWarships() for details.
          * This element can be {@link #SET} or {@link #GAIN}ed.  For clarity, if the number of
@@ -764,7 +813,7 @@ public class SOCPlayerElement extends SOCMessage
     /**
      * Action string map from action constants ({@link #GAIN}, etc) for {@link #toString()}
      * and {@link #stripAttribNames(String)}. Offset is 100.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static final String[] ACTION_STRINGS = {"SET", "GAIN", "LOSE"};
         // if you add to this array:
@@ -777,7 +826,7 @@ public class SOCPlayerElement extends SOCMessage
      * Undoes mapping of action constant integers -> strings ({@code "GAIN"} etc).
      * @param messageStrParams Params part of a message string formatted by {@link #toString()}; not {@code null}
      * @return Message parameters without attribute names, or {@code null} if params are malformed
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public static String stripAttribNames(String messageStrParams)
     {

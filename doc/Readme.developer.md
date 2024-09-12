@@ -19,6 +19,7 @@
 - Coding Style
 - Release Testing
 - JSettlers on Github
+- Related Projects
 
 
 
@@ -26,8 +27,8 @@
 
 ### Project layout
 
-This project uses gradle 5.6 or higher (or IDEs) to build. For developer familiarity,
-the project uses the directory structure/layout of a maven/gradle project.
+This project uses gradle 6.x or 7.x (or IDEs) to build, and
+follows the directory structure/layout of a maven/gradle project.
 
 Also see the "Build Setup and Results" section.
 
@@ -38,49 +39,70 @@ describing their structure and interactions. If something is unclear after
 reading those docs and this README section, please file an issue at github
 or email `jsettlers@nand.net` to clarify things.
 
-The main server class is `soc.server.SOCServer`; clients' requests and actions
-are dispatched into `SOCServerMessageHandler`, `SOCGameMessageHandler`, and
-`SOCGameHandler`. The client communication and game-list window is in
-`soc.client.SOCPlayerClient`, and in-game interface is in
-`soc.client.SOCPlayerInterface`. Game state is held at the server in
-`soc.game.SOCGame` and its fields; only partial game state is known at clients.
-The game's "business logic" is mostly in `SOCGame`, `SOCPlayer`, and `SOCBoard`.
+The main server class is [soc.server.SOCServer](../src/main/java/soc/server/SOCServer.java);
+ clients' requests and actions are dispatched into
+[SOCServerMessageHandler](../src/main/java/soc/server/SOCServerMessageHandler.java),
+[SOCGameMessageHandler](../src/main/java/soc/server/SOCGameMessageHandler.java),
+and [SOCGameHandler](../src/main/java/soc/server/SOCGameHandler.java).
+The client communication and game-list window is in
+[soc.client.SOCPlayerClient](../src/main/java/soc/client/SOCPlayerClient.java),
+and in-game interface is in
+[soc.client.SOCPlayerInterface](../src/main/java/soc/client/SOCPlayerInterface.java).
+Game state is held at the server in
+[soc.game.SOCGame](../src/main/java/soc/game/SOCGame.java) and its fields;
+only partial game state is known at clients.
+The game's "business logic" is mostly in SOCGame,
+[SOCPlayer](../src/main/java/soc/game/SOCPlayer.java),
+and [SOCBoard](../src/main/java/soc/game/SOCBoard.java).
 
-The sea board and scenarios use `SOCBoardLarge`. Game options and scenario rules
-are controlled through `SOCGameOption`: See section "Game rules, Game Options"
+The sea board and scenarios use [SOCBoardLarge](../src/main/java/soc/game/SOCBoardLarge.java).
+Game options and scenario rules
+are controlled through [SOCGameOption](../src/main/java/soc/game/SOCGameOption.java):
+See section "Game rules, Game Options"
 for details.
 
-Communication is described in soc.message.SOCMessage. Robots talk with the
+Package `soc.extra` is for useful or reusable code like [GameEventLog](../src/main/java/soc/extra/GameEventLog.java)
+which is developed with the main code but shouldn't be part of the built jars
+or test packages.
+
+Communication is described in the "Network Communication" section
+and [soc.message.SOCMessage](../src/main/java/soc/message/SOCMessage.java) javadocs. Robots talk with the
 server like normal human clients. Most robot messages are per-game; instead
 of being handled in SOCRobotClient, these are handled in a loop in
-SOCRobotBrain.run().
+[SOCRobotBrain](../src/main/java/soc/robot/SOCRobotBrain.java)`.run()`.
 
 For more information about the AI, please see the "Robots (AI)" section
 and Robert S Thomas' dissertation.
 
 ### Board layouts and coordinates
 
-For more information about the board coordinates, see javadocs in `soc.game.SOCBoard`
-and `soc.game.SOCBoardLarge` (or dissertation appendix A), and these diagrams:
-
-**Sea boards:**  
-![hexcoord-sea.png](/doc/hexcoord-sea.png)
-
-**4-player classic:**  
-![hexcoord.gif](/doc/hexcoord.gif)
-
-**6-player classic:**  
-![hexcoord-6player.gif](/doc/hexcoord-6player.gif)
+Pieces are placed at edges, nodes, or hexes.
 
 To show piece coordinates in the board's tooltips, in the game window chat box type: `=*= showcoords`  
 To no longer show those coordinates, type: `=*= hidecoords`
 
+For more information about the board coordinates, see javadocs in [soc.game.SOCBoard](../src/main/java/soc/game/SOCBoard.java)
+and [SOCBoardLarge](../src/main/java/soc/game/SOCBoardLarge.java)
+(or dissertation appendix A), and these diagrams:
+
+**Sea boards:**  
+Rectilinear grid of rows and columns. A vertical edge's coordinate is its center.
+A diagonal edge's coordinate value is taken from its left-end node.  
+![hexcoord-sea.png](/doc/hexcoord-sea.png)
+
+**4-player classic:**  
+Diagonal axes for rows and columns.  
+![hexcoord.gif](/doc/hexcoord.gif)
+
+**6-player classic:**  
+Same coordinates as 4-player classic. Trading ports' hexes are off the edge of the grid.  
+![hexcoord-6player.gif](/doc/hexcoord-6player.gif)
+
 ### Development
 
-Coding is done in Java 7, but should compile cleanly in newer JDKs.
-(v2.0 and 2.1 used java 6 for backwards compatibility; 1.2 used java 5.)
-The build system is gradle 5.6 or higher (which requires java 8);
-the newest tested version is gradle 6.4. Use any IDE you want, including vi.
+Coding is done in Java 8 for client compatibility, but should compile cleanly
+in newer JDKs. The build system is gradle 6.x or 7.x;
+the newest tested versions are gradle 6.9.2 and 7.5.1. Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the
 current code (see "Coding Style" below for more details.).
 
@@ -114,7 +136,7 @@ use debug commands.
 
 For security, if you must use the "debug" user outside of your own laptop or workstation,
 please use sqlite or another database and make a "debug" account with a password
-(see [Readme.md](../Readme.md) section "Database Setup").
+(see "Database Setup" section of [Database.md](Database.md)).
 
 `D.ebugPrintlnINFO` is turned on or off for each java class by the import at the top of the file.
 For example if you wanted to see D.ebugPrintlnINFO output for soc.game.SOCPlayer,
@@ -249,6 +271,7 @@ parameters (before, not after, `-jar` or the SOCPlayerClient class name):
 
 - `-Djsettlers.locale=es_MX` - Use a different locale
 - `-Djsettlers.debug.traffic=Y` - Print network traffic; see above for details
+- `-Djsettlers.allow.debug=Y` - If client starts a server, allow debug mode user to connect
 - `-Djsettlers.debug.clear_prefs=PI_width,PI_height` - Remove these persistent
   preferences at startup. See SOCPlayerClient PREF_* fields for all name keys.
 - `-Djsettlers.debug.client.features=;6pl;sb;` - Pretend to not support some
@@ -259,42 +282,51 @@ parameters (before, not after, `-jar` or the SOCPlayerClient class name):
 
 ## Setup instructions for JSettlers as an Eclipse project
 
-Written for Eclipse 4.2 and Buildship 2, should be applicable to other versions
+Written for Eclipse 4.23 and Buildship 3.1, should be applicable to other versions
 with minor changes. These instructions can be adapted to import JSettlers and
 its `build.gradle` into other IDEs.
 
 - If your Eclipse's File -> Import dialog doesn't have a "Gradle" option:
-    - Help -> Eclipse Marketplace -> Search -> Find "buildship"
-      ("Buildship Gradle Integration, by Eclipse Buildship Project")
-        - Buildship 2.x runs on JDK 7 or newer, eclipse 4.2 or newer
+    - Help -> Eclipse Marketplace
+        - If Help doesn't have an Eclipse Marketplace option:
+            - Help -> Install new software
+            - Add
+                - Name: buildship
+                - Location: `https://download.eclipse.org/buildship/updates/latest/`
+                - OK
+            - (Or see https://projects.eclipse.org/projects/tools.buildship for install instructions)
+            - Select "buildship" from "Work with" dropdown
+    - Search -> Find "buildship"
+      ("Buildship: Eclipse Plug-ins for Gradle")
         - Buildship 3.x runs on JDK 8 or newer, eclipse 4.3 or newer
     - Install
     - If prompted to restart Eclipse, do so
+- Eclipse preferences -> Gradle -> Gradle distribution: Specific gradle version: 6.x or 7.x (6.9.2, 7.5.1 are tested)
 - Choose File -> Import -> Gradle -> Existing Gradle Project
 - Browse to the jsettlers git checkout's top-level directory (containing `build.gradle`)
 - Hit Finish
 - Eclipse should import the project and do an initial build
+    - If you see the error `Unsupported class file major version 61`,
+      your default JDK is too new for that gradle version ([details here](https://docs.gradle.org/current/userguide/compatibility.html)).
+        - Install JDK 8 (JSettlers' current preferred version)
+        - In Eclipse preferences -> Gradle, point it to that JDK's java home
+        - Remove the imported project in Eclipse and import again
 - Project -> Properties
     - Resource:
         - Text file encoding: UTF-8
-        - Resource Filters -> Add  
-            To speed up project-wide file text searches:
-            - Type: Exclude all
-            - Applies to: Folders
-            - [X] All children (recursive)
-            - Name matches: `.git`
-            - OK
     - Java Compiler:
         - Enable project specific settings
         - JDK compliance
-            - Compliance level: 1.7
+            - Compliance level: 1.8
         - Errors/Warnings:
             - Enable project specific settings
             - Defaults are generally OK, but be sure to change these from "Ignore" to "Warning":
-                - Potential programming problems: switch case fall-through
-                - Name shadowing and conflicts: All
+                - Potential programming problems -> switch case fall-through
+                - Name shadowing and conflicts -> All
     - OK
     	- If eclipse asks "Build the project now?", hit Yes
+- Gradle downloads the project's required and optional library JARs, and the import wizard
+  adds them to the project's Dependencies list.
 - Run the `assemble` or `build` gradle task now to copy resources from `src/main/resources/`.  
   To do so: Gradle tasks tab -> jsettlers -> build -> assemble
 
@@ -307,31 +339,49 @@ patch submissions; to set up Eclipse now to use that style, see section
 ## Build Setup and Results
 
 Before building, make sure you have the Java Development Kit (JDK) version 8 or higher.
-If you only want to run the client or server, you can use either JDK 7 or higher,
-or version 7 or 8 of the smaller Java Runtime (JRE).
+If you only want to run the client or server, you can use either JDK 8 or higher,
+or version 8 of the smaller Java Runtime (JRE).
 
-Extra tests in the build want python 2.7 or later for unittest discovery.
+Extra tests in the build want python 2.7 or 3 for unittest discovery.
 Java unit tests and extraTests use JUnit 4, which is downloaded by `build.gradle`.
-Other scripts, like `bin/sql/template/render.py`, use python 2.6 or later.
+Other scripts like `bin/sql/template/render.py` use python 3, or 2.6 or later.
 
 If you wish to maintain a user database for your server, you need MySQL
 or PostgreSQL installed and configured, or the sqlite jdbc driver for a
-file-based local database.
+file-based local database: See "Database Setup" in [Database.md](Database.md).
 
-This project is designed to build with gradle 5.6 or higher, or from within an IDE
+This project is designed to build with gradle 6.x or 7.x, or from within an IDE
 like eclipse. Gradle builds output to `build/libs/`.
+
+To quickly run the server and client: In the Package Explorer pane:
+
+- Expand package soc.server, find `SOCServer`, right-click, run as Java Application
+- Expand soc.client, find `SOCPlayerClient`, right-click, run as Java Application
+- Click "Connect to a Server", take defaults, click Connect
+- Enter a nickname, click New Game, enter a game name, create the game
+- Should be able to sit down and start the game
 
 If not using an IDE like eclipse, check the `build.gradle` file. There may be
 build variables you may want to change locally. These can be changed by
 creating a `build.properties` file, or from the gradle command line by passing
 a `-Dname=value` parameter.
 
+The basic build command/task is:  
+`gradle build`  
+If the build fails with this error:
+`A problem occurred starting process 'command 'python''`  
+then make sure you can run the `python` command.
+If your computer has `python3` instead, update the ext.python_command
+declaration in `build.gradle`.
+
 There are several gradle build tasks. Here are the main ones:
 
 - `build`: create project jar files; also runs unit tests
 - `assemble`: create jars but don't run unit tests
 - `test`: run unit tests
-- `extraTest`: run unit tests, create jars, and run a few lengthy extra tests
+- `extraTest`: run unit tests and a few lengthy extra tests
+    - `extraTestPython`: only the python extra tests
+    - `extraTest --exclude-task extraTestPython`: only the java extra tests
 - `dist`: `build` and create tarballs of the source + built JARs  
   (jsettlers-2.x.xx-src.tar.gz, jsettlers-2.x.xx-full.tar.gz, jsettlers-2.x.xx-full.zip)
   in "build/distributions/"
@@ -370,7 +420,7 @@ In my IDE's JSettlers project, I've created these debug/run configurations:
 
     Java applications:
         cli-noargs: soc.client.SOCPlayerClient
-            vm arguments: -Djsettlers.debug.traffic=Y
+            vm arguments: -Djsettlers.debug.traffic=Y -Djsettlers.allow.debug=Y
 
         socserver: soc.server.SOCServer
             program arguments: -o N7=t7 -Djsettlers.startrobots=7 -Djsettlers.allow.debug=Y
@@ -390,7 +440,7 @@ server configuration arguments, and create these Java application configs:
         arguments: localhost 8880 robot2 r2 cook
 
 For automated functional testing, the project also includes the script
-`src/extraTest/python/server/test_startup_params.py`; run and update this script if
+`src/extraTest/python/server/test_startup_params.py`; run and update that script if
 you are developing anything related to game options or jsettlers properties.
 
 
@@ -399,7 +449,7 @@ you are developing anything related to game options or jsettlers properties.
 This is optional. See also the "Developing with a database (JDBC)" section
 of this readme.
 
-These instructions are written for Eclipse 4.2. JSettlers+sqlite works with
+These instructions are written for Eclipse 4.6. JSettlers+sqlite works with
 standard Eclipse; the j2ee Eclipse adds a convenient data browser. Note that
 [Readme.md](../Readme.md) mentions a command-line option
 `-Djsettlers.db.jar=driverfile.jar`; that's needed only while running the
@@ -407,8 +457,8 @@ jsettlers JAR from the command line, not running inside the IDE.
 
 - See the `socserver-sqlite` IDE Run Configuration in the previous section;
   this config includes the sqlite database you're about to configure.
-- Download the driver from https://bitbucket.org/xerial/sqlite-jdbc/downloads/ .
-  The downloaded JAR might have a name like `sqlite-jdbc-3.15.1.jar`.
+- Download the driver from https://github.com/xerial/sqlite-jdbc/releases -> assets.
+  The downloaded JAR might have a name like `sqlite-jdbc-3.27.2.1.jar`.
   These instructions use a generic name `sqlite-jdbc-3.xx.y`.
 - Project properties -> Java build path -> Libraries -> Add External JARs... ->
      Browse to `sqlite-jdbc-3.xx.y.jar`
@@ -458,14 +508,12 @@ from easier to more difficult. You can also search the source for TODO for
 ideas.
 
 - Visual reminder to player when they've made a trade offer
-- Show # VP when choosing where to sit, if game is in progress
 - Refactor: `new Date().getTime()` -> `System.currentTimeMillis()`
 - Occasionally the board does not re-scale at game reset
 - Docs: State diagram for `SOCGame` states, or important message sequences
   (log into server, create/join game, roll dice, etc)
-    - Or point docs to src/extraTest/java/soctest/server/TestActionsMessages.java which has many important message sequences
 - Docs: `PlayerClientListener` interface has some methods without javadocs: Add by checking `SOCPlayerInterface.ClientBridge` implementation
-- Java 7 cleanup: Use diamond operator where possible
+- Java 7+ cleanup: Use diamond operator where possible
   - Example: change  
     `Map<String, SOCGameOption> newOpts = new HashMap<String, SOCGameOption>()`  
     to  
@@ -482,6 +530,8 @@ ideas.
   - Capture any exceptions thrown by bots during those games
   - If any exceptions thrown, System.exit(1)
 - Add more sound effects
+- Client: Call frame.setIconImage instead of using default java icon
+  - Thanks to tiehfood for this suggestion (github issue #84)
 - Add more functional and unit tests, in `src/extraTest/` and `src/test/` directories
   - Medium-level example: Add a board-geometry unit test to `soctest.game.TestBoardLayouts`
     to check all scenarios' layouts against the "Layout placement rules for special situations"
@@ -490,24 +540,43 @@ ideas.
     by calling SOCServer.createAndJoinReloadedGame or a method like TestRecorder.connectLoadJoinResumeGame
 - Possibly: Auto-add robots when needed as server runs, with server active-game count
     - Only do so if `jsettlers.startrobots` property is set
+- Client i18n: Add language selector to main window (suggested in issue #99 by kotc)
+- Refactor: TestRecorder: Add method for common setup code from testBasics_Loadgame, testBasics_SendToClientWithLocale, testRecordClientMessage
+- Refactor: `SOCResourceSet`: Use something like AtomicIntegerArray for thread-safe writes/reads
 - Refactor: Combine ShadowedBox, SpeechBalloon: They look the same except for that balloon point
 - Refactor: Rework ShadowedBox, SpeechBalloon to use a custom-drawn Swing Border
 - Refactor: New methods to shortcut `ga.getPlayer(ga.getCurrentPlayer())` or `getClient().getClientManager()`
-- Refactor: `SOCGame` buy methods (`couldBuyDevCard`, `buyRoad`, etc): Call SOCResourceSet.gte(SOCResourceSet),
-  subtract(SOCResourceSet) with playing piece `COST` constants
+- Refactor: `SOCGame` buy methods (`couldBuyDevCard`, `buyRoad`, etc): Call SOCResourceSet.gte(ResourceSet),
+  subtract(ResourceSet) with playing piece `COST` constants
 - Refactor `SOCGameOptionSet`:
   Create SOCGameOptionSetAtServer for methods used only there, like optionsNotSupported and optionsTrimmedForSupport
 - Refactor: name of dev-cards consolidate
 - Refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
     - Currently in 2 places: `SOCResourceConstants.CLAY` vs `SOCPlayerElement.CLAY`
+    - Maybe standardize resource type names and other terms to those in 5th Edition:
+        - Resources: brick, lumber, grain, ore, wool (no ambiguous "W")
+        - Tile types: hills, forest, fields, mountains, pasture, desert
+        - Dev cards: knight, progress (road building, year of plenty, monopoly), VP (market, library, chapel, university, great hall)
 - Customize bot names (txt file or startup property) in SOCServer.setupLocalRobots
 - Refactor `SOCRobotClient`: Move simple handle-methods which don't put the
   message into brainQ, but only update game fields/methods, into
-  SOCDisplayless if possible.
+  SOCDisplaylessPlayerClient if possible.
 - Refactor `SOCDisplaylessPlayerClient` like SOCPlayerClient: Move handler methods into
   a class like MessageHandler, and sender methods into a class like GameMessageSender.
   Watch for method calls from the `soc.robot` and `soc.client` packages.
-- Track a limited supply of resource cards
+- Client: Save and reload practice games
+    - Use same json format as `*SAVEGAME*`, `*LOADGAME*` debug commands mentioned in "Saving and loading games at server" section
+    - File dialog for save/load
+    - May require a change to how client jar is built/packaged, to include gson jar; also check licensing for redistribution
+- House rules and game options
+    - Client: Remember last game's options from previous launch (github issue #28)
+        - Or, "game template"
+        - Maybe: Save Settings/Load Settings button
+        - Client already remembers some settings persistently, like Sound and Player Icon: See soc.client.UserPreferences
+    - Client: New game: Random options and scenario for variety (issue #29)
+    - Optional max time limit for player turns (issue #68)
+    - Thanks to kotc and dannythunder for these suggestions
+- Track a limited supply of resource cards at the bank
     - Currently unlimited
     - Official game rules have a supply limit. Paraphrasing 5th edition rules:
         - During resource production (dice roll), check the remaining supply
@@ -522,7 +591,8 @@ ideas.
     - Show remaining supply in Statistics popup and `*STATS*` debug command
     - Game window is probably too cluttered already to always show remaining supply;
       any way to cleanly do so would be a bonus
-    - Add a house rule to `SOCGameOption` for unlimited resources
+    - Be backwards-compatible: Add a house rule to `SOCGameOptionSet` for limited or unlimited resources
+    - Thanks to Ruud Poutsma and balping (github issue #85) for requesting this feature
 - Refactor: combine the `cli/displayless/robot` endturn-like methods. For example,
   search for `ga.setCurrentDice(0)`, or `newToOld`, or `ga.resetVoteClear`
 - Bots on sea boards: Help bots decide when it makes sense to move a ship (versus build another)
@@ -543,7 +613,10 @@ ideas.
   bots, currently active/total games from `*STATS*` cmd, client versions, any
   errors, etc
 - Per-game thread/message queue at server (use SOCMessageForGame.getGame)
-- HTML5 client (see v3 branch for protobuf/JSON over websockets)
+- New game/modding/scenarios: Optional simple map file format for board layout and game options (suggested in github issue #46 by kotc)
+    - Maybe have a converter to this format from `*SAVEGAME*` json format
+- HTML5 client (see v3 branch for protobuf/JSON over websockets and preliminary
+  observer-only start on that work)
 - Cities & Knights support
     - UI mock-ups
     - state change / network message plans
@@ -559,30 +632,31 @@ ideas.
 ## Saving and loading games at server
 
 To help with testing, the server can save a game and board's state to a file
-and load it later, using debug commands.
+and load it later, using admin/debug commands.
 
-This feature is experimental and still being developed, so the notes here are very basic.
+This feature is still being developed, so the notes here are very basic.
+The file format/structure is stable, future versions will stay compatible with it.
 
 Most games with a scenario can't yet be saved, because of their special pieces
 or game/player data fields. Basic scenarios like "Four Islands" which don't have
 special rules or pieces can be saved and loaded.
 
-**Usage/UI**
+### Usage/UI
 
 - Set value of server property `jsettlers.savegame.dir` to point to the game-saves directory
 - Log in as `debug` or an admin user
 - Start a game, place pieces as needed, begin game play
-- Debug command to save a snapshot: \*SAVEGAME\* savename
+- Admin command to save a snapshot: `*SAVEGAME* savename`
   - savename can contain letters and digits (Character.isLetterOrDigit), dashes (`-`), underscores (`_`)
   - If snapshot already exists, use flag `-f` to force overwriting it with the new save
-- Debug command to load a snapshot: \*LOADGAME\* savename
+- Admin command to load a snapshot: `*LOADGAME* savename`
   - Server parses the snapshot and create a game with its contents
   - Debug/admin user joins, bots are asked to join
   - A later version might optionally support requiring certain types of bots
   - Temporarily sets gamestate to new hold/pause state `LOADING`, so current player won't take action until everyone has joined
 - If other human players will be playing, have them join and sit down now
   - Note: If joining human has same name as any player in loaded game, their client will automatically sit down and can't be an observer
-- Debug command to resume play of loaded game: \*RESUMEGAME\*
+- Admin command to resume play of loaded game: `*RESUMEGAME*`
   - If game was saved with human players who haven't rejoined, bots will join now for those players
   - If no human players have sat down, game will play as robots-only even if server isn't set to allow bot-only games
   - Game play now resumes, at the current player and state it was saved with
@@ -597,6 +671,37 @@ If you're not using this feature, JSettlers doesn't require or use the GSON jar.
 
 If you want to write code which loads saved games, see `SOCServer.createAndJoinReloadedGame`
 and/or `TestRecorder.connectLoadJoinResumeGame`.
+
+### Saving game message logs / game event logs
+
+For test or debugging purposes, if you want to play some games and save their network message logs
+in a standardized format, you can do so with `soc.extra.server.RecordingSOCServer`. That specialized server
+records all messages relevant to gameplay captured by server-side calls to
+`messageToPlayer / messageToGame(.., isEvent=true)` or `recordGameEvent(..)`,
+along with messages from client players and observers.
+A list of basic game actions and their message sequences is in
+[Message-Sequences-for-Game-Actions.md](Message-Sequences-for-Game-Actions.md).
+
+Launch RecordingSOCServer and log in as `debug` with the standard client.
+In any game you're playing or observing, logs can be saved at any time with the debug command  
+`*savelog* filename`  
+which will save to `filename.soclog` in the server's current directory.
+
+Optional flags for `*SAVELOG*` command:
+
+- `-c`: Save only messages to clients from the server, not also from all clients to server
+- `-u`: Untimed; don't write the elapsed-time field if present in log entries
+- `-f`: Force overwrite an existing log
+
+Resetting the board will clear the log.
+
+For log file format, see `soc.extra.server.GameEventLog` javadocs.
+
+RecordingSOCServer also enables the `*SAVEGAME*` command; games are saved to the current directory.
+
+RecordingSOCServer isn't built into the JSettlers jars. So if you need to run it from the command line,
+you'll need more than the usual classpath. You can launch it with a bash/zsh command like:  
+`jar=(build/libs/JSettlersServer-*.jar); java -classpath ${CLASSPATH}:${jar}:build/classes/java/main:build/classes/java/test soc.extra.server.RecordingSOCServer`
 
 
 ## Game rules, Game Options
@@ -664,9 +769,8 @@ welcomes contributions. Please keep these things in mind:
 
 ## Internationalization (I18N)
 
-An internationalization framework has just been put into place for v2.0.00,
-and not yet fully used, so you won't see it used in every server and client
-class. Some work in progress is surrounded by marker comments:
+An internationalization framework was put into place for v2.0.00.
+Temporary work in progress is surrounded by marker comments:
 `/*I*/"{0} has won the game with {1} points."/*18N*/`
 
 When building strings that the user will see, don't use + to build the strings;
@@ -675,8 +779,8 @@ use strings.get or strings.getSpecial with parameter placeholders such as {0}.
 `messageToGameKeyed`, etc.). The client strings live in
 `soc/client/strings/data*.properties`.  An example commit is 68c3972.
 The server strings live in `soc/server/strings/*.properties`.  An example
-commit is 3e062b7. See the comments at the top of any *.properties file for
-format details.
+commit is 3e062b7. See the comments at the top of
+strings/server/toClient.properties for format details.
 
 If an i18n string lookup's english text isn't obvious from the key, add it as a
 comment to make searching the source for strings easier:
@@ -700,7 +804,7 @@ Before running PTEMain for the first time, you might need to run the gradle task
 `i18neditorJar` (using gradle on the command line or from your IDE) so that the
 PTEMain editor's own externalized strings will be available.
 
-When starting the editor this message is harmless, because preferences are stored per-user:
+While starting the editor this message is harmless, because preferences are stored per-user:
 
     Dec 6, 2013 3:59:16 PM java.util.prefs.WindowsPreferences <init>
     WARNING: Could not open/create prefs root node Software\JavaSoft\Prefs at root 0x80000002. Windows RegCreateKeyEx(...) returned error code 5.
@@ -727,6 +831,9 @@ The project was originally started as Robert S Thomas' PhD dissertation about AI
 agents, so there's some instrumentation for the bots but it's not entirely
 documented.  For a technical overview of how the bots plan their actions, start
 at the SOCRobotBrain class javadoc.
+
+See the "Related Projects" section near the end of this document for
+some third-party robot AI examples.
 
 ### Testing/Debugging
 
@@ -777,8 +884,8 @@ For trivial example subclasses extending `SOCRobotClient` and
 The `Sample3PClient` class javadoc mentions useful server properties such as
 `jsettlers.bots.percent3p`, `jsettlers.bots.botgames.wait_sec`, and
 `jsettlers.bots.timeout.turn`. `Sample3PBrain` demonstrates using a custom
-strategy subclass, and using the `_EXT_BOT` game option to send data to the
-bot when joining a game.
+strategy subclass, custom field, and using the `_EXT_BOT` game option to
+pass data to the bot when joining a game.
 
 For a larger change, some parts of soc.robot might still be useful for
 talking with the server and tracking the game's other players.
@@ -846,6 +953,11 @@ with any given combination of game options and scenarios. (Only the `debug` user
 can run debug commands on standalone servers. To enable the debug user, start
 the server with `-Djsettlers.allow.debug=Y` .)
 
+To test that your bot is properly tracking resources in the game data,
+start the server with `-Djsettlers.debug.bots.datacheck.rsrc=Y`
+to send `SOCBotGameDataCheck(TYPE_RESOURCE_AMOUNTS)` at the end of
+each turn. See that message's javadoc for details.
+
 For robustness testing, the `SOCRobotClient.debugRandomPause` flag can be enabled
 by editing its declaration to inject random delays into handling messages and
 commands from the server.
@@ -858,6 +970,12 @@ message format. See "Overall Structure" for an overview on network message
 handling. Communication format and more details are described in
 `soc.message.SOCMessage`. To see all message traffic from a client, set
 `jsettlers.debug.traffic=Y` (see "Tips for Debugging" section).
+
+A list of basic game actions and their message sequences is in
+[Message-Sequences-for-Game-Actions.md](Message-Sequences-for-Game-Actions.md).
+Sample code to recognize and extract game actions from them
+(`soc.extra.robot.GameActionExtractor`)
+is described in [GameActionExtractor.md](extra/GameActionExtractor.md).
 
 Keeping the network protocol simple helps with interoperability between different
 versions and implementations. At the TCP level, JSettlers messages are unicode
@@ -940,12 +1058,12 @@ comment to make searching the source for strings easier:
     setTooltipText(strings.get("hpan.points.total.yours"));  // "Your victory point total"
 ```
 
-Use parentheses around all boolean expressions and their parts, to make them
-easier to see as such:
+Use parentheses around all boolean expressions and their non-unary subexpression parts,
+and a space after negation `! `, to make them easier to see as such:
 
 ``` java
     flagvalue = (state == xyz);
-    somevar = (testflag) ? a : b;
+    somevar = (testflag && ! otherFlag) ? a : b;
     somecondition = ((state == xyz) || (players < 4));
 ```
 
@@ -1012,10 +1130,10 @@ You will also want this to have this, which disables auto-reindenting:
             Array init: Next line indented
             [X] Keep empty array initializer on one line
 
-            (Control Statements)
-            [X] New line before else in if
-            [X] New line before catch in try
-            [X] New line before finally in try
+            (New Lines) -> In Control Statements
+            [X] Before else in if
+            [X] Before catch in try
+            [X] Before finally in try
             [ ] New line before while in do
             [X] Keep 'else if' on one line
             [ ] (all other options)
@@ -1024,7 +1142,7 @@ You will also want this to have this, which disables auto-reindenting:
             Maximum line width: 120
             [x] Never join already-wrapped lines
 
-            (All other tabs)
+            (All other sections)
             Take defaults
         }
 
@@ -1064,23 +1182,25 @@ The project code lives at https://github.com/jdmonin/JSettlers2 .
 Patches can be sent by email or by pull request.
 Please make sure your patch follows the project coding style.
 
-The master branch receives new features and enhancements for the next 'minor'
+The main branch receives new features and enhancements for the next 'minor'
 release. As soon as a bug is fixed or a feature's design is fairly stable,
-it should be committed to master.
+it should be committed to main.
 
 v3 is the experimental branch with major architectural changes.
+Protobuf replaces the homegrown SOCMessage protocol.
 
-While v2.0.00 was being developed, several 1.x.xx releases came out.
-2.0 work began (and stable-1.x.xx branch split from master)
-right after releasing version 1.1.13. Most work on 1.x.xx was backported
-from 2.0 to the stable-1.x.xx git branch; changeset comments often mention
-a hash from a master commit.
-
-There will be periodic v2.x minor releases. Each release's files are tagged for
-the release (format: "release-2.4.00"). The last commit for the release
+Releases are tagged as format "release-2.4.00". Each release's last commit
 updates [Versions.md](Versions.md) with the final build number,
 with a commit message like: "Version 2.4.00 is build JM20200704"  
 Then: `git tag -a release-2.4.00 -m 'Version 2.4.00 is build JM20200704'`
+
+### Historical info
+
+While v2.0.00 was being developed, several 1.x.xx releases came out.
+2.0 work began (and stable-1.x.xx branch split from main)
+right after releasing version 1.1.13. Most work on 1.x.xx was backported
+from 2.0 to the stable-1.x.xx git branch; changeset comments often mention
+a hash from a main commit. The main branch was renamed from master for v2.5.
 
 The github repo includes the JSettlers2 v1.1.xx CVS history formerly hosted at
 https://sourceforge.net/projects/jsettlers2/ , converted to git on 2012-09-28
@@ -1091,3 +1211,36 @@ can be found at https://github.com/jdmonin/JSettlers1
 or https://sourceforge.net/projects/jsettlers/ .
 That JSettlers1 repo also includes jsettlers-1-1-branch which has
 Jeremy Monin's first JSettlers releases 1.1.00 through 1.1.06.
+
+
+## Related Projects
+
+JSettlers was originally started to explore AI agents, and these projects
+have used its code as a base for similar work.
+
+### STAC
+
+The Strategic Conversation Project (STAC) is an extensive multi-year effort
+to study negotiations, game theory, strategic decision making, and agents,
+including human-AI interactions in games. As part of their work, they ran
+tournaments of humans and bots using modified JSettlers and recorded that
+gameplay for study.
+
+STAC forked JSettlers and added several bot types, UI for partial trades
+and "fully observable" open-hand games, a way to record a game's actions to
+logs or a database for playback later, some bot API refactoring, and other
+miscellaneous work. Some of STAC's features and APIs have been
+adapted upstream as part of JSettlers v2.5.00. Jeremy occasionally contributes
+PRs to the STAC fork at https://github.com/ruflab/StacSettlers .
+
+Website: https://www.irit.fr/STAC/about.html  
+Github: https://github.com/ruflab/StacSettlers  
+Previous github: https://github.com/sorinMD/StacSettlers
+
+### Settlers of Botan
+
+Instead of changing any JSettlers code, this undergraduate project's
+third-party bot uses JSettlers as a library and extends/overrides the
+robot classes with some new implementations and algorithms.
+
+https://github.com/sambattalio/settlers_of_botan

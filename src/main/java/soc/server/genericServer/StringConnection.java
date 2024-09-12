@@ -1,6 +1,6 @@
 /**
  * Local (StringConnection) network system.
- * This file Copyright (C) 2007-2010,2012-2013,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2007-2010,2012-2013,2016-2017,2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -61,7 +61,7 @@ import soc.message.SOCMessage;
  *                       Connection is now a superclass, not an interface.
  *  2.1.0 - 2020-01-09 - Only server-side changes: See {@link SOCServerSocket}
  *  2.3.0 - 2020-04-27 - no change in this file
- *  2.4.1 - 2020-07-17 - put: fix cosmetic "IllegalStateException: Not accepted by server yet" seen when
+ *  2.5.0 - 2021-12-30 - put: fix cosmetic "IllegalStateException: Not accepted by server yet" seen when
  *                       sending message during disconnect/server shutdown
  *</PRE>
  *

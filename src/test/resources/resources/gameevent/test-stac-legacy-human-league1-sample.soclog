@@ -1,0 +1,16 @@
+2012:06:06:19:58:56:999:+0100:SOCSetSeatLock:game=g3|playerNumber=0|state=false
+2012:06:06:19:58:56:999:+0100:SOCSetSeatLock:game=g3|playerNumber=1|state=false
+2012:06:06:19:58:56:999:+0100:SOCSetSeatLock:game=g3|playerNumber=2|state=false
+2012:06:06:19:58:56:999:+0100:SOCSetSeatLock:game=g3|playerNumber=3|state=false
+2012:06:06:19:58:56:999:+0100:SOCJoinGame:nickname=yiin|password=***|host=dummyhost|game=g3
+2012:06:06:19:59:02:203:+0100:SOCJoinGame:nickname=inca|password=***|host=10.0.25.10|game=g3
+2012:06:06:19:59:16:359:+0100:SOCSitDown:game=g3|nickname=dummy|playerNumber=0|robotFlag=false
+2012:06:06:19:59:16:359:+0100:SOCSitDown:game=g3|nickname=yiin|playerNumber=0|robotFlag=false
+2012:06:06:19:59:16:359:+0100:SOCPlayerElement:game=g3|playerNum=0|actionType=100|elementType=1|value=0
+2012:06:06:19:59:16:359:+0100:SOCPlayerElement:game=g3|playerNum=0|actionType=100|elementType=2|value=0
+2012:06:06:19:59:16:359:+0100:SOCPlayerElement:game=g3|playerNum=0|actionType=100|elementType=3|value=0
+2012:06:06:19:59:16:359:+0100:SOCPlayerElement:game=g3|playerNum=0|actionType=100|elementType=4|value=0
+2012:06:06:19:59:16:359:+0100:SOCPlayerElement:game=g3|playerNum=0|actionType=100|elementType=5|value=0
+2012:06:06:19:59:16:359:+0100:SOCPlayerElement:game=g3|playerNum=0|actionType=100|elementType=6|value=0
+2012:06:06:19:59:16:359:+0100:SOCGameState:game=g3|state=0
+2012:06:06:19:59:16:359:+0100:SOCChangeFace:game=g3|playerNumber=0|faceId=1

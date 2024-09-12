@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009,2012,2014-2015,2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012,2014-2015,2018,2020-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -28,14 +28,18 @@ import soc.game.SOCPlayerNumbers;
 
 /**
  * This is a possible city that we can build
+ *<P>
+ * If serializing and deserializing this piece, remember the Player and
+ * {@link SOCBuildingSpeedEstimateFactory} fields will be null when deserialized:
+ * Call {@link SOCPossiblePiece#setTransientsAtLoad(SOCPlayer, SOCPlayerTracker)} to set them.
  *
  * @author Robert S Thomas
  *
  */
 public class SOCPossibleCity extends SOCPossiblePiece
 {
-    /** Last structural change v2.4.50 (2450) */
-    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
+    /** Has been no structural change since added in v1.0.0 (1000) or earlier */
+    private static final long serialVersionUID = 1000L;
 
     /**
      * Speedup per building type.  Indexed from {@link SOCBuildingSpeedEstimate#MIN}
@@ -43,27 +47,25 @@ public class SOCPossibleCity extends SOCPossiblePiece
      */
     protected int[] speedup = { 0, 0, 0, 0, 0 };
 
-    /**
-     * Our {@link SOCBuildingSpeedEstimate} factory.
-     * @since 2.4.50
-     */
-    protected SOCBuildingSpeedEstimateFactory bseFactory;
+    // If any transient fields are added, please override super.setTransientsAtLoad(..).
+    // If any non-transient fields are added, please update unit test TestPossiblePiece.testSerializeToFile()
+    // to set them to a non-default value to ensure their values will serialize.
 
     /**
      * constructor
      *
      * @param pl  the owner; not null
      * @param co  coordinates; not validated
-     * @param bseFactory  factory to use for {@link SOCBuildingSpeedEstimate} calls; not null
+     * @param bseFactory  factory to use for {@link SOCBuildingSpeedEstimate}
+     *     in {@link #updateSpeedup()} calls; not null
      */
     public SOCPossibleCity(SOCPlayer pl, int co, SOCBuildingSpeedEstimateFactory bseFactory)
     {
-        super(SOCPossiblePiece.CITY, pl, co);
+        super(SOCPossiblePiece.CITY, pl, co, bseFactory);
 
         eta = 0;
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
-        this.bseFactory = bseFactory;
 
         updateSpeedup();
     }
@@ -78,12 +80,11 @@ public class SOCPossibleCity extends SOCPossiblePiece
     public SOCPossibleCity(SOCPossibleCity pc)
     {
         //D.ebugPrintln(">>>> Copying possible city: "+pc);
-        super(SOCPossiblePiece.CITY, pc.getPlayer(), pc.getCoordinates());
+        super(SOCPossiblePiece.CITY, pc.getPlayer(), pc.getCoordinates(), pc.bseFactory);
 
         eta = pc.getETA();
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
-        bseFactory = pc.bseFactory;
 
         int[] pcSpeedup = pc.getSpeedup();
         for (int buildingType = SOCBuildingSpeedEstimate.MIN;

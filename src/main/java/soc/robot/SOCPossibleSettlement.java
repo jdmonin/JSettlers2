@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009,2012-2015,2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012-2015,2018,2020-2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -30,6 +30,10 @@ import java.util.Stack;
 
 /**
  * This is a possible settlement that we can build
+ *<P>
+ * If serializing and deserializing this piece, remember the Player and
+ * {@link SOCBuildingSpeedEstimateFactory} fields will be null when deserialized:
+ * Call {@link SOCPossiblePiece#setTransientsAtLoad(SOCPlayer, SOCPlayerTracker)} to set them.
  *
  * @author Robert S Thomas
  *
@@ -41,6 +45,10 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
 
     protected List<SOCPossibleRoad> necessaryRoads;
     protected List<SOCPossibleSettlement> conflicts;
+
+    // If any transient fields are added, please override super.setTransientsAtLoad(..).
+    // If any non-transient fields are added, please update unit test TestPossiblePiece.testSerializeToFile()
+    // to set them to a non-default value to ensure their values will serialize.
 
     /**
      * Speedup per building type.  Indexed from {@link SOCBuildingSpeedEstimate#MIN}
@@ -58,10 +66,13 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      * @param co  coordinates; not validated
      * @param nr  necessaryRoads list reference to use (not to copy!),
      *     or {@code null} to create a new empty list here
+     * @param bseFactory  factory to use for {@link SOCBuildingSpeedEstimate}
+     *     in {@link #updateSpeedup()} calls; not null
      */
-    public SOCPossibleSettlement(SOCPlayer pl, int co, List<SOCPossibleRoad> nr)
+    public SOCPossibleSettlement
+        (SOCPlayer pl, int co, List<SOCPossibleRoad> nr, SOCBuildingSpeedEstimateFactory bseFactory)
     {
-        super(SOCPossiblePiece.SETTLEMENT, pl, co);
+        super(SOCPossiblePiece.SETTLEMENT, pl, co, bseFactory);
 
         if (nr == null)
             nr = new ArrayList<SOCPossibleRoad>();
@@ -87,7 +98,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     public SOCPossibleSettlement(final SOCPossibleSettlement ps)
     {
         //D.ebugPrintln(">>>> Copying possible settlement: "+ps);
-        super(SOCPossiblePiece.SETTLEMENT, ps.getPlayer(), ps.getCoordinates());
+        super(SOCPossiblePiece.SETTLEMENT, ps.getPlayer(), ps.getCoordinates(), ps.bseFactory);
 
         necessaryRoads = new ArrayList<SOCPossibleRoad>(ps.getNecessaryRoads().size());
         eta = ps.getETA();

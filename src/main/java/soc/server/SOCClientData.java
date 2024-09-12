@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008-2010,2013,2015,2017-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2010,2013,2015,2017-2020,2022 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.TimerTask;
 
 import soc.message.SOCGameOptionGetInfos;  // for javadoc
+import soc.message.SOCGameOptionInfo;  // for javadoc
 import soc.message.SOCMessage;  // for javadoc
 import soc.server.genericServer.Connection;
 import soc.util.SOCFeatureSet;
@@ -231,6 +232,15 @@ public class SOCClientData
      * @since 2.0.00
      */
     public Map<String, String> scenariosInfoSent;
+
+    /**
+     * If true, client asked to create a game but included options unknown at this server.
+     * Server will reply just once with {@link SOCGameOptionInfo} marking those as unknown;
+     * with that info, client should be able to successfully ask to create a game.
+     * if client sends unknown gameopts again, will reply with text instead.
+     * @since 2.6.00
+     */
+    public boolean sentUnknownGameoptsInfo;
 
     /**
      * Is this connection a robot?

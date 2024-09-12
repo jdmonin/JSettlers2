@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2011-2015,2017-2018,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011-2015,2017-2018,2020-2023 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -41,15 +41,20 @@ import java.util.List;
  * Although it's not a board piece type, {@link SOCPossibleCard} is a type here
  * because the player could buy them as part of a building plan.
  *<P>
- * Note: {@link Serializable} form doesn't include {@link SOCPlayer} field,
- * to avoid pulling that complex structure into the serialized data.
- * If player info is needed later, an int {@code playerNumber} field would be simpler.
+ * Note: {@link Serializable} form doesn't include {@link SOCPlayer}
+ * or {@link SOCBuildingSpeedEstimateFactory} fields, to avoid pulling that
+ * complex structure into the serialized data.
+ * When loading a {@code SOCPossiblePiece} from serialized form, call
+ * {@link #setTransientsAtLoad(SOCPlayer, SOCPlayerTracker)} to set those fields again.
+ * (If player info is needed later, an int {@code playerNumber} field would be simpler.)
  *
  * @author Robert S. Thomas
  */
 public abstract class SOCPossiblePiece implements Serializable
 {
-    private static final long serialVersionUID = 2450L;  // last structural change v2.4.50
+    private static final long serialVersionUID = 2500L;  // last structural change v2.5.00
+
+    // If any piece types are added, please update unit test TestPossiblePiece.testSerializeToFile().
 
     /**
      * Type constant for a possible road. Same value as {@link SOCPlayingPiece#ROAD}.
@@ -87,21 +92,40 @@ public abstract class SOCPossiblePiece implements Serializable
      */
     public static final int PICK_SPECIAL = -3;
 
-    /** MIN is -3 for {@link #PICK_SPECIAL}, but nothing currently uses -1. {@link #ROAD} is 0. */
+    /**
+     * MIN is -3 for {@link #PICK_SPECIAL}, but nothing currently uses -1. {@link #ROAD} is 0.
+     * @see #MAXPLUSONE
+     */
     public static final int MIN = -3;
+
+    /**
+     * One past the current maximum type number.
+     * @see #MIN
+     */
     public static final int MAXPLUSONE = 4;
 
     /**
      * The type of this playing piece; a constant
-     *    such as {@link SOCPossiblePiece#ROAD}, {@link SOCPossiblePiece#CITY}, etc.
+     *    such as {@link #ROAD}, {@link #CITY}, etc.
      *    The constant types are the same as in {@link SOCPlayingPiece#getResourcesToBuild(int)}.
      */
     protected int pieceType;
 
     /**
-     * The player who owns this piece
+     * The player who owns this piece.
+     * Null if loaded from serialized form, until
+     * {@link #setTransientsAtLoad(SOCPlayer, SOCPlayerTracker)} is called.
      */
     protected transient SOCPlayer player;
+
+    /**
+     * Our optional {@link SOCBuildingSpeedEstimate} factory;
+     * null if piece type doesn't require this field.
+     * Null if loaded from serialized form, until
+     * {@link #setTransientsAtLoad(SOCPlayer, SOCPlayerTracker)} is called.
+     * @since 2.5.00
+     */
+    protected transient SOCBuildingSpeedEstimateFactory bseFactory;
 
     /**
      * Where this piece is on the board.
@@ -146,6 +170,9 @@ public abstract class SOCPossiblePiece implements Serializable
      */
     protected boolean hasBeenExpanded;
 
+    // If any transient fields are added, please update setTransientsAtLoad(..).
+    // If any non-transient fields are added, please update unit test TestPossiblePiece.testSerializeToFile().
+
     /**
      * Construct a SOCPossiblePiece.
      * @param pt  Piece type: {@link #ROAD}, {@link #CARD}, etc.
@@ -153,18 +180,37 @@ public abstract class SOCPossiblePiece implements Serializable
      * @param pl  The owner of this piece
      * @param coord  The coordinates for this piece, if any. Not validated.
      *     Some piece types such as {@link #CARD} do not use this field, they call with {@code coord} == 0.
+     * @see #SOCPossiblePiece(int, SOCPlayer, int, SOCBuildingSpeedEstimateFactory)
      * @since 2.0.00
      */
     protected SOCPossiblePiece(final int pt, final SOCPlayer pl, final int coord)
     {
-        pieceType = pt;
-        player = pl;
-        this.coord = coord;
+        this(pt, pl, coord, null);
     }
 
     /**
-     * @return  the type of piece; a constant
-     *    such as {@link SOCPossiblePiece#ROAD}, {@link SOCPossiblePiece#CITY}, etc.
+     * Construct a SOCPossiblePiece for a piece type subclass which uses a BSE Factory.
+     * @param pt  Piece type: {@link #ROAD}, {@link #CARD}, etc.
+     *     The type constants are the same as in {@link SOCPlayingPiece#getResourcesToBuild(int)}.
+     * @param pl  The owner of this piece
+     * @param coord  The coordinates for this piece, if any. Not validated.
+     *     Some piece types such as {@link #CARD} do not use this field, they call with {@code coord} == 0.
+     * @param bsef  factory to use for {@link SOCBuildingSpeedEstimate} calls;
+     *     may be null if unused by piece type subclass
+     * @see #SOCPossiblePiece(int, SOCPlayer, int)
+     * @since 2.5.00
+     */
+    protected SOCPossiblePiece
+        (final int pt, final SOCPlayer pl, final int coord, final SOCBuildingSpeedEstimateFactory bsef)
+    {
+        pieceType = pt;
+        player = pl;
+        this.coord = coord;
+        bseFactory = bsef;
+    }
+
+    /**
+     * @return  the type of piece; a constant such as {@link #ROAD}, {@link #CITY}, etc.
      *    The type constants are the same as in {@link SOCPlayingPiece#getResourcesToBuild(int)}.
      * @see #getResourcesToBuild()
      */
@@ -174,6 +220,11 @@ public abstract class SOCPossiblePiece implements Serializable
     }
 
     /**
+     * Get this piece's owner.
+     *<P>
+     * If this piece has been deserialized, this will be {@code null} until
+     * {@link #setTransientsAtLoad(SOCPlayer, SOCPlayerTracker)} is called.
+     *
      * @return the owner of this piece
      */
     public SOCPlayer getPlayer()
@@ -406,6 +457,21 @@ public abstract class SOCPossiblePiece implements Serializable
                 ("SOCPossiblePiece.getResourcesToBuild: Unknown piece type " + pieceType);
             return null;
         }
+    }
+
+    /**
+     * Set transient fields after loading from serialized form.
+     * Uses player object's Tracker as a common place to access fields like
+     * {@link SOCPlayerTracker#getBrain() pt.getBrain()}.{@link SOCRobotBrain#getEstimatorFactory() getEstimatorFactory()}.
+     * @param pl This piece's player; not null
+     * @param pt {@code pl}'s Player Tracker; not null, and
+     *     {@link SOCPlayerTracker#getBrain() pt.getBrain()} also can't be null
+     * @since 2.5.00
+     */
+    public void setTransientsAtLoad(final SOCPlayer pl, final SOCPlayerTracker pt)
+    {
+        player = pl;
+        bseFactory = pt.getBrain().getEstimatorFactory();
     }
 
     /**

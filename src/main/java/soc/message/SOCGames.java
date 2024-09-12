@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2014,2016-2017,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2014,2016-2017,2020-2021 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -87,7 +87,7 @@ public class SOCGames extends SOCMessage
      * @param ga  the game names, as a mixed-content list of Strings and/or {@link SOCGame}s;
      *     if a client can't join a game, it should be a String prefixed with
      *     {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}. Any {@link SOCGame#getGameOptions()} will be ignored.
-     * @since 2.4.50
+     * @since 2.5.00
      */
     public SOCGames(final List<?> ga)
     {

@@ -1,0 +1,555 @@
+{
+  "modelVersion": 2400,
+  "savedByVersion": 2600,
+  "gameMinVersion": -1,
+  "gameName": "ts",
+  "comments": "Has player trade statistics (added in v2.6.00)",
+  "author": "Jeremy D Monin  2022",
+  "gameOptions": "BC\u003dt4,N7\u003dt7,PL\u003d4,RD\u003df",
+  "gameDurationSeconds": 186,
+  "gameState": 20,
+  "oldGameState": 20,
+  "currentDice": 9,
+  "elements": {
+    "LARGEST_ARMY_PLAYER": -1,
+    "CURRENT_PLAYER": 3,
+    "LONGEST_ROAD_PLAYER": -1,
+    "ROUND_COUNT": 5,
+    "FIRST_PLAYER": 3
+  },
+  "devCardDeck": [
+    "DISC",
+    "KNIGHT",
+    "UNIV",
+    "MARKET",
+    "KNIGHT",
+    "KNIGHT",
+    "MONO",
+    "KNIGHT",
+    "ROADS",
+    "MONO",
+    "TEMPLE",
+    "KNIGHT",
+    "CHAPEL",
+    "DISC",
+    "KNIGHT",
+    "KNIGHT",
+    "KNIGHT",
+    "ROADS",
+    "KNIGHT",
+    "KNIGHT"
+  ],
+  "placingRobberForKnightCard": false,
+  "robberyWithPirateNotRobber": false,
+  "askedSpecialBuildPhase": false,
+  "movedShipThisTurn": false,
+  "playingRoadBuildingCardForLastRoad": false,
+  "boardInfo": {
+    "layout1": {
+      "game": "ts",
+      "hexLayout": [
+        9,
+        6,
+        65,
+        6,
+        6,
+        5,
+        2,
+        3,
+        68,
+        8,
+        1,
+        5,
+        0,
+        4,
+        6,
+        6,
+        5,
+        3,
+        3,
+        2,
+        1,
+        83,
+        34,
+        1,
+        3,
+        4,
+        2,
+        6,
+        6,
+        4,
+        4,
+        5,
+        12,
+        21,
+        6,
+        12,
+        6
+      ],
+      "numberLayout": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        5,
+        1,
+        4,
+        -1,
+        -1,
+        7,
+        2,
+        -1,
+        0,
+        -1,
+        -1,
+        6,
+        3,
+        8,
+        6,
+        3,
+        -1,
+        -1,
+        9,
+        4,
+        1,
+        7,
+        -1,
+        -1,
+        8,
+        2,
+        5,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "robberHex": 121,
+      "messageType": 1014
+    },
+    "playerPotentials": [
+      {
+        "game": "ts",
+        "playerNumber": 0,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "ts",
+        "playerNumber": 1,
+        "psNodes": [
+          184
+        ],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "ts",
+        "playerNumber": 2,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      },
+      {
+        "game": "ts",
+        "playerNumber": 3,
+        "psNodes": [],
+        "psNodesFromAll": false,
+        "areaCount": 1,
+        "startingLandArea": 1,
+        "messageType": 1057
+      }
+    ]
+  },
+  "playerSeatLocks": [
+    "LOCKED",
+    "UNLOCKED",
+    "UNLOCKED",
+    "UNLOCKED"
+  ],
+  "playerSeats": [
+    {
+      "isSeatVacant": true,
+      "totalVP": 0,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 0,
+        "wood": 0
+      },
+      "elements": {
+        "ROADS": 15,
+        "NUMKNIGHTS": 0,
+        "SETTLEMENTS": 5,
+        "CITIES": 4
+      },
+      "oldDevCards": [],
+      "newDevCards": [],
+      "pieces": []
+    },
+    {
+      "name": "robot 7",
+      "isSeatVacant": false,
+      "totalVP": 2,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 2,
+        "wheat": 1,
+        "wood": 0
+      },
+      "elements": {
+        "ROADS": 12,
+        "NUMKNIGHTS": 0,
+        "SETTLEMENTS": 3,
+        "CITIES": 4
+      },
+      "resRollStats": [
+        0,
+        0,
+        0,
+        9,
+        1,
+        0,
+        0
+      ],
+      "resTradeStats": [
+        {
+          "tradeType": "3:1 Port",
+          "gave": {
+            "clay": 0,
+            "ore": 0,
+            "sheep": 6,
+            "wheat": 0,
+            "wood": 0
+          },
+          "received": {
+            "clay": 1,
+            "ore": 1,
+            "sheep": 0,
+            "wheat": 0,
+            "wood": 0
+          }
+        },
+        {
+          "tradeType": "2:1 Clay port"
+        },
+        {
+          "tradeType": "2:1 Ore port"
+        },
+        {
+          "tradeType": "2:1 Sheep port"
+        },
+        {
+          "tradeType": "2:1 Wheat port"
+        },
+        {
+          "tradeType": "2:1 Wood port"
+        },
+        {
+          "tradeType": "4:1 Bank"
+        },
+        {
+          "tradeType": "All trades with players"
+        }
+      ],
+      "oldDevCards": [],
+      "newDevCards": [
+        "KNIGHT"
+      ],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 118
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 118
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 182
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 166
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 167
+        }
+      ]
+    },
+    {
+      "name": "robot 6",
+      "isSeatVacant": false,
+      "totalVP": 3,
+      "isRobot": true,
+      "isBuiltInRobot": true,
+      "isRobotWithSmartStrategy": true,
+      "faceID": -1,
+      "resources": {
+        "clay": 2,
+        "ore": 1,
+        "sheep": 3,
+        "wheat": 1,
+        "wood": 0
+      },
+      "elements": {
+        "ROADS": 13,
+        "NUMKNIGHTS": 0,
+        "SETTLEMENTS": 3,
+        "CITIES": 4
+      },
+      "resRollStats": [
+        0,
+        3,
+        3,
+        6,
+        1,
+        0,
+        0
+      ],
+      "resTradeStats": [
+        {
+          "tradeType": "3:1 Port"
+        },
+        {
+          "tradeType": "2:1 Clay port"
+        },
+        {
+          "tradeType": "2:1 Ore port"
+        },
+        {
+          "tradeType": "2:1 Sheep port"
+        },
+        {
+          "tradeType": "2:1 Wheat port"
+        },
+        {
+          "tradeType": "2:1 Wood port"
+        },
+        {
+          "tradeType": "4:1 Bank"
+        },
+        {
+          "tradeType": "All trades with players",
+          "gave": {
+            "clay": 1,
+            "ore": 0,
+            "sheep": 1,
+            "wheat": 0,
+            "wood": 0
+          },
+          "received": {
+            "clay": 0,
+            "ore": 1,
+            "sheep": 0,
+            "wheat": 1,
+            "wood": 0
+          }
+        }
+      ],
+      "oldDevCards": [
+        "KNIGHT",
+        "KNIGHT",
+        "CAP"
+      ],
+      "newDevCards": [],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 186
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 186
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 133
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 132
+        }
+      ]
+    },
+    {
+      "name": "debug",
+      "isSeatVacant": false,
+      "totalVP": 4,
+      "isRobot": false,
+      "isBuiltInRobot": false,
+      "isRobotWithSmartStrategy": false,
+      "faceID": 2,
+      "resources": {
+        "clay": 0,
+        "ore": 0,
+        "sheep": 0,
+        "wheat": 1,
+        "wood": 2
+      },
+      "elements": {
+        "ROADS": 9,
+        "NUMKNIGHTS": 0,
+        "SETTLEMENTS": 1,
+        "CITIES": 4
+      },
+      "resRollStats": [
+        0,
+        0,
+        3,
+        3,
+        0,
+        3,
+        0
+      ],
+      "resTradeStats": [
+        {
+          "tradeType": "3:1 Port",
+          "gave": {
+            "clay": 0,
+            "ore": 0,
+            "sheep": 3,
+            "wheat": 3,
+            "wood": 0
+          },
+          "received": {
+            "clay": 1,
+            "ore": 0,
+            "sheep": 0,
+            "wheat": 0,
+            "wood": 1
+          }
+        },
+        {
+          "tradeType": "2:1 Clay port"
+        },
+        {
+          "tradeType": "2:1 Ore port",
+          "gave": {
+            "clay": 0,
+            "ore": 2,
+            "sheep": 0,
+            "wheat": 0,
+            "wood": 0
+          },
+          "received": {
+            "clay": 0,
+            "ore": 0,
+            "sheep": 1,
+            "wheat": 0,
+            "wood": 0
+          }
+        },
+        {
+          "tradeType": "2:1 Sheep port"
+        },
+        {
+          "tradeType": "2:1 Wheat port"
+        },
+        {
+          "tradeType": "2:1 Wood port"
+        },
+        {
+          "tradeType": "4:1 Bank",
+          "gave": {
+            "clay": 0,
+            "ore": 0,
+            "sheep": 4,
+            "wheat": 0,
+            "wood": 0
+          },
+          "received": {
+            "clay": 0,
+            "ore": 0,
+            "sheep": 0,
+            "wheat": 1,
+            "wood": 0
+          }
+        },
+        {
+          "tradeType": "All trades with players",
+          "gave": {
+            "clay": 0,
+            "ore": 1,
+            "sheep": 0,
+            "wheat": 1,
+            "wood": 0
+          },
+          "received": {
+            "clay": 1,
+            "ore": 0,
+            "sheep": 1,
+            "wheat": 0,
+            "wood": 0
+          }
+        }
+      ],
+      "oldDevCards": [],
+      "newDevCards": [
+        "KNIGHT"
+      ],
+      "pieces": [
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 69
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 69
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 152
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 136
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 52
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 36
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 37
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 68
+        },
+        {
+          "pieceType": "ROAD",
+          "coord": 67
+        },
+        {
+          "pieceType": "SETTLEMENT",
+          "coord": 67
+        }
+      ]
+    }
+  ]
+}

@@ -3,8 +3,9 @@
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
- * Portions of this file copyright (C) 2009,2012-2013,2015,2020 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012-2013,2015,2020,2022 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -73,7 +74,7 @@ public class DiscardStrategy
      * When we have to discard, try to keep the resources needed for our building plan.
      * If we don't have a plan, make one by calling {@link SOCRobotDM#planStuff(int)}.
      * Otherwise, discard at random.
-     * Calls {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
+     * Calls {@link SOCRobotNegotiator#setTargetPiece(int, SOCBuildPlan)}
      * to remember the piece we want to build,
      * in case we'll need to trade for its lost resources.
      *
@@ -92,7 +93,7 @@ public class DiscardStrategy
         /**
          * make a plan if we don't have one
          */
-        if (buildingPlan.empty())
+        if (buildingPlan.isEmpty())
         {
             brain.decisionMaker.planStuff(brain.getRobotParameters().getStrategyType());
             buildingPlan = brain.getBuildingPlan();
@@ -102,10 +103,10 @@ public class DiscardStrategy
          * if we have a plan, then try to keep the resources
          * needed for that plan, otherwise discard at random
          */
-        if (! buildingPlan.empty())
+        if (! buildingPlan.isEmpty())
         {
-            SOCPossiblePiece targetPiece = buildingPlan.peek();
-            brain.negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
+            SOCPossiblePiece targetPiece = buildingPlan.getFirstPiece();
+            brain.negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), buildingPlan);
 
             //log.debug("targetPiece="+targetPiece);
 
