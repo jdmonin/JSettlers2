@@ -1,4 +1,4 @@
-/**
+/*
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * The maintainer of this program can be reached at jsettlers@nand.net
- **/
+ */
 package soc.client;
 
 import soc.client.stats.SOCGameStatistics;
@@ -634,7 +634,7 @@ public class SOCPlayerInterface extends JFrame
      * and {@link #showingPlayerDiscardOrPick_task}
      * @since 1.1.00
      */
-    private Object showingPlayerDiscardOrPick_lock;
+    private final Object showingPlayerDiscardOrPick_lock;
 
     /**
      * Task reference, in case need to cancel. May be null if not {@link #showingPlayerDiscardOrPick}.
@@ -846,8 +846,8 @@ public class SOCPlayerInterface extends JFrame
      * @throws IllegalArgumentException if a {@code localPrefs} value isn't the expected type
      *     ({@link Integer} or {@link Boolean}) based on its key's javadoc.
      */
-    public SOCPlayerInterface
-        (String title, MainDisplay md, SOCGame ga, final int[] layoutVS, final Map<String, Object> localPrefs)
+    public SOCPlayerInterface(
+            String title, MainDisplay md, SOCGame ga, final int[] layoutVS, final Map<String, Object> localPrefs)
         throws IllegalArgumentException
     {
         super(strings.get("interface.title.game", title)
@@ -863,8 +863,8 @@ public class SOCPlayerInterface extends JFrame
         {
             int ds = 0;
             Object pref = (localPrefs != null) ? (localPrefs.get(SOCPlayerClient.PREF_UI_SCALE_FORCE)) : null;
-            if ((pref != null) && (pref instanceof Integer))
-                ds = ((Integer) pref).intValue();
+            if (pref instanceof Integer)    // instanceof does null check
+                ds = (Integer) pref;
             displayScale = ((ds > 0) && (ds <= 3)) ? ds : md.getDisplayScaleFactor();
         }
         client = md.getClient();
@@ -892,7 +892,7 @@ public class SOCPlayerInterface extends JFrame
             if (v != null)
             {
                 if (v instanceof Integer)
-                    botTradeRejectSec = ((Integer) v).intValue();
+                    botTradeRejectSec = (Integer) v;
                 else
                     throw new IllegalArgumentException("value not Integer: " + k);
             }
@@ -933,7 +933,11 @@ public class SOCPlayerInterface extends JFrame
             highContrastBorders = null;
         } else {
             final Color[] sysColors = SwingMainDisplay.getForegroundBackgroundColors(false, true);
-            highContrastBorderColor = sysColors[0];
+            // getForegroundBackgroundColors() might return null if "isOSColorHighContrast == true"
+            if (null != sysColors)
+                highContrastBorderColor = sysColors[0];
+            else
+                highContrastBorderColor = null;
             highContrastBorders = new ColorSquare[game.maxPlayers];
         }
         setFont(new Font("SansSerif", Font.PLAIN, 10 * displayScale));
@@ -1021,7 +1025,7 @@ public class SOCPlayerInterface extends JFrame
                         // width is ok
                         piHeight = scHeight - 20;
                     }
-                } catch (NullPointerException e) {}
+                } catch (NullPointerException ignore) {}
 
             }
         }
@@ -1206,8 +1210,12 @@ public class SOCPlayerInterface extends JFrame
             textInput.setForeground(Color.BLACK);
         } else {
             final Color[] sysColors = SwingMainDisplay.getForegroundBackgroundColors(false, true);
-            textInput.setBackground(sysColors[2]);
-            textInput.setForeground(sysColors[0]);
+            // getForegroundBackgroundColors() might return null if "isOSColorHighContrast == true"
+            if (null != sysColors)
+            {
+                textInput.setBackground( sysColors[2] );
+                textInput.setForeground( sysColors[0] );
+            }
         }
         textInputIsInitial = false;  // due to "please wait"
         textInput.setText(strings.get("base.please.wait"));  // "Please wait..."
@@ -1378,7 +1386,7 @@ public class SOCPlayerInterface extends JFrame
                     final Clipboard cb = tfield.getToolkit().getSystemClipboard();
                     if (cb != null)
                         cb.setContents(data, data);
-                } catch (Exception e) {}  // security, or clipboard unavailable
+                } catch (Exception ignore) {}  // security, or clipboard unavailable
             }
         });
         menu.add(mi);
@@ -1617,8 +1625,8 @@ public class SOCPlayerInterface extends JFrame
      * @param newp  New player with longest/largest, or null if none
      * @since 1.1.00
      */
-    public void updateLongestLargest
-        (boolean isRoadNotArmy, SOCPlayer oldp, SOCPlayer newp)
+    public void updateLongestLargest(
+            boolean isRoadNotArmy, SOCPlayer oldp, SOCPlayer newp)
     {
         // Update handpanels
         final PlayerClientListener.UpdateType updateType;
@@ -1634,7 +1642,7 @@ public class SOCPlayerInterface extends JFrame
         }
 
         // Check for and announce change in largest army, or longest road
-        if ((newp != oldp)
+        if (   (newp != oldp)
             && ((null != oldp) || (null != newp)))
         {
             final String changedObj;  // what was changed?  Key prefix will be combined below with .taken/.first/.lost
@@ -2066,8 +2074,8 @@ public class SOCPlayerInterface extends JFrame
      * @return true if OK to send, false if a dialog was shown
      * @since 2.5.00
      */
-    public static boolean checkTextCharactersOrPopup
-        (final String txt, final MainDisplay md, final Window parent)
+    public static boolean checkTextCharactersOrPopup(
+            final String txt, final MainDisplay md, final Window parent)
     {
         if (txt.indexOf(SOCMessage.sep_char) != -1)
         {
@@ -2549,7 +2557,7 @@ public class SOCPlayerInterface extends JFrame
         while (st.hasMoreElements())
         {
             String tk = st.nextToken().trim();
-            chatDisplay.append(tk + "\n");  // TextArea will soft-wrap within the line
+            chatDisplay.append( "\n" + tk );  // TextArea will soft-wrap within the line
         }
     }
 
@@ -3001,14 +3009,16 @@ public class SOCPlayerInterface extends JFrame
     }
 
     /**
+     * UNUSED
+     *
      * Clear contents of the chat input text ("please wait" during setup, etc).
      * @since 2.5.00
      */
-    public void clearChatTextInput()
-    {
-        textInput.setText("");
-        textInputIsInitial = false;
-    }
+//    public void clearChatTextInput()
+//    {
+//        textInput.setText("");
+//        textInputIsInitial = false;
+//    }
 
     /**
      * Set or clear the chat text input's initial prompt.
@@ -3807,8 +3817,8 @@ public class SOCPlayerInterface extends JFrame
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
      * @since 1.1.00
      */
-    public void resetBoard
-        (final SOCGame newGame, final int rejoinPlayerNumber, final int requesterNumber)
+    public void resetBoard(
+        final SOCGame newGame, final int rejoinPlayerNumber, final int requesterNumber)
     {
         if (clientHand == null)
             return;
@@ -3909,7 +3919,7 @@ public class SOCPlayerInterface extends JFrame
             return;
         String excepName = th.getClass().getName();
         if (! isNested)
-            chatDisplay.append("** Exception occurred **\n");
+            chatDisplay.append("\n** Exception occurred **");
         if (th.getMessage() != null)
             chatPrint(excepName + ": " + th.getMessage());
         else
@@ -3922,11 +3932,11 @@ public class SOCPlayerInterface extends JFrame
         Throwable cause = th.getCause();
         if ((cause != null) && (cause != th)) // NOTE: getCause is 1.4+
         {
-            chatDisplay.append("** --> Nested Cause Exception: **\n");
+            chatDisplay.append("\n** --> Nested Cause Exception: **");
             chatPrintStackTrace (cause, true);
         }
         if (! isNested)
-            chatDisplay.append("-- Exception ends: " + excepName + " --\n\n");
+            chatDisplay.append("\n-- Exception ends: " + excepName + " --\n");
     }
 
     /**
@@ -4154,7 +4164,7 @@ public class SOCPlayerInterface extends JFrame
 
         public void diceRolledResources(final List<Integer> pnum, final List<SOCResourceSet> rsrc)
         {
-            StringBuffer sb = new StringBuffer("* ");
+            StringBuilder sb = new StringBuilder("* ");
             boolean noPlayersGained = true, cliPlayerGained = false;
 
             final int n = pnum.size();
@@ -4308,11 +4318,13 @@ public class SOCPlayerInterface extends JFrame
                 .updateValue(PlayerClientListener.UpdateType.ResourceTotalAndDetails);
         }
 
-        public void playerElementUpdated
-            (final SOCPlayer player, final PlayerClientListener.UpdateType utype,
+        public void playerElementUpdated( final SOCPlayer player, final PlayerClientListener.UpdateType utype,
              final boolean isGoodNews, final boolean isBadNews)
         {
-            final SOCHandPanel hpan = (player == null) ? null : pi.getPlayerHandPanel(player.getPlayerNumber());
+            // a null player makes no sense, so let's just abort if null gets passed in
+            if (null == player)
+                return;
+            final SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
             int hpanUpdateRsrcType = 0;  // If not 0, update this type's amount display
 
             switch (utype)
@@ -4372,7 +4384,9 @@ public class SOCPlayerInterface extends JFrame
                 {
                     hpan.updateValue(utype);
                     hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // 2 cloth = 1 VP
-                } else {
+                }
+                else
+                {
                     pi.buildingPanel.updateClothCount();
                 }
                 break;
@@ -4452,7 +4466,7 @@ public class SOCPlayerInterface extends JFrame
                 hpan.updateDevCards(addedPlayable);
                 hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
             }
-            else if (player != null)
+            else // if (player != null)
             {
                 hpan.updateDevCards(addedPlayable);
             }
@@ -4680,7 +4694,7 @@ public class SOCPlayerInterface extends JFrame
         {
             int[] scoresArray = new int[scores.size()];
             for (Map.Entry<SOCPlayer, Integer> e : scores.entrySet())
-                scoresArray[e.getKey().getPlayerNumber()] = e.getValue().intValue();
+                scoresArray[e.getKey().getPlayerNumber()] = e.getValue();
 
             pi.updateAtOver(scoresArray);
         }
@@ -4948,7 +4962,7 @@ public class SOCPlayerInterface extends JFrame
 
                 // popup if player is our client, or if won or recaptured
 
-                StringBuffer sb = new StringBuffer(strings.get("game.sc_piri.attfort.results"));  // "Pirate Fortress attack results:"
+                StringBuilder sb = new StringBuilder(strings.get("game.sc_piri.attfort.results"));  // "Pirate Fortress attack results:"
                 sb.append('\n');
                 sb.append(strings.get("game.sc_piri.attfort.def.strength", defStrength));  // "Defense strength: {0}"
                 sb.append('\n');
@@ -5464,7 +5478,7 @@ public class SOCPlayerInterface extends JFrame
                 bMinH = bpMinSz.height;
             }
             final int buildph = buildingPanel.getHeight();
-            final int tfh = textInput.getHeight();
+            final int textInputHeight = textInput.getHeight();  // Area where a user can type a message. Typically just one line
             final int pix4 = 4 * displayScale, pix8 = 8 * displayScale,
                       pix12 = 12 * displayScale, pix16 = 16 * displayScale;
             int hpMinW = SOCHandPanel.WIDTH_MIN * displayScale;
@@ -5473,11 +5487,11 @@ public class SOCPlayerInterface extends JFrame
             int bw = dim.width - (2 * hpMinW) - pix16;  // As wide as possible
             int bh = (int) ((bw * (long) bMinH) / bMinW);
 
-            if (bh > (dim.height - buildph - pix16 - (int)(5.5f * tfh)))
+            if (bh > (dim.height - buildph - pix16 - (int)(5.5f * textInputHeight)))
             {
                 // Window is wide: board would become taller than fits in window.
                 // Re-calc board max height, then board width.
-                bh = dim.height - buildph - pix16 - (int)(5.5f * tfh);  // As tall as possible
+                bh = dim.height - buildph - pix16 - (int)(5.5f * textInputHeight);  // As tall as possible
                 bw = (int) ((bh * (long) bMinW) / bMinH);
             }
 
@@ -5492,22 +5506,22 @@ public class SOCPlayerInterface extends JFrame
             }
 
             int hw = (dim.width - bw - pix16) / 2;  // each handpanel's width; height is hh
-            int tah = 0;  // textareas' height (not including tfh): calculated soon
+            int textAreaHeight = 0;  // textareas' height: calculated soon
 
             if (canStretchBoard)
             {
                 // Now that we have minimum board height/width,
                 // make it taller if possible
-                int spareH = (dim.height - buildph - pix16 - (int)(5.5f * tfh)) - bh;
+                int spareH = (dim.height - buildph - pix16 - (int)(5.5f * textInputHeight)) - bh;
                 if (spareH > 0)
                     bh += (2 * spareH / 3);  // give 2/3 to boardpanel height, the rest to tah
 
-                tah = dim.height - bh - buildph - tfh - pix16;
+                textAreaHeight = dim.height - bh - buildph - textInputHeight - pix16;
 
                 // Scale it
                 try
                 {
-                    boardPanel.setBounds(hw + pix8, tfh + tah + pix8, bw, bh);
+                    boardPanel.setBounds(hw + pix8, textInputHeight + textAreaHeight + pix8, bw, bh);
                 }
                 catch (IllegalArgumentException e)
                 {
@@ -5518,10 +5532,10 @@ public class SOCPlayerInterface extends JFrame
             if (! canStretchBoard)
             {
                 bh = bMinH;
-                tah = dim.height - bh - buildph - tfh - pix16;
+                textAreaHeight = dim.height - bh - buildph - textInputHeight - pix16;
                 try
                 {
-                    boardPanel.setBounds(hw + pix8, tfh + tah + pix8, bw, bh);
+                    boardPanel.setBounds(hw + pix8, textInputHeight + textAreaHeight + pix8, bw, bh);
                 }
                 catch (IllegalArgumentException ee)
                 {
@@ -5549,8 +5563,8 @@ public class SOCPlayerInterface extends JFrame
                         }
                     }
 
-                    tah = dim.height - bh - buildph - tfh - pix16;
-                    boardPanel.setLocation(hw + pix8, tfh + tah + pix8);
+                    textAreaHeight = dim.height - bh - buildph - textInputHeight - pix16;
+                    boardPanel.setLocation(hw + pix8, textInputHeight + textAreaHeight + pix8);
                 }
             }
             if (highContrastBorders != null)
@@ -5564,7 +5578,7 @@ public class SOCPlayerInterface extends JFrame
             final int hh = (dim.height - pix12) / halfplayers;  // handpanel height
             final int kw = bw;
 
-            buildingPanel.setBounds(hw + pix8, tah + tfh + bh + pix12, kw, buildph);
+            buildingPanel.setBounds(hw + pix8, textAreaHeight + textInputHeight + bh + pix12, kw, buildph);
 
             // Hands start at top-left, go clockwise;
             // hp.setBounds also sets its blankStandIn's bounds.
@@ -5657,34 +5671,35 @@ public class SOCPlayerInterface extends JFrame
                     }
                 }
             }
-            catch (NullPointerException e) {}
+            catch (NullPointerException ignore) {}
 
-            int tdh, cdh;
-            if (game.isPractice)
+            int textDisplayHeight, chatDisplayHeight;
+//            if (game.isPractice)
             {
                 // Game textarea larger than chat textarea
-                cdh = (int) (2.2f * tfh);
-                tdh = tah - cdh;
-                if (tdh < cdh)
-                {
-                    tdh = cdh;
-                    cdh = tah - cdh;
+                chatDisplayHeight = (int) (2.1f * textInputHeight); // chat area is ~twice the text input area, or about two lines.
+                textDisplayHeight = textAreaHeight - chatDisplayHeight; // game text area is everything else.
+                if (textDisplayHeight < chatDisplayHeight)      // Can only happen if the window is resized to make
+                        // the total area less than chat area (2 lines)
+                {       // in which case, the text display area becomes two lines, and the chat area becomes what's left.
+                    textDisplayHeight = chatDisplayHeight;
+                    chatDisplayHeight = textAreaHeight - chatDisplayHeight;
                 }
             }
-            else
-            {
-                // Equal-sized text, chat textareas
-                tdh = tah / 2;
-                cdh = tah - tdh;
-            }
+//            else      // Really, in the age of Zoom, who uses chat boxes (except for automated commands)?
+//            {
+//                // Equal-sized text, chat textareas
+//                textDisplayHeight = textAreaHeight / 2;
+//                chatDisplayHeight = textAreaHeight - textDisplayHeight;
+//            }
             if (textDisplaysLargerTemp_needsLayout && textDisplaysLargerTemp)
             {
                 // expanded size (temporary)
                 final int x = hw / 2;
                 final int w = dim.width - 2 * (hw - x);
-                int h = 5 * tfh;  // initial guess of height
-                if (h < boardPanel.getY() - tfh)
-                    h = boardPanel.getY() - tfh;
+                int h = 5 * textInputHeight;  // initial guess of height
+                if (h < boardPanel.getY() - textInputHeight)
+                    h = boardPanel.getY() - textInputHeight;
 
                 // look for a better height;
                 // Use height of shortest handpanel as reference.
@@ -5693,17 +5708,17 @@ public class SOCPlayerInterface extends JFrame
                     int h1 = hands[1].getHeight();
                     if (h1 < hf)
                         hf = h1;
-                    hf = hf - cdh - tfh - (15 * displayScale);
+                    hf = hf - chatDisplayHeight - textInputHeight - (15 * displayScale);
                     if (hf > h)
                         h = hf;
                 }
 
                 textDisplay.setBounds(x, pix4, w, h);
                 if (! game.isPractice)
-                    cdh += (20 * displayScale);
-                chatDisplay.setBounds(x, pix4 + h, w, cdh);
-                h += cdh;
-                textInput.setBounds(x, pix4 + h, w, tfh);
+                    chatDisplayHeight += (20 * displayScale);
+                chatDisplay.setBounds(x, pix4 + h, w, chatDisplayHeight);
+                h += chatDisplayHeight;
+                textInput.setBounds(x, pix4 + h, w, textInputHeight);
 
                 needRepaintBorders = true;
 
@@ -5712,9 +5727,9 @@ public class SOCPlayerInterface extends JFrame
             } else {
                 // standard size
                 final int prevTextY = textInput.getBounds().y;
-                textDisplay.setBounds(hw + pix8, pix4, bw, tdh);
-                chatDisplay.setBounds(hw + pix8, pix4 + tdh, bw, cdh);
-                textInput.setBounds(hw + pix8, pix4 + tah, bw, tfh);
+                textDisplay.setBounds(hw + pix8, pix4, bw, textDisplayHeight);
+                chatDisplay.setBounds(hw + pix8, pix4 + textDisplayHeight, bw, chatDisplayHeight);
+                textInput.setBounds(hw + pix8, pix4 + textAreaHeight, bw, textInputHeight);
 
                 // scroll to bottom of textDisplay, chatDisplay after resize from expanded
                 EventQueue.invokeLater(new Runnable()
@@ -6029,11 +6044,9 @@ public class SOCPlayerInterface extends JFrame
         {
             if (! isForTrade)
             {
-                switch (forButton)
+                if (forButton == ASK_SPECIAL_BUILD)
                 {
-                case ASK_SPECIAL_BUILD:
-                    buildingPanel.clickBuildingButton(game, SOCBuildingPanel.SBP, false);
-                    break;
+                    buildingPanel.clickBuildingButton( game, SOCBuildingPanel.SBP, false );
                 }
 
                 return;
@@ -6218,7 +6231,7 @@ public class SOCPlayerInterface extends JFrame
                 c.setFramePosition(0);
                 c.start();
                 Thread.sleep(c.getMicrosecondLength() / 1000);  // since playback uses clip's own thread
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException ignore) {}
         }
     }
 
