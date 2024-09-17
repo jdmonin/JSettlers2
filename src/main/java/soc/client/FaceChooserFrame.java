@@ -114,8 +114,8 @@ import soc.game.SOCGame;
      *    or pnum is negative or more than SOCGame.MAXPLAYERS.
      * @throws NullPointerException if cli or gamePI is null
      */
-    public FaceChooserFrame(SOCFaceButton fbutton, SOCPlayerClient cli,
-            SOCPlayerInterface gamePI, int pnum, int faceID, int faceWidth)
+    public FaceChooserFrame( SOCFaceButton fbutton, SOCPlayerClient cli,
+                             SOCPlayerInterface gamePI, int pnum, int faceID, int faceWidth )
         throws IllegalArgumentException
     {
         super(strings.get("facechooser.title", gamePI.getGame().getName(), gamePI.getClientNickname()));
@@ -453,7 +453,7 @@ import soc.game.SOCGame;
          */
         protected static int faceRowsHeight = 6;
 
-        protected final FaceChooserFrame fcf;
+        final FaceChooserFrame fcf;
         private int currentRow;     // upper-left row #, first row is 0
         private int currentOffset;  // upper-left, from faceid==0
         private int rowCount;       // how many rows total
@@ -482,7 +482,7 @@ import soc.game.SOCGame;
         /** Desired size (visible size inside of insets; not incl scrollW) **/
         protected int wantW, wantH;
 
-        /** Desired size */
+        /** Actual size of this container inside the available parent frame area */
         protected Dimension wantSize;
 
         /** Padding beyond desired size; not known until doLayout() **/
@@ -558,8 +558,11 @@ import soc.game.SOCGame;
             final int displayScale = fcf.pi.displayScale;
             wantW = rowFacesWidth * SOCFaceButton.FACE_WIDTH_BORDERED_PX * displayScale;
             wantH = faceRowsHeight * SOCFaceButton.FACE_WIDTH_BORDERED_PX * displayScale;
-            scrollW = 0;  // unknown before is visible
-            padW = 10 * displayScale;  padH = 30 * displayScale;  // assumed; will get actual at doLayout.
+            scrollW = 0;  // unknown before it is visible
+            padW = 40 * displayScale;  padH = 4 * displayScale;  // assumed; will get actual at doLayout.
+            // just a guess at this point, but it does set the original size of our parent frame
+            // (width + 16 and height + 94). Later we will adjust this value, if necessary, to
+            // fit within the boundaries of our usable area inside our parent frame.
             wantSize = new Dimension (wantW + padW, wantH + padH);
         }
 
@@ -889,25 +892,31 @@ import soc.game.SOCGame;
                 setSize (wantSize);
                 changedWantSize = true;
             }
-            // Now that we know insets, check if our window is too narrow or short
-            boolean tooSmall = false;
+            Insets fi = fcf.getInsets();  // frame insets
+            if (fi != null)
             {
-                Insets fi = fcf.getInsets();  // frame insets
-                if (fi != null)
+                // Now that we know insets, check if our window is too narrow or short
+                int fw = fcf.getSize().width;   // frame width
+                int fh = fcf.getSize().height;  // frame height
+                int fiw = fw - fi.left - fi.right;  // inner width
+                int fih = fh - fi.top - fi.bottom;  // inner height
+                int fioh = 0;   // frame inner "other" height (of labels & buttons)
+                if (fcf.changeFaceBut != null)
+                    fioh += fcf.changeFaceBut.getPreferredSize().height;
+                if (fcf.promptLbl != null)
+                    fioh += fcf.promptLbl.getPreferredSize().height;
+                int effectiveHeight = (fih - fioh);
+                if ((fiw < wantSize.width) || (effectiveHeight < wantSize.height))
                 {
-                    int fw = fcf.getSize().width;   // frame width
-                    int fh = fcf.getSize().height;  // frame height
-                    int fiw = fw - fi.left - fi.right;  // inner width
-                    int fih = fh - fi.top - fi.bottom;  // inner height
-                    int fioh = 0;   // frame inner "other" height (of labels & buttons)
-                    if (fcf.changeFaceBut != null)
-                        fioh += fcf.changeFaceBut.getPreferredSize().height;
-                    if (fcf.promptLbl != null)
-                        fioh += fcf.promptLbl.getPreferredSize().height;
-                    tooSmall = (fiw < wantSize.width) || ((fih - fioh) < wantSize.height);
+                    // Change the actual size of our inner container to match the area
+                    // that our parent frame has allocated for us.
+                    wantSize.width = fiw;
+                    wantSize.height = effectiveHeight;
+                    setSize( wantSize );
+                    changedWantSize = true;
                 }
             }
-            if (changedWantSize || tooSmall)
+            if (changedWantSize)
             {
                 fcf.pack();
                 fcf.checkSizeAndFocus(true);  // noting our new size
@@ -920,6 +929,7 @@ import soc.game.SOCGame;
          *  Custom layout for this list, which makes things easier
          *  because visibleFaceGrid changes frequently.
          */
+        @Override
         public void doLayout()
         {
             Insets i = getInsets();
