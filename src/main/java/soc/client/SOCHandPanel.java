@@ -2503,7 +2503,13 @@ import javax.swing.UIManager;
         playerIsCurrent = (game.getCurrentPlayerNumber() == playerNumber);
 
         final boolean showResourceDetails;
-        if (player.getName().equals(playerInterface.getClientNickname()))
+        String playerName = player.getName();
+        if (null == playerName)
+        {
+            playerName = playerInterface.getClientNickname();
+            player.setName( playerName );
+        }
+        if ( null != playerName && playerName.equals(playerInterface.getClientNickname()))
         {
             // this is our hand
 
