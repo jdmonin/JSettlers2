@@ -577,6 +577,7 @@ public class TestActionsMessages
                 {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=1|coord=80b"},
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=GAIN|e1=1,e3=1,e4=1,e5=1"},
                 {"all:SOCLongestRoad:", "|playerNumber=2"},
+                {"all:SOCGameState:", "|state=20"},
             }, false);
 
         final int ROAD_EDGE = 0xc07;
@@ -588,6 +589,7 @@ public class TestActionsMessages
                 {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=0|coord=c07"},
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=GAIN|e1=1,e5=1"},
                 {"all:SOCLongestRoad:", "|playerNumber=2"},
+                {"all:SOCGameState:", "|state=20"},
             }, false);
 
         final int SHIP_EDGE_EAST = 0x80b;
@@ -599,6 +601,7 @@ public class TestActionsMessages
                 {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=3|coord=80b"},
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=GAIN|e3=1,e5=1"},
                 {"all:SOCLongestRoad:", "|playerNumber=2"},
+                {"all:SOCGameState:", "|state=20"},
             }, false);
 
         /* move ship & undo */
@@ -611,6 +614,7 @@ public class TestActionsMessages
             {
                 {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=3|coord=80b|movedFromCoord=c0b"},
                 {"all:SOCLongestRoad:", "|playerNumber=2"},
+                {"all:SOCGameState:", "|state=20"},
             }, false);
         if (comparesShipMove == null)
         {
@@ -624,6 +628,7 @@ public class TestActionsMessages
                 {
                     {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=3|coord=80b|movedFromCoord=c0b"},
                     {"all:SOCLongestRoad:", "|playerNumber=2"},
+                    {"all:SOCGameState:", "|state=20"},
                 }, false);
             if (comparesShipMove != null)
                 comparesShipMove.insert(0, "Test move & undo same ship: ");
@@ -698,6 +703,7 @@ public class TestActionsMessages
                     {"all:SOCSetShipRouteClosed:", "|p=0|p=1804|p=2059|p=2315|p=2570|p=2826|p=3081|p=3080"},
                     {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=3|coord="
                      + Integer.toHexString(SHIP_EDGE_NEW_COASTAL) + "|movedFromCoord=c0b"},
+                    {"all:SOCGameState:", "|state=20"},
                 }, false);
             if (comparesShipMove != null)
                 comparesShipMove.insert(0, "Test move ship to close route: ");
@@ -719,6 +725,7 @@ public class TestActionsMessages
                     {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=3|coord="
                      + Integer.toHexString(SHIP_EDGE_NEW_COASTAL)},
                     {"all:SOCPlayerElements:", "playerNum=3|actionType=GAIN|e3=1,e5=1"},
+                    {"all:SOCGameState:", "|state=20"},
                 }, false);
             if (comparesShip != null)
                 comparesShip.insert(0, "Test build ship to close route: ");
