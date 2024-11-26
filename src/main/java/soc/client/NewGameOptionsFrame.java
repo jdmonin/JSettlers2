@@ -1281,12 +1281,20 @@ import soc.util.Version;
         // PREF_HEX_GRAPHICS_SET is an integer for future expansion,
         // but right now there's only 2 options, so use checkbox for simpler UI
         boolean bval = (1 == UserPreferences.getPref(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, 0));
-        localPrefs.put(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, Boolean.valueOf(bval));
-        initInterface_Pref1
-            (bp, gbl, gbc, SOCPlayerClient.PREF_HEX_GRAPHICS_SET,
-             strings.get("game.options.hex.classic.all"),  // "Hex graphics: Use Classic theme (All games)"
-             true, false,
-             bval, 0, null);
+        localPrefs.put(SOCPlayerClient.PREF_HEX_GRAPHICS_SET, bval );
+        initInterface_Pref1( bp, gbl, gbc, SOCPlayerClient.PREF_HEX_GRAPHICS_SET,
+                strings.get( "game.options.hex.classic.all" ),  // "Hex graphics: Use Classic theme (All games)"
+                true, false, bval, 0,
+                new PrefCheckboxListener()
+                {
+                    @Override
+                    public void stateChanged( boolean check )
+                    {
+                        // flip the current state of the hex graphic preference checkbox.
+                        localPrefs.put( SOCPlayerClient.PREF_HEX_GRAPHICS_SET,
+                                ! (Boolean) localPrefs.get( SOCPlayerClient.PREF_HEX_GRAPHICS_SET ));
+                    }
+                } );
 
         initInterface_Pref1
             (bp, gbl, gbc, null,
