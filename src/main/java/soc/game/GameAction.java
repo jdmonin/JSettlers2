@@ -654,7 +654,7 @@ public class GameAction
          */
         PLAYER_GAIN_SETTLED_LANDAREA(60),
 
-        /** The {@link SOCGame#hasBuiltCity()} flag was set by building a piece. */
+        /** The {@link SOCGame#hasBuiltCity()} flag was set by building a piece. Undoing the build should clear it. */
         SET_GAME_FLAG_N7C(70),
 
         /**

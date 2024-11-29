@@ -348,6 +348,7 @@ Because the sequence sometimes includes messages from undoing side effects, it a
 
 - f3:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45
 - all:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45
+- If was first city: all:SOCGameElements:game=g|e10=0
 - all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2
 - all:SOCGameState:game=g|state=20
 

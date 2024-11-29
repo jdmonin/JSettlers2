@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -164,7 +164,21 @@ public class SOCGameElements extends SOCMessageTemplateMi
          *
          * @since 2.7.00
          */
-        IS_PLACING_ROBBER_FOR_KNIGHT_CARD_FLAG(9);
+        IS_PLACING_ROBBER_FOR_KNIGHT_CARD_FLAG(9),
+
+        /**
+         * Value of {@link SOCGame#hasBuiltCity()}:
+         * Is 1 after a city has been built, 0 before that or after undoing the first city build.
+         * Sent only during undo. Not sent during normal gameplay: Instead, client sets that flag based on
+         * the {@link SOCPutPiece} gameplay message.
+         *<P>
+         * Used with house rule {@link soc.game.SOCGameOption game option} {@code "N7C"}.
+         * Introduced in 2.7.00 which is also the first version which can undo piece builds,
+         * so older client versions wouldn't be in a game where this message would be sent.
+         *
+         * @since 2.7.00
+         */
+        HAS_BUILT_CITY_N7C(10);
 
         /**
          * Minimum version (2.7.00) of server and client which send and recognize {@link #SHIP_PLACED_THIS_TURN_EDGE}.

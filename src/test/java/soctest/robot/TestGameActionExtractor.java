@@ -1245,6 +1245,7 @@ public class TestGameActionExtractor
             // undo build city:
             "f5:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=2|coord=45",
             "all:SOCUndoPutPiece:game=g|playerNumber=5|pieceType=2|coord=45",
+            "all:SOCGameElements:game=g|e10=0",
             "all:SOCPlayerElements:game=g|playerNum=5|actionType=GAIN|e2=3,e4=2",
             "all:SOCGameState:game=g|state=20",
 
@@ -1388,7 +1389,7 @@ public class TestGameActionExtractor
 
                     act = actionLog.get(4);
                     assertEquals(desc, ActionType.UNDO_BUILD_PIECE, act.actType);
-                    assertEquals(desc, (toClientPN == -1) ? 4 : 3, act.eventSequence.size());
+                    assertEquals(desc, (toClientPN == -1) ? 5 : 4, act.eventSequence.size());
                     assertEquals(desc, SOCGame.PLAY1, act.endingGameState);
                     assertEquals(desc + " unbuilt city", SOCPlayingPiece.CITY, act.param1);
                     assertEquals(desc + " unbuilt at 0x45", 0x45, act.param2);

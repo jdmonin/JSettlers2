@@ -1102,6 +1102,14 @@ public class GameActionExtractor
         if (e == null)
             return null;
 
+        // Skip past possible SOCGameElement side effects (such as HAS_BUILT_CITY_N7C)
+        while (e.isToAll() && (e.event instanceof SOCGameElements))
+        {
+            e = next();
+            if (e == null)
+                return null;
+        }
+
         // If not moving piece, all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2
         final SOCResourceSet cost;
         if (movedFromCoord == 0)
