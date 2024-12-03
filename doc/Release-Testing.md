@@ -1348,7 +1348,7 @@ Start with a recently-created database with latest schema/setup scripts.
         - In src/main/java/soc/server/genericServer/NetConnection.java temporarily change `TIMEOUT_VALUE` to `10 * 1000`
         - Test: Start a Server
             - Launch client and click "Start a Server", then "Start"
-            - Should start up and connect to that server as usual
+            - Should start and connect to that server (itself) as usual
             - Wait 10 seconds
         - Client should return to its Connect or Practice panel
             - Should show the 3 buttons for Connect to a Server, Practice, Start a Server
@@ -1363,7 +1363,18 @@ Start with a recently-created database with latest schema/setup scripts.
             - Wait 10 seconds
         - Client should return to its Connect or Practice panel
             - Should be same as for "Test: Start a Server": see that for details
-        - Exit client, stop server; revert NetConnection.java temporary change
+        - Test: Connect to a Server using command line parameters
+            - To connect to server at startup, start client with params `localhost 8880`
+            - Should be same as for "Test: Start a Server": see that for details
+        - Test: Use non-default port 9999
+            - Start a server on port 9999 using params `9999 32`
+            - Launch a client as usual and connect on port 9999
+            - Launch a client with params `localhost 9999` to connect
+            - Should be same as for "Test: Start a Server"; after losing connection, each client's connect port textfield should contain `9999`
+        - Exit clients, stop servers; revert NetConnection.java temporary change
+        - To test connection lost (not timed out), repeat this list of tests with unmodified code
+            - Skip first test, because can't stop its server without exiting client
+            - In each test instead of "wait 10 seconds", stop the server and see if clients behave as described
 - Practice Games vs Server connection:
     - Launch the player client and start a practice game (past end of initial placement)
     - Connect to a server, change client's nickname from "Player", start or join a game there
