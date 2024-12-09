@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014,2016-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014,2016-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -894,9 +894,13 @@ import javax.swing.SwingConstants;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
+            else if (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2)
+            {
+                java.awt.EventQueue.invokeLater
+                    (new ConfirmCancelFreeRoadDialog(pi, true, false));
+            }
             else if ((pieceButtonsState == SOCGame.PLACING_ROAD)
-                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD1)
-                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
+                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD1))
             {
                 messageSender.cancelBuildRequest(game, SOCPlayingPiece.ROAD);
             }
@@ -953,9 +957,13 @@ import javax.swing.SwingConstants;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
             }
+            else if (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2)
+            {
+                java.awt.EventQueue.invokeLater
+                    (new ConfirmCancelFreeRoadDialog(pi, false, false));
+            }
             else if ((pieceButtonsState == SOCGame.PLACING_SHIP)
-                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD1)
-                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2))
+                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD1))
             {
                 messageSender.cancelBuildRequest(game, SOCPlayingPiece.SHIP);
             }
@@ -1314,5 +1322,72 @@ import javax.swing.SwingConstants;
         }
 
     }  // nested class ArrowheadPanel
+
+    /**
+     * Modal dialog to confirm that player wants to cancel/skip placement of their second free road or ship
+     * in {@link SOCGame#PLACING_FREE_ROAD2 PLACING_FREE_ROAD2}.
+     * @since 2.7.00
+     */
+    public static class ConfirmCancelFreeRoadDialog extends AskDialog
+    {
+        private static final long serialVersionUID = 2700L;
+
+        /** True to cancel placing a road, false for a ship */
+        private final boolean isRoadNotShip;
+
+        /**
+         * True if player clicked the "Done" button in {@link SOCHandPanel}
+         * and will not only cancel placement, but also end their turn
+         */
+        private final boolean isEndingTurn;
+
+        /**
+         * Create and show a new {@link SOCBuildingPanel.ConfirmCancelFreeRoadDialog ConfirmCancelFreeRoadDialog}.
+         * To display the dialog without tying up the client's message-treater thread,
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
+         *
+         * @param pi  This game's PlayerInterface window; not null
+         * @param isRoadNotShip  True to cancel placing a road, false for a ship
+         * @param isEndingTurn  True if player clicked the "Done" button in {@link SOCHandPanel}
+         *     and will not only cancel placement, but also end their turn
+         */
+        public ConfirmCancelFreeRoadDialog
+            (final SOCPlayerInterface pi, final boolean isRoadNotShip, final boolean isEndingTurn)
+        {
+            super(pi.getMainDisplay(), pi,
+                strings.get("dialog.cancel_free_road.title"), // "Cancel second free placement?"
+                pi.getGame().hasSeaBoard
+                    ? strings.get("dialog.cancel_free_road.confirm_sea")  // "Are you sure you want to skip placing your second free road or ship?"
+                    : strings.get("dialog.cancel_free_road.confirm"),  // "Are you sure you want to skip placing your second free road?"
+                strings.get("base.place"),  // "Place"
+                strings.get("base.skip"),  // "Skip"
+                true, false);
+
+            this.isRoadNotShip = isRoadNotShip;
+            this.isEndingTurn = isEndingTurn;
+        }
+
+        /** React to the Place button: Do nothing, continue placement. */
+        @Override
+        public void button1Chosen() {}
+
+        /** React to the Skip button: Send either Cancel Build Request or End Turn message. */
+        @Override
+        public void button2Chosen()
+        {
+            final GameMessageSender messageSender = pi.getClient().getGameMessageSender();
+            final SOCGame game = pi.getGame();
+
+            if (isEndingTurn)
+                messageSender.endTurn(game);
+            else
+                messageSender.cancelBuildRequest
+                    (game, isRoadNotShip ? SOCPlayingPiece.ROAD : SOCPlayingPiece.SHIP);
+        }
+
+        /** React to the dialog window closed by user: Do nothing, continue placement. */
+        @Override
+        public void windowCloseChosen() {}
+    }
 
 }
