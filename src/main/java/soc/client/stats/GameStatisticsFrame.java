@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2012-2014,2017,2020,2022-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2014,2017,2020,2022-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -555,11 +555,15 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
         }
     }
 
+    /** One dice number's bar chart bar within the roll statistics row. */
     private class RollBar extends JComponent
     {
         private double percent;
         private int value;
 
+        /**
+         * Create a RollBar with default value 0% of the shared maximum.
+         */
         public RollBar()
         {
             final Dimension size = new Dimension(20, 30);
@@ -571,6 +575,11 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             value = 0;
         }
 
+        /**
+         * Update the bar's value and the shared maximum. Calls repaint.
+         * @param value  New value for bar
+         * @param max  Current max value across all bars, to redraw with proper vertical scale
+         */
         public void setValue(int value, int max)
         {
             if (max < 1)
