@@ -167,13 +167,19 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
       `dev: 2 debug`
     - Test these situations, 1 per turn:
     - Build 2 free roads
-    - Build 1 free road, right-click board, choose Cancel, continue to end of turn; should see "skipped placing the second road" in game text area
-    - Build 1 free road, end turn; should see "skipped placing the second road" again
+    - Build 1 free road, right-click board, choose Cancel, continue to end of turn
+        - Should see a dialog to confirm (Place or Skip); click Place
+        - Click the Cancel button in the Building panel at bottom of window
+        - Should see dialog again; click Skip
+        - Should see "skipped placing the second road" in game text area
+    - Build 1 free road, end turn
+        - Should see dialog to confirm; click Place, end turn again, click Skip
+        - Should see "skipped placing the second road" again
     - Play card but instead of placing a free road, in Build panel click Cancel
         - Should see "cancelled the Road Building card" in game text area, dev card returned to player's inventory in hand panel
         - Should be able to play Year of Plenty card on same turn
     - Play card, end turn; should see "cancelled the Road Building card" and card returned to inventory
-    - In a new 2-player game on 6-player board, give debug player 2 Road Building cards:  
+    - In a new 2-player game on 6-player sea board, give debug player 2 Road Building cards:  
       `dev: 1 debug` (2 times)
     - In another client, join same game as other player
     - Other player: Request Special Build
@@ -181,6 +187,13 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
     - Other player: Finish that Special Build and usual turn
     - Other player: During debug's turn, request Special Build
     - Debug player: Play card, end turn instead of building; card should be returned to debug's inventory, other player's Special Build should start as usual
+    - Debug player: Play card, but skip 2nd free placement
+        - During free placement:
+            - Board right-click menu should show Cancel while placing at a road location and ship location
+            - Building panel should see Cancel buttons for both road and ship
+        - Both Cancel buttons should show same confirm dialog (Place or Skip)
+            - Click one Cancel, in dialog click Place, then cancel again using the other Cancel button
+        - Dialog should ask if you want to skip placing your 2nd free "road or ship"
 - Gain Longest Road/Route
     - To save time with these tests, run the test server with Savegame feature enabled:
       - Pick any directory/folder where you want your server to look for savegames
