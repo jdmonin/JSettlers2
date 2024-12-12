@@ -39,6 +39,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -814,6 +815,18 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.0.00
      */
     private String ownerLocale;
+
+    /**
+     * For games at the server, the set of members allowed to chat (not muted) once the game starts;
+     * populated at that time with all seated players by {@link #initAtServer()}.
+     * Is called an "allow list" per industry standard, even though it's implemented as a Set.
+     *<P>
+     * Server only, this field is not set at client.
+     * Server uses {@link Collections#synchronizedSet(Set)} for thread safety.
+     * @see #isMemberChatAllowed(String)
+     * @since 2.7.00
+     */
+    private Set<String> chatAllowList;
 
     /**
      * True if this game at server has already done the tasks which happen once when game ends:
@@ -1989,6 +2002,8 @@ public class SOCGame implements Serializable, Cloneable
 
         players[pn].setName(plName);
         seats[pn] = OCCUPIED;
+        if ((gameState >= START1A) && (chatAllowList != null))
+            setMemberChatAllowed(plName, true);
 
         if ((gameState > NEW) && (gameState < OVER))
         {
@@ -2031,6 +2046,8 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalArgumentException("plName");
         pl.setName(null);
         seats[pl.getPlayerNumber()] = (hasReplacement) ? VACANT_PENDING_REPLACE : VACANT;
+        if ((! hasReplacement) && (chatAllowList != null))
+            setMemberChatAllowed(plName, false);  // in case rejoins as observer
 
         //D.ebugPrintln("seats["+pl.getPlayerNumber()+"] = VACANT");
     }
@@ -2218,6 +2235,39 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         return null;
+    }
+
+    /**
+     * At server, is this game member (player or observer) allowed to chat?
+     * All players are added to the Chat Allow List at start of game by {@link #initAtServer()}.
+     * List is internally synchronized.
+     * @param memberName  player or observer name
+     * @return  true if {@code memberName} is non-null and in the Chat Allow List
+     * @see #setMemberChatAllowed(String, boolean)
+     * @since 2.7.00
+     */
+    public boolean isMemberChatAllowed(final String memberName)
+    {
+        return (memberName != null) && chatAllowList.contains(memberName);
+    }
+
+    /**
+     * At server, add or remove a game member (player or observer) from the Chat Allow List.
+     * List is internally synchronized.
+     * @param memberName  Player or observer name; does nothing if null
+     * @param allow  true to add, false to remove
+     * @see #isMemberChatAllowed(String)
+     * @since 2.7.00
+     */
+    public void setMemberChatAllowed(final String memberName, final boolean allow)
+    {
+        if (memberName == null)
+            return;
+
+        if (allow)
+            chatAllowList.add(memberName);
+        else
+            chatAllowList.remove(memberName);
     }
 
     /**
@@ -5062,6 +5112,7 @@ public class SOCGame implements Serializable, Cloneable
      * Called from {@link #startGame()} and saved-game loader.
      * Sets {@link #isAtServer} and {@link #allOriginalPlayers()} flags.
      * Updates {@link #lastActionTime}.
+     * Adds all seated players to the Chat Allow List.
      * Initializes misc fields like each player's {@link SOCPlayer#pendingMessagesOut}.
      * @since 2.3.00
      */
@@ -5069,9 +5120,15 @@ public class SOCGame implements Serializable, Cloneable
     {
         isAtServer = true;
 
+        chatAllowList = Collections.synchronizedSet(new HashSet<>());
+
         pendingMessagesOut = new ArrayList<Object>();
         for (int i = 0; i < maxPlayers; ++i)
+        {
             players[i].pendingMessagesOut = new ArrayList<Object>();
+            if (! isSeatVacant(i))
+                chatAllowList.add(players[i].getName());
+        }
 
         // make sure game doesn't look idle, in case first player is a robot
         lastActionTime = System.currentTimeMillis();
@@ -5088,6 +5145,7 @@ public class SOCGame implements Serializable, Cloneable
      * choose first player.
      * gameState becomes {@link #START1A}.
      * Updates {@link #lastActionTime}.
+     * Adds all seated players to the Chat Allow List.
      *<P>
      * <B>Note:</B> This method requires at least 1 seated player, or it will loop forever.
      *<P>

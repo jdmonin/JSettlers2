@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2021,2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2021,2023-2024 Jeremy D Monin <jeremy@nand.net>
  * Some contents were formerly part of SOCServer.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
@@ -1142,14 +1142,16 @@ public class SOCServerMessageHandler
             // 1.1.07: all practice games are debug mode, for ease of debugging;
             //         not much use for a chat window in a practice game anyway.
 
-        boolean canChat = userIsDebug || (null != ga.getPlayer(plName)) || srv.isUserDBUserAdmin(plName);
+        boolean canChat = userIsDebug || srv.isUserDBUserAdmin(plName);
         if ((! canChat) && gameList.isMember(c, gaName))
         {
             // To avoid disruptions by game observers, only players can chat after initial placement.
             // To help form the game, non-seated members can also participate in the chat until then.
+            // Game owner/admin can also disallow a given player from chatting during game play.
             final int gstate = ga.getGameState();
             canChat =
-                (gstate < SOCGame.ROLL_OR_CARD) || (gstate == SOCGame.LOADING) || (gstate == SOCGame.LOADING_RESUMING);
+                (gstate < SOCGame.ROLL_OR_CARD) || (gstate == SOCGame.LOADING) || (gstate == SOCGame.LOADING_RESUMING)
+                || ga.isMemberChatAllowed(plName);
         }
 
         //currentGameEventRecord.setSnapshot(ga);
@@ -1253,6 +1255,8 @@ public class SOCServerMessageHandler
         //
         if (! canChat)
         {
+            // TODO different message if (null != ga.getPlayer(plName)
+
             srv.messageToPlayerKeyed(c, gaName, SOCServer.PN_OBSERVER, "member.chat.not_observers");
                 // "Observers can't chat during the game."
 

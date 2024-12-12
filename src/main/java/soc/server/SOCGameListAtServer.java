@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -243,6 +243,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @param  conn     connection to check game for; null is safe
      * @return true if game exists and {@code conn} is a member
      * @see #isMember(String, String)
+     * @see SOCGame#isMemberChatAllowed(String)
      */
     public boolean isMember(Connection conn, String gaName)
     {
@@ -262,6 +263,7 @@ public class SOCGameListAtServer extends SOCGameList
      * @param gaName  the name of the game; not null
      * @return true if game exists and {@code memberName} is a member
      * @see #isMember(Connection, String)
+     * @see SOCGame#isMemberChatAllowed(String)
      * @since 2.3.00
      */
     public boolean isMember(String memberName, String gaName)
@@ -284,6 +286,8 @@ public class SOCGameListAtServer extends SOCGameList
      * add a member to the game.
      * Also checks client's version against game's current range of client versions.
      * Please call {@link #takeMonitorForGame(String)} before calling this.
+     * Does not call {@link SOCGame#setMemberChatAllowed(String, boolean)}
+     * because they aren't a seated player yet, just an observer.
      *
      * @param  gaName   the name of the game
      * @param  conn     the member's connection; version should already be set
@@ -354,6 +358,7 @@ public class SOCGameListAtServer extends SOCGameList
      * remove member from the game.
      * Also updates game's client version range, with remaining connected members.
      * Please call {@link #takeMonitorForGame(String)} before calling this.
+     * Calls {@link SOCGame#setMemberChatAllowed(String, boolean) game.setMemberChatAllowed(nickname, false)}.
      *
      * @param  gaName   the name of the game
      * @param  conn     the member's connection
@@ -387,6 +392,10 @@ public class SOCGameListAtServer extends SOCGameList
                 ga.clientVersionLowest  = lowVers;
                 ga.clientVersionHighest = highVers;
                 ga.hasOldClients = (lowVers < Version.versionNumber());
+
+                final String memberName = conn.getData();
+                if (memberName != null)
+                    ga.setMemberChatAllowed(memberName, false);
             }
         }
     }
