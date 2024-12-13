@@ -1141,8 +1141,9 @@ public class SOCServerMessageHandler
             || (c instanceof StringConnection));
             // 1.1.07: all practice games are debug mode, for ease of debugging;
             //         not much use for a chat window in a practice game anyway.
+        final boolean userIsAdmin = srv.isUserDBUserAdmin(plName);
 
-        boolean canChat = userIsDebug || srv.isUserDBUserAdmin(plName);
+        boolean canChat = userIsDebug || userIsAdmin;
         if ((! canChat) && gameList.isMember(c, gaName))
         {
             // To avoid disruptions by game observers, only players can chat after initial placement.
@@ -1238,7 +1239,15 @@ public class SOCServerMessageHandler
             {
                 processDebugCommand_who(c, ga, cmdText);
             }
-            else if (userIsDebug || srv.isUserDBUserAdmin(plName))
+            else if (cmdTxtUC.startsWith("*MUTE*"))
+            {
+                matchedHere = processGameMemberMuteCommand(c, ga, userIsDebug || userIsAdmin, cmdText, true);
+            }
+            else if (cmdTxtUC.startsWith("*UNMUTE*"))
+            {
+                matchedHere = processGameMemberMuteCommand(c, ga, userIsDebug || userIsAdmin, cmdText, false);
+            }
+            else if (userIsDebug || userIsAdmin)
             {
                 matchedHere = processAdminCommand(c, ga, cmdText, cmdTxtUC);
             } else {
@@ -1255,12 +1264,13 @@ public class SOCServerMessageHandler
         //
         if (! canChat)
         {
-            // TODO different message if (null != ga.getPlayer(plName)
+            final SOCPlayer pl = ga.getPlayer(plName);
+            srv.messageToPlayerKeyed
+                (c, gaName, (pl != null) ? pl.getPlayerNumber() : SOCServer.PN_OBSERVER,
+                 (pl != null) ? "member.chat.not_this_time" : "member.chat.not_observers");
+                    // "Can't chat at this time." or "Observers can't chat during the game."
 
-            srv.messageToPlayerKeyed(c, gaName, SOCServer.PN_OBSERVER, "member.chat.not_observers");
-                // "Observers can't chat during the game."
-
-            return;  // <---- early return: not a player in that game ----
+            return;  // <---- early return: muted or not a player in that game ----
         }
 
         if (cmdTxtUC == null)
@@ -1553,6 +1563,75 @@ public class SOCServerMessageHandler
                 ((isCheckTime) ? "stats.game.willexpire.urgent" : "stats.game.willexpire"),
                 Integer.valueOf((int) ((gameData.getExpiration() - System.currentTimeMillis()) / 60000)));
         }
+    }
+
+    /**
+     * Check whether requester is game admin, and mute/unmute a member of the game (player or observer) if so.
+     * Otherwise does nothing.
+     * @param c  Client requesting the mute/unmute
+     * @param ga  Game in which to reply; does nothing and returns false if {@code null}
+     * @param isUserAdmin  True if user is {@link SOCServer#isUserDBUserAdmin(String)}, debug user, etc,
+     *    which is checked in caller for consistency. This method checks isUserGameAdmin.
+     * @param cmdText  Command text, starting with "*MUTE*" or "*UNMUTE*".
+     *    Assumes caller has parsed that first word, and will ignore first several characters
+     *    depending on value of {@code isMuteNotUnmute}.
+     * @param isMuteNotUnmute  True to mute, false to unmute
+     * @return  true if requester is game admin, false if not and command was ignored/unrecognized
+     * @since 2.7.00
+     */
+    boolean processGameMemberMuteCommand
+        (final Connection c, final SOCGame gameData, final boolean isUserAdmin,
+         final String cmdText, final boolean isMuteNotUnmute)
+    {
+        if (gameData == null)
+            return false;
+        final String gaName = gameData.getName();
+
+        // TODO if not isUserAdmin, chk srv.isUserGameAdmin
+
+        final int cmdWordLength = (isMuteNotUnmute ? 6 : 8);
+        final String restOfCmd = cmdText.substring(cmdWordLength).trim();
+
+        if ((! restOfCmd.isEmpty()) && (cmdText.charAt(cmdWordLength) == ' '))
+        {
+            if (isMuteNotUnmute && restOfCmd.equals(c.getData()))
+            {
+                // TODO srv.messageToPlayerKeyed
+                srv.messageToPlayer
+                    (c, gaName, "Can't mute yourself");
+                return true;
+            }
+
+            final boolean isMember = gameList.isMember(restOfCmd, gaName);
+            if (isMember)
+            {
+                try
+                {
+                    gameData.setMemberChatAllowed(restOfCmd, ! isMuteNotUnmute);
+
+                    // TODO srv.messageToPlayerKeyed(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,...
+                    srv.messageToPlayer
+                        (c, gaName, (isMuteNotUnmute ? "Muted game member " : "Unmuted game member ") + restOfCmd);
+                } catch (IllegalStateException e) {
+                    // TODO srv.messageToPlayerKeyed
+                    srv.messageToPlayer
+                        (c, gaName, "Can't mute or unmute before start of game");
+                }
+            }
+            else if (-1 == restOfCmd.indexOf(' '))
+            {
+                // TODO srv.messageToPlayerKeyed
+                srv.messageToPlayer
+                    (c, gaName, "Nickname not found in game");
+            }
+
+            return true;
+        }
+
+        // TODO srv.messageToPlayerKeyed
+        srv.messageToPlayer
+            (c, gaName, "Usage: " + (isMuteNotUnmute ? "*MUTE*" : "*UNMUTE*") + " gameMemberNickname");
+        return true;
     }
 
     /**

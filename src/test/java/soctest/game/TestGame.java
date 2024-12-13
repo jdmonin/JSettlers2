@@ -284,8 +284,13 @@ public class TestGame
 
         assertFalse("isMemberChatAllowed always false before initAtServer called", ga.isMemberChatAllowed("p2"));
         assertFalse("isMemberChatAllowed always false before initAtServer called", ga.isMemberChatAllowed("anotherName"));
-        ga.setMemberChatAllowed("anotherName", true);
-        assertFalse("isMemberChatAllowed always false before initAtServer called", ga.isMemberChatAllowed("anotherName"));
+        try
+        {
+            ga.setMemberChatAllowed("anotherName", true);
+            fail("setMemberChatAllowed before initAtServer should throw exception");
+        } catch (IllegalStateException e) {
+            assertFalse("isMemberChatAllowed always false before initAtServer called", ga.isMemberChatAllowed("anotherName"));
+        }
 
         // set up game fields as if at server, but don't create a board that won't be used
         ga.initAtServer();

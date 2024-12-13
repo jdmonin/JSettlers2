@@ -2255,15 +2255,18 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * At server, add or remove a game member (player or observer) from the Chat Allow List.
      * List is internally synchronized.
-     * Does nothing if {@link #initAtServer()} hasn't been called yet.
      * @param memberName  Player or observer name; does nothing if null
      * @param allow  true to add, false to remove
+     * @throws IllegalStateException if {@link #initAtServer()} hasn't been called yet
      * @see #isMemberChatAllowed(String)
      * @since 2.7.00
      */
     public void setMemberChatAllowed(final String memberName, final boolean allow)
+        throws IllegalStateException
     {
-        if ((memberName == null) || (chatAllowList == null))
+        if (chatAllowList == null)
+            throw new IllegalStateException("chatAllowList");
+        if (memberName == null)
             return;
 
         if (allow)
