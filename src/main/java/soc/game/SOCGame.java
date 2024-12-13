@@ -2240,6 +2240,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * At server, is this game member (player or observer) allowed to chat?
      * All players are added to the Chat Allow List at start of game by {@link #initAtServer()}.
+     * Returns false if that method hasn't been called yet.
      * List is internally synchronized.
      * @param memberName  player or observer name
      * @return  true if {@code memberName} is non-null and in the Chat Allow List
@@ -2248,12 +2249,13 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean isMemberChatAllowed(final String memberName)
     {
-        return (memberName != null) && chatAllowList.contains(memberName);
+        return (memberName != null) && (chatAllowList != null) && chatAllowList.contains(memberName);
     }
 
     /**
      * At server, add or remove a game member (player or observer) from the Chat Allow List.
      * List is internally synchronized.
+     * Does nothing if {@link #initAtServer()} hasn't been called yet.
      * @param memberName  Player or observer name; does nothing if null
      * @param allow  true to add, false to remove
      * @see #isMemberChatAllowed(String)
@@ -2261,7 +2263,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void setMemberChatAllowed(final String memberName, final boolean allow)
     {
-        if (memberName == null)
+        if ((memberName == null) || (chatAllowList == null))
             return;
 
         if (allow)

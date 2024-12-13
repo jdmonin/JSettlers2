@@ -270,4 +270,41 @@ public class TestGame
         assertEquals(55, ga.getDurationSeconds());
     }
 
+    /**
+     * Test {@link SOCGame#isMemberChatAllowed(String)} and {@link SOCGame#setMemberChatAllowed(String, boolean)}
+     * for the game's Chat Allow List.
+     * @since 2.7.00
+     */
+    @Test
+    public void testChatAllowList()
+    {
+        SOCGame ga = new SOCGame("testChat");
+        ga.addPlayer("p2", 2);
+        ga.addPlayer("p3", 3);
+
+        assertFalse("isMemberChatAllowed always false before initAtServer called", ga.isMemberChatAllowed("p2"));
+        assertFalse("isMemberChatAllowed always false before initAtServer called", ga.isMemberChatAllowed("anotherName"));
+        ga.setMemberChatAllowed("anotherName", true);
+        assertFalse("isMemberChatAllowed always false before initAtServer called", ga.isMemberChatAllowed("anotherName"));
+
+        // set up game fields as if at server, but don't create a board that won't be used
+        ga.initAtServer();
+        assertEquals("game not started yet", SOCGame.NEW, ga.getGameState());
+
+        assertTrue("isMemberChatAllowed true for player 2 after initAtServer called", ga.isMemberChatAllowed("p2"));
+        assertTrue("isMemberChatAllowed true for player 3 after initAtServer called", ga.isMemberChatAllowed("p3"));
+        assertFalse("isMemberChatAllowed false for others before initAtServer called", ga.isMemberChatAllowed("anotherName"));
+        ga.setMemberChatAllowed("anotherName", true);
+        assertTrue("isMemberChatAllowed true after adding them", ga.isMemberChatAllowed("anotherName"));
+        ga.setMemberChatAllowed("anotherName", false);
+        assertFalse("isMemberChatAllowed false after removing them", ga.isMemberChatAllowed("anotherName"));
+
+        ga.setMemberChatAllowed(null, true);  // doesn't crash if null
+        assertFalse("null is OK", ga.isMemberChatAllowed(null));
+
+        ga.setMemberChatAllowed("p2", false);
+        assertFalse("isMemberChatAllowed false after removing player 2", ga.isMemberChatAllowed("p2"));
+        assertTrue("isMemberChatAllowed still true for player 3 after removing p2", ga.isMemberChatAllowed("p3"));
+    }
+
 }
