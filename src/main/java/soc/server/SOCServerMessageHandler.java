@@ -39,6 +39,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.TimerTask;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1592,9 +1593,9 @@ public class SOCServerMessageHandler
 
         if (! (isUserAdmin || srv.isUserGameAdmin(c.getData(), gameData)))
         {
-            // TODO srv.messageToPlayerKeyed
-            srv.messageToPlayer
-                (c, gaName, "Only the game's admin may use this feature.");
+            srv.messageToPlayerKeyed
+                (c, gaName,  SOCServer.PN_REPLY_TO_UNDETERMINED,
+                 "admin.mute.resp.only_game_admin");  // "Only the game's admin may use this feature."
             return;
         }
 
@@ -1605,56 +1606,68 @@ public class SOCServerMessageHandler
         {
             if (restOfCmd.equals("-l") || restOfCmd.equals("--list"))
             {
-                // TODO srv.messageToPlayerKeyed
-                srv.messageToPlayer
-                    (c, gaName, "Currently unmuted in this game: "
-                     + String.join(", ", gameData.getMemberChatAllowList()));
+                final Set<String> cal = gameData.getMemberChatAllowList();
+                if (cal != null)
+                    srv.messageToPlayerKeyed
+                        (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                         "admin.mute.resp.currently_unmuted_list",  // "Currently unmuted in this game: "
+                         String.join(", ", cal));
+                else
+                    srv.messageToPlayerKeyed
+                        (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                         "admin.mute.resp.cannot_before_start");  // "Can't mute or unmute before start of game."
+
                 return;
             }
+
             if (wantMute && restOfCmd.equals(c.getData()))
             {
-                // TODO srv.messageToPlayerKeyed
-                srv.messageToPlayer
-                    (c, gaName, "Can't mute yourself");
+                srv.messageToPlayerKeyed
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                     "admin.mute.resp.cannot_mute_yourself");  // "Can't mute yourself."
                 return;
             }
 
             if (gameList.isMember(restOfCmd, gaName))
             {
                 if (wantMute == ! gameData.isMemberChatAllowed(restOfCmd))
-                    // TODO srv.messageToPlayerKeyed
-                    srv.messageToPlayer
-                        (c, gaName, (wantMute ? "Is already muted: " : "Is already unmuted: ") + restOfCmd);
+                    srv.messageToPlayerKeyed
+                        (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                         (wantMute ? "admin.mute.resp.is_already_muted" : "admin.mute.resp.is_already_unmuted"),  // "Is already muted: "/ "Is already unmuted: "
+                         restOfCmd);
                 else
                     try
                     {
                         gameData.setMemberChatAllowed(restOfCmd, ! wantMute);
 
-                        // TODO srv.messageToPlayerKeyed(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,...
-                        srv.messageToPlayer
-                            (c, gaName, (wantMute ? "Muted game member " : "Unmuted game member ") + restOfCmd);
-                        if (gameData.getGameState() < SOCGame.ROLL_OR_CARD)
-                            srv.messageToPlayer
-                                (c, gaName, "Mute will take effect after initial placement");
+                        srv.messageToPlayerKeyed
+                            (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                                (wantMute ? "admin.mute.ok.muted" : "admin.mute.ok.unmuted"),  // "Muted game member "/"Unmuted game member "
+                                restOfCmd);
+                        if (wantMute && (gameData.getGameState() < SOCGame.ROLL_OR_CARD))
+                            srv.messageToPlayerKeyed
+                                (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                                 "admin.mute.ok.after_initial_placement");  // "Mute will take effect after initial placement."
                     } catch (IllegalStateException e) {
-                        // TODO srv.messageToPlayerKeyed
-                        srv.messageToPlayer
-                            (c, gaName, "Can't mute or unmute before start of game");
+                        srv.messageToPlayerKeyed
+                            (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                             "admin.mute.resp.cannot_before_start");  // "Can't mute or unmute before start of game."
                     }
             }
             else
             {
-                // TODO srv.messageToPlayerKeyed
-                srv.messageToPlayer
-                    (c, gaName, "Nickname not found in game");
+                srv.messageToPlayerKeyed
+                    (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                    "admin.mute.resp.nickname_not_found");  // "Nickname not found in game."
             }
 
             return;
         }
 
-        // TODO srv.messageToPlayerKeyed
-        srv.messageToPlayer
-            (c, gaName, "Usage: " + (wantMute ? "*MUTE*" : "*UNMUTE*") + " gameMemberNickname or -l/--list");
+        srv.messageToPlayerKeyed
+            (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+             "admin.mute.resp.usage",  // "Usage: *MUTE* gameMemberNickname or -l/--list" or *UNMUTE*
+             (wantMute ? "*MUTE*" : "*UNMUTE*"));
     }
 
     /**
