@@ -1578,13 +1578,13 @@ public class SOCServerMessageHandler
      *    which is checked in caller for consistency. This method checks isUserGameAdmin.
      * @param cmdText  Command text, starting with "*MUTE*" or "*UNMUTE*".
      *    Assumes caller has parsed that first word, and will ignore first several characters
-     *    depending on value of {@code isMuteNotUnmute}.
-     * @param isMuteNotUnmute  True to mute, false to unmute
+     *    depending on value of {@code wantMute}.
+     * @param wantMute  True to mute, false to unmute
      * @since 2.7.00
      */
     void processGameMemberMuteCommand
         (final Connection c, final SOCGame gameData, final boolean isUserAdmin,
-         final String cmdText, final boolean isMuteNotUnmute)
+         final String cmdText, final boolean wantMute)
     {
         if (gameData == null)
             return;
@@ -1598,12 +1598,20 @@ public class SOCServerMessageHandler
             return;
         }
 
-        final int cmdWordLength = (isMuteNotUnmute ? 6 : 8);
+        final int cmdWordLength = (wantMute ? 6 : 8);
         final String restOfCmd = cmdText.substring(cmdWordLength).trim();
 
         if ((! restOfCmd.isEmpty()) && (cmdText.charAt(cmdWordLength) == ' '))
         {
-            if (isMuteNotUnmute && restOfCmd.equals(c.getData()))
+            if (restOfCmd.equals("-l") || restOfCmd.equals("--list"))
+            {
+                // TODO srv.messageToPlayerKeyed
+                srv.messageToPlayer
+                    (c, gaName, "Currently unmuted in this game: "
+                     + String.join(", ", gameData.getMemberChatAllowList()));
+                return;
+            }
+            if (wantMute && restOfCmd.equals(c.getData()))
             {
                 // TODO srv.messageToPlayerKeyed
                 srv.messageToPlayer
@@ -1611,21 +1619,28 @@ public class SOCServerMessageHandler
                 return;
             }
 
-            final boolean isMember = gameList.isMember(restOfCmd, gaName);
-            if (isMember)
+            if (gameList.isMember(restOfCmd, gaName))
             {
-                try
-                {
-                    gameData.setMemberChatAllowed(restOfCmd, ! isMuteNotUnmute);
-
-                    // TODO srv.messageToPlayerKeyed(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,...
-                    srv.messageToPlayer
-                        (c, gaName, (isMuteNotUnmute ? "Muted game member " : "Unmuted game member ") + restOfCmd);
-                } catch (IllegalStateException e) {
+                if (wantMute == ! gameData.isMemberChatAllowed(restOfCmd))
                     // TODO srv.messageToPlayerKeyed
                     srv.messageToPlayer
-                        (c, gaName, "Can't mute or unmute before start of game");
-                }
+                        (c, gaName, (wantMute ? "Is already muted: " : "Is already unmuted: ") + restOfCmd);
+                else
+                    try
+                    {
+                        gameData.setMemberChatAllowed(restOfCmd, ! wantMute);
+
+                        // TODO srv.messageToPlayerKeyed(c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,...
+                        srv.messageToPlayer
+                            (c, gaName, (wantMute ? "Muted game member " : "Unmuted game member ") + restOfCmd);
+                        if (gameData.getGameState() < SOCGame.ROLL_OR_CARD)
+                            srv.messageToPlayer
+                                (c, gaName, "Mute will take effect after initial placement");
+                    } catch (IllegalStateException e) {
+                        // TODO srv.messageToPlayerKeyed
+                        srv.messageToPlayer
+                            (c, gaName, "Can't mute or unmute before start of game");
+                    }
             }
             else
             {
@@ -1639,7 +1654,7 @@ public class SOCServerMessageHandler
 
         // TODO srv.messageToPlayerKeyed
         srv.messageToPlayer
-            (c, gaName, "Usage: " + (isMuteNotUnmute ? "*MUTE*" : "*UNMUTE*") + " gameMemberNickname");
+            (c, gaName, "Usage: " + (wantMute ? "*MUTE*" : "*UNMUTE*") + " gameMemberNickname or -l/--list");
     }
 
     /**

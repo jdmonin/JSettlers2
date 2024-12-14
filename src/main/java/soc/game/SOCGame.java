@@ -2245,6 +2245,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param memberName  player or observer name
      * @return  true if {@code memberName} is non-null and in the Chat Allow List
      * @see #setMemberChatAllowed(String, boolean)
+     * @see #getMemberChatAllowList()
      * @since 2.7.00
      */
     public boolean isMemberChatAllowed(final String memberName)
@@ -2259,6 +2260,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param allow  true to add, false to remove
      * @throws IllegalStateException if {@link #initAtServer()} hasn't been called yet
      * @see #isMemberChatAllowed(String)
+     * @see #getMemberChatAllowList()
      * @since 2.7.00
      */
     public void setMemberChatAllowed(final String memberName, final boolean allow)
@@ -2273,6 +2275,19 @@ public class SOCGame implements Serializable, Cloneable
             chatAllowList.add(memberName);
         else
             chatAllowList.remove(memberName);
+    }
+
+    /**
+     * At server, get a read-only copy of the game's current Chat Allow List.
+     * Contents may be outdated if game's list is modified afterwards.
+     * @return game's allow list, made read-only through {@link Collections#unmodifiableSet(Set)},
+     *    or {@code null} if {@link #initAtServer()} hasn't been called yet
+     * @see #isMemberChatAllowed(String)
+     * @since 2.7.00
+     */
+    public Set<String> getMemberChatAllowList()
+    {
+        return (chatAllowList != null) ? Collections.unmodifiableSet(chatAllowList) : null;
     }
 
     /**

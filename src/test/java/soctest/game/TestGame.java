@@ -21,6 +21,7 @@
 package soctest.game;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
@@ -291,6 +292,7 @@ public class TestGame
         } catch (IllegalStateException e) {
             assertFalse("isMemberChatAllowed always false before initAtServer called", ga.isMemberChatAllowed("anotherName"));
         }
+        assertNull("getMemberChatAllowList should be null before initAtServer", ga.getMemberChatAllowList());
 
         // set up game fields as if at server, but don't create a board that won't be used
         ga.initAtServer();
@@ -299,8 +301,34 @@ public class TestGame
         assertTrue("isMemberChatAllowed true for player 2 after initAtServer called", ga.isMemberChatAllowed("p2"));
         assertTrue("isMemberChatAllowed true for player 3 after initAtServer called", ga.isMemberChatAllowed("p3"));
         assertFalse("isMemberChatAllowed false for others before initAtServer called", ga.isMemberChatAllowed("anotherName"));
+
+        // returned view is accurate and read-only
+        {
+            Set<String> s = ga.getMemberChatAllowList();
+            assertNotNull(s);
+            assertEquals(2, s.size());
+            assertTrue(s.contains("p2"));
+            assertTrue(s.contains("p3"));
+            try
+            {
+                s.remove("p2");
+                fail("getMemberChatAllowList list should be read-only");
+            } catch (UnsupportedOperationException e) {}
+            try
+            {
+                s.add("another");
+                fail("getMemberChatAllowList list should be read-only");
+            } catch (UnsupportedOperationException e) {}
+        }
+
         ga.setMemberChatAllowed("anotherName", true);
         assertTrue("isMemberChatAllowed true after adding them", ga.isMemberChatAllowed("anotherName"));
+        {
+            Set<String> s = ga.getMemberChatAllowList();
+            assertNotNull(s);
+            assertEquals(3, s.size());
+            assertTrue(s.contains("anotherName"));
+        }
         ga.setMemberChatAllowed("anotherName", false);
         assertFalse("isMemberChatAllowed false after removing them", ga.isMemberChatAllowed("anotherName"));
 
