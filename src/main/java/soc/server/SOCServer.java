@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -6479,6 +6479,7 @@ public class SOCServer extends Server
      * Used by {@link #processDebugCommand(Connection, SOCGame, String, String)}
      * when {@code *HELP*} is requested.
      * @see #ADMIN_USER_COMMANDS_HELP
+     * @see #ADMIN_GAME_COMMANDS_HELP
      * @see #DEBUG_COMMANDS_HELP
      * @since 1.1.20
      */
@@ -6491,6 +6492,23 @@ public class SOCServer extends Server
         "*STATS*   server stats and current-game stats",
         "*VERSION*  show version and build information",
         "*WHO*   show players and observers of this game",
+        };
+
+    /**
+     * List and description of game admin commands that the game creator can run
+     * (when {@link #isUserGameAdmin(String, SOCGame)} is true).
+     * Used by {@link #processDebugCommand(Connection, SOCGame, String, String)}
+     * when {@code *HELP*} is requested.
+     * @see #GENERAL_COMMANDS_HELP
+     * @see #ADMIN_USER_COMMANDS_HELP
+     * @see #DEBUG_COMMANDS_HELP
+     * @since 2.7.00
+     */
+    public static final String[] ADMIN_GAME_COMMANDS_HELP =
+        {
+        "--- Game Admin Commands ---",
+        "*MUTE*  nickname  Mute a player or observer",
+        "*UNMUTE*  nickname  Unmute a player or observer",
         };
 
     /**
@@ -6514,6 +6532,7 @@ public class SOCServer extends Server
      * {@link SOCServerMessageHandler#processAdminCommand(Connection, SOCGame, String, String)}.
      * @since 1.1.20
      * @see #GENERAL_COMMANDS_HELP
+     * @see #ADMIN_GAME_COMMANDS_HELP
      * @see #DEBUG_COMMANDS_HELP
      */
     public static final String[] ADMIN_USER_COMMANDS_HELP =
@@ -6537,6 +6556,7 @@ public class SOCServer extends Server
      * @since 1.1.07
      * @see #GENERAL_COMMANDS_HELP
      * @see #ADMIN_USER_COMMANDS_HELP
+     * @see #ADMIN_GAME_COMMANDS_HELP
      * @see GameHandler#getDebugCommandsHelp()
      */
     public static final String[] DEBUG_COMMANDS_HELP =
@@ -7025,6 +7045,7 @@ public class SOCServer extends Server
      * @param uname  Username to check; if null, returns false.
      *     If supported by DB schema version, this check is case-insensitive.
      * @return  True only if list != {@code null} and the user is on the list
+     * @see #isUserGameAdmin(String, SOCGame)
      * @since 1.1.20
      */
     boolean isUserDBUserAdmin(String uname)
@@ -7037,6 +7058,22 @@ public class SOCServer extends Server
             uname = uname.toLowerCase(Locale.US);
 
         return databaseUserAdmins.contains(uname);
+    }
+
+    /**
+     * Is this username an admin of this game?
+     * Does not check for overall {@link #isUserDBUserAdmin(String)}.
+     * @param uname  Username to check; if null, returns false. Case-sensitive.
+     * @param game  Game to check; if null, returns false.
+     * @return  True only if {@link SOCGame#getOwner()} is {@code uname}
+     * @since 2.7.00
+     */
+    boolean isUserGameAdmin(final String uname, final SOCGame game)
+    {
+        if ((uname == null) || (game == null))
+            return false;
+
+        return uname.equals(game.getOwner());
     }
 
     /**
