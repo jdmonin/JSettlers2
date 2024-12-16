@@ -272,7 +272,8 @@ public class TestGame
     }
 
     /**
-     * Test {@link SOCGame#isMemberChatAllowed(String)} and {@link SOCGame#setMemberChatAllowed(String, boolean)}
+     * Test {@link SOCGame#isMemberChatAllowed(String)}, {@link SOCGame#setMemberChatAllowed(String, boolean)},
+     * and {@link SOCGame#getMemberChatAllowList()}
      * for the game's Chat Allow List.
      * @since 2.7.00
      */
