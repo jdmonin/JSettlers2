@@ -1053,6 +1053,8 @@ For details, search [Readme.developer.md](Readme.developer.md) for `gson.jar`
       - Close all loaded games' windows
 - Loading and resuming games
     - Second human client should be able to sit, taking over a robot position, and have debug user resume game as usual
+      - That second client should be able to chat by default, not be a muted observer
+        - Test chat before sitting; after sitting; after resuming
     - Save and then load a game containing a human player who's connected to server but not part of the resumed game.  
       When resuming that game, server shouldn't send that client any messages, but instead should get a bot to sit at their seat
     - Load a game and have a second human player also sit down. Resume game. Have debug player leave; play should continue for human player still in game
@@ -1329,31 +1331,41 @@ Start with a recently-created database with latest schema/setup scripts.
       - Player's private info should be correct
 - `*MUTE*`/`*UNMUTE*` admin commands:
     - Start a server and 2 clients (call them A, B)
-    - A: Create a game, sit down, but don't start it yet
-    - B: Join that game, don't sit down (remain an observer)
-    - B: In chat textfield, send: `*MUTE* A`; should see a reply like "Only the game's admin may use this feature"
-    - A: In chat textfield: `*UNMUTE* B`; should see a reply like "Can't mute or unmute before start of game"
-    - A, B: Chat any text; other client should see it
-    - A: `*MUTE* --list`, should see a reply like "Can't mute or unmute before start of game"
-    - A: Start the game (bots will join to play). During your initial placement turn: `*MUTE* ` *a robot name*; should see a message like "Muted *bot name*. Will take effect after initial placement"
-    - B: Chat any text; should send without error, client A should see it
-    - A: Finish initial placement, begin normal gameplay (roll dice)
-    - B: Chat any text; shouldn't send, should see "Observers can't chat during the game", client A should see nothing new
-    - B: Sit to take over a robot's spot. Should be able to chat now, client A should see it
-    - A: `*MUTE* B`, should see "Muted game member B"
-    - A: Chat any text; B should see it
-    - B: Chat any text; shouldn't send, should see "Can't chat at this time", client A should see nothing new
-    - A: `*MUTE* B`, should see "Is already muted: B"
-    - A: `*MUTE* --list`, should see "Unmuted in this game: A, *bot names*" but not B
-    - A: `*MUTE* A`, should see "Can't mute yourself"
-    - A: `*UNMUTE* B`; should see "Unmuted game member B"
-    - B: Chat any text; should send without error, client A should see it
-    - A: `*UNMUTE* B`; should see "Is already unmuted: B"
-    - B: Close game window to exit the game
-    - B: Rejoin game as observer (don't sit)
-    - A: Chat any text; B should see it
-    - B: Chat any text; shouldn't send, should see "Observers can't chat during the game"
-    - B: Sit to take over a bot, chat; A should see it
+    - Test muting/unmuting defaults and commands for players and observers
+        - A: Create a game, sit down, but don't start it yet
+        - B: Join that game, don't sit down (remain an observer)
+        - B: In chat textfield, send: `*MUTE* A`; should see a reply like "Only the game's admin may use this feature"
+        - A: In chat textfield: `*UNMUTE* B`; should see a reply like "Can't mute or unmute before start of game"
+        - A, B: Chat any text; other client should see it
+        - A: `*MUTE* --list`, should see a reply like "Can't mute or unmute before start of game"
+        - A: Start the game (bots will join to play). During your initial placement turn: `*MUTE* ` *a robot name*; should see a message like "Muted *bot name*. Will take effect after initial placement"
+        - B: Chat any text; should send without error, client A should see it
+        - A: Finish initial placement, begin normal gameplay (roll dice)
+        - B: Chat any text; shouldn't send, should see "Observers can't chat during the game", client A should see nothing new
+        - B: Sit to take over a robot's spot. Should be able to chat now, client A should see it
+        - A: `*MUTE* B`, should see "Muted game member B"
+        - A: Chat any text; B should see it
+        - B: Chat any text; shouldn't send, should see "Can't chat at this time", client A should see nothing new
+        - A: `*MUTE* B`, should see "Is already muted: B"
+        - A: `*MUTE* --list`, should see "Unmuted in this game: A, *bot names*" but not B
+        - A: `*MUTE* A`, should see "Can't mute yourself"
+        - A: `*UNMUTE* B`; should see "Unmuted game member B"
+        - B: Chat any text; should send without error, client A should see it
+        - A: `*UNMUTE* B`; should see "Is already unmuted: B"
+        - B: Close game window to exit the game
+        - B: Rejoin game as observer (don't sit)
+        - A: Chat any text; B should see it
+        - B: Chat any text; shouldn't send, should see "Observers can't chat during the game"
+        - B: Sit to take over a bot, chat; A should see it
+    - Test sitting after initial placement started
+        - A: Create a game, sit down, start game (initial placement begins)
+        - When it's A's turn to place 1st settlement:
+        - B: Join that game, don't sit down (remain an observer)
+        - A, B: Chat any text; other client should see it
+        - B: Sit to take over a bot that hasn't yet placed
+        - B: Chat any text; A should see it
+        - A, B: Finish initial placement, begin regular gameplay past 1st time rolling dice
+        - A, B: Chat any text; other client should see it
     - Exit clients, shut down server
 - `*SAVELOG*` debug command:
     - In IDE or command line (see [Readme.developer.md](Readme.developer.md)),
