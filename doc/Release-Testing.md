@@ -1341,7 +1341,10 @@ Start with a recently-created database with latest schema/setup scripts.
         - A: Start the game (bots will join to play). During your initial placement turn: `*MUTE* ` *a robot name*; should see a message like "Muted *bot name*. Will take effect after initial placement"
         - B: Chat any text; should send without error, client A should see it
         - A: Finish initial placement, begin normal gameplay (roll dice)
-        - B: Chat any text; shouldn't send, should see "Observers can't chat during the game", client A should see nothing new
+        - B: Chat any text
+            - Shouldn't send, B should see "Observers can't chat during the game"
+            - A should see a hint from server like "Observer B wants to chat. To permit this, type: \*UNMUTE\* B  then let them know. This hint won't be repeated for other observers."
+        - B: Chat again; shouldn't send; A should see nothing new (not sent another hint)
         - B: Sit to take over a robot's spot. Should be able to chat now, client A should see it
         - A: `*MUTE* B`, should see "Muted game member B"
         - A: Chat any text; B should see it
@@ -1366,6 +1369,10 @@ Start with a recently-created database with latest schema/setup scripts.
         - B: Chat any text; A should see it
         - A, B: Finish initial placement, begin regular gameplay past 1st time rolling dice
         - A, B: Chat any text; other client should see it
+        - A: `*MUTE* B`, should see "Muted game member B"
+        - B: Chat any text
+            - Shouldn't send, should see "Can't chat at this time"
+            - Client A should see nothing new (not a "wants to chat" hint, because B is player not observer)
     - Exit clients, shut down server
 - `*SAVELOG*` debug command:
     - In IDE or command line (see [Readme.developer.md](Readme.developer.md)),

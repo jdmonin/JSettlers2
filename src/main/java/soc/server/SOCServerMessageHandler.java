@@ -1271,6 +1271,25 @@ public class SOCServerMessageHandler
                  (pl != null) ? "member.chat.not_this_time" : "member.chat.not_observers");
                     // "Can't chat at this time." or "Observers can't chat during the game."
 
+            if ((pl == null) && ! ga.hasHintedObserverWantsChat)
+            {
+                final String gameOwnerName = ga.getOwner();
+                final Connection ownerConn = (gameOwnerName != null) ? srv.getConnection(gameOwnerName) : null;
+                if (ownerConn != null)
+                {
+                    srv.messageToPlayerKeyed
+                        (ownerConn, gaName, SOCServer.PN_NON_EVENT,
+                         "admin.mute.hint.observer_wants_chat", plName);
+                             // "Observer {0} wants to chat. To permit this, type: *UNMUTE* {0}"
+                    srv.messageToPlayerKeyed
+                        (ownerConn, gaName, SOCServer.PN_NON_EVENT,
+                         "admin.mute.hint.observer_line_2");
+                             // "then let them know. This hint won't be repeated for other observers."
+                }
+
+                ga.hasHintedObserverWantsChat = true;
+            }
+
             return;  // <---- early return: muted or not a player in that game ----
         }
 

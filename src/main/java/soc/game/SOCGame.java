@@ -824,9 +824,18 @@ public class SOCGame implements Serializable, Cloneable
      * Server only, this field is not set at client.
      * Server uses {@link Collections#synchronizedSet(Set)} for thread safety.
      * @see #isMemberChatAllowed(String)
+     * @see #hasHintedObserverWantsChat
      * @since 2.7.00
      */
     private Set<String> chatAllowList;
+
+    /**
+     * At server, track whether we've hinted to the game owner how to unmute an observer
+     * (sent once per game) after an observer has tried to chat.
+     * @see #isMemberChatAllowed(String)
+     * @since 2.7.00
+     */
+    public transient boolean hasHintedObserverWantsChat;
 
     /**
      * True if this game at server has already done the tasks which happen once when game ends:
@@ -2246,6 +2255,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return  true if {@code memberName} is non-null and in the Chat Allow List
      * @see #setMemberChatAllowed(String, boolean)
      * @see #getMemberChatAllowList()
+     * @see #hasHintedObserverWantsChat
      * @since 2.7.00
      */
     public boolean isMemberChatAllowed(final String memberName)
