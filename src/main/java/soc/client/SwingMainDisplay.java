@@ -1911,9 +1911,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
         if (optsAllKnown && knowDefaults)
         {
             // All done, present the options window frame
-            if ((opts.newGameOpts == null) && (opts.knownOpts != null))
-                opts.newGameOpts = new SOCGameOptionSet(opts.knownOpts, true);
-            newGameOptsFrame = showGameOptions(null, opts.newGameOpts, forPracticeServer);
+            newGameOptsFrame = showGameOptions(null, opts.getNewGameOpts(), forPracticeServer);
 
             return;  // <--- Early return: Show options to user ----
         }
@@ -2544,9 +2542,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     {
         gameOptionsCancelTimeoutTask();
 
-        if ((opts.newGameOpts == null) && (opts.knownOpts != null))
-            opts.newGameOpts = new SOCGameOptionSet(opts.knownOpts, true);
-        newGameOptsFrame = showGameOptions(null, opts.newGameOpts, isPractice);
+        newGameOptsFrame = showGameOptions(null, opts.getNewGameOpts(), isPractice);
     }
 
     public void optionsReceived(ServerGametypeInfo opts, boolean isPractice, boolean isDash, boolean hasAllNow)
@@ -2577,13 +2573,13 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             }
             else if (newGameWaiting)
             {
+                final SOCGameOptionSet newGameOpts;
                 synchronized(opts)
                 {
                     opts.newGameWaitingForOpts = false;
-                    if ((opts.newGameOpts == null) && (opts.knownOpts != null))
-                        opts.newGameOpts = new SOCGameOptionSet(opts.knownOpts, true);
+                    newGameOpts = opts.getNewGameOpts();
                 }
-                newGameOptsFrame = showGameOptions(null, opts.newGameOpts, isPractice);
+                newGameOptsFrame = showGameOptions(null, newGameOpts, isPractice);
             }
         }
     }

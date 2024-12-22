@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2018-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>:
  *     - parameterize types
  * This file's contents were formerly part of SOCPlayerClient.java:
@@ -125,14 +125,13 @@ public class ServerGametypeInfo
     /**
      * Deep copy of {@link #knownOpts} for {@link NewGameOptionsFrame}
      * to remember game option values selected by user for the next new game.
-     * Null if {@code knownOpts} is null.
-     * May be null until first time showing a {@code NewGameOptionsFrame}.
+     * Null if {@link #knownOpts} is null.
+     * See {@link #getNewGameOpts()} for details.
      *<P>
-     * {@code NewGameOptionsFrame} may remove any {@link SOCGameOption#OTYPE_UNKNOWN} options
-     * from this set, but they will remain in {@code knownOpts}.
+     * Before v2.7.00 this field was public.
      * @since 2.5.00
      */
-    public SOCGameOptionSet newGameOpts = null;
+    private SOCGameOptionSet newGameOpts = null;
 
     /** Have we asked the server for default values? */
     public boolean   askedDefaultsAlready = false;
@@ -282,6 +281,32 @@ public class ServerGametypeInfo
             }
 
             return false;
+        }
+    }
+
+    private final Object getNewGameSync = new Object();
+
+    /**
+     * Get the New Game Options, a deep copy of {@link #knownOpts} for {@link NewGameOptionsFrame}
+     * to remember game option values selected by user for the next new game.
+     * Null if {@link #knownOpts} is null.
+     *<P>
+     * {@code NewGameOptionsFrame} may remove any {@link SOCGameOption#OTYPE_UNKNOWN} options
+     * from this set, but they will remain in {@code knownOpts}.
+     *<P>
+     * Internally synchronized for thread safety, to ensure is created only once.
+     *
+     * @return  New Game Options, or {@code null} if {@link #knownOpts} is {@code null}.
+     * @since 2.7.00
+     */
+    public SOCGameOptionSet getNewGameOpts()
+    {
+        synchronized(getNewGameSync)
+        {
+            if ((newGameOpts == null) && (knownOpts != null))
+                newGameOpts = new SOCGameOptionSet(knownOpts, true);
+
+            return newGameOpts;
         }
     }
 
