@@ -1341,7 +1341,7 @@ public class SOCGameMessageHandler
                          new int[]{ e.params[0], e.params[1] }));
                 break;
 
-            case SET_GAME_FLAG_N7C:
+            case GAME_SET_HAS_BUILT_CITY_N7C:
                 msgsAfter.add
                     (new SOCGameElements
                         (gaName, GEType.HAS_BUILT_CITY_N7C, 0));

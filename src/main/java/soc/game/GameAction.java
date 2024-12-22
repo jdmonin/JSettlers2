@@ -655,7 +655,7 @@ public class GameAction
         PLAYER_GAIN_SETTLED_LANDAREA(60),
 
         /** The {@link SOCGame#hasBuiltCity()} flag was set by building a piece. Undoing the build should clear it. */
-        SET_GAME_FLAG_N7C(70),
+        GAME_SET_HAS_BUILT_CITY_N7C(70),
 
         /**
          * Building or moving caused a ship route to be closed. Params are {@link SOCShip} edge coords

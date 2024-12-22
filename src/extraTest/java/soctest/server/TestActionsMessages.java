@@ -1063,7 +1063,7 @@ public class TestActionsMessages
             }
             if (checkHasBuiltCity)
             {
-                assertEquals(testDesc, GameAction.EffectType.SET_GAME_FLAG_N7C, e.eType);
+                assertEquals(testDesc, GameAction.EffectType.GAME_SET_HAS_BUILT_CITY_N7C, e.eType);
                 e = effects.get(1);
             }
             if (movedFromCoord == 0)
@@ -1186,7 +1186,7 @@ public class TestActionsMessages
             }
             if (checkHasBuiltCity)
             {
-                assertEquals(testDesc, GameAction.EffectType.SET_GAME_FLAG_N7C, e.eType);
+                assertEquals(testDesc, GameAction.EffectType.GAME_SET_HAS_BUILT_CITY_N7C, e.eType);
                 e = effects.get(1);
             }
             if (movedFromCoord == 0)

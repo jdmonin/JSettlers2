@@ -3893,7 +3893,7 @@ public class SOCGame implements Serializable, Cloneable
                 {
                     if (effects == null)
                         effects = new ArrayList<>();
-                    effects.add(new GameAction.Effect(EffectType.SET_GAME_FLAG_N7C));
+                    effects.add(new GameAction.Effect(EffectType.GAME_SET_HAS_BUILT_CITY_N7C));
                 }
             }
 
@@ -5065,7 +5065,7 @@ public class SOCGame implements Serializable, Cloneable
                 }
                 break;
 
-            case SET_GAME_FLAG_N7C:
+            case GAME_SET_HAS_BUILT_CITY_N7C:
                 hasBuiltCity = false;
                 break;
 
