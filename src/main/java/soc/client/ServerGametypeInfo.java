@@ -88,6 +88,12 @@ import soc.message.SOCNewGameWithOptions;
 public class ServerGametypeInfo
 {
     /**
+     * If true, this info is for the client's local Practice server, not a remote server we're connected to.
+     * @since 2.7.00
+     */
+    public final boolean isForPractice;
+
+    /**
      * If true, we know all options on this server,
      * or the server is too old to support options.
      */
@@ -175,9 +181,11 @@ public class ServerGametypeInfo
     /**
      * Create a new ServerGametypeInfo, with an {@link #knownOpts} defaulting
      * to our client version's {@link SOCGameOptionSet#getAllKnownOptions()}.
+     * @param isForPractice  Is this info is for the client's local Practice server, not a remote server we're connected to?
      */
-    public ServerGametypeInfo()
+    public ServerGametypeInfo(final boolean isForPractice)
     {
+        this.isForPractice = isForPractice;
         knownOpts = SOCGameOptionSet.getAllKnownOptions();
         scenKeys = new HashSet<String>();
     }
@@ -294,6 +302,8 @@ public class ServerGametypeInfo
      * {@code NewGameOptionsFrame} may remove any {@link SOCGameOption#OTYPE_UNKNOWN} options
      * from this set, but they will remain in {@code knownOpts}.
      *<P>
+     * If {@link #isForPractice}, sets game option {@code "UB"} to allow Undo Build by default.
+     *<P>
      * Internally synchronized for thread safety, to ensure is created only once.
      *
      * @return  New Game Options, or {@code null} if {@link #knownOpts} is {@code null}.
@@ -304,7 +314,13 @@ public class ServerGametypeInfo
         synchronized(getNewGameSync)
         {
             if ((newGameOpts == null) && (knownOpts != null))
+            {
                 newGameOpts = new SOCGameOptionSet(knownOpts, true);
+
+                // In practice games, allow Undo Build by default
+                if (isForPractice)
+                    newGameOpts.setBoolOption("UB", null);
+            }
 
             return newGameOpts;
         }

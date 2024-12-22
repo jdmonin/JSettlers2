@@ -346,6 +346,8 @@ public class SOCPlayerClient
      * Initialized by {@link SwingMainDisplay#gameWithOptionsBeginSetup(boolean, boolean)}
      * and/or {@link MessageHandler#handleVERSION(boolean, SOCVersion)}.
      * These fields are never null, even if the respective server is not connected or not running.
+     * The first time the Practice button is clicked, its {@link NewGameOptionsFrame} is shown immediately
+     * but the {@link ClientNetwork#practiceServer Practice Server} isn't started until they click Create Game.
      *<P>
      * For a summary of the flags and variables involved with game options,
      * and the client/server interaction about their values, see
@@ -356,8 +358,8 @@ public class SOCPlayerClient
      * @see #sFeatures
      * @since 1.1.07
      */
-    protected ServerGametypeInfo tcpServGameOpts = new ServerGametypeInfo(),
-        practiceServGameOpts = new ServerGametypeInfo();
+    protected ServerGametypeInfo tcpServGameOpts = new ServerGametypeInfo(false),
+        practiceServGameOpts = new ServerGametypeInfo(true);
 
     /**
      * For practice games, default game name ("Practice").

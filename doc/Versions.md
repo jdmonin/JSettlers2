@@ -21,6 +21,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Dev card is returned to their hand
 	    - That player's client must be v2.7.00 or newer; other players can use older clients
 	- New optional house rule: Allow undo building and moving pieces (new game option `UB`; requires client v2.7.00 or newer)
+	    - For convenience, in Practice games this rule is on by default
 - I18N:
 	- Added German translation (thank you Eudoxia and Quasigroup)
 	- Updated Polish translation (thank you KotCzarny)
