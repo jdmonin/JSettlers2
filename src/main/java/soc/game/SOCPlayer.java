@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -2791,6 +2791,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @return Player events which have occurred so far this game
      * @see #hasPlayerEvent(SOCPlayerEvent)
+     * @see #setPlayerEvents(int)
      * @since 2.0.00
      */
     public int getPlayerEvents()
@@ -3492,6 +3493,21 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         if (game.gameEventListener != null)
                             game.gameEventListener.playerEvent
                                 (game, this, SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE, flagNew, pp);
+
+                        if (game.isAtServer)
+                        {
+                            if (effects == null)
+                                effects = new ArrayList<>();
+
+                            if (flagNew)
+                                effects.add(new GameAction.Effect
+                                    (GameAction.EffectType.PLAYER_SET_EVENT_FLAGS,
+                                     new int[]{SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE.flagValue, 1}));
+                            if (gotCloth)
+                                effects.add(new GameAction.Effect
+                                    (GameAction.EffectType.PLAYER_SCEN_CLVI_RECEIVE_CLOTH,
+                                     new int[]{1, pp.getCoordinates()}));
+                        }
                     }
                 }
 

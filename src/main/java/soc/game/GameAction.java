@@ -665,7 +665,42 @@ public class GameAction
         CLOSE_SHIP_ROUTE(80),
 
         /** Building or moving revealed a fog hex. */
-        REVEAL_FOG_HEX(90);
+        REVEAL_FOG_HEX(90),
+
+        /**
+         * Set or clear one or more flags in {@link SOCPlayer#getPlayerEvents()}.
+         * If the action changes multiple flags, combine them all into a single {@code PLAYER_SET_EVENT_FLAGS} effect;
+         * don't have this effect multiple times within the action.
+         *<P>
+         * Params:
+         *<UL>
+         *<LI>[0]: Flag bit value(s) to set or clear, like
+         *     <tt>{@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.flagValue</tt>.<BR>
+         *     If the event's {@link SOCPlayerEvent#flagValue} is 0, you must use or create a different Effect to record it;
+         *     such an event can't be part of {@link SOCPlayer#getPlayerEvents()}
+         *     <BR>
+         *<LI>[1]: 1 if the action sets them, 0 if clears
+         *</UL>
+         */
+        PLAYER_SET_EVENT_FLAGS(100),
+
+        /**
+         * Player has received cloth for an action such as establishing a Cloth trade route with
+         * a neutral {@link SOCVillage village} in the {@link SOCGameOptionSet#K_SC_CLVI Cloth Trade} scenario.
+         *<P>
+         * Params:
+         *<UL>
+         *<LI>[0] Amount of cloth received, added to their {@link SOCPlayer#getCloth()}
+         *<LI>[1] Node coordinate of village, or 0 if received from board's {@link SOCBoardLarge#getCloth()} General Supply
+         *</UL>
+         * Establishing trade with a village also adds the {@link #CLOSE_SHIP_ROUTE} effect.
+         * Once per game, establishing trade also sets their
+         * {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE} event flag
+         * which is noted with {@link #PLAYER_SET_EVENT_FLAGS}.
+         *<P>
+         * Villages are in a game only if scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI} is set.
+         */
+        PLAYER_SCEN_CLVI_RECEIVE_CLOTH(110);
 
         /**
          * This enum member's unique int value ({@link #CHANGE_LONGEST_ROAD_PLAYER} == 10, etc).

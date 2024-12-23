@@ -5149,6 +5149,34 @@ public class SOCGame implements Serializable, Cloneable
                 hasBuiltCity = false;
                 break;
 
+            case PLAYER_SET_EVENT_FLAGS:
+                {
+                    int playerEvents_bitmask = currPlayer.getPlayerEvents();
+                    if (e.params[1] == 0)
+                        playerEvents_bitmask |= e.params[0];      // set to undo clear
+                    else
+                        playerEvents_bitmask &= (~ e.params[0]);  // clear to undo set
+
+                    currPlayer.setPlayerEvents(playerEvents_bitmask);
+                }
+                break;
+
+            case PLAYER_SCEN_CLVI_RECEIVE_CLOTH:
+                {
+                    currPlayer.setCloth(currPlayer.getCloth() - e.params[0]);
+
+                    final int villageNodeCoord = e.params[1];
+                    if (villageNodeCoord != 0)
+                    {
+                        final SOCVillage vi = ((SOCBoardLarge) board).getVillageAtNode(villageNodeCoord);
+                        if (vi != null)
+                            vi.setCloth(1 + vi.getCloth());
+                    } else {
+                        ((SOCBoardLarge) board).setCloth(1 + ((SOCBoardLarge) board).getCloth());
+                    }
+                }
+                break;
+
             // TODO any other side effects for now? (SVP from scenarios, etc)
 
             default:

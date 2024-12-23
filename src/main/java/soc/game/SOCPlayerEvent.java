@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013,2015-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013,2015-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -87,6 +87,8 @@ public enum SOCPlayerEvent
      * players gain VP by having pairs of cloth.
      *<P>
      * Villages are in a game only if scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI} is set.
+     *
+     * @see GameAction.EffectType#PLAYER_SCEN_CLVI_RECEIVE_CLOTH
      */
     CLOTH_TRADE_ESTABLISHED_VILLAGE(0x04),
 

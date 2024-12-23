@@ -1252,8 +1252,9 @@ public class SOCGameMessageHandler
 
     /**
      * While undoing a game action for the current player,
+     * after game data has been updated for the undo,
      * send its {@link soc.game.GameAction.Effect} game data messages
-     * which are sent before the undo, and gather those to send afterwards.
+     * which are sent before the undo message, and gather those to send afterwards.
      *<P>
      * If {@link soc.game.GameAction#effects} includes {@link soc.game.GameAction.EffectType#CHANGE_GAMESTATE},
      * its {@link SOCGameState} message will be at the end of the returned list.
@@ -1349,6 +1350,38 @@ public class SOCGameMessageHandler
 
             case CLOSE_SHIP_ROUTE:
                 srv.messageToGame(gaName, true, new SOCSetShipRouteClosed(gaName, false, e.params));
+                break;
+
+            // TODO REVEAL_FOG_HEX?
+
+            case PLAYER_SET_EVENT_FLAGS:
+                msgsAfter.add
+                    (new SOCPlayerElement
+                        (gaName, cpn, SOCPlayerElement.SET,
+                         PEType.PLAYEREVENTS_BITMASK, ga.getPlayer(ga.getCurrentPlayerNumber()).getPlayerEvents()));
+                break;
+
+            case PLAYER_SCEN_CLVI_RECEIVE_CLOTH:
+                {
+                    msgsAfter.add
+                        (new SOCPlayerElement
+                            (gaName, cpn, SOCPlayerElement.SET,
+                             PEType.SCENARIO_CLOTH_COUNT, ga.getPlayer(ga.getCurrentPlayerNumber()).getCloth()));
+
+                    final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
+                    final int villageNodeCoord = e.params[1];
+                    if (villageNodeCoord != 0)
+                    {
+                        final SOCVillage vi = board.getVillageAtNode(villageNodeCoord);
+                        if (vi != null)
+                            msgsAfter.add
+                                (new SOCPieceValue(gaName, SOCPlayingPiece.VILLAGE, villageNodeCoord, vi.getCloth(), 0));
+                    } else {
+                        msgsAfter.add
+                           (new SOCPlayerElement
+                               (gaName, -1, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, board.getCloth()));
+                    }
+                }
                 break;
 
             // TODO any other side effects for now? (SVP from scenarios, etc)
