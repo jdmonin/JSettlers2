@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -309,6 +309,10 @@ public abstract class GameHandler
      * If the game still has other players, continue it, otherwise it will be ended after
      * returning from {@code leaveGame}. Send messages out to other game members
      * notifying them the player has left.
+     *<P>
+     * If the leaving player was {@link SOCGame#getOwner()} and we're continuing the game,
+     * picks a new owner from any remaining human players. To determine which remaining player connected first/longest,
+     * will call {@link Connection#getConnectTime()}.
      *<P>
      * See javadoc return value for behavior if the sole human player has left
      * and only bots and/or observers remain.

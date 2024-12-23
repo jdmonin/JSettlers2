@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2023 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2024 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -2216,6 +2216,7 @@ public class SOCGameHandler extends GameHandler
         (SOCGame ga, Connection c, final boolean hasReplacement, final boolean hasHumanReplacement)
     {
         final String gm = ga.getName();
+        final String gameOwner = ga.getOwner();
         final String plName = c.getData();  // Retain name, since will become null within game obj.
 
         boolean gameHasHumanPlayer = hasHumanReplacement;
@@ -2388,7 +2389,47 @@ public class SOCGameHandler extends GameHandler
                 gameHasObserver = true;
         }
 
-        return ! (gameHasHumanPlayer || gameHasObserver);
+        final boolean shouldEndGame = ! (gameHasHumanPlayer || gameHasObserver);
+
+        /**
+         * If continuing the game, and leaving player was game owner, pick a new owner from remaining players
+         */
+        if ((! shouldEndGame) && ((gameOwner == null) || gameOwner.equals(plName)))
+        {
+            ga.setOwner(null, null);
+
+            Connection oldestRemainingConn = null;
+            long oldestRemainingConnAtMillis = 0L;
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+            {
+                if (ga.isSeatVacant(pn))
+                    continue;
+                SOCPlayer pl = ga.getPlayer(pn);
+                if (pl.isRobot())
+                    continue;
+                String name = pl.getName();
+                if ((name == null) || name.isEmpty())
+                    continue;
+
+                Connection plConn = srv.getConnection(name);
+                long connAtMillis = plConn.getConnectTime().getTime();
+
+                if ((oldestRemainingConn == null) || (connAtMillis < oldestRemainingConnAtMillis))
+                {
+                    oldestRemainingConn = plConn;
+                    oldestRemainingConnAtMillis = connAtMillis;
+                }
+            }
+
+            if (oldestRemainingConn != null)
+            {
+                String newOwnerName = oldestRemainingConn.getData();
+                ga.setOwner(newOwnerName, oldestRemainingConn.getI18NLocale());
+                srv.messageToGameKeyed(ga, true, false, "member.left.is_new_owner", newOwnerName);  // "{0} is now the game owner."
+            }
+        }
+
+        return shouldEndGame;
     }
 
     /**
