@@ -2696,11 +2696,22 @@ public class SOCGame implements Serializable, Cloneable
      * update this flag. If a client joins a game after it's started, the server will send PUTPIECE messages
      * for any cities already on the board.
      * @return  True if {@link #putPiece}({@link SOCCity}) has been called for a non-temporary piece
+     * @see #setHasBuiltCity(boolean)
      * @since 1.1.19
      */
     public boolean hasBuiltCity()
     {
         return hasBuiltCity;
+    }
+
+    /**
+     * At client, set {@link #hasBuiltCity()}.
+     * @param hasBuilt  True to set, false to clear
+     * @since 2.7.00
+     */
+    public void setHasBuiltCity(final boolean hasBuilt)
+    {
+        hasBuiltCity = hasBuilt;
     }
 
     /**
@@ -3957,6 +3968,13 @@ public class SOCGame implements Serializable, Cloneable
             if (! (isTempPiece || hasBuiltCity))
             {
                 hasBuiltCity = true;  // for house-rule game option "N7C"
+
+                if (isAtServer)
+                {
+                    if (effects == null)
+                        effects = new ArrayList<>();
+                    effects.add(new GameAction.Effect(EffectType.GAME_SET_HAS_BUILT_CITY_N7C));
+                }
             }
 
             SOCSettlement se = new SOCSettlement(ppPlayer, coord, board);
@@ -4785,7 +4803,7 @@ public class SOCGame implements Serializable, Cloneable
             players[currentPlayerNumber].decrementUndosRemaining();
 
         final GameAction undoAct = new GameAction
-            (moveAct, ActionType.UNDO_MOVE_PIECE, SOCPlayingPiece.SHIP, wasMovedFromEdge, wasMovedToEdge);
+            (moveAct, ActionType.UNDO_MOVE_PIECE, SOCPlayingPiece.SHIP, wasMovedToEdge, wasMovedFromEdge);
         lastAction = undoAct;
         lastActionTime = System.currentTimeMillis();
 
@@ -5125,6 +5143,10 @@ public class SOCGame implements Serializable, Cloneable
                     currPlayer.setSpecialVP(e.params[0]);
                     currPlayer.setScenarioSVPLandAreas(e.params[1]);
                 }
+                break;
+
+            case GAME_SET_HAS_BUILT_CITY_N7C:
+                hasBuiltCity = false;
                 break;
 
             // TODO any other side effects for now? (SVP from scenarios, etc)

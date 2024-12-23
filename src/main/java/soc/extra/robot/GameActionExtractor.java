@@ -89,7 +89,7 @@ public class GameActionExtractor
         for (int msgtype : new int[]
             {
                 SOCMessage.DICERESULT, SOCMessage.PUTPIECE, SOCMessage.REVEALFOGHEX, SOCMessage.CANCELBUILDREQUEST,
-                SOCMessage.UNDOPUTPIECE,
+                SOCMessage.UNDOPUTPIECE, SOCMessage.SETSHIPROUTECLOSED,
                 SOCMessage.PLAYERELEMENT, SOCMessage.PLAYERELEMENTS,
                 SOCMessage.MOVEPIECE, SOCMessage.DEVCARDACTION, SOCMessage.DISCARD, SOCMessage.PICKRESOURCES,
                 SOCMessage.GAMESTATE, SOCMessage.MOVEROBBER, SOCMessage.CHOOSEPLAYERREQUEST,
@@ -529,8 +529,10 @@ public class GameActionExtractor
                     extractedAct = extract_CANCEL_BUILT_PIECE(e);
                     break;
 
+                case SOCMessage.SETSHIPROUTECLOSED:
+                    // fall through
                 case SOCMessage.UNDOPUTPIECE:
-                    extractedAct = extract_UNDO_BUILD_PIECE(e);
+                    extractedAct = extract_UNDO_BUILD_PIECE_MOVE_PIECE(e);
                     break;
 
                 case SOCMessage.PLAYERELEMENT:
@@ -1064,12 +1066,12 @@ public class GameActionExtractor
     }
 
     /**
-     * Extract {@link ActionType#UNDO_BUILD_PIECE} from the current message sequence.
+     * Extract {@link ActionType#UNDO_BUILD_PIECE} or {@link ActionType#UNDO_MOVE_PIECE} from the current message sequence.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      * @since 2.7.00
      */
-    private Action extract_UNDO_BUILD_PIECE(GameEventLog.EventEntry e)
+    private Action extract_UNDO_BUILD_PIECE_MOVE_PIECE(GameEventLog.EventEntry e)
     {
         // f3:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45
         if (! hasLogAtClient)
@@ -1080,13 +1082,18 @@ public class GameActionExtractor
             e = next();
         }
 
-        // all:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45
+        // optionally, all:SOCSetShipRouteClosed:game=g|p=0|p=3333|p=3077
+        if ((e.event instanceof SOCSetShipRouteClosed) && e.isToAll())
+            e = next();
+
+        // all:SOCUndoPutPiece:game=g|playerNumber=3|pieceType=2|coord=45[|movedFromCoord=c0a]
         if (! (e.isToAll() && (e.event instanceof SOCUndoPutPiece)))
             return null;
         final int pieceType = ((SOCUndoPutPiece) (e.event)).getPieceType(),
-            builtCoord = ((SOCUndoPutPiece) (e.event)).getCoordinates();
-        // TODO parse types other than ROAD, CITY
-        if ((pieceType != SOCPlayingPiece.ROAD) && (pieceType != SOCPlayingPiece.CITY))
+            builtCoord = ((SOCUndoPutPiece) (e.event)).getCoordinates(),
+            movedFromCoord = ((SOCUndoPutPiece) (e.event)).getMovedFromCoordinates();
+        // TODO parse types other than ROAD, CITY, SHIP
+        if ((pieceType != SOCPlayingPiece.ROAD) && (pieceType != SOCPlayingPiece.CITY) && (pieceType != SOCPlayingPiece.SHIP))
         {
             System.err.println("TODO: parse SOCUndoPutPiece(pType=" + pieceType + ')');
             return null;
@@ -1095,31 +1102,49 @@ public class GameActionExtractor
         if (e == null)
             return null;
 
-        // all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2
-        if (! (e.isToAll() && (e.event instanceof SOCPlayerElements)))
-            return null;
-        SOCPlayerElements pe = (SOCPlayerElements) e.event;
-        if (pe.getAction() != SOCPlayerElement.GAIN)
-            return null;
-        // Should be only resource element types
-        final int[] etypes = pe.getElementTypes(),
-            amounts = pe.getAmounts();
-        SOCResourceSet cost = new SOCResourceSet();
-        for (int i = 0; i < etypes.length; ++i)
-        {
-            final int etype = etypes[i];
-            if ((etype < SOCResourceConstants.CLAY) || (etype > SOCResourceConstants.WOOD))
-                return null;
-            cost.add(amounts[i], etype);
-        }
-
-        // Skip past any side effects (any message before gamestate)
-        do
+        // Skip past possible SOCGameElement side effects (such as HAS_BUILT_CITY_N7C)
+        while (e.isToAll() && (e.event instanceof SOCGameElements))
         {
             e = next();
             if (e == null)
                 return null;
-        } while (! (e.event instanceof SOCGameState));
+        }
+
+        // If not moving piece, all:SOCPlayerElements:game=g|playerNum=3|actionType=GAIN|e2=3,e4=2
+        final SOCResourceSet cost;
+        if (movedFromCoord == 0)
+        {
+            if (! (e.isToAll() && (e.event instanceof SOCPlayerElements)))
+                return null;
+            SOCPlayerElements pe = (SOCPlayerElements) e.event;
+            if (pe.getAction() != SOCPlayerElement.GAIN)
+                return null;
+            // Should be only resource element types
+            final int[] etypes = pe.getElementTypes(),
+                amounts = pe.getAmounts();
+            cost = new SOCResourceSet();
+            for (int i = 0; i < etypes.length; ++i)
+            {
+                final int etype = etypes[i];
+                if ((etype < SOCResourceConstants.CLAY) || (etype > SOCResourceConstants.WOOD))
+                    return null;
+                cost.add(amounts[i], etype);
+            }
+
+            e = next();
+            if (e == null)
+                return null;
+        } else {
+            cost = null;
+        }
+
+        // Skip past any side effects (any message before gamestate)
+        while (! (e.event instanceof SOCGameState))
+        {
+            e = next();
+            if (e == null)
+                return null;
+        }
 
         // all:SOCGameState:game=g|state=20
         if (! e.isToAll())
@@ -1127,8 +1152,10 @@ public class GameActionExtractor
 
         int prevStart = currentSequenceStartIndex;
         return new Action
-            (ActionType.UNDO_BUILD_PIECE, state.currentGameState, resetCurrentSequence(), prevStart,
-             pieceType, builtCoord, 0, cost, null);
+            ((movedFromCoord == 0) ? ActionType.UNDO_BUILD_PIECE : ActionType.UNDO_MOVE_PIECE,
+             state.currentGameState, resetCurrentSequence(), prevStart,
+             pieceType, builtCoord, movedFromCoord,
+             cost, null);
     }
 
     /**

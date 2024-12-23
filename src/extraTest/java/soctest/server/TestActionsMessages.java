@@ -560,7 +560,7 @@ public class TestActionsMessages
         assertFalse(ga.isSeatVacant(OTHER_PN));
         assertTrue(ga.isGameOptionSet("UB"));  // Undo Build
         assertEquals(4, ga.getGameOptionIntValue("UBL"));  // Undo Build limit per player
-        assertEquals(7, cliPl.getUndosRemaining());  // for this test, changed in file to be higher than limit
+        assertEquals(8, cliPl.getUndosRemaining());  // for this test, changed in file to be higher than limit
         assertEquals(2, ga.getPlayer(2).getUndosRemaining());  // differs from default (limit)
 
         /* settlement to join roads + ships for longest route */
@@ -568,8 +568,8 @@ public class TestActionsMessages
         final int[] SHIP_ROUTE_BECOMES_CLOSED = {0xc08, 0xc09, 0xb0a, 0xa0a, 0x90b},
             SHIP_ROUTE_REMAINS_OPEN = {0xc0a, 0xc0b};
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.SETTLEMENT, SETTLEMENT_NODE, 0, 2, 3, 7, false,
-             SHIP_ROUTE_BECOMES_CLOSED, SHIP_ROUTE_REMAINS_OPEN, false, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.SETTLEMENT, SETTLEMENT_NODE, 0, 2, 3, 8, false,
+             SHIP_ROUTE_BECOMES_CLOSED, SHIP_ROUTE_REMAINS_OPEN, false, false, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesSettle = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -577,53 +577,58 @@ public class TestActionsMessages
                 {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=1|coord=80b"},
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=GAIN|e1=1,e3=1,e4=1,e5=1"},
                 {"all:SOCLongestRoad:", "|playerNumber=2"},
+                {"all:SOCGameState:", "|state=20"},
             }, false);
 
         final int ROAD_EDGE = 0xc07;
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.ROAD, ROAD_EDGE, 0, 2, 13, 6, false, null, null, false, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.ROAD, ROAD_EDGE, 0, 2, 13, 7, false, null, null, false, false, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesRoad = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
                 {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=0|coord=c07"},
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=GAIN|e1=1,e5=1"},
                 {"all:SOCLongestRoad:", "|playerNumber=2"},
+                {"all:SOCGameState:", "|state=20"},
             }, false);
 
         final int SHIP_EDGE_EAST = 0x80b;
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, 0, 2, 8, 5, false, null, null, false, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, 0, 2, 8, 6, false, null, null, false, false, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesShip = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
                 {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=3|coord=80b"},
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=GAIN|e3=1,e5=1"},
                 {"all:SOCLongestRoad:", "|playerNumber=2"},
+                {"all:SOCGameState:", "|state=20"},
             }, false);
 
         /* move ship & undo */
         final int SHIP_MOVE_FROM = 0xc0b;
         testOne_UndoBuildAndMove_buildAndUndoPiece
-            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 2, 8, 4, false,
-             null, null, false, objs, clientAsRobot, othersAsRobot);
+            (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 2, 8, 5, false,
+             null, null, false, false, objs, clientAsRobot, othersAsRobot);
         StringBuilder comparesShipMove = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
                 {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=3|coord=80b|movedFromCoord=c0b"},
                 {"all:SOCLongestRoad:", "|playerNumber=2"},
+                {"all:SOCGameState:", "|state=20"},
             }, false);
         if (comparesShipMove == null)
         {
             /* move and undo same ship, to verify we've undone game data about ships moved/placed this turn */
             System.out.println("(Re-testing move & undo same ship)");
             testOne_UndoBuildAndMove_buildAndUndoPiece
-                (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 2, 8, 3, false,
-                 null, null, false, objs, clientAsRobot, othersAsRobot);
+                (SOCPlayingPiece.SHIP, SHIP_EDGE_EAST, SHIP_MOVE_FROM, 2, 8, 4, false,
+                 null, null, false, false, objs, clientAsRobot, othersAsRobot);
             comparesShipMove = TestRecorder.compareRecordsToExpected
                 (records, new String[][]
                 {
                     {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=3|coord=80b|movedFromCoord=c0b"},
                     {"all:SOCLongestRoad:", "|playerNumber=2"},
+                    {"all:SOCGameState:", "|state=20"},
                 }, false);
             if (comparesShipMove != null)
                 comparesShipMove.insert(0, "Test move & undo same ship: ");
@@ -689,8 +694,8 @@ public class TestActionsMessages
             final int[] SHIP_ROUTE2_BECOMES_CLOSED = {0xc08, 0xc09, 0xb0a, 0xa0a, 0x90b, 0x80b};
 
             testOne_UndoBuildAndMove_buildAndUndoPiece
-                (SOCPlayingPiece.SHIP, SHIP_EDGE_NEW_COASTAL, 0xc0b, 5, 7, 2, true,
-                 SHIP_ROUTE2_BECOMES_CLOSED, SHIP_ROUTE2_SPUR_REMAINS_OPEN, true,
+                (SOCPlayingPiece.SHIP, SHIP_EDGE_NEW_COASTAL, 0xc0b, 5, 7, 3, true,
+                 SHIP_ROUTE2_BECOMES_CLOSED, SHIP_ROUTE2_SPUR_REMAINS_OPEN, true, false,
                  objs, clientAsRobot, othersAsRobot);
             comparesShipMove = TestRecorder.compareRecordsToExpected
                 (records, new String[][]
@@ -698,6 +703,7 @@ public class TestActionsMessages
                     {"all:SOCSetShipRouteClosed:", "|p=0|p=1804|p=2059|p=2315|p=2570|p=2826|p=3081|p=3080"},
                     {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=3|coord="
                      + Integer.toHexString(SHIP_EDGE_NEW_COASTAL) + "|movedFromCoord=c0b"},
+                    {"all:SOCGameState:", "|state=20"},
                 }, false);
             if (comparesShipMove != null)
                 comparesShipMove.insert(0, "Test move ship to close route: ");
@@ -709,8 +715,8 @@ public class TestActionsMessages
             final int[] SHIP_ROUTE2_BECOMES_CLOSED = {0xc08, 0xc09, 0xb0a, 0xa0a, 0x90b, 0x80b};
 
             testOne_UndoBuildAndMove_buildAndUndoPiece
-                (SOCPlayingPiece.SHIP, SHIP_EDGE_NEW_COASTAL, 0, 5, 7, 1, true,
-                 SHIP_ROUTE2_BECOMES_CLOSED, SHIP_ROUTE2_SPUR_REMAINS_OPEN, true,
+                (SOCPlayingPiece.SHIP, SHIP_EDGE_NEW_COASTAL, 0, 5, 7, 2, true,
+                 SHIP_ROUTE2_BECOMES_CLOSED, SHIP_ROUTE2_SPUR_REMAINS_OPEN, true, false,
                  objs, clientAsRobot, othersAsRobot);
             comparesShip = TestRecorder.compareRecordsToExpected
                 (records, new String[][]
@@ -719,10 +725,33 @@ public class TestActionsMessages
                     {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=3|coord="
                      + Integer.toHexString(SHIP_EDGE_NEW_COASTAL)},
                     {"all:SOCPlayerElements:", "playerNum=3|actionType=GAIN|e3=1,e5=1"},
+                    {"all:SOCGameState:", "|state=20"},
                 }, false);
             if (comparesShip != null)
                 comparesShip.insert(0, "Test build ship to close route: ");
         }
+
+        /* Upgrade settlement to first city of game (for gameopt N7C), set ga.hasBuiltCity() flag, undo, clear N7C flag */
+
+        final int CITY_NODE = 0x809;
+        // reset resources for testOne_UndoBuildAndMove_buildAndUndoPiece's checks
+        {
+            final SOCResourceSet PL_START_RES = new SOCResourceSet(2, 3, 2, 2, 2, 0);
+            cliPl.getResources().setAmounts(PL_START_RES);
+            SOCPlayer cliPlAtCli = gaAtCli.getPlayer(CLIENT_PN);
+            cliPlAtCli.getResources().setAmounts(PL_START_RES);
+        }
+        testOne_UndoBuildAndMove_buildAndUndoPiece
+            (SOCPlayingPiece.CITY, CITY_NODE, 0, 5, 4, 1, true,
+             null, SHIP_ROUTE_REMAINS_OPEN, false, true, objs, clientAsRobot, othersAsRobot);
+        StringBuilder comparesCity = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=2|coord=809"},
+                {"all:SOCGameElements:", "|e10=0"},
+                {"all:SOCPlayerElements:", "|playerNum=3|actionType=GAIN|e2=3,e4=2"},
+                {"all:SOCGameState:", "|state=20"},
+            }, false);
 
         /* leave game, consolidate results */
 
@@ -741,6 +770,13 @@ public class TestActionsMessages
                 compares.append("   ");
             compares.append("Undo build road: Message mismatch: ");
             compares.append(comparesRoad);
+        }
+        if (comparesCity != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("Undo build city: Message mismatch: ");
+            compares.append(comparesCity);
         }
         if (comparesShip != null)
         {
@@ -769,7 +805,12 @@ public class TestActionsMessages
      * Build or move a piece which can gain longest route for client player, and/or close a trade route,
      * then undo it to revert longest road, for {@link #testOne_UndoBuildAndMove(boolean, boolean)}.
      * Calls {@code records.clear()} before sending undo request.
-     * @param pieceType  Piece type to build and then undo: Must be ROAD, SETTLEMENT or SHIP
+     *<P>
+     * When called, expects player's resources to be {@code [2, 0, 2, 1, 2]},
+     * except if {@code pieceType} == {@link SOCPlayingPiece#CITY} should be {@code [2, 3, 2, 2, 2]}.
+     *
+     * @param pieceType  Piece type to build and then undo:
+     *     Must be {@link SOCPlayingPiece#ROAD}, SETTLEMENT, CITY or SHIP
      * @param pieceCoord  Node or edge coordinate to build at or move to
      * @param movedFromCoord  Edge coordinate to move ship from, or 0 when building
      * @param startingVP  Player's {@link SOCPlayer#getPublicVP()} before placement or move
@@ -779,6 +820,8 @@ public class TestActionsMessages
      * @param shipRouteBecomesClosed  Edges to check that {@link SOCShip#isClosed()} becomes true with placement, or null
      * @param shipRouteRemainsOpen  Edges to check that {@link SOCShip#isClosed()} remains false with placement, or null
      * @param builtOrMovedShipBecomesClosed  If true, {@code pieceCoord}'s ship becomes part of a closed ship route
+     * @param checkHasBuiltCity  If true, will check whether {@link SOCGame#hasBuiltCity()} is false before build, true
+     *     after build, and false again after undo. Assumes {@code pieceType} CITY.
      * @param objs  Game and client/server objects
      * @param clientAsRobot
      * @param othersAsRobot
@@ -788,10 +831,12 @@ public class TestActionsMessages
         (final int pieceType, final int pieceCoord, final int movedFromCoord,
          final int startingVP, final int startPieceCount, final int startUndoCount, final boolean ignoreLR,
          final int[] shipRouteBecomesClosed, final int[] shipRouteRemainsOpen, final boolean builtOrMovedShipBecomesClosed,
+         final boolean checkHasBuiltCity,
          final StartedTestGameObjects objs, final boolean clientAsRobot, final boolean othersAsRobot)
     {
         final int CLIENT_PN = 3, OTHER_PN = 2;
-        final int[] PL_START_RES_ARR = {2, 0, 2, 1, 2};
+        final int[] PL_START_RES_ARR
+            = {2, (pieceType != SOCPlayingPiece.CITY) ? 0 : 3, 2, (pieceType != SOCPlayingPiece.CITY) ? 1 : 2, 2};
         final int[] PL_NEXT_RES_ARR;  // use array so assert(..) will print details of what's unexpected
         if (movedFromCoord == 0)
         {
@@ -816,6 +861,11 @@ public class TestActionsMessages
         final Vector<EventEntry> records = objs.records;
         assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
         assertFalse(ga.isSeatVacant(OTHER_PN));
+        if (checkHasBuiltCity)
+        {
+            assertFalse(testDesc + ": srv: hasn't built city yet", ga.hasBuiltCity());
+            assertFalse(testDesc + ": cli: hasn't built city yet", gaAtCli.hasBuiltCity());
+        }
 
         // Pre-check ships, if any:
         if (shipRouteBecomesClosed != null)
@@ -847,6 +897,17 @@ public class TestActionsMessages
         {
             assertNull(testDesc, board.roadOrShipAtEdge(pieceCoord));
             assertNull(testDesc, boardAtCli.roadOrShipAtEdge(pieceCoord));
+        }
+        else if (pieceType == SOCPlayingPiece.CITY)
+        {
+            SOCPlayingPiece p = board.settlementAtNode(pieceCoord);
+            assertNotNull(testDesc, p);
+            assertEquals(testDesc, SOCPlayingPiece.SETTLEMENT, p.getType());
+            assertEquals(testDesc, CLIENT_PN, p.getPlayerNumber());
+            p = boardAtCli.settlementAtNode(pieceCoord);
+            assertNotNull(testDesc, p);
+            assertEquals(testDesc, SOCPlayingPiece.SETTLEMENT, p.getType());
+            assertEquals(testDesc, CLIENT_PN, p.getPlayerNumber());
         } else {
             assertNull(testDesc, board.settlementAtNode(pieceCoord));
             assertNull(testDesc, boardAtCli.settlementAtNode(pieceCoord));
@@ -878,6 +939,9 @@ public class TestActionsMessages
             case SOCPlayingPiece.SHIP:
                 pieceToPut = new SOCShip(cliPl, pieceCoord, board);
                 break;
+            case SOCPlayingPiece.CITY:
+                pieceToPut = new SOCCity(cliPl, pieceCoord, board);
+                break;
             default:
                 fail(testDesc + ": unsupported pieceType for test");
                 return;  // to satisfy compiler
@@ -900,15 +964,20 @@ public class TestActionsMessages
             assertNotNull(pieceCheckDesc, board.roadOrShipAtEdge(pieceCoord));
             assertNotNull(pieceCheckDesc, boardAtCli.roadOrShipAtEdge(pieceCoord));
         } else {
-            assertNotNull(pieceCheckDesc, board.settlementAtNode(pieceCoord));
-            assertNotNull(pieceCheckDesc, boardAtCli.settlementAtNode(pieceCoord));
+            SOCPlayingPiece p = board.settlementAtNode(pieceCoord);
+            assertNotNull(pieceCheckDesc, p);
+            assertEquals(pieceCheckDesc, pieceType, p.getType());
+            p = boardAtCli.settlementAtNode(pieceCoord);
+            assertNotNull(pieceCheckDesc, p);
+            assertEquals(pieceCheckDesc, pieceType, p.getType());
         }
         if (movedFromCoord == 0)
         {
             assertEquals(testDesc, startPieceCount - 1, cliPl.getNumPieces(pieceType));
             assertEquals(testDesc, startPieceCount - 1, cliPlAtCli.getNumPieces(pieceType));
         }
-        int vp = startingVP + (ignoreLR ? 0 : 2) + ((pieceType == SOCPlayingPiece.SETTLEMENT) ? 1 : 0);
+        int vp = startingVP + (ignoreLR ? 0 : 2)
+            + ((pieceType == SOCPlayingPiece.SETTLEMENT || pieceType == SOCPlayingPiece.CITY) ? 1 : 0);
         assertEquals(testDesc, vp, cliPl.getPublicVP());
         assertEquals(testDesc, vp, cliPlAtCli.getPublicVP());
         if (! ignoreLR)
@@ -975,7 +1044,8 @@ public class TestActionsMessages
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(testDesc, effects);
             assertEquals(testDesc,
-                ((movedFromCoord == 0) ? 1 : 0) + ((shipRouteBecomesClosed != null) ? 1 : 0) + (ignoreLR ? 0 : 1),
+                ((movedFromCoord == 0) ? 1 : 0) + ((shipRouteBecomesClosed != null) ? 1 : 0) + (ignoreLR ? 0 : 1)
+                 + (checkHasBuiltCity ? 1 : 0),
                 effects.size());
 
             GameAction.Effect e = effects.get(0);
@@ -991,6 +1061,11 @@ public class TestActionsMessages
                 if ((movedFromCoord == 0) || ! ignoreLR)
                     e = effects.get(1);
             }
+            if (checkHasBuiltCity)
+            {
+                assertEquals(testDesc, GameAction.EffectType.GAME_SET_HAS_BUILT_CITY_N7C, e.eType);
+                e = effects.get(1);
+            }
             if (movedFromCoord == 0)
             {
                 assertEquals(testDesc, GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
@@ -1002,6 +1077,12 @@ public class TestActionsMessages
                 assertEquals(testDesc, GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
                 assertArrayEquals(testDesc, new int[]{OTHER_PN, CLIENT_PN}, e.params);
             }
+        }
+
+        if (checkHasBuiltCity)
+        {
+            assertTrue(testDesc + ": srv: has now built city", ga.hasBuiltCity());
+            assertTrue(testDesc + ": cli: has now built city", gaAtCli.hasBuiltCity());
         }
 
         // Don't need to check TestRecorder.compareRecordsToExpected for the build:
@@ -1017,6 +1098,17 @@ public class TestActionsMessages
         {
             assertNull(testDesc + ": srv: cleared it", board.roadOrShipAtEdge(pieceCoord));
             assertNull(testDesc + ": cli: cleared it", boardAtCli.roadOrShipAtEdge(pieceCoord));
+        }
+        else if (pieceType == SOCPlayingPiece.CITY)
+        {
+            SOCPlayingPiece p = board.settlementAtNode(pieceCoord);
+            assertNotNull(testDesc + ": srv: downgraded it", p);
+            assertEquals(testDesc + ": srv: downgraded it", SOCPlayingPiece.SETTLEMENT, p.getType());
+            assertEquals(testDesc + ": srv: downgraded it", CLIENT_PN, p.getPlayerNumber());
+            p = boardAtCli.settlementAtNode(pieceCoord);
+            assertNotNull(testDesc + ": cli: downgraded it", p);
+            assertEquals(testDesc + ": cli: downgraded it", SOCPlayingPiece.SETTLEMENT, p.getType());
+            assertEquals(testDesc + ": cli: downgraded it", CLIENT_PN, p.getPlayerNumber());
         } else {
             assertNull(testDesc + ": srv: cleared it", board.settlementAtNode(pieceCoord));
             assertNull(testDesc + ": cli: cleared it", boardAtCli.roadOrShipAtEdge(pieceCoord));
@@ -1068,14 +1160,15 @@ public class TestActionsMessages
         } else {
             assertEquals(GameAction.ActionType.UNDO_MOVE_PIECE, act.actType);
             assertEquals(pieceType, act.param1);
-            assertEquals(movedFromCoord, act.param2);
-            assertEquals(pieceCoord, act.param3);
+            assertEquals(pieceCoord, act.param2);
+            assertEquals(movedFromCoord, act.param3);
         }
         {
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(effects);
             assertEquals
-                ((ignoreLR ? 0 : 1) + ((movedFromCoord == 0) ? 1 : 0) + ((shipRouteBecomesClosed != null) ? 1 : 0),
+                ((ignoreLR ? 0 : 1) + ((movedFromCoord == 0) ? 1 : 0) + ((shipRouteBecomesClosed != null) ? 1 : 0)
+                 + (checkHasBuiltCity ? 1 : 0),
                  effects.size());
 
             GameAction.Effect e = effects.get(0);
@@ -1091,6 +1184,11 @@ public class TestActionsMessages
                 if ((movedFromCoord == 0) || ! ignoreLR)
                     e = effects.get(1);
             }
+            if (checkHasBuiltCity)
+            {
+                assertEquals(testDesc, GameAction.EffectType.GAME_SET_HAS_BUILT_CITY_N7C, e.eType);
+                e = effects.get(1);
+            }
             if (movedFromCoord == 0)
             {
                 assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
@@ -1102,6 +1200,12 @@ public class TestActionsMessages
                 assertEquals(GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
                 assertArrayEquals(new int[]{OTHER_PN, CLIENT_PN}, e.params);
             }
+        }
+
+        if (checkHasBuiltCity)
+        {
+            assertFalse(testDesc + ": srv: cleared hasBuiltCity", ga.hasBuiltCity());
+            assertFalse(testDesc + ": cli: cleared hasBuiltCity", gaAtCli.hasBuiltCity());
         }
     }
 

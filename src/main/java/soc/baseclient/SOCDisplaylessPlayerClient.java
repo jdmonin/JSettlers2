@@ -2106,6 +2106,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
             ga.setPlacingRobberForKnightCard(value != 0);
             break;
 
+        case HAS_BUILT_CITY_N7C:
+            ga.setHasBuiltCity(value != 0);
+            break;
+
         case UNKNOWN_TYPE:
             ;  // no action needed, UNKNOWN_TYPE is mentioned only to avoid compiler warning
         }

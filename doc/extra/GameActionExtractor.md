@@ -77,6 +77,7 @@ As seen by a human player client or robot player.
     - Next is SOCMovePiece -> Move Piece
 - SOCCancelBuildRequest -> Cancel built piece (like initial settlement)
 - SOCUndoPutPiece -> Undo build or move piece
+- SOCSetShipRouteClosed -> Undo build or move piece
 - SOCPlayerElements or SOCPlayerElement:
     - SOCPlayerElement:actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=1 -> Ask Special Building during another player's turn
     - SOCPlayerElement:playerNum=(current player)|actionType=SET|elementType=ASK_SPECIAL_BUILD|amount=0 -> End special building "turn"
