@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -169,6 +169,19 @@ public class SOCSimpleAction extends SOCMessageTemplate4i
      * @since 2.0.00
      */
     public static final int TRADE_PORT_REMOVED = 1002;
+
+    /**
+     * Player has undone placing or moving a ship next to a {@link soc.game.SOCVillage Village} to establish Cloth Trade.
+     * Client should update village data by calling {@link soc.game.SOCVillage#removeTradingPlayer(soc.game.SOCPlayer)}
+     * for {@link #getPlayerNumber()}. Sent to entire game.
+     *<P>
+     * {@code value1}: Village node coordinate
+     *
+     *<P>
+     * Used with scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI}.
+     * @since 2.7.00
+     */
+    public static final int SC_FTRI_VILLAGE_PLAYER_REMOVED = 1003;
 
     // Reminder: If you add an action type, check client and server code to determine if the new type
     // should be added to methods such as:

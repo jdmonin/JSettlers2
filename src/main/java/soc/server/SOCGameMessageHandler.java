@@ -1374,8 +1374,14 @@ public class SOCGameMessageHandler
                     {
                         final SOCVillage vi = board.getVillageAtNode(villageNodeCoord);
                         if (vi != null)
+                        {
                             msgsAfter.add
                                 (new SOCPieceValue(gaName, SOCPlayingPiece.VILLAGE, villageNodeCoord, vi.getCloth(), 0));
+                            if (e.params[2] != 0)
+                                msgsAfter.add
+                                    (new SOCSimpleAction
+                                        (gaName, cpn, SOCSimpleAction.SC_FTRI_VILLAGE_PLAYER_REMOVED, villageNodeCoord));
+                        }
                     } else {
                         msgsAfter.add
                            (new SOCPlayerElement

@@ -685,18 +685,25 @@ public class GameAction
         PLAYER_SET_EVENT_FLAGS(100),
 
         /**
-         * Player has received cloth for an action such as establishing a Cloth trade route with
+         * Player has received cloth for an action such as establishing a Cloth Trade route with
          * a neutral {@link SOCVillage village} in the {@link SOCGameOptionSet#K_SC_CLVI Cloth Trade} scenario.
          *<P>
          * Params:
          *<UL>
          *<LI>[0] Amount of cloth received, added to their {@link SOCPlayer#getCloth()}
          *<LI>[1] Node coordinate of village, or 0 if received from board's {@link SOCBoardLarge#getCloth()} General Supply
+         *<LI>[2] 1 if was received for establishing Cloth trade, and {@link SOCVillage#addTradingPlayer(SOCPlayer)}
+         *        was called; undo should call {@link SOCVillage#removeTradingPlayer(SOCPlayer)}. 0 otherwise
          *</UL>
          * Establishing trade with a village also adds the {@link #CLOSE_SHIP_ROUTE} effect.
-         * Once per game, establishing trade also sets their
+         * If this village is player's first time establishing Cloth Trade this game, also sets their
          * {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE} event flag
          * which is noted with {@link #PLAYER_SET_EVENT_FLAGS}.
+         *<P>
+         * Although this effect could be added when establishing trade with an "empty" village (getCloth == 0), there's
+         * no reason to do so: If undoing the action there's no need to call {@link SOCVillage#removeTradingPlayer(SOCPlayer)}
+         * because the empty village won't send them cloth in the future. And if that village was the
+         * first Cloth Trade established by the player, {@link #PLAYER_SET_EVENT_FLAGS} notes that fact.
          *<P>
          * Villages are in a game only if scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI} is set.
          */

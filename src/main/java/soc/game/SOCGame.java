@@ -5163,16 +5163,21 @@ public class SOCGame implements Serializable, Cloneable
 
             case PLAYER_SCEN_CLVI_RECEIVE_CLOTH:
                 {
-                    currPlayer.setCloth(currPlayer.getCloth() - e.params[0]);
+                    int nCloth = e.params[0];
+                    currPlayer.setCloth(currPlayer.getCloth() - nCloth);
 
                     final int villageNodeCoord = e.params[1];
                     if (villageNodeCoord != 0)
                     {
                         final SOCVillage vi = ((SOCBoardLarge) board).getVillageAtNode(villageNodeCoord);
                         if (vi != null)
-                            vi.setCloth(1 + vi.getCloth());
+                        {
+                            vi.setCloth(nCloth + vi.getCloth());
+                            if (e.params[2] != 0)
+                                vi.removeTradingPlayer(currPlayer);
+                        }
                     } else {
-                        ((SOCBoardLarge) board).setCloth(1 + ((SOCBoardLarge) board).getCloth());
+                        ((SOCBoardLarge) board).setCloth(nCloth + ((SOCBoardLarge) board).getCloth());
                     }
                 }
                 break;

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012,2019-2020,2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -141,6 +141,7 @@ public class SOCVillage extends SOCPlayingPiece
      * gives <tt>pl</tt> 1 cloth now (at server only).
      * @param pl  Player who's just established trade with this village
      * @return   True if <tt>pl</tt> received 1 cloth
+     * @see #removeTradingPlayer(SOCPlayer)
      */
     public boolean addTradingPlayer(SOCPlayer pl)
     {
@@ -158,6 +159,21 @@ public class SOCVillage extends SOCPlayingPiece
         } else {
             return false;
         }
+    }
+
+    /**
+     * Remove this player from the list of trading players.
+     * Used if they undo the ship placement which established trade.
+     * @param pl  Player to remove
+     * @see #addTradingPlayer(SOCPlayer)
+     * @since 2.7.00
+     */
+    public void removeTradingPlayer(final SOCPlayer pl)
+    {
+        if ((pl == null) || (traders == null))
+            return;
+
+        traders.remove(pl);
     }
 
     /**

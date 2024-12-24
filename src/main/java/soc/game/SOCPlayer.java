@@ -3506,7 +3506,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             if (gotCloth)
                                 effects.add(new GameAction.Effect
                                     (GameAction.EffectType.PLAYER_SCEN_CLVI_RECEIVE_CLOTH,
-                                     new int[]{1, pp.getCoordinates()}));
+                                     new int[]{1, pp.getCoordinates(), flagNew ? 1 : 0}));
                         }
                     }
                 }

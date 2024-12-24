@@ -3039,6 +3039,18 @@ public class SOCDisplaylessPlayerClient implements Runnable
             ga.setNumDevCards(mes.getValue1());
             break;
 
+        case SOCSimpleAction.SC_FTRI_VILLAGE_PLAYER_REMOVED:
+            {
+                final SOCBoard bd = ga.getBoard();
+                if (bd instanceof SOCBoardLarge)
+                {
+                    final SOCVillage vi = ((SOCBoardLarge) bd).getVillageAtNode(mes.getValue1());
+                    if (vi != null)
+                        vi.removeTradingPlayer(ga.getPlayer(mes.getPlayerNumber()));
+                }
+            }
+            break;
+
         // Known types with no game data update:
         // Catch these before default case, so 'unknown type' won't be printed
 
