@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -72,7 +72,8 @@ import java.util.Random;
  *      -
  *    </td>
  *    <td><!-- Edge adjac to edge -->
- *      {@link #getAdjacentEdgesToEdge(int)}
+ *      {@link #getAdjacentEdgesToEdge(int)} <br>
+ *      {@link #isEdgeSameOrAdjacent(int, int)}
  *    </td>
  *    <td><!-- Edge adjac to node -->
  *      {@link #getAdjacentEdgeToNode(int, int)} <br>
@@ -100,6 +101,7 @@ import java.util.Random;
  *      {@link #getAdjacentNodeToNode2Away(int, int)} <br>
  *      {@link #getAdjacentNodesToNode(int)} <br>
  *      {@link #getAdjacentNodesToNode_arr(int)} <br>
+ *      {@link #isNodeSameOrAdjacent(int, int)} <br>
  *      {@link #isNodeAdjacentToNode(int, int)} <br>
  *      {@link #isNode2AwayFromNode(int, int)}
  *    </td>
@@ -2250,10 +2252,33 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Are these edges either the same coordinate or adjacent?
+     * @param edgeA  One edge coordinate; for the 6-player encoding, use 0, not -1, for edge 0x00.
+     *    Not checked for validity.
+     * @param edgeB  Other edge coordinate; for the 6-player encoding, use 0, not -1, for edge 0x00.
+     *    Not checked for validity.
+     * @return  True if {@code edgeA == edgeB}
+     *     or {@code edgeB} is in {@link #getAdjacentEdgesToEdge(int) getAdjacentEdgesToEdge(edgeA)}
+     * @since 2.7.00
+     */
+    public boolean isEdgeSameOrAdjacent(final int edgeA, final int edgeB)
+    {
+        if (edgeA == edgeB)
+            return true;
+
+        for (int e : getAdjacentEdgesToEdge(edgeA))
+            if (e == edgeB)
+                return true;
+
+        return false;
+    }
+
+    /**
      * Get the edge coordinates of the 2 to 4 edges adjacent to this edge.
      * @param coord  Edge coordinate; for the 6-player encoding, use 0, not -1, for edge 0x00.
      *    Not checked for validity.
      * @return the valid adjacent edges to this edge, as a list of 2 to 4 Integer coordinates
+     * @see #isEdgeSameOrAdjacent(int, int)
      */
     public List<Integer> getAdjacentEdgesToEdge(int coord)
     {
@@ -2633,6 +2658,18 @@ public abstract class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Are these nodes either the same coordinate or adjacent?
+     * @param nodeA  One node coordinate; not validated
+     * @param nodeB  Other node coordinate; not validated
+     * @return  True if {@code nodeA == nodeB} or {@link #isNodeAdjacentToNode(int, int)}
+     * @since 2.7.00
+     */
+    public boolean isNodeSameOrAdjacent(final int nodeA, final int nodeB)
+    {
+        return (nodeA == nodeB) ? true : isNodeAdjacentToNode(nodeA, nodeB);
+    }
+
+    /**
      * Get the valid node coordinates adjacent to this node.
      * Calls {@link #getAdjacentNodeToNode(int, int)}.
      * @return the node coordinates adjacent to this node
@@ -2680,6 +2717,7 @@ public abstract class SOCBoard implements Serializable, Cloneable
      * @return  True if {@link #getAdjacentNodesToNode(int) getAdjacentNodesToNode(nodeA)}
      *            contains <tt>nodeB</tt>
      * @see #getAdjacentNodesToNode(int)
+     * @see #isNodeSameOrAdjacent(int, int)
      * @since 2.0.00
      */
     public final boolean isNodeAdjacentToNode(final int nodeA, final int nodeB)

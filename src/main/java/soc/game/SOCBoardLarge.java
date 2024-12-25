@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -106,7 +106,8 @@ import soc.util.IntPair;
  *      {@link #isEdgeAdjacentToHex(int, int)}
  *    </td>
  *    <td><!-- Edge adjac to edge -->
- *      {@link #getAdjacentEdgesToEdge(int)}
+ *      {@link #getAdjacentEdgesToEdge(int)} <br>
+ *      {@link #isEdgeSameOrAdjacent(int, int)}
  *    </td>
  *    <td><!-- Edge adjac to node -->
  *      {@link #getAdjacentEdgeToNode(int, int)} <br>
@@ -136,6 +137,7 @@ import soc.util.IntPair;
  *      {@link #getAdjacentNodeToNode2Away(int, int)} <br>
  *      {@link #getAdjacentNodesToNode(int)} <br>
  *      {@link #getAdjacentNodesToNode_arr(int)} <br>
+ *      {@link #isNodeSameOrAdjacent(int, int)} <br>
  *      {@link #isNodeAdjacentToNode(int, int)} <br>
  *      {@link #isNode2AwayFromNode(int, int)}
  *    </td>

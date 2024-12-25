@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -9337,6 +9337,7 @@ import javax.swing.JComponent;
                       if ((latest != null) && (act != null))
                       {
                           // enable Undo only if game allows and currently pointing at latest piece
+                          // or an adjacent coordinate
 
                           if ((act.actType == GameAction.ActionType.MOVE_PIECE)
                               && (latest instanceof SOCShip)
@@ -9347,7 +9348,7 @@ import javax.swing.JComponent;
                                   int[] xyb = rotateScaleXYFromActual(x, y);
                                   edgeCoord = findEdge(xyb[0], xyb[1], false);
                               }
-                              if (edgeCoord == latest.getCoordinates())
+                              if (board.isEdgeSameOrAdjacent(edgeCoord, latest.getCoordinates()))
                               {
                                   wantsUndo = true;
                                   cancelBuildItem.setEnabled(true);
@@ -9359,18 +9360,21 @@ import javax.swing.JComponent;
                               && game.canUndoPutPiece(playerNumber, latest))
                           {
                               int coord = 0;
+                              boolean isSameCoord = false;
                               if (latest instanceof SOCRoutePiece)
                               {
                                   int[] xyb = rotateScaleXYFromActual(x, y);
                                   coord = findEdge(xyb[0], xyb[1], false);
+                                  isSameCoord = board.isEdgeSameOrAdjacent(coord, latest.getCoordinates());
                               }
                               else if ((latest instanceof SOCSettlement) || (latest instanceof SOCCity))
                               {
                                   int[] xyb = rotateScaleXYFromActual(x, y);
                                   coord = findNode(xyb[0], xyb[1]);
+                                  isSameCoord = board.isNodeSameOrAdjacent(coord, latest.getCoordinates());
                               }
 
-                              if (coord == latest.getCoordinates())
+                              if (isSameCoord)
                               {
                                   wantsUndo = true;
                                   cancelBuildItem.setEnabled(true);
