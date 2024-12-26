@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
- * Portions of this file copyright (C) 2009-2013,2017-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2013,2017-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -92,8 +92,10 @@ public class OpeningBuildStrategy {
      * @param ga  Our game
      * @param pl  Our player data in {@code ga}
      * @param br  Robot brain for {@code pl} if available, or null
+     * @throws IllegalArgumentException if {@code pl} is null
      */
     public OpeningBuildStrategy(SOCGame ga, SOCPlayer pl, SOCRobotBrain br)
+        throws IllegalArgumentException
     {
         if (pl == null)
             throw new IllegalArgumentException();

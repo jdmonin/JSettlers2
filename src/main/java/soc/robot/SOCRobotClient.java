@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -231,7 +231,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     protected Hashtable<String, CappedQueue<SOCMessage>> brainQs = new Hashtable<String, CappedQueue<SOCMessage>>();
 
     /**
-     * a table of requests from the server to sit at games
+     * a table of requests from the server to sit at games.
+     * Key = game name, value = seat number.
      */
     private Hashtable<String, Integer> seatRequests = new Hashtable<String, Integer>();
 

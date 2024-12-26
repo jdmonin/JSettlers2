@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
- * Portions of this file copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -111,6 +111,7 @@ public interface SOCBuildPlan
      * Calculate the total resources needed to build all pieces in this plan.
      * @return Total resources, from each piece's {@link SOCPossiblePiece#getResourcesToBuild()}
      * @see #getFirstPieceResources()
+     * @see #getPlannedPiece(int)
      */
     public SOCResourceSet getTotalResourcesForBuildPlan();
 
