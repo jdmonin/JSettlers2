@@ -335,7 +335,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
     protected final boolean hasConnectOrPractice;
 
     /**
-     * Is set up in {@link #initVisualElements()}.
+     * Is set up in {@link #initVisualElements()}; never {@code null} afterwards.
+     * (Before v2.7.00, could be {@code null} when client command line had server connect args.)
      * Key for {@link #cardLayout} is {@link #CONNECT_OR_PRACTICE_PANEL}.
      * @see #hasConnectOrPractice
      * @since 1.1.00
