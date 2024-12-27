@@ -3530,6 +3530,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         final int seType = board.getSpecialEdgeType(edge);
         if (seType != 0)
         {
+            if (game.isAtServer && (effects == null))
+                effects = new ArrayList<>();
+
             switch (seType)
             {
             case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD:
@@ -3542,6 +3545,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         Integer ctypeObj = board.drawItemFromStack();
                         cardtype = (ctypeObj != null) ? ctypeObj : SOCDevCardConstants.KNIGHT;
                         newShip.player.getInventory().addDevCard(1, SOCInventory.NEW, cardtype);
+
+                        effects.add(new GameAction.Effect
+                            (GameAction.EffectType.PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE,
+                             new int[]{edge, seType, cardtype}));
                     } else {
                         cardtype = SOCDevCardConstants.UNKNOWN;
                     }
@@ -3561,6 +3568,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     ++newShip.specialVP;
                     if (newShip.specialVP == 1)
                         newShip.specialVPEvent = SOCPlayerEvent.SVP_REACHED_SPECIAL_EDGE;
+
+                    if (game.isAtServer)
+                        effects.add(new GameAction.Effect
+                            (GameAction.EffectType.PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE,
+                             new int[]{edge, seType}));
 
                     if (game.gameEventListener != null)
                         game.gameEventListener.playerEvent

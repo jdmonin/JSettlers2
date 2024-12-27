@@ -707,7 +707,25 @@ public class GameAction
          *<P>
          * Villages are in a game only if scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI} is set.
          */
-        PLAYER_SCEN_CLVI_RECEIVE_CLOTH(110);
+        PLAYER_SCEN_CLVI_RECEIVE_CLOTH(110),
+
+        /**
+         * Player has reached a Special Edge on the board and received a reward,
+         * such as {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD}.
+         *<P>
+         * Params:
+         *<UL>
+         *<LI>[0] Edge coordinate
+         *<LI>[1] Special Edge type, from {@link SOCBoardLarge#getSpecialEdgeType(int)}.<BR>
+         *    If edge type is {@link SOCBoardLarge#SPECIAL_EDGE_SVP}, they receive 1 SVP
+         *    and there won't also be a redundant {@link #PLAYER_GAIN_SVP} effect
+         *<LI>[2] When Edge Type is {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD}, the card type
+         *    from {@link SOCDevCardConstants}
+         *</UL>
+         *
+         * Currently in game only if scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI} is set.
+         */
+        PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE(120);
 
         /**
          * This enum member's unique int value ({@link #CHANGE_LONGEST_ROAD_PLAYER} == 10, etc).

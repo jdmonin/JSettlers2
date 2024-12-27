@@ -1358,7 +1358,7 @@ public class SOCGameMessageHandler
                 msgsAfter.add
                     (new SOCPlayerElement
                         (gaName, cpn, SOCPlayerElement.SET,
-                         PEType.PLAYEREVENTS_BITMASK, ga.getPlayer(ga.getCurrentPlayerNumber()).getPlayerEvents()));
+                         PEType.PLAYEREVENTS_BITMASK, ga.getPlayer(cpn).getPlayerEvents()));
                 break;
 
             case PLAYER_SCEN_CLVI_RECEIVE_CLOTH:
@@ -1366,7 +1366,7 @@ public class SOCGameMessageHandler
                     msgsAfter.add
                         (new SOCPlayerElement
                             (gaName, cpn, SOCPlayerElement.SET,
-                             PEType.SCENARIO_CLOTH_COUNT, ga.getPlayer(ga.getCurrentPlayerNumber()).getCloth()));
+                             PEType.SCENARIO_CLOTH_COUNT, ga.getPlayer(cpn).getCloth()));
 
                     final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
                     final int villageNodeCoord = e.params[1];
@@ -1387,6 +1387,28 @@ public class SOCGameMessageHandler
                            (new SOCPlayerElement
                                (gaName, -1, SOCPlayerElement.SET, PEType.SCENARIO_CLOTH_COUNT, board.getCloth()));
                     }
+                }
+                break;
+
+            case PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE:
+                {
+                    final SOCPlayer cp = ga.getPlayer(cpn);
+                    final int edgeCoord = e.params[0], seType = e.params[1];
+
+                    switch (seType)
+                    {
+                    case SOCBoardLarge.SPECIAL_EDGE_SVP:
+                        msgsAfter.add
+                            (new SOCPlayerElement
+                                (gaName, cpn, SOCPlayerElement.SET, PEType.SCENARIO_SVP, cp.getSpecialVP()));
+                        break;
+
+                    // TODO case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD
+                        // break;
+                    }
+
+                    msgsAfter.add
+                        (new SOCSimpleAction(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edgeCoord, seType));
                 }
                 break;
 

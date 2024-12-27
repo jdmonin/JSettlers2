@@ -5182,6 +5182,24 @@ public class SOCGame implements Serializable, Cloneable
                 }
                 break;
 
+            case PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE:
+                {
+                    final int edgeCoord = e.params[0], seType = e.params[1];
+
+                    switch (seType)
+                    {
+                    case SOCBoardLarge.SPECIAL_EDGE_SVP:
+                        currPlayer.setSpecialVP(currPlayer.getSpecialVP() - 1);
+                        break;
+
+                    // TODO case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD
+                        // break;
+                    }
+
+                    ((SOCBoardLarge) board).setSpecialEdge(edgeCoord, seType);
+                }
+                break;
+
             // TODO any other side effects for now? (SVP from scenarios, etc)
 
             default:
