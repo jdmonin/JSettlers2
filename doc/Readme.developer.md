@@ -380,8 +380,9 @@ There are several gradle build tasks. Here are the main ones:
 - `assemble`: create jars but don't run unit tests
 - `test`: run unit tests
 - `extraTest`: run unit tests and a few lengthy extra tests
-    - `extraTestPython`: only the python extra tests
-    - `extraTest --exclude-task extraTestPython`: only the java extra tests
+    - Only the python extra tests: `extraTestPython`
+    - Only the java extra tests: `extraTest --exclude-task extraTestPython  --exclude-task testPython`
+        - Only a specific java extra test: `extraTest --exclude-task extraTestPython  --exclude-task testPython --tests TestActionsMessages.testBuildAndMove`
 - `dist`: `build` and create tarballs of the source + built JARs  
   (jsettlers-2.x.xx-src.tar.gz, jsettlers-2.x.xx-full.tar.gz, jsettlers-2.x.xx-full.zip)
   in "build/distributions/"

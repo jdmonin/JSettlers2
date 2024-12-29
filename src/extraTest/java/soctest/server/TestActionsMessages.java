@@ -329,9 +329,13 @@ public class TestActionsMessages
         {
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(effects);
-            assertEquals(1, effects.size());
+            assertEquals(2, effects.size());
 
             GameAction.Effect e = effects.get(0);
+            assertEquals(GameAction.EffectType.GAME_SET_HAS_BUILT_CITY_N7C, e.eType);
+            assertNull(e.params);
+
+            e = effects.get(1);
             assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
             assertNull(e.params);
         }
