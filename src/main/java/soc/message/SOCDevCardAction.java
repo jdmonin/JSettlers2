@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017-2021,2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2021,2023-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -62,7 +62,7 @@ import soc.game.SOCDevCardConstants;  // for javadocs only
 public class SOCDevCardAction extends SOCMessage
     implements SOCMessageForGame
 {
-    private static final long serialVersionUID = 2000L;  // last structural change v2.0.00
+    private static final long serialVersionUID = 2700L;  // last structural change v2.7.00
 
     /**
      * Minimum client version which can send multiple card types in 1 message: v2.0.00.
@@ -136,6 +136,20 @@ public class SOCDevCardAction extends SOCMessage
      * @since 1.1.17
      */
     public static final int CANNOT_PLAY = 4;
+
+    /**
+     * dev card action: Remove new card from player's hand.
+     * Used for Undo actions which were added in v2.7.00, so older clients won't encounter it.
+     * @since 2.7.00
+     */
+    public static final int REMOVE_NEW = 5;
+
+    /**
+     * dev card action: Remove old card from player's hand.
+     * Used for Undo actions which were added in v2.7.00, so older clients won't encounter it.
+     * @since 2.7.00
+     */
+    public static final int REMOVE_OLD = 6;
 
     /**
      * Name of game

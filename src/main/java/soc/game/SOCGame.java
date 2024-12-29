@@ -2954,7 +2954,7 @@ public class SOCGame implements Serializable, Cloneable
      * At server, get the dev cards remaining in the unplayed deck.
      * Useful for saving and loading game snapshots.
      * @return Unplayed dev card deck: a copied array of dev card types from {@link SOCDevCardConstants}.
-     *     May be empty, but never null.
+     *     May be empty, but never null after {@link #initAtServer()}.
      * @see #buyDevCard()
      * @see #getNumDevCards()
      * @since 2.3.00
@@ -2964,6 +2964,46 @@ public class SOCGame implements Serializable, Cloneable
         int[] cards = new int[numDevCards];
         System.arraycopy(devCardDeck, 0, cards, 0, cards.length);
         return cards;
+    }
+
+    /**
+     * At server, shuffle the unplayed dev card deck.
+     * Optionally add a card back into it before shuffling.
+     * Called by {@link #initAtServer()}.
+     *<P>
+     * Before v2.7.00 this was part of {@link #startGame()}.
+     * @param cardTypeToAdd  Type of card to shuffle back in, like {@link SOCDevCardConstants#ROADS},
+     *     or {@link SOCDevCardConstants#UNKNOWN} (0) to not add a card
+     * @throws IllegalStateException if want to add a card, but deck is already at its original size
+     * @since 2.7.00
+     */
+    public void shuffleDevCardDeck(final int cardTypeToAdd)
+        throws IllegalStateException
+    {
+        if (cardTypeToAdd != SOCDevCardConstants.UNKNOWN)
+        {
+            if (numDevCards >= devCardDeck.length)
+                throw new IllegalStateException();
+
+            devCardDeck[numDevCards] = cardTypeToAdd;
+            ++numDevCards;
+        }
+
+        if (numDevCards <= 1)
+            return;  // <--- Early return: Not enough cards to shuffle ---
+
+        final int len = numDevCards;
+        for (int j = 0; j < 10; j++)
+        {
+            for (int i = 1; i < len; i++) // don't swap 0 with 0!
+            {
+                // Swap a random card below the ith card with the ith card
+                int idx = Math.abs(rand.nextInt() % (len - 1));
+                int tmp = devCardDeck[idx];
+                devCardDeck[idx] = devCardDeck[i];
+                devCardDeck[i] = tmp;
+            }
+        }
     }
 
     /**
@@ -5192,8 +5232,13 @@ public class SOCGame implements Serializable, Cloneable
                         currPlayer.setSpecialVP(currPlayer.getSpecialVP() - 1);
                         break;
 
-                    // TODO case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD
-                        // break;
+                    case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD:
+                        {
+                            final int cardType = e.params[2];
+                            currPlayer.getInventory().removeDevCard(SOCInventory.NEW, cardType);
+                            shuffleDevCardDeck(cardType);
+                            break;
+                        }
                     }
 
                     ((SOCBoardLarge) board).setSpecialEdge(edgeCoord, seType);
@@ -5217,6 +5262,7 @@ public class SOCGame implements Serializable, Cloneable
      * Updates {@link #lastActionTime}.
      * Adds all seated players to the Chat Allow List.
      * Initializes misc fields like each player's {@link SOCPlayer#pendingMessagesOut}.
+     * Fills and shuffles the development card deck.
      * @since 2.3.00
      */
     public void initAtServer()
@@ -5237,6 +5283,8 @@ public class SOCGame implements Serializable, Cloneable
         lastActionTime = System.currentTimeMillis();
 
         allOriginalPlayers = true;
+
+        startGame_setupDevCards();
     }
 
     /**
@@ -5265,8 +5313,6 @@ public class SOCGame implements Serializable, Cloneable
     public void startGame()
     {
         initAtServer();
-
-        startGame_setupDevCards();
 
         board.makeNewBoard(opts);
         if (hasSeaBoard)
@@ -5303,6 +5349,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For {@link #startGame()}, fill and shuffle the development card deck.
      * {@link #devCardDeck} contents are based on game options and number of players.
+     * Calls {@link #shuffleDevCardDeck(int)}.
      * @since 2.0.00
      */
     private final void startGame_setupDevCards()
@@ -5380,17 +5427,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * shuffle.
          */
-        for (j = 0; j < 10; j++)
-        {
-            for (i = 1; i < devCardDeck.length; i++) // don't swap 0 with 0!
-            {
-                // Swap a random card below the ith card with the ith card
-                int idx = Math.abs(rand.nextInt() % (devCardDeck.length - 1));
-                int tmp = devCardDeck[idx];
-                devCardDeck[idx] = devCardDeck[i];
-                devCardDeck[i] = tmp;
-            }
-        }
+        shuffleDevCardDeck(0);
     }
 
     /**

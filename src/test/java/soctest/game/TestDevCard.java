@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2021,2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,12 +22,17 @@ package soctest.game;
 
 import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
+import soc.game.SOCGame;
+import soc.game.SOCInventory;
+import soc.game.SOCPlayer;
+import soc.game.SOCResourceSet;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * A few tests for {@link SOCDevCard} and {@link SOCDevCardConstants}.
+ * A few tests for {@link SOCDevCard} and {@link SOCDevCardConstants}
+ * and related {@link SOCGame} methods.
  *
  * @since 2.4.00
  */
@@ -135,6 +140,75 @@ public class TestDevCard
     public void testGetCardType_notReallyNumeric()
     {
         assertEquals(42, SOCDevCard.getCardType("4XYZ"));  // malformed: should throw exception
+    }
+
+    /**
+     * Test {@link SOCGame#getDevCardDeck()}, {@link SOCGame#buyDevCard()},
+     * {@link SOCGame#shuffleDevCardDeck(int)} and related methods.
+     * @since 2.7.00
+     */
+    @Test
+    public void testGetDevCardsAndReshuffle()
+    {
+        SOCGame ga = new SOCGame("TestDevCard");
+        ga.initAtServer();  // set up game data as if at server, but don't create a board that won't be used
+        assertEquals(SOCGame.NEW, ga.getGameState());
+        assertEquals(-1, ga.getCurrentPlayerNumber());  // will return cards from dev card deck, without needing a player to give them to
+
+        assertEquals(25, ga.getNumDevCards());  // hardcode 25 because field SOCGame.NUM_DEVCARDS_STANDARD is private
+        int[] cards = ga.getDevCardDeck();
+        assertEquals(25, cards.length);
+
+        int cardType = ga.buyDevCard();
+        assertEquals(cards[24], cardType);
+        assertEquals(24, ga.getNumDevCards());
+
+        ga.shuffleDevCardDeck(0);
+        assertEquals(24, ga.getNumDevCards());
+        // TODO reexamine getDevCardDeck contents to verify shuffled?
+
+        ga.shuffleDevCardDeck(cardType);
+        assertEquals(25, ga.getNumDevCards());
+        // TODO reexamine getDevCardDeck contents to verify shuffled?
+
+        /* force short deck to test corner cases */
+
+        ga.setNumDevCards(2);
+        assertEquals(2, ga.getNumDevCards());
+        ga.shuffleDevCardDeck(0);  // should not fail
+
+        cardType = ga.buyDevCard();
+        assertEquals(1, ga.getNumDevCards());
+        cards = ga.getDevCardDeck();
+        assertEquals(1, cards.length);
+
+        cardType = ga.buyDevCard();
+        assertEquals(cards[0], cardType);
+        assertEquals(0, ga.getNumDevCards());
+
+        ga.shuffleDevCardDeck(cardType);
+        assertEquals(1, ga.getNumDevCards());
+        cards = ga.getDevCardDeck();
+        assertEquals(1, cards.length);
+        assertEquals(cardType, cards[0]);
+
+        // TODO test 6-player length vs NUM_DEVCARDS_6PLAYER?
+
+        /* test actually buying a card */
+
+        ga.addPlayer("p0", 0);
+        ga.setCurrentPlayerNumber(0);
+        ga.setGameState(SOCGame.PLAY1);
+        SOCPlayer pl = ga.getPlayer(0);
+        assertEquals("p0", pl.getName());
+        pl.getResources().add(new SOCResourceSet(0, 1, 1, 1, 0, 0));
+        int cardTypePl = ga.buyDevCard();
+        assertEquals("same card recently re-added to empty deck", cardType, cardTypePl);
+        assertEquals(0, ga.getNumDevCards());
+        assertTrue(pl.getResources().isEmpty());
+        SOCInventory inv = pl.getInventory();
+        assertEquals(1, inv.getTotal());
+        assertEquals(1, inv.getAmount(cardTypePl));
     }
 
 }

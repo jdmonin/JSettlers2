@@ -1403,8 +1403,12 @@ public class SOCGameMessageHandler
                                 (gaName, cpn, SOCPlayerElement.SET, PEType.SCENARIO_SVP, cp.getSpecialVP()));
                         break;
 
-                    // TODO case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD
-                        // break;
+                    case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD:
+                        msgsAfter.add
+                            (new SOCDevCardAction(gaName, cpn, SOCDevCardAction.REMOVE_NEW, e.params[2]));
+                        msgsAfter.add
+                            (new SOCGameElements(gaName, SOCGameElements.GEType.DEV_CARD_COUNT, ga.getNumDevCards()));
+                        break;
                     }
 
                     msgsAfter.add
