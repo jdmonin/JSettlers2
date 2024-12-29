@@ -159,6 +159,14 @@ public class TestDevCard
         int[] cards = ga.getDevCardDeck();
         assertEquals(25, cards.length);
 
+        // can't put card in deck when it's at full size
+        try
+        {
+            ga.shuffleDevCardDeck(SOCDevCardConstants.ROADS);
+            fail("ga.shuffleDevCardDeck(ROADS) should fail when deck already full");
+        }
+        catch(IllegalStateException e) {}
+
         int cardType = ga.buyDevCard();
         assertEquals(cards[24], cardType);
         assertEquals(24, ga.getNumDevCards());

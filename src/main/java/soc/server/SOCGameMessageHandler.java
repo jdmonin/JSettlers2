@@ -1406,8 +1406,6 @@ public class SOCGameMessageHandler
                     case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD:
                         msgsAfter.add
                             (new SOCDevCardAction(gaName, cpn, SOCDevCardAction.REMOVE_NEW, e.params[2]));
-                        msgsAfter.add
-                            (new SOCGameElements(gaName, SOCGameElements.GEType.DEV_CARD_COUNT, ga.getNumDevCards()));
                         break;
                     }
 

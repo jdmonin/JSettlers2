@@ -1376,9 +1376,27 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @return The next item from the stack, or {@code null} if empty or unused
      * @throws UnsupportedOperationException if called at client
+     * @see #putItemInStackRandomly(Integer)
      */
     public Integer drawItemFromStack()
         throws UnsupportedOperationException
+    {
+        throw new UnsupportedOperationException("Use SOCBoardAtServer instead");
+    }
+
+    /**
+     * If this scenario has a separate stack of dev cards or items waiting to be claimed by any player,
+     * place an item into that stack at a random position. See {@link #drawItemFromStack()} for details.
+     *<P>
+     * Called at server, not at client.
+     *
+     * @param item  The item to place into the stack; not {@code null}
+     * @throws UnsupportedOperationException if called at client or if scenario has no stack and it's null
+     * @throws IllegalArgumentException if {@code item} is {@code null}
+     * @since 2.7.00
+     */
+    public void putItemInStackRandomly(final Integer item)
+        throws UnsupportedOperationException, IllegalArgumentException
     {
         throw new UnsupportedOperationException("Use SOCBoardAtServer instead");
     }

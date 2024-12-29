@@ -5233,12 +5233,10 @@ public class SOCGame implements Serializable, Cloneable
                         break;
 
                     case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD:
-                        {
-                            final int cardType = e.params[2];
-                            currPlayer.getInventory().removeDevCard(SOCInventory.NEW, cardType);
-                            shuffleDevCardDeck(cardType);
-                            break;
-                        }
+                        final int cardType = e.params[2];
+                        currPlayer.getInventory().removeDevCard(SOCInventory.NEW, cardType);
+                        ((SOCBoardLarge) board).putItemInStackRandomly(cardType);
+                        break;
                     }
 
                     ((SOCBoardLarge) board).setSpecialEdge(edgeCoord, seType);
@@ -5372,7 +5370,6 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         int i;
-        int j;
 
         // Standard set of knights
         for (i = 0; i < 14; i++)
@@ -8919,8 +8916,10 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Called at server only.
      *<P>
-     * If called while the game is starting, when {@link #getCurrentPlayerNumber()} == -1,
+     * If {@link #getCurrentPlayerNumber()} == -1 (like while the game is starting),
      * removes and returns a dev card from the deck without giving it to any player.
+     *<P>
+     * Some scenarios use a separate stack of items; see {@link SOCBoardLarge#drawItemFromStack()}.
      *
      * @return the card that was drawn; a dev card type from {@link SOCDevCardConstants}.
      * @see #playDiscovery()

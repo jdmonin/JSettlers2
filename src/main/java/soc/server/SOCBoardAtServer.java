@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2021,2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -301,6 +301,22 @@ public class SOCBoardAtServer extends SOCBoardLarge
         return drawStack.pop();
     }
 
+    // javadoc inherited from SOCBoardLarge.
+    @Override
+    public void putItemInStackRandomly(final Integer item)
+        throws UnsupportedOperationException, IllegalArgumentException
+    {
+        if (item == null)
+            throw new IllegalArgumentException("item");
+
+        if (drawStack == null)
+            throw new UnsupportedOperationException("null stack");
+
+        if (drawStack.isEmpty())
+            drawStack.push(item);
+        else
+            drawStack.insertElementAt(item, rand.nextInt(drawStack.size()));
+    }
 
     ////////////////////////////////////////////
     //

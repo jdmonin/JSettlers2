@@ -722,7 +722,10 @@ public class GameAction
          *<LI>[2] When Edge Type is {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD}, the card type
          *    from {@link SOCDevCardConstants}
          *</UL>
-         *
+         * If undoing this action for {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD},
+         * call {@link SOCBoardLarge#putItemInStackRandomly(Integer)} to place the dev card
+         * back into the board's item stack.
+         *<P>
          * Currently in game only if scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI} is set.
          */
         PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE(120);
