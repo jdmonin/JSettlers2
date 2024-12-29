@@ -3837,6 +3837,14 @@ public class SOCRobotBrain extends Thread
         case SOCDevCardAction.ADD_NEW:
             cardsInv.addDevCard(1, SOCInventory.NEW, cardType);
             break;
+
+        case SOCDevCardAction.REMOVE_OLD:
+            cardsInv.removeDevCard(SOCInventory.OLD, cardType);
+            break;
+
+        case SOCDevCardAction.REMOVE_NEW:
+            cardsInv.removeDevCard(SOCInventory.NEW, cardType);
+            break;
         }
     }
 

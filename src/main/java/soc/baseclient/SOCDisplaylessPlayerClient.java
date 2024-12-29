@@ -2609,6 +2609,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
         case SOCDevCardAction.ADD_NEW:
             player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
             break;
+
+        case SOCDevCardAction.REMOVE_OLD:
+            player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
+            break;
+
+        case SOCDevCardAction.REMOVE_NEW:
+            player.getInventory().removeDevCard(SOCInventory.NEW, ctype);
+            break;
         }
     }
 
