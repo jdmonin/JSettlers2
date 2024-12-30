@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -524,7 +524,8 @@ public class SOCGameOptionSet
         opts.add(new SOCGameOption
             ("_VP_ALL", 2000, 2500, false, FLAG_DROP_IF_UNUSED, "Use default VP in all scenarios"));
         opts.add(new SOCGameOption
-            ("UB", 2700, 2700, false, FLAG_DROP_IF_UNUSED, "Allow undo piece builds and moves"));
+            ("UB", 2700, 2700, false, FLAG_DROP_IF_UNUSED | SOCGameOption.FLAG_SET_AT_CLIENT_ONCE,
+             "Allow undo piece builds and moves"));
         opts.add(new SOCGameOption
             ("UBL", 2700, 2700, true, 7, 1, 999, SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED,
              "Limit undos to # per player"));

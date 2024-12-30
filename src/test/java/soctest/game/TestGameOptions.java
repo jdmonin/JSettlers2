@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,6 +19,7 @@
  **/
 package soctest.game;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +31,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import soc.client.ServerGametypeInfo;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
@@ -39,7 +41,7 @@ import soc.util.SOCFeatureSet;
 import soc.util.Version;
 
 /**
- * Tests for {@link SOCGameOption} and {@link SOCGameOptionSet}.
+ * Tests for {@link SOCGameOption}, {@link SOCGameOptionSet}, and {@link ServerGametypeInfo}.
  *<P>
  * TODO add more basic-functionality tests
  *
@@ -1851,6 +1853,74 @@ public class TestGameOptions
         assertTrue(optSC.equals(op2));
         op2.setStringValue("xyz");
         assertFalse(optSC.equals(op2));
+    }
+
+    /**
+     * Test {@link ServerGametypeInfo#knownOpts} and {@link ServerGametypeInfo#receiveDefaults(Map, int)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testClientReceiveDefaults()
+    {
+        final SOCGameOption knownOptUB = knownOpts.getKnownOption("UB", true);
+        assertNotNull(knownOptUB);
+        assertEquals(SOCGameOption.OTYPE_BOOL, knownOptUB.optType);
+        assertTrue(knownOptUB.hasFlag(SOCGameOption.FLAG_SET_AT_CLIENT_ONCE));
+        assertEquals(2700, knownOptUB.minVersion);
+        assertFalse(knownOptUB.getBoolValue());
+
+        for (int loopForPrac = 0; loopForPrac <= 1; ++loopForPrac)
+            for (int loopSrvOlderThanUB = 0; loopSrvOlderThanUB <= 1; ++loopSrvOlderThanUB)
+            {
+                String testDesc = ("forPractice=" + (loopForPrac == 1) + ", srvOlderThanUB=" + (loopSrvOlderThanUB == 1));
+
+                ServerGametypeInfo servOpts = new ServerGametypeInfo(loopForPrac == 1);
+                assertNotNull(testDesc, servOpts.knownOpts);
+                // knownOpts should have same contents as SGOSet.getAllKnownOptions:
+                {
+                    List<SOCGameOption> allKnowns = new ArrayList<>();
+                    for (SOCGameOption opt : SOCGameOptionSet.getAllKnownOptions())
+                        allKnowns.add(opt);
+                    List<SOCGameOption> servKnowns = new ArrayList<>();
+                    for (SOCGameOption opt : servOpts.knownOpts)
+                        servKnowns.add(opt);
+                    assertEquals(testDesc, allKnowns, servKnowns);
+                }
+
+                SOCGameOption opt = servOpts.knownOpts.get("UB");
+                assertNotNull(testDesc, opt);
+                assertEquals(testDesc, SOCGameOption.OTYPE_BOOL, opt.optType);
+                assertTrue(testDesc, opt.hasFlag(SOCGameOption.FLAG_SET_AT_CLIENT_ONCE));
+                assertEquals(2700, opt.minVersion);
+                assertFalse(testDesc, opt.defaultBoolValue);
+                assertFalse(testDesc, opt.getBoolValue());
+                assertEquals(testDesc, -1, opt.getMinVersion(null));  // because boolValue == false
+
+                final SOCGameOption servOptsOptUB = servOpts.getNewGameOpts().get("UB");
+                assertNotNull(testDesc, servOptsOptUB);
+                assertEquals(testDesc, knownOptUB, servOptsOptUB);
+                assertEquals(testDesc, 2700, servOptsOptUB.minVersion);
+                assertFalse(testDesc, servOptsOptUB.defaultBoolValue);
+                assertFalse(testDesc, servOptsOptUB.getBoolValue());
+
+                servOpts.receiveDefaults(null, ((loopSrvOlderThanUB == 1) ? 2699 : Version.versionNumber()));
+                    // TODO if not forPractice, give a few values (not null)
+
+                opt = servOpts.knownOpts.get("UB");
+                assertNotNull(testDesc, opt);
+                assertEquals(testDesc, SOCGameOption.OTYPE_BOOL, opt.optType);
+                assertTrue(testDesc, opt.hasFlag(SOCGameOption.FLAG_SET_AT_CLIENT_ONCE));
+                assertEquals(testDesc, (loopSrvOlderThanUB == 0), opt.getBoolValue());
+                    // when server is older, shouldn't set true by default (but typically, actual client would set type to OTYPE_UNKNOWN)
+
+                final SOCGameOption servOptsOptUB2 = servOpts.getNewGameOpts().get("UB");
+                assertNotNull(testDesc, servOptsOptUB2);
+                assertEquals(testDesc, SOCGameOption.OTYPE_BOOL, servOptsOptUB2.optType);
+                assertTrue(testDesc, servOptsOptUB2.hasFlag(SOCGameOption.FLAG_SET_AT_CLIENT_ONCE));
+                assertEquals(testDesc, "UB", servOptsOptUB2.key);
+                assertFalse(testDesc, servOptsOptUB2.defaultBoolValue);
+                assertEquals(testDesc, (loopSrvOlderThanUB == 0), servOptsOptUB2.getBoolValue());
+            }
     }
 
     public static void main(String[] args)

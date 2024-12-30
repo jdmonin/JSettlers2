@@ -2742,7 +2742,8 @@ public class MessageHandler
         {
             // receiveDefaults sets opts.defaultsReceived, may set opts.allOptionsReceived
             unknowns = servOpts.receiveDefaults
-                (SOCGameOption.parseOptionsToMap(mes.getOpts(), servOpts.knownOpts));
+                (SOCGameOption.parseOptionsToMap(mes.getOpts(), servOpts.knownOpts),
+                 (isPractice ? Version.versionNumber() : client.sVersion));
         }
 
         if (unknowns != null)

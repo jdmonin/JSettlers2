@@ -1854,6 +1854,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                     // game to be requested from askStartGameWithOptions.
                     fullSetIsKnown = true;
                     opts.knownOpts = SOCServer.localizeKnownOptions(client.cliLocale, true);
+                    opts.receiveDefaults(null, Version.versionNumber());
                 }
 
                 if (! opts.allScenStringsReceived)

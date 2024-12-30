@@ -35,6 +35,7 @@ import soc.game.SOCScenario;
 import soc.game.SOCVersionedItem;
 import soc.message.SOCGameOptionInfo;
 import soc.message.SOCNewGameWithOptions;
+import soc.util.Version;
 
 /**
  * Track the server's information about the game type: valid game option set, scenarios, etc.
@@ -117,8 +118,8 @@ public class ServerGametypeInfo
     /**
      * Known Options of the connected server; will be null if {@link SOCPlayerClient#sVersion}
      * is less than {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS} (1.1.07).
-     * Otherwise, set from {@link SOCGameOptionSet#getAllKnownOptions()}
-     * and update from server as needed.
+     * Otherwise, is initially set from {@link SOCGameOptionSet#getAllKnownOptions()}
+     * and user should update from server messages as needed.
      *<P>
      * May contain {@link SOCGameOption#OTYPE_UNKNOWN} opts sent from server
      * as part of gameopt info synchronization.
@@ -215,14 +216,22 @@ public class ServerGametypeInfo
      * Set of default options has been received from the server, examine them.
      * Sets allOptionsReceived, defaultsReceived, knownOpts.  If we already have non-null knownOpts,
      * use servOpts to replace its {@link SOCGameOption} references instead of creating a new Map.
+     *<P>
+     * If any option has {@link SOCGameOption#FLAG_SET_AT_CLIENT_ONCE} and server is newer than
+     * that option's minimum version, sets its {@link #getBoolValue()}.
      *
      * @param servOpts The allowable {@link SOCGameOption}s received from the server.
      *                 Assumes has been parsed already against the locally known opts,
      *                 so any opts that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
+     *                 Can be {@code null} to help initialize Practice Server options;
+     *                 if so, {@link #knownOpts} should be non-null before calling.
+     * @param servVersion  Server's version from {@link SOCPlayerClient#sVersion},
+     *                 or {@link Version#versionNumber()} for practice server,
+     *                 for checking options with {@link SOCGameOption#FLAG_SET_AT_CLIENT_ONCE}
      * @return null if all are known, or a list of key names for unknown options.
      * @see #receiveInfo(SOCGameOptionInfo)
      */
-    public List<String> receiveDefaults(final Map<String, SOCGameOption> servOpts)
+    public List<String> receiveDefaults(final Map<String, SOCGameOption> servOpts, final int servVersion)
     {
         // Replacing the changed option objects is effectively the same as updating their default values;
         // we already parsed these servOpts for all SGO fields, including current value.
@@ -235,15 +244,31 @@ public class ServerGametypeInfo
             knownOpts = new SOCGameOptionSet(servOpts);
         } else {
             prevKnown = new HashSet<>();
-            for (String oKey : servOpts.keySet())
-            {
-                SOCGameOption op = SOCGameOption.copyDefaults(servOpts.get(oKey));
-                if (knownOpts.put(op) != null)  // always add, even if OTYPE_UNKNOWN
-                    prevKnown.add(oKey);
-            }
+            if (servOpts != null)
+                for (String oKey : servOpts.keySet())
+                {
+                    SOCGameOption op = SOCGameOption.copyDefaults(servOpts.get(oKey));
+                    if (knownOpts.put(op) != null)  // always add, even if OTYPE_UNKNOWN
+                        prevKnown.add(oKey);
+                }
         }
 
-        List<String> unknowns = SOCVersionedItem.findUnknowns(servOpts, prevKnown);
+        for (SOCGameOption opt : knownOpts)
+            if ((opt.optType != SOCGameOption.OTYPE_UNKNOWN)
+                && opt.hasFlag(SOCGameOption.FLAG_SET_AT_CLIENT_ONCE)
+                && (servVersion >= opt.minVersion))
+            {
+                if (! opt.getBoolValue())
+                    opt.setBoolValue(true);
+                 if (newGameOpts != null)
+                 {
+                     SOCGameOption ngOpt = newGameOpts.get(opt.key);
+                     if ((ngOpt != null) && ! ngOpt.getBoolValue())
+                         ngOpt.setBoolValue(true);
+                 }
+            }
+
+        List<String> unknowns = (servOpts != null) ? SOCVersionedItem.findUnknowns(servOpts, prevKnown) : null;
         allOptionsReceived = (unknowns == null);
         defaultsReceived = true;
 
@@ -302,7 +327,7 @@ public class ServerGametypeInfo
      * {@code NewGameOptionsFrame} may remove any {@link SOCGameOption#OTYPE_UNKNOWN} options
      * from this set, but they will remain in {@code knownOpts}.
      *<P>
-     * If {@link #isForPractice}, sets game option {@code "UB"} to allow Undo Build by default.
+     * Assumes {@link #receiveDefaults(Map, int)} has been called already.
      *<P>
      * Internally synchronized for thread safety, to ensure is created only once.
      *
@@ -314,13 +339,7 @@ public class ServerGametypeInfo
         synchronized(getNewGameSync)
         {
             if ((newGameOpts == null) && (knownOpts != null))
-            {
                 newGameOpts = new SOCGameOptionSet(knownOpts, true);
-
-                // In practice games, allow Undo Build by default
-                if (isForPractice)
-                    newGameOpts.setBoolOption("UB", null);
-            }
 
             return newGameOpts;
         }

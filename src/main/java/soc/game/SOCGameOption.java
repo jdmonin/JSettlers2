@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -303,6 +303,16 @@ public class SOCGameOption
      * @since 2.7.00
      */
     public static final int FLAG_DROP_IF_PARENT_UNUSED = 0x20;
+
+    /**
+     * {@link #optFlags} bitfield constant to indicate that if client and server are both {@link #minVersion} or newer,
+     * client should set {@link #getBoolValue()} true for the dialog for the first new game.
+     * (If the user turns off the option there, it should not be set true again in the next new game dialog's defaults.)
+     * Otherwise false by default, so as not to unexpectedly create games which older versions can't join.
+     *
+     * @since 2.7.00
+     */
+    public static final int FLAG_SET_AT_CLIENT_ONCE = 0x40;
 
     // -- Option Types --
     // OTYPE_*: See comment above optType for "If you create a new option type"
@@ -932,6 +942,7 @@ public class SOCGameOption
 
         final boolean currBool = opt.boolValue;
         final int currInt = opt.intValue;
+
         if ((currBool != opt.defaultBoolValue) || (currInt != opt.defaultIntValue))
         {
             SOCGameOption updatedOpt = new SOCGameOption
@@ -939,6 +950,7 @@ public class SOCGameOption
                  currBool, currInt, opt.minIntValue, opt.maxIntValue, opt.enumVals,
                  opt.optFlags, opt.desc);
             updatedOpt.copyMiscFields(opt);
+
             opt = updatedOpt;
         }
 
