@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -613,6 +613,8 @@ public class SOCPlayerTracker
      */
     public void cancelWrongRoadOrShip(SOCRoutePiece rs)
     {
+        // TODO handle undo build/undo move
+
         addTheirNewRoadOrShip(rs, true);
 
         //
@@ -1452,6 +1454,8 @@ public class SOCPlayerTracker
      */
     public void cancelWrongSettlement(SOCSettlement settlement)
     {
+        // TODO handle undo build
+
         addTheirNewSettlement(settlement, true);
 
         /**
@@ -2031,6 +2035,8 @@ public class SOCPlayerTracker
     {
         if (city == null)
             return;      // just in case; should not happen
+
+        // TODO handle undo build
 
         /**
          * There is no addTheirNewCity method.
