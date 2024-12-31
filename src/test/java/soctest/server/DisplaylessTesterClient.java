@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -52,7 +52,8 @@ public class DisplaylessTesterClient
 {
 
     /**
-     * Locale sent in {@link #init()}, or {@code null} for {@code "en_US"}
+     * Locale sent in {@link #init()}, or {@code null} for {@code "en_US"},
+     * the fallback locale string hardcoded into some JSettlers server and client code.
      */
     protected String localeStr;
 

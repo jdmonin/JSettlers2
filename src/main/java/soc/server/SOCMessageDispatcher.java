@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -72,7 +72,7 @@ import soc.server.genericServer.Server;
      * Create a new SOCMessageDispatcher. Takes no parameters because the
      * server and dispatcher constructors can't both call each other.
      * Be sure to call {@link #setServer(SOCServer, SOCGameListAtServer)}
-     * before dispatching.
+     * before dispatching to avoid an {@link IllegalStateException} at that time.
      */
     public SOCMessageDispatcher()
     {
