@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2019-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2019-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,6 +39,7 @@ import soc.game.SOCPlayingPiece;
  *<P>
  * Introduced in v2.0.00 for the Pirate Islands scenario ({@code _SC_PIRI}).
  *
+ * @see SOCMovePiece
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */

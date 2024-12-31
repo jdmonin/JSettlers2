@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2012,2014,2016-2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2012,2014,2016-2017,2019-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -77,7 +77,7 @@ public class SOCGameMembers extends SOCMessage
      * Create a GameMembers message.
      *
      * @param ga  name of game
-     * @param ml  list of members
+     * @param ml  list of members, typically from {@link soc.server.SOCGameListAtServer#getMembers(String)}
      */
     public SOCGameMembers(String ga, List<String> ml)
     {
@@ -87,7 +87,8 @@ public class SOCGameMembers extends SOCMessage
     }
 
     /**
-     * @return the list of member names; each element is a String with the member's nickname
+     * @return the list of member names; each element is a String with the member's nickname.
+     *     Typically from {@link soc.server.SOCGameListAtServer#getMembers(String)}.
      */
     public List<String> getMembers()
     {

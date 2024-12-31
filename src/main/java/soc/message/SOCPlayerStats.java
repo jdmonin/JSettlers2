@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010,2012,2014-2017,2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2012,2014-2017,2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,6 +26,9 @@ import soc.game.SOCResourceSet;
 /**
  * Statistics from server for one stats type for a player.
  * Sent at end of game, or by player's request ({@code "*STATS*"} command).
+ * Also sent to player client v2.7.00 and newer while sitting down to take over a robot
+ * ({@link #VERSION_FOR_SENT_AT_SITDOWN}).
+ *<P>
  * Design allows multiple types of stats.
  * The first item in this message is the type number.
  * Content of further items depends on the stats type.
