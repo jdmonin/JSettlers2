@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2022-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2022-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -52,6 +52,8 @@ public class TestGameAction
         assertEquals("GameAction(ROLL_DICE, p1=7)", new GameAction(ActionType.ROLL_DICE, 7, 0, 0).toString());
         assertEquals("GameAction(ROLL_DICE, p1=7, p2=0, p3=1)", new GameAction(ActionType.ROLL_DICE, 7, 0, 1).toString());
         assertEquals("GameAction(BUILD_PIECE, p1=1, p2=3, p3=33)", new GameAction(ActionType.BUILD_PIECE, 1, 3, 33).toString());
+        assertEquals("GameAction(UNDO_BUILD_PIECE, p1=1, p2=33)", new GameAction
+            (new GameAction(ActionType.BUILD_PIECE, 1, 3, 33), ActionType.UNDO_BUILD_PIECE, 1, 33, 0).toString());
         assertEquals("GameAction(BUILD_PIECE, p1=1, p2=3, p3=33, rs1=clay=1|ore=0|sheep=0|wheat=0|wood=2|unknown=0)",
             new GameAction(ActionType.BUILD_PIECE, 1, 3, 33, new SOCResourceSet(1, 0, 0, 0, 2, 0), null).toString());
         assertEquals("GameAction(BUILD_PIECE, p1=1, p2=3, p3=33, rs1=null, rs2=clay=1|ore=0|sheep=0|wheat=0|wood=2|unknown=0)",
