@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file Copyright (C) 2009,2013-2015,2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013-2015,2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,6 +38,9 @@ import soc.game.SOCGameOption;  // for javadocs only
  *<P>
  * Clients older than v2.5.00 don't update their known options' {@link SOCGameOption#defaultBoolValue}s
  * or {@link SOCGameOption#defaultIntValue}s when receiving this, only their current values.
+ *<P>
+ * Clients 2.7.00 and newer will locally set the bool value of options having {@link SOCGameOption#FLAG_SET_AT_CLIENT_ONCE},
+ * even if the option's default is False in this message from server.
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't create games.
