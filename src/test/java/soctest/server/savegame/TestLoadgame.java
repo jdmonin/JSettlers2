@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -592,6 +592,7 @@ public class TestLoadgame
         assertEquals(4, sgm.playerSeats.length);
         assertEquals(4, ga.maxPlayers);
         assertTrue(ga.hasSeaBoard);
+        assertTrue(ga.isGameOptionSet("UB"));
 
         assertEquals(SOCBoard.BOARD_ENCODING_LARGE, ga.getBoard().getBoardEncodingFormat());
         final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
@@ -653,19 +654,25 @@ public class TestLoadgame
 
         assertNull(board.settlementAtNode(0x606));
         assertTrue(pl.canPlaceSettlement(0x606));
-        ga.putPiece(new SOCSettlement(pl, 0x606, board));
+        SOCPlayingPiece pp = new SOCSettlement(pl, 0x606, board);
+        ga.putPiece(pp);
         assertTrue("settlement built at 0x606", board.settlementAtNode(0x606) instanceof SOCSettlement);
         assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.SETTLEMENT, 0x606, 0), ga.getLastAction());
         assertFalse(pl.canPlaceSettlement(0x606));
+        assertTrue(ga.canUndoPutPiece(CURRENT_PLAYER_NUMBER, pp));
+        assertFalse(ga.canUndoPutPiece(CURRENT_PLAYER_NUMBER, new SOCSettlement(pl, 0x605, board)));  // wrong location
 
         assertNull(board.roadOrShipAtEdge(0x605));
         assertTrue(pl.isPotentialRoad(0x605));
         assertFalse(pl.isPotentialRoad(0x604));
-        ga.putPiece(new SOCRoad(pl, 0x605, board));
+        pp = new SOCRoad(pl, 0x605, board);
+        ga.putPiece(pp);
         assertTrue("road built at 0x605", board.roadOrShipAtEdge(0x605) instanceof SOCRoad);
         assertEquals(new GameAction(ActionType.BUILD_PIECE, SOCPlayingPiece.ROAD, 0x605, 0), ga.getLastAction());
         assertFalse(pl.isPotentialRoad(0x605));
         assertTrue(pl.isPotentialRoad(0x604));
+        assertTrue(ga.canUndoPutPiece(CURRENT_PLAYER_NUMBER, pp));
+        assertFalse(ga.canUndoPutPiece(CURRENT_PLAYER_NUMBER, new SOCSettlement(pl, 0x606, board)));  // from older move
 
         assertTrue(pl.isPotentialCity(0x606));
         ga.putPiece(new SOCCity(pl, 0x606, board));
@@ -690,6 +697,7 @@ public class TestLoadgame
         assertEquals(CURRENT_PLAYER_NUMBER, srp.getPlayerNumber());
         assertFalse(((SOCShip) srp).isClosed());
         assertNull("ship at 0xc01 should not be movable", ga.canMoveShip(CURRENT_PLAYER_NUMBER, 0xc01));
+        assertFalse(ga.canUndoMoveShip(CURRENT_PLAYER_NUMBER, (SOCShip) srp));  // because not most recent action
         // built this turn, before saving (shipsPlacedThisTurn in saved game):
         srp = board.roadOrShipAtEdge(0xc02);
         assertTrue(srp instanceof SOCShip);
@@ -710,6 +718,7 @@ public class TestLoadgame
         assertEquals(CURRENT_PLAYER_NUMBER, srp.getPlayerNumber());
         assertEquals(new GameAction(ActionType.MOVE_PIECE, SOCPlayingPiece.SHIP, 0x901, 0xa00), ga.getLastAction());
         assertTrue(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xa00)));
+        assertTrue(ga.canUndoMoveShip(CURRENT_PLAYER_NUMBER, (SOCShip) srp));
         // quick direct test of addShipPlacedThisTurn
         assertFalse(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xc04)));
         ga.addShipPlacedThisTurn(0xc04);
@@ -730,10 +739,12 @@ public class TestLoadgame
 
         assertNull(board.settlementAtNode(0xe01));
         assertTrue(pl.canPlaceSettlement(0xe01));
-        ga.putPiece(new SOCSettlement(pl, 0xe01, board));
+        pp = new SOCSettlement(pl, 0xe01, board);
+        ga.putPiece(pp);
         assertTrue("settlement built at 0xe01", board.settlementAtNode(0xe01) instanceof SOCSettlement);
         assertTrue(((SOCShip) board.roadOrShipAtEdge(0xc01)).isClosed());
         assertTrue(((SOCShip) board.roadOrShipAtEdge(0xd01)).isClosed());
+        assertTrue(ga.canUndoPutPiece(CURRENT_PLAYER_NUMBER, pp));
         GameAction act = ga.getLastAction();
         assertEquals(ActionType.BUILD_PIECE, act.actType);
         assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
