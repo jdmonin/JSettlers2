@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -2566,6 +2566,8 @@ public class SOCRobotNegotiator
      */
     protected void recordResourcesFromOffer(SOCTradeOffer offer)
     {
+        final int fromPN = offer.getFrom();
+
         ///
         /// record that this player wants to sell me the stuff
         ///
@@ -2577,8 +2579,8 @@ public class SOCRobotNegotiator
         {
             if (giveSet.contains(rsrcType))
             {
-                D.ebugPrintlnINFO("%%% player " + offer.getFrom() + " wants to sell " + rsrcType);
-                markAsWantsAnotherOffer(offer.getFrom(), rsrcType);
+                D.ebugPrintlnINFO("%%% player " + fromPN + " wants to sell " + rsrcType);
+                markAsWantsAnotherOffer(fromPN, rsrcType);
             }
         }
 
@@ -2594,9 +2596,9 @@ public class SOCRobotNegotiator
         {
             if (getSet.contains(rsrcType))
             {
-                D.ebugPrintlnINFO("%%% player " + offer.getFrom() + " wants to buy " + rsrcType
+                D.ebugPrintlnINFO("%%% player " + fromPN + " wants to buy " + rsrcType
                     + " and therefore does not want to sell it");
-                markAsNotSelling(offer.getFrom(), rsrcType);
+                markAsNotSelling(fromPN, rsrcType);
             }
         }
 
