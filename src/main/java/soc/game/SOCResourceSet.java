@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2009,2012-2015,2017,2019-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -435,6 +435,12 @@ public class SOCResourceSet implements ResourceSet, Serializable, Cloneable
 
     /**
      * Subtract a certain amount of resources and return what was subtracted.
+     * Picks from {@link SOCResourceConstants#UNKNOWN} first if set contains that,
+     * then picks from {@link SOCResourceConstants#CLAY}, {@link SOCResourceConstants#ORE ORE},
+     * {@link SOCResourceConstants#SHEEP SHEEP}, {@link SOCResourceConstants#WHEAT WHEAT},
+     * {@link SOCResourceConstants#WOOD WOOD} in that usual order until a total of {@code subAmount}
+     * resources have been subtracted.
+     *
      * @param subAmount  Amount to subtract: 0 &lt;= {@code subAmount} &lt;= {@link #getTotal()}.
      * @return  The resources actually subtracted, or an empty set if {@code subAmount} == 0; never {@code null}
      * @throws IllegalArgumentException  if {@code subAmount} &lt; 0 or &gt; {@link #getTotal()}
