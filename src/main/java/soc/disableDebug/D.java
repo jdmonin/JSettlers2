@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2014,2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2014,2020-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -114,15 +114,15 @@ public class D
     }
 
    /**
-     * DOCUMENT ME!
+     * If enabled, debug-println this info text (followed by a newline).
      *
-     * @param text DOCUMENT ME!
+     * @param text Text to debug-print if enabled
      * @deprecated Use {@link #ebugPrintlnINFO(String)} added in v2.5.00
      */
     public static final void ebugPrintln(String text) {}
 
     /**
-     * DOCUMENT ME!
+     * If enabled, debug-println a blank line (followed by a newline).
      * @deprecated Use {@link #ebugPrintlnINFO()} added in v2.5.00
      */
     public static final void ebugPrintln() {}
@@ -168,9 +168,9 @@ public class D
     public static final void ebugFATAL(Throwable ex, String prefixMsg) {}
 
     /**
-     * DOCUMENT ME!
+     * If enabled, debug-print this info text; does not add a newline.
      *
-     * @param text DOCUMENT ME!
+     * @param text Text to debug-print if enabled
      * @deprecated Use {@link #ebugPrintINFO(String)} added in v2.5.00
      */
     public static final void ebugPrint(String text) {}
