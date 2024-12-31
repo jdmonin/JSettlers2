@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010-2011,2013-2014,2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011,2013-2014,2017,2019-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,6 +44,9 @@ import soc.game.SOCGame;  // for javadoc's use
  * {@link SOCStartGame}, {@link SOCTurn}. Games with clients older than v2.0.00 are
  * sent {@code SOCGameState} instead of using that field. To find uses of such messages,
  * do a where-used search for {@link #VERSION_FOR_GAME_STATE_AS_FIELD}.
+ *<P>
+ * For some player actions, the message sequence sent from server always ends with
+ * {@code SOCGameState} even if the state is unchanged, as a way to mark the end of the sequence.
  *<P>
  * Also sometimes sent from server to a client which has sent an impossible request,
  * in case client lost track of the current state somehow.
