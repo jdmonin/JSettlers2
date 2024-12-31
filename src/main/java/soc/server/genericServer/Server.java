@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018,2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018,2020-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -354,42 +354,44 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /**
      * Given a connection's name key, return the connected client; always case-sensitive.
      *<P>
-     * Before v1.2.00 this method was protected and took an Object, not String, for {@code connKey}.
+     * Before v1.2.00 this method was protected and took an Object, not String, for {@code connName}.
      *
-     * @param connKey Case-sensitive client name key, from {@link Connection#getData()}; if null, returns null
+     * @param connName Case-sensitive client connection name key, from {@link Connection#getData()}; if null, returns null.
+     *    Before v2.7.00 this parameter was called connKey.
      * @return The connection with this name, or null if not found
      * @see #getConnection(String, boolean)
      * @see SOCServer#getClientData(String)
      * @see SOCServer#getRobotConnection(String)
      * @since 1.1.00
      */
-    public Connection getConnection(final String connKey)
+    public Connection getConnection(final String connName)
     {
-        if (connKey != null)
-            return conns.get(connKey);
+        if (connName != null)
+            return conns.get(connName);
         else
             return null;
     }
 
     /**
      * Given a connection's name key, return the connected client; optionally case-insensitive.
-     * @param connKey Client name key, from {@link Connection#getData()}; if that's null, returns null
-     * @param isCaseSensitive  Use case-sensitive lookup for {@code connKey}?
-     *     If case-insensitive, calls {@link String#toLowerCase(Locale) connKey.toLowercase}({@link Locale#US}).
+     * @param connName Client connection name key, from {@link Connection#getData()}; if that's null, returns null.
+     *     Before v2.7.00 this parameter was called connKey.
+     * @param isCaseSensitive  Use case-sensitive lookup for {@code connName}?
+     *     If case-insensitive, calls {@link String#toLowerCase(Locale) connName.toLowercase}({@link Locale#US}).
      * @return The connection with this name, or null if none
      * @see #getConnection(String)
      * @since 1.2.00
      */
-    public Connection getConnection(String connKey, final boolean isCaseSensitive)
+    public Connection getConnection(String connName, final boolean isCaseSensitive)
     {
-        if ((! isCaseSensitive) && (connKey != null))
+        if ((! isCaseSensitive) && (connName != null))
             synchronized(unnamedConns)
             {
-                connKey = connNames.get(connKey.toLowerCase(Locale.US));
+                connName = connNames.get(connName.toLowerCase(Locale.US));
             }
 
-        if (connKey != null)
-            return getConnection(connKey);
+        if (connName != null)
+            return getConnection(connName);
         else
             return null;
     }
