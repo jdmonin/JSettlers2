@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007,2010-2013,2017-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007,2010-2013,2017-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -67,7 +67,8 @@ import soc.game.SOCDevCardConstants;
  *<H3>When sent from server to a client player:</H3>
  *
  *<LI> During game startup (START1B, START2B or START3B): <BR>
- *   The current player is undoing the placement of their initial settlement.
+ *   The current player is undoing the placement of their initial settlement. <BR>
+ *   (During regular game play, Undo Builds are sent as {@link SOCUndoPutPiece} instead.)
  *
  *<LI> During piece placement (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
  *   PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2): <BR>

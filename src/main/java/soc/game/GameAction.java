@@ -723,7 +723,8 @@ public class GameAction
          *    from {@link SOCDevCardConstants}
          *</UL>
          * If undoing this action for {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD},
-         * call {@link SOCBoardLarge#putItemInStackRandomly(Integer)} to place the dev card
+         * call player's {@link SOCInventory#removeDevCard(int, int)} and then
+         * {@link SOCBoardLarge#putItemInStackRandomly(Integer)} to place the dev card
          * back into the board's item stack.
          *<P>
          * Currently in game only if scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI} is set.

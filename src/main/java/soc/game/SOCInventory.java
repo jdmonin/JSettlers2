@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007,2009,2012-2014,2018-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007,2009,2012-2014,2018-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -36,6 +36,9 @@ import java.util.List;
  * Players can have 0, 1, or more of any card type or item type.
  * Each item's current state can be: New to be playable soon; Playable; or Kept in hand
  * until the end of the game (Victory Point cards, which are never New).
+ *<P>
+ * Undoing certain game actions in certain scenarios may remove dev cards from player's inventory without playing them.
+ * Example: {@link GameAction.EffectType#PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE}.
  *<P>
  * For use in loops, age constants and inventory-item state constant ranges are each contiguous:<BR>
  * {@link #OLD} == 0, {@link #NEW} == 1.<BR>
