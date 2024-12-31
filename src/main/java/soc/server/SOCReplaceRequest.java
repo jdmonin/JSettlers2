@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2017,2020-2023 Jeremy D Monin <jeremy@nand.net>.
+ * Portions of this file Copyright (C) 2017,2020-2024 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,15 +34,19 @@ import soc.server.genericServer.Connection;
 {
     private final Connection arriving;
     private final Connection leaving;
-    /** The sitdown message from {@link #arriving}; not null */
-    private final SOCSitDown sdMes;
+    /**
+     * Player number, from the {@link SOCSitDown} message from {@link #arriving}.
+     * Before v2.7.00 we stored the entire message but only ever used its PN.
+     * @since 2.7.00
+     */
+    private final int playerNumber;
     private final boolean isArrivingRobot;
 
     /**
      * Make a new request
      * @param arriv  the arriving connection; not null
      * @param leave  the leaving connection; not null
-     * @param sm the SITDOWN message from {@code arriv}; not null
+     * @param sm the SITDOWN message from {@code arriv}, for its {@link SOCSitDown#getPlayerNumber()}; not null
      * @throws IllegalArgumentException if {@code arriv}, {@code leave}, or {@code sm} is {@code null}
      */
     public SOCReplaceRequest(Connection arriv, Connection leave, SOCSitDown sm)
@@ -57,7 +61,7 @@ import soc.server.genericServer.Connection;
 
         arriving = arriv;
         leaving = leave;
-        sdMes = sm;
+        playerNumber = sm.getPlayerNumber();
 
         final SOCClientData arrivScd = (SOCClientData) arriv.getAppData();
         isArrivingRobot = (arrivScd != null) ? arrivScd.isRobot : false;
@@ -92,11 +96,12 @@ import soc.server.genericServer.Connection;
     }
 
     /**
-     * @return the SITDOWN message; not null
+     * @return seat number/player number being replaced, from the SITDOWN message
+     * @since 2.7.00
      */
-    public SOCSitDown getSitDownMessage()
+    public int getPlayerNumber()
     {
-        return sdMes;
+        return playerNumber;
     }
 
 }

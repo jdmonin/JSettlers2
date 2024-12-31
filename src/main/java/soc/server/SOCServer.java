@@ -3618,7 +3618,7 @@ public class SOCServer extends Server
             if (gameDestroyed || (game == null))
                 return;  // game was destroyed; maybe was robots-only?
 
-            final int pn = req.getSitDownMessage().getPlayerNumber();
+            final int pn = req.getPlayerNumber();
             final Connection arriving = req.getArriving();
             final boolean isRobot = req.isArrivingRobot();
             if (! isRobot)
