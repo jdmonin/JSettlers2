@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1140,6 +1140,11 @@ public class TestToCmdToStringParse
         {new SOCTimingPing("ga"), "1088|ga", "SOCTimingPing:game=ga"},
         {new SOCTurn("ga", 3, 0), "1026|ga,3", "SOCTurn:game=ga|playerNumber=3"},
         {new SOCTurn("ga", 3, SOCGame.ROLL_OR_CARD), "1026|ga,3,15", "SOCTurn:game=ga|playerNumber=3|gameState=15"},
+        {
+            new SOCUndoNotAllowedReasonText("ga", true, "xyz,with ,embedded comma", true),
+            "1107|ga,1,xyz,with ,embedded comma",
+            "SOCUndoNotAllowedReasonText:game=ga|isNotAllowed=1|reason=xyz,with ,embedded comma"
+        },
         {new SOCUndoPutPiece("ga", 3, 0, 0x40a), "1105|ga,3,0,1034", "SOCUndoPutPiece:game=ga|playerNumber=3|pieceType=0|coord=40a"},
         {new SOCUndoPutPiece("ga", -1, 2, 0x40a), "1105|ga,-1,2,1034", "SOCUndoPutPiece:game=ga|playerNumber=-1|pieceType=2|coord=40a"},
         {new SOCUndoPutPiece("ga", 4, 3, 0x40a, 0x40b), "1105|ga,4,3,1034,1035", "SOCUndoPutPiece:game=ga|playerNumber=4|pieceType=3|coord=40a|movedFromCoord=40b"},

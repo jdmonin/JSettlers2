@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -479,6 +479,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @since 2.7.00
      */
     public static final int SETLASTACTION = 1106;  // for Undo put piece/move piece, 20221220, v2.7.00
+
+    /**
+     * {@link SOCUndoNotAllowedReasonText} - Most recent game action can't be undone, and the reason why.
+     * @since 2.7.00
+     */
+    public static final int UNDONOTALLOWEDREASONTEXT = 1107;  // for Undo put piece/move piece, 20241231, v2.7.00
 
 
     /////////////////////////////////////////
@@ -1091,6 +1097,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case SETLASTACTION:         // for Undo put piece/move piece, 20221220, v2.7.00
                 return SOCSetLastAction.parseDataStr(data);
+
+            case UNDONOTALLOWEDREASONTEXT:  // for Undo put piece/move piece, 20241231, v2.7.00
+                return SOCUndoNotAllowedReasonText.parseDataStr(data);
 
             // gametype-specific messages:
 

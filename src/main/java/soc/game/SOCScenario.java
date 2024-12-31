@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -54,6 +54,12 @@ import soc.message.SOCMessage;
  *<P>
  * The "known scenarios" are initialized via {@link #initAllScenarios()}.  See that
  * method's description for more details on adding or changing a scenario.
+ *<P>
+ * Some situations in some scenarios may disallow undoing an action which built or moved a piece.
+ * Example: in the {@link #K_SC_FTRI SC_FTRI} scenario the player can
+ * build or move ships to certain locations to receive dev cards or a "gift port" for trading, but
+ * we currently disallow undoing the action if it gave a "gift port" because that's difficult to undo
+ * and there was a confirmation dialog before the action.
  *<P>
  * <B>Version negotiation:</B><br>
  * Game options were introduced in 1.1.07; check server, client versions against
