@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -77,10 +77,12 @@ public class TestPlayer
         assertTrue(pl.hasSettlementAtNode(node));
         assertFalse(pl.hasCityAtNode(node));
         assertEquals(SOCPlayingPiece.SETTLEMENT, piece.getType());
+        assertTrue(piece instanceof SOCSettlement);
         piece = board.settlementAtNode(node);
         assertNotNull(piece);
         assertEquals(SOCPlayingPiece.SETTLEMENT, piece.getType());
         assertEquals(2, piece.getPlayerNumber());
+        assertTrue(piece instanceof SOCSettlement);
 
         ga.putPiece(new SOCCity(pl, node, board));  // replaces settlement
 
@@ -96,10 +98,12 @@ public class TestPlayer
         assertTrue(pl.hasCityAtNode(node));
         assertFalse(pl.hasSettlementAtNode(node));
         assertEquals(SOCPlayingPiece.CITY, piece.getType());
+        assertTrue(piece instanceof SOCCity);
         piece = board.settlementAtNode(node);
         assertNotNull(piece);
         assertEquals(SOCPlayingPiece.CITY, piece.getType());
         assertEquals(2, piece.getPlayerNumber());
+        assertTrue(piece instanceof SOCCity);
     }
 
     @Test
