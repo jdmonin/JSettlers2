@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2013-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -199,6 +199,7 @@ public interface PlayerClientListener
     /**
      * A player is drawing or playing a development card, or a card or special
      * {@link SOCInventoryItem} has been added or removed from their hand's inventory.
+     * Also called while player is sitting down to take over a bot's seat.
      * Also called at end of game, once per player when server sends list of revealed VP cards.
      *<P>
      * If this inventory update comes from playing a special {@link SOCInventoryItem}, call
