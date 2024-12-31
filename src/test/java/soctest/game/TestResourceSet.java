@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017,2019-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2019-2024 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -251,16 +251,23 @@ public class TestResourceSet
     @Test
     public void removeSet_ConvertToUnknown()
     {
-        SOCResourceSet rs = new SOCResourceSet(3, 3, 3, 0, 0, 4);
-        assertEquals(13, rs.getTotal());
-        assertEquals(9, rs.getKnownTotal());
+        SOCResourceSet rs = new SOCResourceSet(3, 3, 3, 7, 0, 4);
+        assertEquals(20, rs.getTotal());
+        assertEquals(16, rs.getKnownTotal());
 
         // if not too many removed, no conversion
-        rs.subtract(new SOCResourceSet(0, 3, 0, 0, 0, 0), true);
+        rs.subtract(new SOCResourceSet(0, 3, 0, 2, 0, 0), true);  // also tests subtracting more than 1 known type at once
+        assertEquals(15, rs.getTotal());
+        assertEquals(11, rs.getKnownTotal());
+        assertArrayEquals(new int[]   {3, 0, 3, 5, 0, 4}, rs.getAmounts(true));
+
+        // still not too many
+        rs.subtract(5, SOCResourceConstants.WHEAT);
         assertEquals(10, rs.getTotal());
         assertEquals(6, rs.getKnownTotal());
         assertArrayEquals(new int[]   {3, 0, 3, 0, 0, 4}, rs.getAmounts(true));
 
+        // remove 5: should remove the 3 known sheep & 2 unknown
         rs.subtract(new SOCResourceSet(0, 0, 5, 0, 0, 0), true);
         assertEquals(5, rs.getTotal());
         assertEquals(3, rs.getKnownTotal());
