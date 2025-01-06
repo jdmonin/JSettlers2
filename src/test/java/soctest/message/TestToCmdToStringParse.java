@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -569,6 +569,7 @@ public class TestToCmdToStringParse
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.ADD_NEW, 9), "1046|ga,3,2,9", "SOCDevCardAction:game=ga|playerNum=3|actionType=ADD_NEW|cardType=9"},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.DRAW, 5), "1046|ga,3,0,5", "SOCDevCardAction:game=ga|playerNum=3|actionType=DRAW|cardType=5"},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.PLAY, 9), "1046|ga,3,1,9", "SOCDevCardAction:game=ga|playerNum=3|actionType=PLAY|cardType=9"},
+        {new SOCDevCardAction("ga", 3, SOCDevCardAction.REMOVE_NEW, 9), "1046|ga,3,5,9", "SOCDevCardAction:game=ga|playerNum=3|actionType=REMOVE_NEW|cardType=9"},
             // v1.x was SOCDevCard:
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.DRAW, 2), "1046|ga,3,0,2", "SOCDevCard:game=ga|playerNum=3|actionType=0|cardType=2", OPT_PARSE_ONLY},
         {new SOCDevCardAction("ga", 3, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT), null, "SOCDevCard:game=ga|playerNum=3|actionType=0|cardType=0", OPT_PARSE_ONLY},

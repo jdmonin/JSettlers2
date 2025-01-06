@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017-2021,2023-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2021,2023-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -360,7 +360,7 @@ public class SOCDevCardAction extends SOCMessage
      * @since 2.5.00
      */
     public static final String[] ACTION_STRINGS
-        = { "DRAW", "PLAY", "ADD_NEW", "ADD_OLD", "CANNOT_PLAY"};
+        = { "DRAW", "PLAY", "ADD_NEW", "ADD_OLD", "CANNOT_PLAY", "REMOVE_NEW", "REMOVE_OLD"};
         // if you add to this array:
         // - watch compatibility with older versions, which won't know the new entries
         // - update its unit test in soctest.message.TestStringConstants

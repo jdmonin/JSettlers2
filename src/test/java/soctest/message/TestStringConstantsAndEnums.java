@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,12 +44,14 @@ public class TestStringConstantsAndEnums
     public void testDevCardAction()
     {
         final String[] ACTION_STRINGS = SOCDevCardAction.ACTION_STRINGS;
-        assertEquals(5, ACTION_STRINGS.length);
+        assertEquals(7, ACTION_STRINGS.length);
         assertEquals("DRAW", ACTION_STRINGS[SOCDevCardAction.DRAW]);
         assertEquals("PLAY", ACTION_STRINGS[SOCDevCardAction.PLAY]);
         assertEquals("ADD_NEW", ACTION_STRINGS[SOCDevCardAction.ADD_NEW]);
         assertEquals("ADD_OLD", ACTION_STRINGS[SOCDevCardAction.ADD_OLD]);
         assertEquals("CANNOT_PLAY", ACTION_STRINGS[SOCDevCardAction.CANNOT_PLAY]);
+        assertEquals("REMOVE_NEW", ACTION_STRINGS[SOCDevCardAction.REMOVE_NEW]);
+        assertEquals("REMOVE_OLD", ACTION_STRINGS[SOCDevCardAction.REMOVE_OLD]);
     }
 
     /**
