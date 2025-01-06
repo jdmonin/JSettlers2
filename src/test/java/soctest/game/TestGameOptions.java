@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1903,15 +1903,53 @@ public class TestGameOptions
                 assertFalse(testDesc, servOptsOptUB.defaultBoolValue);
                 assertFalse(testDesc, servOptsOptUB.getBoolValue());
 
-                servOpts.receiveDefaults(null, ((loopSrvOlderThanUB == 1) ? 2699 : Version.versionNumber()));
-                    // TODO if not forPractice, give a few values (not null)
+                Map<String, SOCGameOption> servOptsMap = null;
+                if (loopForPrac == 0)
+                {
+                    // give a few changed values, like client might see from actual server:
+                    servOptsMap = new HashMap<>();
+
+                    opt = servOpts.knownOpts.get("N7");
+                    assertFalse(testDesc, opt.defaultBoolValue);
+                    assertEquals(testDesc, 7, opt.defaultIntValue);
+                    opt.setBoolValue(true);
+                    opt.setIntValue(5);
+                    servOptsMap.put("N7", opt);
+
+                    opt = servOpts.knownOpts.get("NT");
+                    assertFalse(testDesc, opt.defaultBoolValue);
+                    opt.setBoolValue(true);
+                    servOptsMap.put("NT", opt);
+
+                    // Even with "UB" false in server default values,
+                    // client should set it true for first use there because has FLAG_SET_AT_CLIENT_ONCE
+                    opt = servOpts.knownOpts.get("UB");
+                    assertFalse(testDesc, opt.getBoolValue());
+                    servOptsMap.put("UB", opt);
+                }
+
+                servOpts.receiveDefaults(servOptsMap, ((loopSrvOlderThanUB == 1) ? 2699 : Version.versionNumber()));
+
+                if (loopForPrac == 0)
+                {
+                    opt = servOpts.knownOpts.get("N7");
+                    assertTrue(testDesc, opt.defaultBoolValue);
+                    assertEquals(testDesc, 5, opt.defaultIntValue);
+
+                    opt = servOpts.knownOpts.get("NT");
+                    assertTrue(testDesc, opt.defaultBoolValue);
+
+                    opt = servOpts.knownOpts.get("UB");
+                    assertFalse(testDesc, opt.defaultBoolValue);  // FLAG_SET_AT_CLIENT_ONCE shouldn't change default
+                }
 
                 opt = servOpts.knownOpts.get("UB");
                 assertNotNull(testDesc, opt);
                 assertEquals(testDesc, SOCGameOption.OTYPE_BOOL, opt.optType);
                 assertTrue(testDesc, opt.hasFlag(SOCGameOption.FLAG_SET_AT_CLIENT_ONCE));
                 assertEquals(testDesc, (loopSrvOlderThanUB == 0), opt.getBoolValue());
-                    // when server is older, shouldn't set true by default (but typically, actual client would set type to OTYPE_UNKNOWN)
+                    // when server is older, shouldn't set true by default
+                    // (but typically, actual client would set type to OTYPE_UNKNOWN because server is older than option's minVersion)
 
                 final SOCGameOption servOptsOptUB2 = servOpts.getNewGameOpts().get("UB");
                 assertNotNull(testDesc, servOptsOptUB2);

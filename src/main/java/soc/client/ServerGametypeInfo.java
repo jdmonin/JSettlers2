@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2015,2018-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2015,2018-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>:
  *     - parameterize types
  * This file's contents were formerly part of SOCPlayerClient.java:
@@ -221,6 +221,9 @@ public class ServerGametypeInfo
      * that option's minimum version, sets its {@link #getBoolValue()}.
      *
      * @param servOpts The allowable {@link SOCGameOption}s received from the server.
+     *                 The client's known option default values will be set from each servOpt's
+     *                 current {@link SOCGameOption#getBoolValue()} and {@link SOCGameOption#getIntValue()}.
+     *                <P>
      *                 Assumes has been parsed already against the locally known opts,
      *                 so any opts that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
      *                 Can be {@code null} to help initialize Practice Server options;
