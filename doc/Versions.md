@@ -22,6 +22,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - That player's client must be v2.7.00 or newer; other players can use older clients
 	- New optional house rule: Allow undo building and moving pieces (new game option `UB`; requires client v2.7.00 or newer)
 	    - For convenience, in Practice games this rule is on by default
+	    - Also is on by default when client and server both support the option (using new FLAG_SET_AT_CLIENT_ONCE)
 - I18N:
 	- Added German translation (thank you Eudoxia and Quasigroup)
 	- Updated Polish translation (thank you KotCzarny)
@@ -76,7 +77,9 @@ JARs for recent JSettlers versions can be downloaded from
 	    - `*LOADGAME*`: If SavedGameModel.devCardDeck has an unknown card type, give card's index in warning to user
 	    - TestRecorder.connectLoadJoinResumeGame: Resume any loaded game file
 	    - SavedGameModel:
+	        - Game: add optional field lastAction
 	        - PlayerInfo: When saving, omit resTradeStats if all tradeTypes are empty
+	        - MODEL_VERSION still 2400; earlier server versions will ignore lastAction while loading a savegame
 	- Robots: If SOCGame.restoreLargestArmyState called before saveLargestArmyState, do nothing
 	- To help unit tests, SOCGame.initAtServer now calls startGame_setupDevCards
 	- Gradle 7 compatibility
