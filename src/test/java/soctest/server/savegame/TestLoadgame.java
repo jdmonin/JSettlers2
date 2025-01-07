@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -645,6 +645,23 @@ public class TestLoadgame
                 assertFalse(assertDesc, rp.isRoadNotShip());
                 assertTrue("should be closed: " + assertDesc, ((SOCShip) rp).isClosed());
             }
+        }
+
+        {
+            final GameAction act = ga.getLastAction();
+            assertNotNull(act);
+            assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+            assertEquals(SOCPlayingPiece.SHIP, act.param1);
+            assertEquals(3074, act.param2);  // 0xC02
+            assertEquals(0, act.param3);
+
+            List<GameAction.Effect> effects = act.effects;
+            assertNotNull(effects);
+            assertEquals(1, effects.size());
+
+            GameAction.Effect e = effects.get(0);
+            assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+            assertNull(e.params);
         }
 
         fillSeatsForResume(sgm);

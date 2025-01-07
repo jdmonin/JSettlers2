@@ -1,10 +1,10 @@
 {
   "modelVersion": 2400,
-  "savedByVersion": 2400,
+  "savedByVersion": 2700,
   "gameMinVersion": 2700,
   "gameName": "testgame-sea-closedships",
   "comments": "Test some open and closed ship routes, and a long game duration that server should auto-extend once",
-  "author": "Jeremy D Monin  2020-2021,2024",
+  "author": "Jeremy D Monin  2020-2021,2024-2025",
   "gameOptions": "BC\u003dt4,N7\u003df7,PL\u003d4,RD\u003df,SBL\u003dt,UB\u003dt",
   "gameDurationSeconds": 6531,
   "gameState": 20,
@@ -45,9 +45,21 @@
   "robberyWithPirateNotRobber": true,
   "askedSpecialBuildPhase": false,
   "movedShipThisTurn": false,
+  "playingRoadBuildingCardForLastRoad": false,
   "shipsPlacedThisTurn": [
     3074
   ],
+  "lastAction": {
+    "actType": "BUILD_PIECE",
+    "param1": 3,
+    "param2": 3074,
+    "param3": 0,
+    "effects": [
+      {
+        "eType": "DEDUCT_COST_FROM_PLAYER"
+      }
+    ]
+  },
   "boardInfo": {
     "layout2": {
       "game": "testgame-sea-closedships",
@@ -558,15 +570,6 @@
         "CITIES": 4,
         "SHIPS": 15
       },
-      "resRollStats": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
       "oldDevCards": [],
       "newDevCards": [],
       "pieces": []
