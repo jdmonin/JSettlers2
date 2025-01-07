@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021-2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2022,2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -189,8 +189,11 @@ public class GameActionLog
          * Contents for debugging, formatted like:
          *<BR>
          * Action(ROLL_DICE, endGState=20, p1=12, seq=[f3:SOCRollDice:game=test, all:SOCDiceResult:game=test|param=12, all:SOCGameServerText:game=test|text=No player gets anything., all:SOCGameState:game=test|state=20])
+         *<BR>
+         * Action(BUILD_PIECE, endGState=20, ...p1=12, seq=[f3:SOPutPiece:game=test|...], cannotUndo=given a Gift Port from the Forgotten Tribe)
          *<P>
-         * Includes {@code p1 p2 p3} if non-zero, {@code rs1 rs2} if non-null.
+         * Includes {@code p1 p2 p3} if non-zero,
+         * {@code rs1 rs2} {@link GameAction#cannotUndoReason cannotUndoReason} if non-null.
          */
         @Override
         public String toString()
@@ -216,7 +219,10 @@ public class GameActionLog
                 if (rset2 != null)
                     sb.append(", rs2=").append(rset2);
             }
-            sb.append(", seq=").append(eventSequence).append(')');
+            sb.append(", seq=").append(eventSequence);
+            if (cannotUndoReason != null)
+                sb.append(", cannotUndo=").append(cannotUndoReason);
+            sb.append(')');
 
             return sb.toString();
         }

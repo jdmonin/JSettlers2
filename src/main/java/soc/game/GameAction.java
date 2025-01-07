@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2022-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2022-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@ import soc.message.SOCStartGame;  // javadocs only
 
 /**
  * An action in a game such as placing a piece, trading with the bank, etc.
- * Some actions can be undone.
+ * Some actions can be undone, but also check {@link #cannotUndoReason}.
  * Meaning of field values depends on {@link #actType}.
  * See {@link ActionType} for all recognized action types.
  * See {@link #effects} for side effects such as paying resources or changing gameState.
@@ -64,6 +64,13 @@ public class GameAction
      */
     public final List<Effect> effects;
       // TODO add rest of possible construcs
+
+    /**
+     * The reason this usually-undoable action can't be undone, or {@code null} when action can be undone.
+     * Is an i18n string key at server, localized when sent to client.
+     * @since 2.7.00
+     */
+    public volatile String cannotUndoReason;
 
     // reminder: if you add fields, update equals() and toString()
 
@@ -211,9 +218,11 @@ public class GameAction
      *<pre>
      * GameAction(ROLL_DICE, p1=12)
      * GameAction(BUILD_PIECE, p1=1, p2=3, p3=33, e=[CHANGE_LONGEST_ROAD_PLAYER(1, 3)])
+     * GameAction(BUILD_PIECE, p1=1, p2=3, p3=33, e=[CHANGE_LONGEST_ROAD_PLAYER(1, 3)], cannotUndo=example text)
      *</pre>
      *<P>
-     * Includes {@code p1 p2 p3} if non-zero, then {@code rs1 rs2} if non-null, then any {@code effects}.
+     * Includes {@code p1 p2 p3} if non-zero, then {@code rs1 rs2} if non-null, then any {@code effects},
+     * then any {@link #cannotUndoReason} is last field in case it contains special characters.
      */
     @Override
     public String toString()
@@ -241,6 +250,8 @@ public class GameAction
         }
         if (effects != null)
             sb.append(", e=").append(effects);  // "e=[A, B, C]"
+        if (cannotUndoReason != null)
+            sb.append(", cannotUndo=").append(cannotUndoReason);
         sb.append(')');
 
         return sb.toString();
@@ -257,6 +268,9 @@ public class GameAction
             && (param1 == oga.param1) && (param2 == oga.param2) && (param3 == oga.param3)
             && (rset1 == null ? (oga.rset1 == null) : rset1.equals(oga.rset1))
             && (rset2 == null ? (oga.rset2 == null) : rset2.equals(oga.rset2))
+            && ((cannotUndoReason == null)
+                ? (oga.cannotUndoReason == null)
+                : cannotUndoReason.equals(oga.cannotUndoReason))
             && (effects == null ? (oga.effects == null) : effects.equals(oga.effects));
     }
 
