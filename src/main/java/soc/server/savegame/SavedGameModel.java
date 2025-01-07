@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -927,6 +927,8 @@ public class SavedGameModel
         /**
          * Optional resource trade stats, in same type order as {@link SOCPlayer#getResourceTradeStats()}.
          * {@code null} if {@link #totalVP} == 0.
+         * {@code null} if player's trade stats are all empty (no bank/port or player trades done)
+         * when saved by server v2.7.00 or newer.
          * @since 2.6.00
          */
         public TradeTypeStat[] resTradeStats;
@@ -1097,11 +1099,19 @@ public class SavedGameModel
 
                 final SOCResourceSet[][] tradeStats = pl.getResourceTradeStats();
                 final int nTypes = tradeStats[0].length;
+                boolean anyTrades = false;
                 resTradeStats = new TradeTypeStat[nTypes];
                 for (int i = 0; i <= 1; ++i)
                     for (int ttype = 0; ttype < nTypes; ++ttype)
-                        resTradeStats[ttype] = new TradeTypeStat
+                    {
+                        final TradeTypeStat tts = new TradeTypeStat
                             (tradeStats[0][ttype], tradeStats[1][ttype], TradeTypeStat.TYPE_DESCRIPTIONS[ttype]);
+                        resTradeStats[ttype] = tts;
+                        if (! anyTrades)
+                            anyTrades = ((tts.gave != null) || (tts.received != null));
+                    }
+                if (! anyTrades)
+                    resTradeStats = null;
             }
 
             final SOCInventory cardsInv = pl.getInventory();
