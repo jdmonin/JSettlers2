@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -286,6 +286,13 @@ public class TestActionsMessages
             assertNull(e.params);
         }
 
+        act = gaAtCli.getLastAction();
+        assertNotNull(act);
+        assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+        assertEquals(SETTLEMENT_NODE, act.param2);
+        assertEquals(CLIENT_PN, act.param3);
+
         StringBuilder comparesSettle = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -339,6 +346,13 @@ public class TestActionsMessages
             assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
             assertNull(e.params);
         }
+
+        act = gaAtCli.getLastAction();
+        assertNotNull(act);
+        assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.CITY, act.param1);
+        assertEquals(SETTLEMENT_NODE, act.param2);
+        assertEquals(CLIENT_PN, act.param3);
 
         StringBuilder comparesCity = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -399,6 +413,13 @@ public class TestActionsMessages
             assertNull(e.params);
         }
 
+        act = gaAtCli.getLastAction();
+        assertNotNull(act);
+        assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals(SHIP_EDGE, act.param2);
+        assertEquals(CLIENT_PN, act.param3);
+
         StringBuilder comparesShipBuild = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
@@ -429,6 +450,14 @@ public class TestActionsMessages
         assertTrue(shipsThisTurnListAtCli.contains(Integer.valueOf(MOVESHIP_EDGE_TO)));
 
         act = ga.getLastAction();
+        assertNotNull(act);
+        assertEquals(GameAction.ActionType.MOVE_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals(MOVESHIP_EDGE_FROM, act.param2);
+        assertEquals(MOVESHIP_EDGE_TO, act.param3);
+        assertNull(act.effects);
+
+        act = gaAtCli.getLastAction();
         assertNotNull(act);
         assertEquals(GameAction.ActionType.MOVE_PIECE, act.actType);
         assertEquals(SOCPlayingPiece.SHIP, act.param1);
@@ -1018,19 +1047,30 @@ public class TestActionsMessages
                 ((SOCShip) boardAtCli.roadOrShipAtEdge(pieceCoord)).isClosed());
         }
 
-        GameAction act = ga.getLastAction();
+        GameAction act = ga.getLastAction(), actAtCli = gaAtCli.getLastAction();
         assertNotNull(testDesc, act);
+        assertNotNull(testDesc, actAtCli);
         if (movedFromCoord == 0)
         {
             assertEquals(testDesc, GameAction.ActionType.BUILD_PIECE, act.actType);
             assertEquals(testDesc, pieceType, act.param1);
             assertEquals(testDesc, pieceCoord, act.param2);
             assertEquals(testDesc, CLIENT_PN, act.param3);
+
+            assertEquals(testDesc, GameAction.ActionType.BUILD_PIECE, actAtCli.actType);
+            assertEquals(testDesc, pieceType, actAtCli.param1);
+            assertEquals(testDesc, pieceCoord, actAtCli.param2);
+            assertEquals(testDesc, CLIENT_PN, actAtCli.param3);
         } else {
             assertEquals(testDesc, GameAction.ActionType.MOVE_PIECE, act.actType);
             assertEquals(testDesc, pieceType, act.param1);
             assertEquals(testDesc, movedFromCoord, act.param2);
             assertEquals(testDesc, pieceCoord, act.param3);
+
+            assertEquals(testDesc, GameAction.ActionType.MOVE_PIECE, actAtCli.actType);
+            assertEquals(testDesc, pieceType, actAtCli.param1);
+            assertEquals(testDesc, movedFromCoord, actAtCli.param2);
+            assertEquals(testDesc, pieceCoord, actAtCli.param3);
 
             final SOCShip shipAtNewLoc = new SOCShip(cliPl, pieceCoord, board);
             assertTrue(testDesc, ga.canUndoMoveShip(CLIENT_PN, shipAtNewLoc));
@@ -1155,17 +1195,28 @@ public class TestActionsMessages
         }
 
         act = ga.getLastAction();
+        actAtCli = gaAtCli.getLastAction();
         assertNotNull(act);
+        assertNotNull(actAtCli);
         if (movedFromCoord == 0)
         {
             assertEquals(GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);
             assertEquals(pieceType, act.param1);
             assertEquals(pieceCoord, act.param2);
+
+            assertEquals(GameAction.ActionType.UNDO_BUILD_PIECE, actAtCli.actType);
+            assertEquals(pieceType, actAtCli.param1);
+            assertEquals(pieceCoord, actAtCli.param2);
         } else {
             assertEquals(GameAction.ActionType.UNDO_MOVE_PIECE, act.actType);
             assertEquals(pieceType, act.param1);
             assertEquals(pieceCoord, act.param2);
             assertEquals(movedFromCoord, act.param3);
+
+            assertEquals(GameAction.ActionType.UNDO_MOVE_PIECE, actAtCli.actType);
+            assertEquals(pieceType, actAtCli.param1);
+            assertEquals(pieceCoord, actAtCli.param2);
+            assertEquals(movedFromCoord, actAtCli.param3);
         }
         {
             List<GameAction.Effect> effects = act.effects;
