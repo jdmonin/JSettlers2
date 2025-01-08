@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2024-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -60,7 +60,7 @@ public class SOCUndoNotAllowedReasonText extends SOCMessage
     public final boolean isNotAllowed;
 
     /**
-     * The reason the action can't be undone.
+     * The reason the action can't be undone ({@link #isNotAllowed}), or {@code null} if it can.
      * At the server this is an I18N string key, at the client it's text which was localized by and sent from
      * the server: see {@link #isLocalized}.
      * Constructor checks this against {@link SOCMessage#isSingleLineAndSafe(String, boolean)}.
@@ -79,11 +79,11 @@ public class SOCUndoNotAllowedReasonText extends SOCMessage
      * @param ga  the game name
      * @param isNotAllowed  Is undo not allowed for the most recent action?
      *     Likely always true when sending or receiving this message type.
-     * @param reason  Reason the action can't be undone.
+     * @param reason  Reason the action can't be undone; can be {@code null} if {@code ! isNotAllowed}.
      *     At the server this is an I18N string key which the server will localize before sending,
      *     at the client it's text which was localized by and sent from the server.
      *     This allows new reason explanations without client changes.
-     * @throws IllegalArgumentException if {@code reason} is null or
+     * @throws IllegalArgumentException if {@code reason} is not null but {@link String#isEmpty() reason.isEmpty()} or
      *     fails {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(reason, true)}
      */
     public SOCUndoNotAllowedReasonText(final String ga, final boolean isNotAllowed, final String reason)
@@ -98,18 +98,18 @@ public class SOCUndoNotAllowedReasonText extends SOCMessage
      * @param ga  the game name
      * @param isNotAllowed  Is undo not allowed for the most recent action?
      *     Likely always true when sending or receiving this message type.
-     * @param reason  Reason the action can't be undone.
+     * @param reason  Reason the action can't be undone; can be {@code null} if {@code ! isNotAllowed}.
      *     At the server this is an I18N string key which the server must localize before sending,
      *     at the client it's localized text sent from the server.
      *     This allows new reason explanations without client changes.
      * @param isLocal  True if {@code reason} is localized, false if not: {@link #isLocalized}
-     * @throws IllegalArgumentException if {@code reason} is null or
+     * @throws IllegalArgumentException if {@code reason} is not null but {@link String#isEmpty() reason.isEmpty()} or
      *     fails {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(reason, true)}
      */
     public SOCUndoNotAllowedReasonText(final String ga, final boolean isNotAllowed, final String reason, final boolean isLocal)
         throws IllegalArgumentException
     {
-        if ((reason == null) || ! isSingleLineAndSafe(reason, true))
+        if ((reason != null) && (reason.isEmpty() || ! isSingleLineAndSafe(reason, true)))
             throw new IllegalArgumentException("reason");
 
         messageType = UNDONOTALLOWEDREASONTEXT;
@@ -128,19 +128,20 @@ public class SOCUndoNotAllowedReasonText extends SOCMessage
     }
 
     /**
-     * UNDONOTALLOWEDREASONTEXT sep game sep2 isNotAllowedInt(0 or 1) sep2 reason
+     * UNDONOTALLOWEDREASONTEXT sep game sep2 isNotAllowedInt(0 or 1) [sep2 reason]
      *
      * @return the command String
      */
     public String toCmd()
     {
-        return Integer.toString(messageType) + sep + game + sep2 + (isNotAllowed ? 1 : 0) + sep2 + reason;
+        return Integer.toString(messageType) + sep + game + sep2 + (isNotAllowed ? 1 : 0)
+            + ((reason != null) ? sep2 + reason : "");
     }
 
     /**
      * {@inheritDoc}
      *<P>
-     * This message type's key field is {@link #reason}.
+     * This message type's key field is {@link #reason}. May be null.
      */
     public String getKey()
     {
@@ -178,9 +179,14 @@ public class SOCUndoNotAllowedReasonText extends SOCMessage
             // get all of the line for reason,
             //  by choosing a separator character
             //  that can't appear in reason
-            reason = st.nextToken(Character.toString( (char) 1 )).trim();
-            if (reason.startsWith(SOCMessage.sep2))
-                reason = reason.substring(1);
+            if (st.hasMoreTokens())
+            {
+                reason = st.nextToken(Character.toString( (char) 1 )).trim();
+                if (reason.startsWith(SOCMessage.sep2))
+                    reason = reason.substring(1);
+            } else {
+                reason = null;
+            }
         }
         catch (Exception e)
         {
@@ -192,11 +198,13 @@ public class SOCUndoNotAllowedReasonText extends SOCMessage
 
     /**
      * @return a human readable form of the message; isNotAllowed is rendered as 1 or 0 in case of future expansion.
+     *    Reason is omitted if {@code null}.
      */
     public String toString()
     {
         return getClass().getSimpleName() + ":game=" + game
-            + "|isNotAllowed=" + (isNotAllowed ? 1 : 0) + "|reason=" + reason;
+            + "|isNotAllowed=" + (isNotAllowed ? 1 : 0)
+            + (reason != null ? "|reason=" + reason : "");
     }
 
 }

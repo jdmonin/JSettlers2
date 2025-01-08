@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1018,6 +1018,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
             case SOCMessage.SETLASTACTION:
                 handleSETLASTACTION
                     ((SOCSetLastAction) mes, games.get(((SOCSetLastAction) mes).getGame()));
+                break;
+
+            /**
+             * Can't undo the most recent action.
+             * Added 2025-01-07 for v2.7.00.
+             */
+            case SOCMessage.UNDONOTALLOWEDREASONTEXT:
+                handleUNDONOTALLOWEDREASONTEXT
+                    ((SOCUndoNotAllowedReasonText) mes, games.get(((SOCUndoNotAllowedReasonText) mes).getGame()));
                 break;
 
             /**
@@ -2902,6 +2911,39 @@ public class SOCDisplaylessPlayerClient implements Runnable
         else
             ga.setLastAction(new GameAction
                 (at, mes.getParam1(), mes.getParam2(), mes.getParam3(), mes.getRS1(), mes.getRS2()));
+    }
+
+    /**
+     * Can't undo the most recent action; update game data.
+     * If {@link SOCGame#getLastAction() ga.getLastAction()} is {@code null}, does nothing.
+     * Otherwise sets lastAction's {@link GameAction#cannotUndoReason .cannotUndoReason} field
+     * to {@link SOCUndoNotAllowedReasonText#reason mes.reason}, or to {@code "?"} as fallback
+     * if {@code reason} is {@code null} but {@link SOCUndoNotAllowedReasonText#isNotAllowed mes.isNotAllowed} is true.
+     * @param mes  the message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
+     * @since 2.7.00
+     */
+    public static void handleUNDONOTALLOWEDREASONTEXT
+        (final SOCUndoNotAllowedReasonText mes, final SOCGame ga)
+    {
+        if (ga == null)
+            return;  // Not one of our games
+
+        String reason;
+        if (! mes.isNotAllowed)
+        {
+            reason = null;
+        } else {
+            reason = mes.reason;
+            if (reason == null)
+                reason = "?";
+        }
+
+        final GameAction lastAct = ga.getLastAction();
+        if (lastAct == null)
+            return;
+        lastAct.cannotUndoReason = reason;
     }
 
     /**

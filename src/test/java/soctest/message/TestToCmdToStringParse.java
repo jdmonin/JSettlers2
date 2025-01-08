@@ -1146,6 +1146,11 @@ public class TestToCmdToStringParse
             "1107|ga,1,xyz,with ,embedded comma",
             "SOCUndoNotAllowedReasonText:game=ga|isNotAllowed=1|reason=xyz,with ,embedded comma"
         },
+        {
+            new SOCUndoNotAllowedReasonText("ga", false, null, true),
+            "1107|ga,0",
+            "SOCUndoNotAllowedReasonText:game=ga|isNotAllowed=0"
+        },
         {new SOCUndoPutPiece("ga", 3, 0, 0x40a), "1105|ga,3,0,1034", "SOCUndoPutPiece:game=ga|playerNumber=3|pieceType=0|coord=40a"},
         {new SOCUndoPutPiece("ga", -1, 2, 0x40a), "1105|ga,-1,2,1034", "SOCUndoPutPiece:game=ga|playerNumber=-1|pieceType=2|coord=40a"},
         {new SOCUndoPutPiece("ga", 4, 3, 0x40a, 0x40b), "1105|ga,4,3,1034,1035", "SOCUndoPutPiece:game=ga|playerNumber=4|pieceType=3|coord=40a|movedFromCoord=40b"},

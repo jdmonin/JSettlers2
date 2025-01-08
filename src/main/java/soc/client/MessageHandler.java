@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2019 Colin Werner
  * Extracted in 2019 from SOCPlayerClient.java, so:
- * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -775,6 +775,15 @@ public class MessageHandler
             case SOCMessage.SETLASTACTION:
                 SOCDisplaylessPlayerClient.handleSETLASTACTION
                     ((SOCSetLastAction) mes, client.games.get(((SOCSetLastAction) mes).getGame()));
+                break;
+
+            /**
+             * Can't undo the most recent action.
+             * Added 2025-01-07 for v2.7.00.
+             */
+            case SOCMessage.UNDONOTALLOWEDREASONTEXT:
+                SOCDisplaylessPlayerClient.handleUNDONOTALLOWEDREASONTEXT
+                    ((SOCUndoNotAllowedReasonText) mes, client.games.get(((SOCUndoNotAllowedReasonText) mes).getGame()));
                 break;
 
             /**
