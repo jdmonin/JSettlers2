@@ -3,7 +3,7 @@
  * This file Copyright (C) 2016 Alessandro D'Ottavio
  * Some contents were formerly part of SOCServer.java and SOCGameHandler.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -1412,6 +1412,19 @@ public class SOCGameMessageHandler
                     msgsAfter.add
                         (new SOCSimpleAction(gaName, -1, SOCSimpleAction.BOARD_EDGE_SET_SPECIAL, edgeCoord, seType));
                 }
+                break;
+
+            // TODO these 2 SCEN_FTRI_PORT effects may be within the same action;
+            // should undo them in reverse order of effects list
+
+            case GAME_SCEN_FTRI_PORT_REMOVED:
+                msgsAfter.add
+                    (new SOCSimpleRequest(gaName, cpn, SOCSimpleRequest.TRADE_PORT_PLACE, e.params[0], e.params[1]));
+                break;
+
+            case GAME_SCEN_FTRI_PORT_PLACED:
+                msgsAfter.add
+                    (new SOCSimpleAction(gaName, cpn, SOCSimpleAction.TRADE_PORT_REMOVED, e.params[0], e.params[1]));
                 break;
 
             // TODO any other side effects for now? (SVP from scenarios, etc)

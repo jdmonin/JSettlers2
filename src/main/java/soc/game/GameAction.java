@@ -743,7 +743,40 @@ public class GameAction
          *<P>
          * Currently in game only if scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI} is set.
          */
-        PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE(120);
+        PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE(120),
+
+        /**
+         * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI},
+         * current player has removed a "gift" port from a Special Edge.
+         * See {@link SOCGame#removePort(SOCPlayer, int)} for details.
+         *<P>
+         * Params:
+         *<UL>
+         * <LI> [0] Removed port's edge coordinate
+         * <LI> [1] Port type; same value range as {@link SOCBoard#getPortTypeFromNodeCoord(int)}
+         *          and {@link SOCGame#placePort(SOCPlayer, int, int)}
+         *</UL>
+         *
+         * If the player must immediately place their gift port,
+         * after doing so add the {@link #GAME_SCEN_FTRI_PORT_PLACED} Effect
+         * to the same {@link GameAction} as this {@code GAME_SCEN_FTRI_PORT_REMOVED}.
+         */
+        GAME_SCEN_FTRI_PORT_REMOVED(130),
+
+        /**
+         * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI},
+         * current player has placed a "gift" port at a coastal edge.
+         * See {@link SOCGame#placePort(SOCPlayer, int, int)} for details.
+         *<P>
+         * Params:
+         *<UL>
+         * <LI> [0] Coastal edge coordinate to place at
+         * <LI> [1] Port type; same value range as {@link SOCGame#placePort(SOCPlayer, int, int)}
+         *</UL>
+         *
+         * Often follows {@link #GAME_SCEN_FTRI_PORT_REMOVED} within the same {@link GameAction}.
+         */
+        GAME_SCEN_FTRI_PORT_PLACED(140);
 
         /**
          * This enum member's unique int value ({@link #CHANGE_LONGEST_ROAD_PLAYER} == 10, etc).

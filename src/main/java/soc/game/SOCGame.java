@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
@@ -3699,9 +3699,10 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI} in game state {@link #PLACING_INV_ITEM}, place
-     * the "gift" port at this edge.  The port in {@link #getPlacingItem()} will be placed.  State becomes previous state
-     * ({@link #PLAY1} or {@link #SPECIAL_BUILDING}).  Calls {@link #setPlacingItem(SOCInventoryItem) setPlacingItem(null)}.
+     * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI} in game state {@link #PLACING_INV_ITEM},
+     * place the "gift" port at this edge for current player. The port in {@link #getPlacingItem()} will be placed.
+     * State becomes previous state ({@link #PLAY1} or {@link #SPECIAL_BUILDING}).
+     * Calls {@link #setPlacingItem(SOCInventoryItem) setPlacingItem(null)}.
      *<P>
      * Assumes {@link #canPlacePort(SOCPlayer, int)} has already been called to validate.
      *
@@ -3774,6 +3775,15 @@ public class SOCGame implements Serializable, Cloneable
         {
             ((SOCBoardLarge) board).placePort(edge, ptype);  // validates coastal edge to calculate facing
             pl.setPortFlag(ptype, true);  // might already be set, that's fine
+            if (isAtServer && (gameState != UNDOING_ACTION))
+            {
+                final GameAction act = getLastAction();
+                if ((act != null) && (act.effects != null))
+                    // effects always non-null in gameactions which result in port placement; check is just for sanity
+                    act.effects.add(new GameAction.Effect
+                        (GameAction.EffectType.GAME_SCEN_FTRI_PORT_PLACED,
+                         new int[]{edge, ptype}));
+            }
         } else {
             // assume off-board temp placement for debug: blindly calc facing from edge
             ((SOCBoardLarge) board).placePort
@@ -5240,6 +5250,23 @@ public class SOCGame implements Serializable, Cloneable
                     }
 
                     ((SOCBoardLarge) board).setSpecialEdge(edgeCoord, seType);
+                }
+                break;
+
+            // TODO these 2 SCEN_FTRI_PORT effects may be within the same action;
+            // should undo them in reverse order of effects list
+
+            case GAME_SCEN_FTRI_PORT_REMOVED:
+                {
+                    final int edgeCoord = e.params[0], portType = e.params[1];
+                    placePort(currPlayer, edgeCoord, portType);
+                }
+                break;
+
+            case GAME_SCEN_FTRI_PORT_PLACED:
+                {
+                    final int edgeCoord = e.params[0];
+                    removePort(currPlayer, edgeCoord);
                 }
                 break;
 

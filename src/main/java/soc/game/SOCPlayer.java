@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -3592,7 +3592,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
          */
         if (game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI) && board.canRemovePort(edge))
         {
-            game.removePort(this, edge);  // updates game state, fires SOCPlayerEvent.REMOVED_TRADE_PORT
+            SOCInventoryItem portItem = game.removePort(this, edge);  // updates game state, fires SOCPlayerEvent.REMOVED_TRADE_PORT
+
+            if (game.isAtServer && (portItem != null) // will always be non-null, check is just for sanity
+                && (game.getGameState() != SOCGame.UNDOING_ACTION))
+            {
+                if (effects == null)
+                    effects = new ArrayList<>();
+                effects.add(new GameAction.Effect
+                    (GameAction.EffectType.GAME_SCEN_FTRI_PORT_REMOVED,
+                     new int[]{edge, -portItem.itype}));
+            }
         }
 
         return effects;
