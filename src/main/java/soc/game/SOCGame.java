@@ -4186,7 +4186,8 @@ public class SOCGame implements Serializable, Cloneable
 
         int[] oldNewGS = null;
         if ((gameState == PLACING_ROAD) || (gameState == PLACING_SETTLEMENT)
-            || (gameState == PLACING_CITY) || (gameState == PLACING_SHIP))
+            || (gameState == PLACING_CITY) || (gameState == PLACING_SHIP)
+            || (gameState == PLACING_INV_ITEM))
         {
             if (effects == null)
                 effects = new ArrayList<>();
