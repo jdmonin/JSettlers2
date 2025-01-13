@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2013,2015-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013,2015-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -152,6 +152,9 @@ public enum SOCPlayerEvent
      *<P>
      * This event is fired at <b>server only,</b> not at client, in {@link SOCGame#removePort(SOCPlayer, int)}.
      * The server will send messages to the game's clients about the event's result.
+     *<P>
+     * There is no "{@code PLACED_TRADE_PORT}" event code because placement at a location is directly requested by the player,
+     * unlike removal which is a side effect when they place/move a ship.
      */
     REMOVED_TRADE_PORT(0);
 

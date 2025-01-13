@@ -5119,26 +5119,30 @@ public class SOCGameHandler extends GameHandler
                 IntPair edge_portType = (IntPair) obj;
                 final int edge = edge_portType.getA(),
                           portType = edge_portType.getB();
+                final int gameState = ga.getGameState();
 
-                if ((edge & 0xFF) <= ga.getBoard().getBoardWidth())
-                    // announce removal from board, unless (for debugging)
-                    // this port wasn't really on the board at clients
-                    srv.messageToGame(gaName, true, new SOCSimpleAction
-                        (gaName, pn, SOCSimpleAction.TRADE_PORT_REMOVED, edge, portType));
-
-                if (ga.getGameState() == SOCGame.PLACING_INV_ITEM)
+                if (gameState != SOCGame.UNDOING_ACTION)
                 {
-                    // Removal happens during ship piece placement, which is followed at server with sendGameState.
-                    // When sendGameState gives the new state, client will prompt current player to place now.
-                    // We just need to send the client PLACING_EXTRA, for the port type and not-cancelable flag.
-                    Connection c = srv.getConnection(plName);
-                    srv.messageToPlayer(c, gaName, pn, new SOCInventoryItemAction
-                        (gaName, pn, SOCInventoryItemAction.PLACING_EXTRA, -portType, false, false, false));
-                } else {
-                    // port was added to player's inventory;
-                    // if this message changes, also update SOCGameHandler.processDebugCommand_scenario
-                    srv.messageToGame(gaName, true, new SOCInventoryItemAction
-                        (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, -portType, false, false, true));
+                    if ((edge & 0xFF) <= ga.getBoard().getBoardWidth())
+                        // announce removal from board, unless (for debugging)
+                        // this port wasn't really on the board at clients
+                        srv.messageToGame(gaName, true, new SOCSimpleAction
+                            (gaName, pn, SOCSimpleAction.TRADE_PORT_REMOVED, edge, portType));
+
+                    if (gameState == SOCGame.PLACING_INV_ITEM)
+                    {
+                        // Removal happens during ship piece placement, which is followed at server with sendGameState.
+                        // When sendGameState gives the new state, client will prompt current player to place now.
+                        // We just need to send the client PLACING_EXTRA, for the port type and not-cancelable flag.
+                        Connection c = srv.getConnection(plName);
+                        srv.messageToPlayer(c, gaName, pn, new SOCInventoryItemAction
+                            (gaName, pn, SOCInventoryItemAction.PLACING_EXTRA, -portType, false, false, false));
+                    } else {
+                        // port was added to player's inventory;
+                        // if this message changes, also update SOCGameHandler.processDebugCommand_scenario
+                        srv.messageToGame(gaName, true, new SOCInventoryItemAction
+                            (gaName, pn, SOCInventoryItemAction.ADD_PLAYABLE, -portType, false, false, true));
+                    }
                 }
             }
             break;

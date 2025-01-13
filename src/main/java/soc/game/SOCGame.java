@@ -3636,9 +3636,12 @@ public class SOCGame implements Serializable, Cloneable
                 pl.getInventory().addItem(port);
             } else {
                 placingItem = port;
-                if (oldGameState != SPECIAL_BUILDING)
-                    oldGameState = (gameState == SPECIAL_BUILDING) ? SPECIAL_BUILDING : PLAY1;
-                gameState = PLACING_INV_ITEM;
+                if (gameState != UNDOING_ACTION)
+                {
+                    if (oldGameState != SPECIAL_BUILDING)
+                        oldGameState = (gameState == SPECIAL_BUILDING) ? SPECIAL_BUILDING : PLAY1;
+                    gameState = PLACING_INV_ITEM;
+                }
             }
 
             // Fire the scenario player event, with the removed port's edge coord and type
