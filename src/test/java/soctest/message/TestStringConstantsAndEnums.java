@@ -25,6 +25,7 @@ import java.util.HashMap;
 import soc.message.SOCDevCardAction;
 import soc.message.SOCGameElements;
 import soc.message.SOCGameElements.GEType;
+import soc.message.SOCInventoryItemAction;
 import soc.message.SOCPlayerElement;
 import soc.message.SOCPlayerElement.PEType;
 import soc.message.SOCSetSpecialItem;
@@ -52,6 +53,53 @@ public class TestStringConstantsAndEnums
         assertEquals("CANNOT_PLAY", ACTION_STRINGS[SOCDevCardAction.CANNOT_PLAY]);
         assertEquals("REMOVE_NEW", ACTION_STRINGS[SOCDevCardAction.REMOVE_NEW]);
         assertEquals("REMOVE_OLD", ACTION_STRINGS[SOCDevCardAction.REMOVE_OLD]);
+    }
+
+    /**
+     * Test {@link SOCInventoryItemAction#toString()}
+     * and corresponding int constants like {@link SOCInventoryItemAction#ADD_PLAYABLE}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testInventoryItemAction()
+    {
+        assertEquals(1, SOCInventoryItemAction.BUY);
+        assertEquals(2, SOCInventoryItemAction.ADD_PLAYABLE);
+        assertEquals(3, SOCInventoryItemAction.ADD_OTHER);
+        assertEquals(4, SOCInventoryItemAction.PLAY);
+        assertEquals(5, SOCInventoryItemAction.CANNOT_PLAY);
+        assertEquals(6, SOCInventoryItemAction.PLAYED);
+        assertEquals(7, SOCInventoryItemAction.PLACING_EXTRA);
+        assertEquals(8, SOCInventoryItemAction.REMOVE_PLAYABLE);
+        assertEquals(9, SOCInventoryItemAction.REMOVE_OTHER);
+
+        assertEquals
+            ("SOCInventoryItemAction:game=ga|playerNum=3|action=BUY|itemType=-1|kept=false|isVP=true|canCancel=false",
+             new SOCInventoryItemAction("ga", 3, SOCInventoryItemAction.BUY, -1, false, true, false).toString());
+        assertEquals
+            ("SOCInventoryItemAction:game=ga|playerNum=3|action=ADD_PLAYABLE|itemType=2|kept=false|isVP=false|canCancel=false",
+             new SOCInventoryItemAction("ga", 3, SOCInventoryItemAction.ADD_PLAYABLE, 2, false, false, false).toString());
+        assertEquals
+            ("SOCInventoryItemAction:game=ga|playerNum=3|action=ADD_OTHER|itemType=5|kept=true|isVP=false|canCancel=true",
+             new SOCInventoryItemAction("ga", 3, SOCInventoryItemAction.ADD_OTHER, 5, true, false, true).toString());
+        assertEquals
+            ("SOCInventoryItemAction:game=ga|playerNum=4|action=PLAY|itemType=-2|rc=0",
+             new SOCInventoryItemAction("ga", 4, SOCInventoryItemAction.PLAY, -2).toString());
+        assertEquals
+            ("SOCInventoryItemAction:game=ga|playerNum=3|action=CANNOT_PLAY|itemType=3|rc=1",
+             new SOCInventoryItemAction("ga", 3, SOCInventoryItemAction.CANNOT_PLAY, 3, 1).toString());
+        assertEquals
+            ("SOCInventoryItemAction:game=ga|playerNum=4|action=PLAYED|itemType=7|kept=true|isVP=false|canCancel=true",
+             new SOCInventoryItemAction("ga", 4, SOCInventoryItemAction.PLAYED, 7, true, false, true).toString());
+        assertEquals
+            ("SOCInventoryItemAction:game=ga|playerNum=3|action=PLACING_EXTRA|itemType=-3|kept=false|isVP=false|canCancel=false",
+             new SOCInventoryItemAction("ga", 3, SOCInventoryItemAction.PLACING_EXTRA, -3, false, false, false).toString());
+        assertEquals
+            ("SOCInventoryItemAction:game=ga|playerNum=5|action=REMOVE_PLAYABLE|itemType=-1|kept=false|isVP=true|canCancel=false",
+             new SOCInventoryItemAction("ga", 5, SOCInventoryItemAction.REMOVE_PLAYABLE, -1, false, true, false).toString());
+        assertEquals
+            ("SOCInventoryItemAction:game=ga|playerNum=3|action=REMOVE_OTHER|itemType=7|kept=true|isVP=false|canCancel=false",
+             new SOCInventoryItemAction("ga", 3, SOCInventoryItemAction.REMOVE_OTHER, 7, true, false, false).toString());
     }
 
     /**

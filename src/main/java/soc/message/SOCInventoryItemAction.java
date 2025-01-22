@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2016-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2016-2020,2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,7 +37,7 @@ import soc.game.SOCInventoryItem;     // for javadoc's use
  *<P>
  * Possible message traffic, by {@link #action}:
  *<UL>
- *<LI> From Server to one client or all clients:
+ *<LI> From Server to one client or all clients in game:
  * Add an item to a player's inventory with a certain state: {@link #ADD_PLAYABLE}, {@link #ADD_OTHER}
  *<LI> From Client: Player is requesting to {@link #PLAY} a playable item
  *<LI> If the client can't currently play that type,
@@ -51,6 +51,8 @@ import soc.game.SOCInventoryItem;     // for javadoc's use
  * Play/placement rules are specific to each kind of inventory action, and the {@code PLACING_EXTRA}
  * message may be sent before a game state change or other messages necessary for placement.
  * See {@link #PLACING_EXTRA}'s javadoc for client handling.
+ *<LI> If current player undoes their most recent action which added something to their inventory,
+ * server might send all clients {@link #REMOVE_PLAYABLE} or {@link #REMOVE_OTHER}
  *</UL>
  * When the server sends a {@code SOCInventoryItemAction}, it doesn't also send a {@link SOCGameServerText} explaining
  * the details; the client must print such text based on the {@code SOCInventoryItemAction} received.
@@ -94,7 +96,7 @@ public class SOCInventoryItemAction extends SOCMessage
     private static final long serialVersionUID = 2000L;
 
     // Item Actions:
-    // If you add or change actions, update toString().
+    // If you add or change actions, update toString() and TestStringConstantsAndEnums.testInventoryItemAction.
 
     /**
      * item action BUY: Client request to buy an item (unused in v2.0.00).
@@ -104,11 +106,17 @@ public class SOCInventoryItemAction extends SOCMessage
      */
     public static final int BUY = 1;
 
-    /** item action ADD_PLAYABLE: From server, add as Playable to player's inventory */
+    /**
+     * item action ADD_PLAYABLE: From server, add as Playable to player's inventory
+     * @see #REMOVE_PLAYABLE
+     */
     public static final int ADD_PLAYABLE = 2;
 
-    /** item action ADD_OTHER: From server, add as New or Kept to player's inventory,
-     *  depending on whether this item's type is kept until end of game */
+    /**
+     * item action ADD_OTHER: From server, add as New or Kept to player's inventory,
+     * depending on whether this item's type is kept until end of game
+     * @see #REMOVE_OTHER
+     */
     public static final int ADD_OTHER = 3;
 
     /** item action PLAY: Client request to play a PLAYABLE item */
@@ -141,6 +149,20 @@ public class SOCInventoryItemAction extends SOCMessage
      * retrieve the item details.
      */
     public static final int PLACING_EXTRA = 7;
+
+    /**
+     * item action REMOVE_PLAYABLE: From server, remove this Playable item from player's inventory;
+     * opposite of {@link #ADD_PLAYABLE}.
+     * @since 2.7.00
+     */
+    public static final int REMOVE_PLAYABLE = 8;
+
+    /**
+     * item action REMOVE_OTHER: From server, remove this New or Kept item from player's inventory;
+     * opposite of {@link #ADD_OTHER}.
+     * @since 2.7.00
+     */
+    public static final int REMOVE_OTHER = 9;
 
     /** {@link #isKept} flag position for sending over network in a bit field */
     private static final int FLAG_ISKEPT = 0x01;
@@ -368,6 +390,8 @@ public class SOCInventoryItemAction extends SOCMessage
         case CANNOT_PLAY:   ac = "CANNOT_PLAY";   break;
         case PLAYED:        ac = "PLAYED";        break;
         case PLACING_EXTRA: ac = "PLACING_EXTRA"; break;
+        case REMOVE_PLAYABLE:  ac = "REMOVE_PLAYABLE";  break;
+        case REMOVE_OTHER:  ac = "REMOVE_OTHER";  break;
         default:            ac = Integer.toString(action);
         }
 

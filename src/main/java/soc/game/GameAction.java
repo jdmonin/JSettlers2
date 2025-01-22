@@ -699,6 +699,20 @@ public class GameAction
         PLAYER_SET_EVENT_FLAGS(100),
 
         /**
+         * Player has gained a scenario-specific {@link SOCInventoryItem} into their hand/inventory (not a Dev Card),
+         * such as a Gift Port in scenario {@link SOCScenario#K_SC_FTRI SC_FTRI}.
+         *<P>
+         * Params:
+         *<LI>[0]: Item type, from {@link SOCInventoryItem#itype}
+         *<LI>[1]: 1 if {@link SOCInventoryItem#isPlayable()} currently, 0 otherwise (is either Kept or New)
+         *<LI>[2]: 1 if {@link SOCInventoryItem#isKept()}, 0 otherwise
+         *<LI>[3]: 1 if {@link SOCInventoryItem#isVPItem()}, 0 otherwise
+         *<LI>[4]: 1 if {@link SOCInventoryItem#canCancelPlay}, 0 otherwise
+         *</UL>
+         */
+        PLAYER_GAIN_INVENTORY_ITEM(110),
+
+        /**
          * Player has received cloth for an action such as establishing a Cloth Trade route with
          * a neutral {@link SOCVillage village} in the {@link SOCGameOptionSet#K_SC_CLVI Cloth Trade} scenario.
          *<P>
@@ -721,7 +735,7 @@ public class GameAction
          *<P>
          * Villages are in a game only if scenario option {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI} is set.
          */
-        PLAYER_SCEN_CLVI_RECEIVE_CLOTH(110),
+        PLAYER_SCEN_CLVI_RECEIVE_CLOTH(120),
 
         /**
          * Player has reached a Special Edge on the board and received a reward,
@@ -743,7 +757,7 @@ public class GameAction
          *<P>
          * Currently in game only if scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI} is set.
          */
-        PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE(120),
+        PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE(130),
 
         /**
          * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI},
@@ -761,7 +775,7 @@ public class GameAction
          * after doing so add the {@link #GAME_SCEN_FTRI_PORT_PLACED} Effect
          * to the same {@link GameAction} as this {@code GAME_SCEN_FTRI_PORT_REMOVED}.
          */
-        GAME_SCEN_FTRI_PORT_REMOVED(130),
+        GAME_SCEN_FTRI_PORT_REMOVED(140),
 
         /**
          * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI},
@@ -776,7 +790,7 @@ public class GameAction
          *
          * Often follows {@link #GAME_SCEN_FTRI_PORT_REMOVED} within the same {@link GameAction}.
          */
-        GAME_SCEN_FTRI_PORT_PLACED(140);
+        GAME_SCEN_FTRI_PORT_PLACED(150);
 
         /**
          * This enum member's unique int value ({@link #CHANGE_LONGEST_ROAD_PLAYER} == 10, etc).
