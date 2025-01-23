@@ -1361,6 +1361,14 @@ public class SOCGameMessageHandler
                          PEType.PLAYEREVENTS_BITMASK, ga.getPlayer(cpn).getPlayerEvents()));
                 break;
 
+            case PLAYER_GAIN_INVENTORY_ITEM:
+                msgsAfter.add
+                    (new SOCInventoryItemAction
+                        (gaName, cpn,
+                         (e.params[1] == 1) ? SOCInventoryItemAction.REMOVE_PLAYABLE : SOCInventoryItemAction.REMOVE_OTHER,
+                         e.params[0], (e.params[2] == 1), (e.params[3] == 1), (e.params[4] == 1)));
+                break;
+
             case PLAYER_SCEN_CLVI_RECEIVE_CLOTH:
                 {
                     msgsAfter.add

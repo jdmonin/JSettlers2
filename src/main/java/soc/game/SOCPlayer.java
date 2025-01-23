@@ -3593,15 +3593,22 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (game.isGameOptionSet(SOCGameOptionSet.K_SC_FTRI) && board.canRemovePort(edge))
         {
             SOCInventoryItem portItem = game.removePort(this, edge);  // updates game state, fires SOCPlayerEvent.REMOVED_TRADE_PORT
+            final int newGameState = game.getGameState();
 
             if (game.isAtServer && (portItem != null) // will always be non-null, check is just for sanity
-                && (game.getGameState() != SOCGame.UNDOING_ACTION))
+                && (newGameState != SOCGame.UNDOING_ACTION))
             {
                 if (effects == null)
                     effects = new ArrayList<>();
                 effects.add(new GameAction.Effect
                     (GameAction.EffectType.GAME_SCEN_FTRI_PORT_REMOVED,
                      new int[]{edge, -portItem.itype}));
+                if (newGameState != SOCGame.PLACING_INV_ITEM)
+                    effects.add(new GameAction.Effect
+                        (GameAction.EffectType.PLAYER_GAIN_INVENTORY_ITEM,
+                         new int[]
+                             {portItem.itype, portItem.isPlayable() ? 1 : 0, portItem.isKept() ? 1 : 0,
+                              portItem.isVPItem() ? 1 : 0, portItem.canCancelPlay ? 1 : 0 }));
             }
         }
 

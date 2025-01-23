@@ -2717,6 +2717,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
             break;
 
         // case SOCInventoryItemAction.CANNOT_PLAY: already covered above: returns true
+
+        case SOCInventoryItemAction.REMOVE_PLAYABLE:
+            inv.removeItem(SOCInventory.PLAYABLE, mes.itemType);
+            break;
+
+        case SOCInventoryItemAction.REMOVE_OTHER:
+            inv.removeItem(mes.isKept ? SOCInventory.KEPT : SOCInventory.NEW, mes.itemType);
+            break;
         }
 
         return false;

@@ -5215,6 +5215,12 @@ public class SOCGame implements Serializable, Cloneable
                 }
                 break;
 
+            case PLAYER_GAIN_INVENTORY_ITEM:
+                currPlayer.getInventory().removeItem
+                    ((e.params[1] == 1) ? SOCInventory.PLAYABLE : ((e.params[2] == 1) ? SOCInventory.KEPT : SOCInventory.NEW),
+                     e.params[0]);
+                break;
+
             case PLAYER_SCEN_CLVI_RECEIVE_CLOTH:
                 {
                     int nCloth = e.params[0];
