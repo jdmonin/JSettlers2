@@ -1,4 +1,4 @@
-/**
+/*
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * The maintainer of this program can be reached at jsettlers@nand.net
- **/
+ */
 package soc.client;
 
 import soc.game.SOCBoard;
@@ -906,6 +906,9 @@ import javax.swing.UIManager;
         inventory.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e)
             {
+                // something in the list was selected; if it is playable enable the playCardBut, otherwise disable
+                if (-1 < inventory.getSelectedIndex())
+                    enablePlayCardButton( true );
                 if (e.getClickCount() < 2)
                     return;
                 e.consume();
@@ -956,9 +959,11 @@ import javax.swing.UIManager;
             shipLab = new JLabel(strings.get("hpan.ships"));  // "Ships:"
             shipLab.setFont(DIALOG_PLAIN_10);
             add(shipLab);
-        } else {
-            // shipSq, shipLab already null
         }
+//        else
+//        {
+//            // shipSq, shipLab already null
+//        }
 
         if (game.isGameOptionSet("UBL"))
         {
@@ -1000,9 +1005,11 @@ import javax.swing.UIManager;
                     pi.buildingPanel.clickWondersButton();
                 }
             });
-        } else {
-            // clothSq, clothLab, wonderLab already null
         }
+//        else
+//        {
+//            // clothSq, clothLab, wonderLab already null
+//        }
 
         knightsLab = new JLabel(strings.get("hpan.soldiers"));  // No trailing space (room for wider colorsquares at left)
         knightsLab.setFont(DIALOG_PLAIN_10);
@@ -1101,10 +1108,8 @@ import javax.swing.UIManager;
         if (interactive)
             bankUndoBut.setToolTipText(strings.get("hpan.trade.undo.tip"));  // "Undo the most recent Bank Trade"
 
-        if (playerTradingDisabled)
+        if (! playerTradingDisabled)
         {
-            // playerSend, playerSendMap, playerSendForPrevTrade already null
-        } else {
             playerSend = new ColorSquare[game.maxPlayers-1];
             playerSendMap = new int[game.maxPlayers-1];
             playerSendForPrevTrade = new boolean[game.maxPlayers-1];
@@ -1125,7 +1130,11 @@ import javax.swing.UIManager;
                     cnt++;
                 }
             }
-        }  // if(playerTradingDisabled)
+        }   // if(! playerTradingDisabled)
+//        else
+//        {
+//            // playerSend, playerSendMap, playerSendForPrevTrade already null
+//        }
 
         rollPromptCountdownLab = new JLabel(" ");
         add(rollPromptCountdownLab);
@@ -1262,7 +1271,7 @@ import javax.swing.UIManager;
      *                tooltip will be "Right-click to trade clay".
      * @since 2.0.00
      */
-    private final void createAndAddResourceColorSquare(final Color rc, final String rtxtkey)
+    private void createAndAddResourceColorSquare(final Color rc, final String rtxtkey)
     {
         final String rtxt = strings.get(rtxtkey);
         createColorSqRetLbl = new JLabel(rtxt + ":");  // "Clay:"
@@ -1309,6 +1318,70 @@ import javax.swing.UIManager;
     }
 
     /**
+     * Enable the "Play card" button. Before actually setting the button state,
+     * it performs certain sanity checks, for example there must be a non-empty
+     * inventory, with at least one playable card. If there is more than one
+     * playable card, either they must all the same type, or one must be selected.
+     *
+     * @param desired the desired state. If false, the button will always be disabled
+     * @return the new state of the button
+     */
+    private boolean enablePlayCardButton( boolean desired )
+    {
+        if (inventoryItems.isEmpty() || player.hasPlayedDevCard())
+        {
+            // No cards in inventory or the player has already played one. Always disable the play button.
+            desired = false;
+        }
+        if (desired)
+        {
+            // first check to see if a playable inventory item is selected.
+            // If so, enabling the button is permitted.
+            int selected = inventory.getSelectedIndex();    // Returns {@code -1} if there is no selection.
+            if (-1 ==  selected)   // Nothing is selected.
+            {
+                SOCInventory itemList = player.getInventory();
+                SOCInventoryItem itemObj = null;
+                for (SOCInventoryItem item : itemList.getByState( SOCInventory.PLAYABLE ))
+                {
+                    // enable this if soldiers have priority over other playable cards
+                    // when there is no card selected in the list.
+/*
+                    if (SOCDevCardConstants.KNIGHT == item.itype)
+                    {
+                        // If we have a soldier, we can always enable the button. If the
+                        // button is clicked and there is no selection, the soldier will
+                        // automatically be selected.
+                        playCardBut.setEnabled( desired );
+                        return playCardBut.isEnabled();
+                    }
+
+ */
+                    // Playable card found (not VP, not new)
+                    if ((null != itemObj) && (itemObj.itype != item.itype))
+                    {
+                        desired = false;
+                        // two different type cards found and none is selected.
+                    }
+                    itemObj = item; // Store the last item. Might be identical type, but if
+                                    // desired is already false, it won't matter.
+                }
+                if (null == itemObj)    // No playable card was found
+                    desired = false;
+            }
+            else
+            {
+                // something was selected; is it playable?
+                SOCInventoryItem devCard = inventoryItems.get( selected );
+                if (! devCard.isPlayable())
+                    desired = false;
+            }
+        }
+        playCardBut.setEnabled( desired );
+        return playCardBut.isEnabled();
+    }
+
+    /**
      * handle interaction
      */
     public void actionPerformed(ActionEvent e)
@@ -1316,25 +1389,25 @@ import javax.swing.UIManager;
         try {
         String target = e.getActionCommand();
 
-        if (target == LOCKSEAT)
+        if (LOCKSEAT.equals( target ))
         {
             // Seat Lock while game forming (gamestate NEW); see below for ROBOTLOCKBUT_L etc
             messageSender.setSeatLock(game, playerNumber, SOCGame.SeatLockState.LOCKED);
         }
-        else if (target == UNLOCKSEAT)
+        else if (UNLOCKSEAT.equals( target ))
         {
             // Unlock while game forming
             messageSender.setSeatLock(game, playerNumber, SOCGame.SeatLockState.UNLOCKED);
         }
-        else if (target == TAKEOVER)
+        else if (TAKEOVER.equals( target ))
         {
             messageSender.sitDown(game, playerNumber);
         }
-        else if (target == SIT)
+        else if (SIT.equals( target ))
         {
             messageSender.sitDown(game, playerNumber);
         }
-        else if ((target == START) && startBut.isVisible())
+        else if ((START.equals( target ))   && startBut.isVisible())
         {
             messageSender.startGame(game);
 
@@ -1342,11 +1415,11 @@ import javax.swing.UIManager;
             // when hidden but has focus because startBut is the first button added to panel;
             // this bug seen on OSX 10.9.1 (1.5.0 JVM)
         }
-        else if (target == ROBOT)
+        else if (ROBOT.equals( target ))
         {
             // cf.cc.addRobot(cf.cname, playerNum);
         }
-        else if (target == ROLL)
+        else if (ROLL.equals( target ))
         {
             if (autoRollTimerTask != null)
             {
@@ -1355,19 +1428,19 @@ import javax.swing.UIManager;
             }
             clickRollButton();
         }
-        else if (target == QUIT)
+        else if (QUIT.equals( target ))
         {
             SOCQuitConfirmDialog.createAndShow(playerInterface.getMainDisplay(), playerInterface);
         }
-        else if (target == DONE)
+        else if (DONE.equals( target ))
         {
             clickDoneButton();
         }
-        else if (target == DONE_RESTART)
+        else if (DONE_RESTART.equals( target ))
         {
             playerInterface.resetBoardRequest(game.isPractice && ! game.isInitialPlacement());
         }
-        else if (target == CLEAR)
+        else if (CLEAR.equals( target ))
         {
             clearOffer(true);    // Zero the square panel numbers, unless board-reset vote in progress
             if (game.getGameState() == SOCGame.PLAY1)
@@ -1375,7 +1448,7 @@ import javax.swing.UIManager;
                 messageSender.clearOffer(game);
             }
         }
-        else if (target == BANK)
+        else if (BANK.equals( target ))
         {
             int gstate = game.getGameState();
             if (gstate == SOCGame.PLAY1)
@@ -1394,7 +1467,7 @@ import javax.swing.UIManager;
                 playerInterface.print(msg, true);
             }
         }
-        else if (target == BANK_UNDO)
+        else if (BANK_UNDO.equals( target ))
         {
             if ((bankGive != null) && (bankGet != null))
             {
@@ -1404,20 +1477,20 @@ import javax.swing.UIManager;
                 bankUndoBut.setEnabled(false);
             }
         }
-        else if (target == ROBOTLOCKBUT_L)
+        else if (ROBOTLOCKBUT_L.equals( target ))
         {
             // Seat Lock while game in progress; see above for UNLOCKSEAT etc
             clickRobotSeatLockButton(SOCGame.SeatLockState.LOCKED);
         }
-        else if (target == ROBOTLOCKBUT_U)
+        else if (ROBOTLOCKBUT_U.equals( target ))
         {
             clickRobotSeatLockButton(SOCGame.SeatLockState.UNLOCKED);
         }
-        else if (target == ROBOTLOCKBUT_M)
+        else if (ROBOTLOCKBUT_M.equals( target ))
         {
             clickRobotSeatLockButton(SOCGame.SeatLockState.CLEAR_ON_RESET);
         }
-        else if (target == SEND)
+        else if (SEND.equals( target ))
         {
             if (playerTradingDisabled)
                 return;
@@ -1536,8 +1609,7 @@ import javax.swing.UIManager;
             //  or when the client joins a game in progress.
             for (SOCPlayer.SpecialVPInfo svpi : svpis)
             {
-                sb.append("\n");
-                sb.append(svpi.svp + ": " + svpi.desc);  // I18N: Server sends localized desc
+                sb.append("\n" + svpi.svp + ": " + svpi.desc);  // I18N: Server sends localized desc
             }
         }
 
@@ -1636,7 +1708,7 @@ import javax.swing.UIManager;
      * @param current  Current lock state/button label
      * @since 2.0.00
      */
-    private final void clickRobotSeatLockButton(SOCGame.SeatLockState current)
+    private void clickRobotSeatLockButton(SOCGame.SeatLockState current)
     {
         final SOCGame.SeatLockState slNext;
         switch (current)
@@ -1659,8 +1731,9 @@ import javax.swing.UIManager;
 
 
     /**
-     * Handle a click on the "play card" button, or double-click
-     * on an item in the inventory/list of cards held.
+     * Handle a click on the "play card" button, or double-click on an item in the
+     * inventory/list of cards held. If no card is selected, and a single type of
+     * playable card is in the list, play that card.
      * Silently ignored if {@link SOCGame#isDebugFreePlacement()}.
      *<P>
      * Inventory items are almost always {@link SOCDevCard}s.
@@ -1689,6 +1762,10 @@ import javax.swing.UIManager;
         if (game.isDebugFreePlacement())
             return;
 
+        /**
+         * start of a normal turn.Time to roll or play a card. Next state depends on
+         * card or roll, but usually it is {@link #PLAY1}.
+         */
         String itemText;
         int itemNum;  // Which one to play from list?
         SOCInventoryItem itemObj = null;  // SOCDevCard or special item
@@ -1705,14 +1782,16 @@ import javax.swing.UIManager;
             {
                 // No card selected, but only one to choose from
                 itemText = invModel.get(0);
-                itemNum = 0;
+//                itemNum = 0;
                 if (itemText.length() == 0)
                     return;
                 itemObj = inventoryItems.get(0);
-            } else {
+            }
+            else
+            {
                 /**
-                 * No card selected, multiple are in the list.
-                 * See if only one card isn't a "(VP)" card, isn't new.
+                 * No card selected, multiple are in the list. See if only
+                 * one card type is playable (isn't a "(VP)" card and isn't new).
                  * If more than one, but they're all same type (ex.
                  * unplayed Robbers), pretend there's only one.
                  */
@@ -1742,7 +1821,7 @@ import javax.swing.UIManager;
                     }
                 }
 
-                if ((itemNum == -1) || (itemObj == null))
+                if (itemNum == -1)
                 {
                     playerInterface.printKeyed("hpan.devcards.clickfirst");  // * "Please click a card first to select it."
                     return;
@@ -1850,6 +1929,8 @@ import javax.swing.UIManager;
         if (cardTypeToPlay != -1)
         {
             messageSender.playDevCard(game, cardTypeToPlay);
+            // Once a dev card has been played, you can't play another, so disable the play button
+            playCardBut.setEnabled( false );
             disableBankUndoButton();
         }
     }
@@ -1860,7 +1941,7 @@ import javax.swing.UIManager;
      * @param item  Special item picked by player
      * @since 2.0.00
      */
-    private final void clickPlayInventorySpecialItem(final SOCInventoryItem item)
+    private void clickPlayInventorySpecialItem(final SOCInventoryItem item)
     {
         if (item.isPlayable())
             messageSender.playInventoryItem(game, item.itype);
@@ -1978,6 +2059,7 @@ import javax.swing.UIManager;
             getSet  = giveget[1];
         }
 
+        // TODO: can cliPlayer ever be null?
         if (! cliPlayer.getResources().contains(giveSet))
         {
             playerInterface.print("*** " + strings.get("trade.msg.cant.offer.dont_have"));
@@ -2126,16 +2208,15 @@ import javax.swing.UIManager;
                 sitButIsLock = false;
             }
         }
-        else if (clientHasSatAlready && ! sitButIsLock)
+        else if (! sitButIsLock)
         {
             renameSitButLock();
         }
-
         sitBut.setVisible(true);
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME! Never used
      */
     public void addRobotButton()
     {
@@ -2507,7 +2588,13 @@ import javax.swing.UIManager;
         playerIsCurrent = (game.getCurrentPlayerNumber() == playerNumber);
 
         final boolean showResourceDetails;
-        if (player.getName().equals(playerInterface.getClientNickname()))
+        String playerName = player.getName();
+        if (null == playerName)
+        {
+            playerName = playerInterface.getClientNickname();
+            player.setName( playerName );
+        }
+        if ( null != playerName && playerName.equals(playerInterface.getClientNickname()))
         {
             // this is our hand
 
@@ -2814,7 +2901,7 @@ import javax.swing.UIManager;
                 }
             }
             normalTurnStarting = normalTurnStarting && playerIsCurrent;
-            playCardBut.setEnabled(normalTurnStarting && ! ((DefaultListModel<?>) inventory.getModel()).isEmpty());
+            enablePlayCardButton( normalTurnStarting );
         }
 
         bankGive = null;
@@ -2923,7 +3010,7 @@ import javax.swing.UIManager;
      * After any component show/hide and rearrangement, calls {@link #validate()} and {@link #repaint()};
      * this is necessary on win32 to avoid layout cutoff/repaint problems on Swing.
      *
-     * @param counterVisible Is the counter-offer showing?
+     * @param counterVisible Is the counter-offer showing? Never used.
      * @since 1.1.08
      */
     public void offerCounterOfferVisibleChanged(final boolean counterVisible)
@@ -2951,12 +3038,15 @@ import javax.swing.UIManager;
      * @see #autoRollSetupTimer()
      * @since 1.1.00
      */
-    public void autoRollOrPromptPlayer()
+    /* package */ void autoRollOrPromptPlayer()
     {
         updateAtTurn();  // Game state may have changed
-        if (player.hasUnplayedDevCards()
-                && ! player.hasPlayedDevCard())
-            setRollPrompt(ROLL_OR_PLAY_CARD, false);
+        if (   player.hasUnplayedDevCards()
+            && ! player.hasPlayedDevCard())
+        {
+            enablePlayCardButton( true );
+            setRollPrompt( ROLL_OR_PLAY_CARD, false );
+        }
         else
             autoRollSetupTimer();
     }
@@ -2992,7 +3082,7 @@ import javax.swing.UIManager;
 
             if (game.getGameState() == SOCGame.OVER)
             {
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
 
                 for (SOCInventoryItem item : player.getInventory().getByState(SOCInventory.KEPT))
                 {
@@ -3046,8 +3136,8 @@ import javax.swing.UIManager;
                 }
             }
         }
-
-        playCardBut.setEnabled(hasOldCards && playerIsClient && playerIsCurrent);
+        enablePlayCardButton( hasOldCards && playerIsClient && playerIsCurrent );
+//        playCardBut.setEnabled(hasOldCards && playerIsClient && playerIsCurrent);
     }
 
     /**
@@ -3737,13 +3827,9 @@ import javax.swing.UIManager;
 
             if (playCardBut.getText().equals(CANCEL))
             {
-                playCardBut.setText(CARD);  // " Play Card "
-                playCardBut.setEnabled(! inventoryItems.isEmpty());
+                playCardBut.setText( CARD );  // " Play Card "
             }
-            else if (! (playCardBut.isEnabled() || inventoryItems.isEmpty() || player.hasPlayedDevCard()))
-            {
-                playCardBut.setEnabled(true);
-            }
+            enablePlayCardButton(true );       // will fail if a card has already been played this turn
         }
     }
 
@@ -4062,10 +4148,12 @@ import javax.swing.UIManager;
                 if (gs != SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
                 {
                     clearDiscardOrPickMsg();
-                } else {
-                    // Clear pick-resources message is handled above
-                    // by updateValue(NUM_PICK_GOLD_HEX_RESOURCES)
                 }
+//                else
+//                {
+//                    // Clear pick-resources message is handled above
+//                    // by updateValue(NUM_PICK_GOLD_HEX_RESOURCES)
+//                }
             }
         }
     }
@@ -4663,7 +4751,7 @@ import javax.swing.UIManager;
 
                     if (miscInfoArea != null)
                     {
-                        if ((messagePanel != null) && messagePanel.isVisible())
+                        if (messagePanel.isVisible())
                         {
                             miscInfoArea.setVisible(false);
                         } else {
@@ -4923,7 +5011,7 @@ import javax.swing.UIManager;
                 try {
                     Thread.currentThread().setName("timertask-autoroll");
                 }
-                catch (Throwable th) {}
+                catch (Throwable ignore) {}
             }
 
             // autoroll function
@@ -4931,7 +5019,7 @@ import javax.swing.UIManager;
             {
                 if (timeRemain > 0)
                 {
-                    setRollPrompt(MessageFormat.format(AUTOROLL_COUNTDOWN, Integer.valueOf(timeRemain)), false);
+                    setRollPrompt(MessageFormat.format(AUTOROLL_COUNTDOWN, timeRemain ), false);
                 } else {
                     clickRollButton();  // Clear prompt, click Roll
                     cancel();  // End of countdown for this timer
@@ -4958,7 +5046,9 @@ import javax.swing.UIManager;
      */
     protected static class ResourceTradeMenuItem extends MenuItem
     {
-        private static final Integer INT_1 = Integer.valueOf(1);  // resource quantity for string formats
+        // TODO: INT_1 is declared final, so it can never be changed. Why not just
+        // use the literal "1" in its place?
+//        private static final Integer INT_1 = 1;  // resource quantity for string formats
 
         private final SOCGame game;  // needed only for SOCStringManager.getSpecial
         private int tradeFrom, tradeTo;
@@ -4978,8 +5068,8 @@ import javax.swing.UIManager;
         public ResourceTradeMenuItem(final SOCGame game, int numFrom, int typeFrom, int typeTo, boolean shortText)
         {
             super( (shortText
-                    ? strings.getSpecial(game, "board.trade.for.1.rsrc", INT_1, typeTo)     // "For 1 sheep"
-                    : strings.getSpecial(game, "board.trade.trade.x.rsrcs.for.1.rsrc", numFrom, typeFrom, INT_1, typeTo)
+                    ? strings.getSpecial(game, "board.trade.for.1.rsrc", 1, typeTo)     // "For 1 sheep"
+                    : strings.getSpecial(game, "board.trade.trade.x.rsrcs.for.1.rsrc", numFrom, typeFrom, 1, typeTo)
                     // "Trade 3 wheat for 1 sheep"
                     ) );
             this.game = game;
@@ -5002,10 +5092,10 @@ import javax.swing.UIManager;
                 return;
             tradeNum = numFrom;
             if (shortTxt)
-                setLabel(strings.getSpecial(game, "board.trade.for.1.rsrc", INT_1, tradeTo));     // "For 1 sheep"
+                setLabel(strings.getSpecial(game, "board.trade.for.1.rsrc", 1, tradeTo));     // "For 1 sheep"
             else
                 setLabel(strings.getSpecial
-                    (game, "board.trade.trade.x.rsrcs.for.1.rsrc", numFrom, tradeFrom, INT_1, tradeTo));
+                    (game, "board.trade.trade.x.rsrcs.for.1.rsrc", numFrom, tradeFrom, 1, tradeTo));
                     // "Trade 3 wheat for 1 sheep"
         }
 
