@@ -1775,8 +1775,8 @@ public class SOCPlayerInterface extends JFrame
             if (clientHand != null)
                 clientHand.updateAtOurGameState();
         } catch (IllegalStateException e) {
-            textDisplay.append
-              ("*** Can't setDebugFreePlacement(" + setOn+ ") for " + game.getName() + " in state " + game.getGameState() + "\n");
+            textDisplay.append( "\n*** Can't setDebugFreePlacement(" + setOn+ ") for "
+                    + game.getName() + " in state " + game.getGameState() );
         }
     }
 
@@ -2269,13 +2269,13 @@ public class SOCPlayerInterface extends JFrame
 
         if (client.getServerVersion(game) < 1100)
         {
-            textDisplay.append("*** " + strings.get("reset.server.support.too.old") + "\n");
+            textDisplay.append("\n*** " + strings.get("reset.server.support.too.old") );
                 // "This server does not support board reset, server is too old."
             return;
         }
         if (game.getResetVoteActive())
         {
-            textDisplay.append("*** " + strings.get("reset.voting.already.active") + "\n");
+            textDisplay.append("\n*** " + strings.get("reset.voting.already.active"));
                 // "Voting is already active. Try again when voting completes."
             return;
         }
@@ -2283,7 +2283,7 @@ public class SOCPlayerInterface extends JFrame
         if (! pl.hasAskedBoardReset())
             client.getGameMessageSender().resetBoardRequest(game);
         else
-            textDisplay.append("*** " + strings.get("reset.you.may.ask.once") + "\n");
+            textDisplay.append("\n*** " + strings.get("reset.you.may.ask.once") );
                 // "You may ask only once per turn to reset the board."
     }
 
@@ -2312,7 +2312,7 @@ public class SOCPlayerInterface extends JFrame
      */
     public void resetBoardRejected()
     {
-        textDisplay.append("*** " + strings.get("reset.was.rejected") + "\n");  // "The board reset was rejected."
+        textDisplay.append("\n*** " + strings.get("reset.was.rejected"));  // "The board reset was rejected."
         for (int i = 0; i < hands.length; ++i)
         {
             // Clear all displayed votes
@@ -2459,7 +2459,7 @@ public class SOCPlayerInterface extends JFrame
     public void printKeyed(final String key)
         throws MissingResourceException
     {
-        textDisplay.append("* " + strings.get(key) + "\n");  // TextArea will soft-wrap within the line
+        textDisplay.append("\n* " + strings.get(key));  // TextArea will soft-wrap within the line
     }
 
     /**
@@ -2476,7 +2476,7 @@ public class SOCPlayerInterface extends JFrame
     public void printKeyed(final String key, final Object ... params)
         throws MissingResourceException
     {
-        textDisplay.append("* " + strings.get(key, params) + "\n");  // TextArea will soft-wrap within the line
+        textDisplay.append("\n* " + strings.get(key, params) );  // TextArea will soft-wrap within the line
     }
 
     /**
@@ -2495,7 +2495,7 @@ public class SOCPlayerInterface extends JFrame
     public void printKeyedSpecial(final String key, final Object ... params)
         throws MissingResourceException, IllegalArgumentException
     {
-        textDisplay.append("* " + strings.getSpecial(game, key, params) + "\n");  // TextArea will soft-wrap within line
+        textDisplay.append("\n* " + strings.getSpecial(game, key, params) );  // TextArea will soft-wrap within line
     }
 
     /**
@@ -2533,7 +2533,7 @@ public class SOCPlayerInterface extends JFrame
         while (st.hasMoreElements())
         {
             String tk = st.nextToken().trim();
-            textDisplay.append(tk + "\n");  // TextArea will soft-wrap within the line
+            textDisplay.append("\n" + tk );  // TextArea will soft-wrap within the line
         }
     }
 
@@ -2592,12 +2592,12 @@ public class SOCPlayerInterface extends JFrame
 
         if (wasDeleted)
         {
-            textDisplay.append("*** " + strings.get("interface.error.game.has_been_deleted") + " ***\n");
+            textDisplay.append("\n*** " + strings.get("interface.error.game.has_been_deleted") + " ***");
                 // "Game has been deleted."
         } else {
-            textDisplay.append("* " + strings.get("interface.error.lost.conn") + "\n");
+            textDisplay.append("\n* " + strings.get("interface.error.lost.conn"));
                 // "Lost connection to the server."
-            textDisplay.append("*** " + strings.get("interface.error.game.stopped") + " ***\n");
+            textDisplay.append("\n*** " + strings.get("interface.error.game.stopped") + " ***");
                 // "Game stopped."
         }
 
@@ -3857,12 +3857,11 @@ public class SOCPlayerInterface extends JFrame
         if (requesterName == null)
             requesterName = strings.get("reset.player.who.left");  // fall back to "player who left"
 
-        final String resetMsg = "** "
+        final String resetMsg = "\n** "
             + strings.get( ((oldGameState != SOCGame.OVER)
               ? "reset.board.was.reset"     // "The board was reset by {0}."
               : "reset.new.game.started"),  // "New game started by {0}.
-              requesterName)
-            + "\n";
+              requesterName);
         textDisplay.append(resetMsg);
         chatDisplay.append(resetMsg);
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -4103,7 +4102,7 @@ public class SOCPlayerInterface extends JFrame
     }
 
     //========================================================
-    /**
+    /*
      * Nested classes begin here
      */
     //========================================================
