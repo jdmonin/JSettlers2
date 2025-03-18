@@ -714,7 +714,7 @@ public class GameAction
 
         /**
          * Player has received cloth for an action such as establishing a Cloth Trade route with
-         * a neutral {@link SOCVillage village} in the {@link SOCGameOptionSet#K_SC_CLVI Cloth Trade} scenario.
+         * a neutral {@link SOCVillage village} in the {@link SOCScenario#K_SC_CLVI Cloth Trade} scenario.
          *<P>
          * Params:
          *<UL>
@@ -755,12 +755,12 @@ public class GameAction
          * {@link SOCBoardLarge#putItemInStackRandomly(Integer)} to place the dev card
          * back into the board's item stack.
          *<P>
-         * Currently in game only if scenario option {@link SOCGameOption#K_SC_FTRI _SC_FTRI} is set.
+         * Currently in game only during scenario {@link SOCScenario#K_SC_FTRI SC_FTRI}.
          */
         PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE(130),
 
         /**
-         * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI},
+         * For scenario {@link SOCScenario#K_SC_FTRI SC_FTRI},
          * current player has removed a "gift" port from a Special Edge.
          * See {@link SOCGame#removePort(SOCPlayer, int)} for details.
          *<P>
@@ -778,7 +778,7 @@ public class GameAction
         GAME_SCEN_FTRI_PORT_REMOVED(140),
 
         /**
-         * For scenario option {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI},
+         * For scenario {@link SOCScenario#K_SC_FTRI SC_FTRI},
          * current player has placed a "gift" port at a coastal edge.
          * See {@link SOCGame#placePort(SOCPlayer, int, int)} for details.
          *<P>
