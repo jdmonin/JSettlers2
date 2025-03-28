@@ -114,7 +114,7 @@ public class SOCInventoryItemAction extends SOCMessage
 
     /**
      * item action ADD_OTHER: From server, add as New or Kept to player's inventory,
-     * depending on whether this item's type is kept until end of game
+     * depending on whether this item's type is {@link #isKept} until end of game
      * @see #REMOVE_OTHER
      */
     public static final int ADD_OTHER = 3;
@@ -158,8 +158,8 @@ public class SOCInventoryItemAction extends SOCMessage
     public static final int REMOVE_PLAYABLE = 8;
 
     /**
-     * item action REMOVE_OTHER: From server, remove this New or Kept item from player's inventory;
-     * opposite of {@link #ADD_OTHER}.
+     * item action REMOVE_OTHER: From server, remove this New (would become Playable next turn) or {@link #isKept} item
+     * from player's inventory; opposite of {@link #ADD_OTHER}.
      * @since 2.7.00
      */
     public static final int REMOVE_OTHER = 9;
