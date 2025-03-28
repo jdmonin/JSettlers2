@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2024 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2025 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -106,6 +106,7 @@ import soc.message.SOCSitDown;
 import soc.message.SOCStartGame;
 import soc.message.SOCStatusMessage;
 import soc.message.SOCTurn;
+import soc.message.SOCUndoNotAllowedReasonText;
 import soc.server.genericServer.Connection;
 import soc.util.DataUtils;
 import soc.util.IntPair;
@@ -4986,6 +4987,15 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToGameKeyedSpecial(ga, true, true, "event.sc_piri.fleet.defeated");
                     // "All pirate fortresses have been recaptured, the pirate fleet is defeated."
                 srv.messageToGame(gaName, true, new SOCMoveRobber(gaName, ga.getCurrentPlayerNumber(), 0));
+            }
+            break;
+
+        case SGE_CURRENT_ACTION_UNDO_NOT_ALLOWED:
+            {
+                final GameAction act = ga.getLastAction();
+                String reasonTextKey = (act != null) ? act.cannotUndoReason : null;
+                ga.pendingMessagesOut.add
+                    (new SOCUndoNotAllowedReasonText(ga.getName(), true, reasonTextKey));
             }
             break;
 

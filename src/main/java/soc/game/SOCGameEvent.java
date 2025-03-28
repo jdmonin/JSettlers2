@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2014,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2014,2019-2020,2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -94,7 +94,23 @@ public enum SOCGameEvent
      *
      * @see SOCPlayerEvent#PIRI_FORTRESS_RECAPTURED
      */
-    SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED(0);
+    SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED(0),
+
+    /**
+     * The current game action, one which is usually undoable, can't be undone
+     * this time because of a side effect like revealing a fog hex
+     * ({@link #SGE_FOG_HEX_REVEALED}).
+     *<P>
+     * Triggered by game on server only, not directly sent to client as an event message.
+     * Server will queue and soon send a {@link soc.message.SOCUndoNotAllowedReasonText}
+     * as part of the game action's message sequence. If the optional explanatory
+     * {@link SOCGame#getLastAction() game.getLastAction()}{@link GameAction#cannotUndoReason .cannotUndoReason} field
+     * should be set non-{@code null}, game code will do so before triggering this event.
+     * When checking that field at event handler, remember that {@link SOCGame#getLastAction()} might be {@code null}.
+     *
+     * @since 2.7.00
+     */
+    SGE_CURRENT_ACTION_UNDO_NOT_ALLOWED(0);
 
     /**
      * Value for sending event codes over a network.
