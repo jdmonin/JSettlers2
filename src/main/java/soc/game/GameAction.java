@@ -68,6 +68,8 @@ public class GameAction
     /**
      * The reason this usually-undoable action can't be undone, or {@code null} when action can be undone.
      * Is an i18n string key at server, localized when sent to client.
+     * If can't undo but reason is unknown or unexplained, set to {@code "?"};
+     * there is no separate boolean {@code cannotUndo} field.
      * @since 2.7.00
      */
     public volatile String cannotUndoReason;

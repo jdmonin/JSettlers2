@@ -4993,7 +4993,10 @@ public class SOCGameHandler extends GameHandler
         case SGE_CURRENT_ACTION_UNDO_NOT_ALLOWED:
             {
                 final GameAction act = ga.getLastAction();
-                String reasonTextKey = (act != null) ? act.cannotUndoReason : null;
+                String reasonTextKey = null;
+                if (act != null)
+                    reasonTextKey = ("?".equals(act.cannotUndoReason)) ? null : act.cannotUndoReason;
+
                 ga.pendingMessagesOut.add
                     (new SOCUndoNotAllowedReasonText(ga.getName(), true, reasonTextKey));
             }
