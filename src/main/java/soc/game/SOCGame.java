@@ -4259,12 +4259,14 @@ public class SOCGame implements Serializable, Cloneable
     private final void putPieceCommon_checkFogHexes(final int[] hexCoords, final boolean initialSettlement)
     {
         int goldHexes = 0;
+        boolean fogRevealed = false;
 
         for (int i = 0; i < hexCoords.length; ++i)
         {
             final int hexCoord = hexCoords[i];
             if ((hexCoord != 0) && (board.getHexTypeFromCoord(hexCoord) == SOCBoardLarge.FOG_HEX))
             {
+                fogRevealed = true;
                 final int encodedHexInfo =
                     ((SOCBoardLarge) board).revealFogHiddenHexPrep(hexCoord);
                 final int hexType = encodedHexInfo >> 8;
@@ -4290,6 +4292,15 @@ public class SOCGame implements Serializable, Cloneable
                     // No need to keep looking, because only one end of the road or ship's
                     // edge is new; player was already at the other end, so it can't be fog.
             }
+        }
+
+        if (fogRevealed && isAtServer)
+        {
+            // STATE set undo flag in curr gameAction
+
+            if (gameEventListener != null)
+                gameEventListener.gameEvent
+                    (this, SOCGameEvent.SGE_CURRENT_ACTION_UNDO_NOT_ALLOWED, 0);
         }
 
         if ((goldHexes > 0) && (currentPlayerNumber != -1))
