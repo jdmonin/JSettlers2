@@ -4797,6 +4797,7 @@ public class SOCGame implements Serializable, Cloneable
      * Can this player currently undo moving this ship?
      * {@link #getLastAction()} must be a move of this piece ({@link ActionType#MOVE_PIECE}).
      * Must be current player. Game state must be {@link #PLAY1}.
+     * {@link GameAction#cannotUndoReason} must be {@code null}.
      * {@link SOCGameOption} {@code "UB"} must be set.
      * If using game option {@code "UBL"}, player's {@link SOCPlayer#getUndosRemaining()} must be &gt; 0.
      * @param pn  Player number
@@ -4811,6 +4812,7 @@ public class SOCGame implements Serializable, Cloneable
         final GameAction moveAct = lastAction;
         boolean ok = (pn == currentPlayerNumber) && (gameState == PLAY1)  // rules reminder: can't move ships during SBP
             && (moveAct != null) && (moveAct.actType == ActionType.MOVE_PIECE)
+            && (moveAct.cannotUndoReason == null)
             && (moveAct.param1 == SOCPlayingPiece.SHIP)
             && (moveAct.param3 == sh.getCoordinates())
             && isGameOptionSet("UB");
@@ -4896,6 +4898,7 @@ public class SOCGame implements Serializable, Cloneable
      * Can this player currently undo placing (building) this piece?
      * {@link #getLastAction()} must be the placement of this piece ({@link ActionType#BUILD_PIECE}).
      * Must be current player. Game state must be {@link #PLAY1} or {@link #SPECIAL_BUILDING}.
+     * {@link GameAction#cannotUndoReason} must be {@code null}.
      * {@link SOCGameOption} {@code "UB"} must be set.
      * If using game option {@code "UBL"}, player's {@link SOCPlayer#getUndosRemaining()} must be &gt; 0.
      * @param pn  Player number
@@ -4912,6 +4915,7 @@ public class SOCGame implements Serializable, Cloneable
         boolean ok = (pn == currentPlayerNumber) && ((gameState == PLAY1) || (gameState == SPECIAL_BUILDING))
             && (ptype >= SOCPlayingPiece.ROAD) && (ptype <= SOCPlayingPiece.SHIP)
             && (buildAct != null) && (buildAct.actType == ActionType.BUILD_PIECE)
+            && (buildAct.cannotUndoReason == null)
             && (buildAct.param1 == ptype)
             && (buildAct.param2 == pp.getCoordinates())
             && (buildAct.param3 == pn)
