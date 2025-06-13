@@ -5135,6 +5135,21 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Set or clear the reason text for why {@link #getLastAction()} can't be undone.
+     * @param reasonText  The reason this usually-undoable action can't be undone, or {@code "?"} if reason is unknown,
+     *     or {@code null} when action can be undone. Like {@link GameAction#cannotUndoReason}, is localized at client.
+     * @since 2.7.00
+     */
+    public void setLastActionCannotUndo(final String reasonText)
+    {
+        final GameAction lastAct = lastAction;
+        if (lastAct == null)
+            return;
+
+        lastAct.cannotUndoReason = reasonText;
+    }
+
+    /**
      * At server, handle undoing some side effects of a game action.
      * Called by undo methods after they undo the direct part of the action (like building a piece).
      *<P>
@@ -7834,6 +7849,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param act  Game action, or {@code null} for none
      * @since 2.7.00
+     * @see #setLastActionCannotUndo(String)
      */
     public void setLastAction(final GameAction act)
     {

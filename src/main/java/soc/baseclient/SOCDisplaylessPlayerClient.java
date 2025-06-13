@@ -2948,10 +2948,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 reason = "?";
         }
 
-        final GameAction lastAct = ga.getLastAction();
-        if (lastAct == null)
-            return;
-        lastAct.cannotUndoReason = reason;
+        ga.setLastActionCannotUndo(reason);
     }
 
     /**
