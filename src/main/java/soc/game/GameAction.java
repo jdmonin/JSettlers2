@@ -309,6 +309,15 @@ public class GameAction
         UNKNOWN(1),
 
         /**
+         * Temporary placeholder when current action cannot be undone,
+         * but its {@link GameAction} object hasn't yet been created,
+         * to hold the value of {@link GameAction#cannotUndoReason}.
+         * See {@code cannotUndoReason} for details.
+         * @since 2.7.00
+         */
+        PLACEHOLDER_CURRENT_ACTION_CANNOT_UNDO(2),
+
+        /**
          * Entire contents of log before first turn of initial placement (optional section).
          * Last message in {@link Action#eventSequence} is a {@link SOCStartGame}.
          */

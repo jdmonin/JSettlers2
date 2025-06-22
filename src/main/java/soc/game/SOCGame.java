@@ -3951,6 +3951,8 @@ public class SOCGame implements Serializable, Cloneable
     private void putPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
     {
         final int coord = pp.getCoordinates();
+        lastAction = null;
+            // clear previous, in case a side effect like putPieceCommon_checkFogHexes will call setLastActionCannotUndo
 
         /**
          * FOG_HEX: On large board, look for fog and reveal its hex if we're
@@ -4210,8 +4212,16 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         lastActionTime = System.currentTimeMillis();
+        String cannotUndoReason = null;
+        {
+            GameAction prevLast = lastAction;
+            if ((prevLast != null) && (prevLast.actType == ActionType.PLACEHOLDER_CURRENT_ACTION_CANNOT_UNDO))
+                cannotUndoReason = prevLast.cannotUndoReason;
+        }
         lastAction = new GameAction(ActionType.BUILD_PIECE, pieceType, coord, placingPN, effects);
             // TODO set rs1 if revealed fog hexes? What else should we record about revealed fog hexes? coords, types
+        if (cannotUndoReason != null)
+            lastAction.cannotUndoReason = cannotUndoReason;
 
         /**
          * Remember ships placed this turn
@@ -4296,7 +4306,7 @@ public class SOCGame implements Serializable, Cloneable
 
         if (fogRevealed && isAtServer)
         {
-            // STATE set undo flag in curr gameAction
+            setLastActionCannotUndo("fog hex revealed");  // TODO i18n localize
 
             if (gameEventListener != null)
                 gameEventListener.gameEvent
@@ -4789,8 +4799,13 @@ public class SOCGame implements Serializable, Cloneable
 
         movedShipThisTurn = true;
         if ((lastAction != null) && (lastAction.actType == ActionType.BUILD_PIECE))
+        {
             // change lastAction from BUILD_PIECE to MOVE_PIECE, but keep anything like revealed fog hex info
-            lastAction = new GameAction(lastAction, ActionType.MOVE_PIECE, sh.getType(), fromEdge, toEdge);
+            final GameAction moveAction = new GameAction
+                (lastAction, ActionType.MOVE_PIECE, sh.getType(), fromEdge, toEdge);
+            moveAction.cannotUndoReason = lastAction.cannotUndoReason;
+            lastAction = moveAction;
+        }
     }
 
     /**
@@ -5136,15 +5151,23 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Set or clear the reason text for why {@link #getLastAction()} can't be undone.
+     *<P>
+     * If {@code getLastAction()} is {@code null}, assumes is for the action currently happening, and creates a
+     * GameAction({@link ActionType#PLACEHOLDER_CURRENT_ACTION_CANNOT_UNDO PLACEHOLDER_CURRENT_ACTION_CANNOT_UNDO})
+     * to hold the reason text, which {@link #setLastAction(GameAction)} will copy into its action when called.
+     *
      * @param reasonText  The reason this usually-undoable action can't be undone, or {@code "?"} if reason is unknown,
      *     or {@code null} when action can be undone. Like {@link GameAction#cannotUndoReason}, is localized at client.
      * @since 2.7.00
      */
     public void setLastActionCannotUndo(final String reasonText)
     {
-        final GameAction lastAct = lastAction;
+        GameAction lastAct = lastAction;
         if (lastAct == null)
-            return;
+        {
+            lastAct = new GameAction(ActionType.PLACEHOLDER_CURRENT_ACTION_CANNOT_UNDO);
+            lastAction = lastAct;
+        }
 
         lastAct.cannotUndoReason = reasonText;
     }
@@ -7846,6 +7869,10 @@ public class SOCGame implements Serializable, Cloneable
      * as each player takes actions on their turn.
      *<P>
      * Also set at server while loading a game.
+     *<P>
+     * If {@link GameAction#cannotUndoReason act.cannotUndoReason} is {@code null},
+     * and the game's current lastAction is {@link ActionType#PLACEHOLDER_CURRENT_ACTION_CANNOT_UNDO},
+     * that placeholder's {@link GameAction#cannotUndoReason} will be copied into {@code act}.
      *
      * @param act  Game action, or {@code null} for none
      * @since 2.7.00
@@ -7853,6 +7880,13 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void setLastAction(final GameAction act)
     {
+        if (act.cannotUndoReason == null)
+        {
+            final GameAction prev = lastAction;
+            if ((prev != null) && (prev.actType == ActionType.PLACEHOLDER_CURRENT_ACTION_CANNOT_UNDO))
+                act.cannotUndoReason = lastAction.cannotUndoReason;
+        }
+
         lastAction = act;
     }
 

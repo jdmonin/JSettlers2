@@ -105,7 +105,9 @@ public enum SOCGameEvent
      * Server will queue and soon send a {@link soc.message.SOCUndoNotAllowedReasonText}
      * as part of the game action's message sequence. If the optional explanatory
      * {@link SOCGame#getLastAction() game.getLastAction()}{@link GameAction#cannotUndoReason .cannotUndoReason} field
-     * should be set non-{@code null}, game code will do so before triggering this event.
+     * should be set non-{@code null}, game code should do so <B>before</B> triggering this event
+     * by calling {@link SOCGame#setLastActionCannotUndo(String)} or {@link SOCGame#setLastAction(GameAction)}.
+     *<P>
      * When checking that field at event handler, remember that {@link SOCGame#getLastAction()} might be {@code null}.
      *
      * @since 2.7.00
