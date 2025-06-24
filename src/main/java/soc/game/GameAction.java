@@ -71,6 +71,8 @@ public class GameAction
      * If can't undo but reason is unknown or unexplained, set to {@code "?"};
      * there is no separate boolean {@code cannotUndo} field.
      * @since 2.7.00
+     * @see SOCGame#setLastActionCannotUndo(String)
+     * @see SOCGameEvent#SGE_CURRENT_ACTION_UNDO_NOT_ALLOWED
      */
     public volatile String cannotUndoReason;
 
