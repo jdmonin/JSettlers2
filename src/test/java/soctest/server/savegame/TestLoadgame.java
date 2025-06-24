@@ -736,6 +736,41 @@ public class TestLoadgame
         assertEquals(new GameAction(ActionType.MOVE_PIECE, SOCPlayingPiece.SHIP, 0x901, 0xa00), ga.getLastAction());
         assertTrue(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xa00)));
         assertTrue(ga.canUndoMoveShip(CURRENT_PLAYER_NUMBER, (SOCShip) srp));
+
+        // quick direct test of setLastAction, setLastActionCannotUndo
+        ga.setLastActionCannotUndo("reasonText");
+        assertFalse(ga.canUndoMoveShip(CURRENT_PLAYER_NUMBER, (SOCShip) srp));
+        {
+            final GameAction lastAct = ga.getLastAction();
+            assertNotNull(lastAct);
+            assertEquals(ActionType.MOVE_PIECE, lastAct.actType);
+            assertEquals("reasonText", lastAct.cannotUndoReason);
+        }
+        ga.setLastActionCannotUndo(null);
+        assertNull(ga.getLastAction().cannotUndoReason);
+        assertTrue(ga.canUndoMoveShip(CURRENT_PLAYER_NUMBER, (SOCShip) srp));
+        {
+            final GameAction lastAct = ga.getLastAction();
+            assertNotNull(lastAct);
+            assertEquals(ActionType.MOVE_PIECE, lastAct.actType);
+            assertNull(lastAct.cannotUndoReason);
+        }
+        ga.setLastAction(null);
+        assertNull(ga.getLastAction());
+        ga.setLastActionCannotUndo("reason2");
+        {
+            final GameAction lastAct = ga.getLastAction();
+            assertNotNull(lastAct);
+            assertEquals(ActionType.PLACEHOLDER_CURRENT_ACTION_CANNOT_UNDO, lastAct.actType);
+            assertEquals("reason2", lastAct.cannotUndoReason);
+        }
+        ga.setLastAction(new GameAction(ActionType.MOVE_PIECE, SOCPlayingPiece.SHIP, 0x901, 0xa00));
+        {
+            final GameAction lastAct = ga.getLastAction();
+            assertEquals(ActionType.MOVE_PIECE, lastAct.actType);
+            assertEquals("reason2", lastAct.cannotUndoReason);
+        }
+
         // quick direct test of addShipPlacedThisTurn
         assertFalse(ga.getShipsPlacedThisTurn().contains(Integer.valueOf(0xc04)));
         ga.addShipPlacedThisTurn(0xc04);

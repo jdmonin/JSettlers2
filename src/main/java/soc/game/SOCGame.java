@@ -7880,7 +7880,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void setLastAction(final GameAction act)
     {
-        if (act.cannotUndoReason == null)
+        if ((act != null) && (act.cannotUndoReason == null))
         {
             final GameAction prev = lastAction;
             if ((prev != null) && (prev.actType == ActionType.PLACEHOLDER_CURRENT_ACTION_CANNOT_UNDO))
