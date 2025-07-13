@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -9042,7 +9042,8 @@ import javax.swing.JComponent;
       /**
        * Menu item to cancel a build as we're placing it,
        * or cancel moving a ship,
-       * or undo previous placement/move in {@link SOCGame#PLAY1}.
+       * or undo previous placement/move in {@link SOCGame#PLAY1} or {@link SOCGame#SPECIAL_BUILDING},
+       * or "Cannot undo" for a dialog to show the reason why not.
        * Piece type to cancel/undo is {@link #cancelBuildType}.
        * The only piece that can be undone is {@link SOCBoardPanel#latestPiecePlacement}.
        * Enabled/disabled by methods like {@link #showBuild(int, int, int, int, int, int)}.
@@ -9057,10 +9058,13 @@ import javax.swing.JComponent;
       /** determined at menu-show time */
       private boolean menuPlayerIsCurrent;
 
-      /** determined at menu-show time */
+      /** determined at menu-show time; wantsUndo includes Cannot Undo from {@link GameAction#cannotUndoReason} */
       private boolean wantsCancel, wantsUndo;
 
-      /** If allow cancel, type of building piece ({@link SOCPlayingPiece#ROAD}, SETTLEMENT, ...) to cancel */
+      /**
+       * If allow cancel, type of building piece ({@link SOCPlayingPiece#ROAD}, SETTLEMENT, ...) to cancel.
+       * Used only when {@link #cancelBuildItem} is enabled and not {@link #wantsUndo}, can be 0 otherwise.
+       */
       private int cancelBuildType;
 
       /** hover road edge ID, or 0, at menu-show time; can be -1 for edge 0x00 on classic 6-player board */
@@ -9394,6 +9398,14 @@ import javax.swing.JComponent;
                                   cancelBuildItem.setLabel(strings.get(key));
                               }
                           }
+                      }
+
+                      if ((! wantsUndo) && (act != null) && (act.cannotUndoReason != null))
+                      {
+                          wantsUndo = true;
+                          cancelBuildItem.setEnabled(true);
+                          cancelBuildType = 0;
+                          cancelBuildItem.setLabel("Cannot undo");  // TODO i18n
                       }
                   }
               }
@@ -9761,13 +9773,33 @@ import javax.swing.JComponent;
       /**
        * Undo placing the building piece or moving the ship
        * tracked by {@link SOCBoardPanel#latestPiecePlacement}.
+       * Also called for Cannot Undo menu item when
+       * {@link SOCGame#getLastAction()}.{@link GameAction#cannotUndoReason cannotUndoReason} != null
+       * to show a NotifyDialog with that reason.
        * @since 2.7.00
        */
       void tryUndo()
       {
           final GameAction act = game.getLastAction();
-          if ((act == null) || (bp.latestPiecePlacement == null))
+          if (act == null)
               return;
+          if (act.cannotUndoReason != null)
+          {
+              final StringBuilder reasonText = new StringBuilder("\n");
+                  // start prompt with \n to prevent it being a lengthy popup-dialog title
+              // TODO i18N localize, maybe improve wording
+              if (act.cannotUndoReason.equals("?"))
+                  reasonText.append("That action can usually be undone, but not right now because of a special case.");
+              else
+                  reasonText.append("That action can usually be undone, but not right now: ").append(act.cannotUndoReason);
+
+              NotifyDialog.createAndShow
+                  (playerInterface.getMainDisplay(), playerInterface, reasonText.toString(), null, true);
+              return;
+          }
+          if (bp.latestPiecePlacement == null)
+              return;
+
           playerInterface.getClient().getGameMessageSender().undoPutOrMovePieceRequest
               (game, latestPiecePlacement.getType(), latestPiecePlacement.getCoordinates(),
                (act.actType == GameAction.ActionType.MOVE_PIECE ? act.param2 : 0));
