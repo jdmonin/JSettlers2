@@ -7843,6 +7843,11 @@ public class SOCGame implements Serializable, Cloneable
      * For efficiency, this is usually set only when the last action is undoable;
      * the {@link GameAction} returned here holds the necessary info to do so.
      *<P>
+     * Is updated or cleared by all game action methods like {@link #buyDevCard()}, {@link #putPiece(SOCPlayingPiece)},
+     * {@link #makeBankTrade(SOCResourceSet, SOCResourceSet)}, {@link #moveRobber(int, int)}, {@link #playKnight()}, etc.
+     * Since client doesn't call some of those methods, client should call {@link #setLastAction(GameAction)} when
+     * receiving messages which convey their results.
+     *<P>
      * Is also cleared at the start of each turn.
      *<P>
      * Currently recorded:
