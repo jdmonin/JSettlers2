@@ -2323,6 +2323,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
          * the robber moved without seeing if something was stolen.
          */
         ga.setPlacingRobberForKnightCard(false);
+        ga.setLastAction(null);  // since this action type isn't yet recorded for ga.getLastAction, just clear it
         final int newHex = mes.getCoordinates();
         if (newHex > 0)
             ga.getBoard().setRobberHex(newHex, true);
@@ -2601,6 +2602,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         switch (act)
         {
         case SOCDevCardAction.DRAW:
+            ga.setLastAction(null);  // since the "buy dev card" action type isn't yet recorded for ga.getLastAction, just clear it
             player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
             break;
 

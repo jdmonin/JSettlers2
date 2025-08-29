@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -2645,6 +2645,7 @@ public class SOCRobotBrain extends Thread
         moveRobberOnSeven = false;
 
         game.setPlacingRobberForKnightCard(false);
+        game.setLastAction(null);  // since this action type isn't yet recorded for ga.getLastAction, just clear it
         if (newHex > 0)
             game.getBoard().setRobberHex(newHex, true);
         else
@@ -3820,6 +3821,7 @@ public class SOCRobotBrain extends Thread
         switch (mes.getAction())
         {
         case SOCDevCardAction.DRAW:
+            game.setLastAction(null);  // since the "buy dev card" action type isn't yet recorded for ga.getLastAction, just clear it
             cardsInv.addDevCard(1, SOCInventory.NEW, cardType);
             break;
 
