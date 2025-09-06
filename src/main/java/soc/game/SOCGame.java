@@ -4306,7 +4306,7 @@ public class SOCGame implements Serializable, Cloneable
 
         if (fogRevealed && isAtServer)
         {
-            setLastActionCannotUndo("fog hex revealed");  // TODO i18n localize
+            setLastActionCannotUndo("event.fog.reveal.cannot_undo");  // "Revealed a fog hex"
 
             if (gameEventListener != null)
                 gameEventListener.gameEvent
@@ -5157,7 +5157,9 @@ public class SOCGame implements Serializable, Cloneable
      * to hold the reason text, which {@link #setLastAction(GameAction)} will copy into its action when called.
      *
      * @param reasonText  The reason this usually-undoable action can't be undone, or {@code "?"} if reason is unknown,
-     *     or {@code null} when action can be undone. Like {@link GameAction#cannotUndoReason}, is localized at client.
+     *     or {@code null} when action can be undone.
+     *     Is localized when sent to client, so at server is an i18n string key or {@code "?"}.
+     *     Sets {@link GameAction#cannotUndoReason}; see that field for details.
      * @since 2.7.00
      */
     public void setLastActionCannotUndo(final String reasonText)

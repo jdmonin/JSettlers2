@@ -9405,7 +9405,7 @@ import javax.swing.JComponent;
                           wantsUndo = true;
                           cancelBuildItem.setEnabled(true);
                           cancelBuildType = 0;
-                          cancelBuildItem.setLabel("Cannot undo");  // TODO i18n
+                          cancelBuildItem.setLabel(strings.get("board.undo.cannot"));  // "Cannot undo"
                       }
                   }
               }
@@ -9787,11 +9787,12 @@ import javax.swing.JComponent;
           {
               final StringBuilder reasonText = new StringBuilder("\n");
                   // start prompt with \n to prevent it being a lengthy popup-dialog title
-              // TODO i18N localize, maybe improve wording
               if (act.cannotUndoReason.equals("?"))
-                  reasonText.append("That action can usually be undone, but not right now because of a special case.");
+                  reasonText.append(strings.get("board.popup.cannot_undo"));
+                      // "That action can usually be undone, but not right now because of a special case."
               else
-                  reasonText.append("That action can usually be undone, but not right now: ").append(act.cannotUndoReason);
+                  reasonText.append(strings.get("board.popup.cannot_undo.reason", act.cannotUndoReason));
+                      // "That action can usually be undone, but not right now: {0}"
 
               NotifyDialog.createAndShow
                   (playerInterface.getMainDisplay(), playerInterface, reasonText.toString(), null, true);
