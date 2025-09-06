@@ -2537,6 +2537,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return false;
 
+        ga.setLastAction(null);  // since this action type isn't yet recorded for ga.getLastAction, just clear it
         ga.getPlayer(mes.getPlayerNumber()).makeBankTrade(mes.getGiveSet(), mes.getGetSet());
 
         return true;
@@ -2660,6 +2661,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (pl == null)
             return false;
 
+        if (ga.getGameState() == SOCGame.WAITING_FOR_DISCOVERY)
+            ga.setLastAction(null);  // since this action type isn't yet recorded for ga.getLastAction, just clear it
         pl.getResources().add(mes.getResources());
 
         return true;
