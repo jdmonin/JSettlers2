@@ -3821,7 +3821,6 @@ public class SOCRobotBrain extends Thread
         switch (mes.getAction())
         {
         case SOCDevCardAction.DRAW:
-            game.setLastAction(null);  // since the "buy dev card" action type isn't yet recorded for ga.getLastAction, just clear it
             cardsInv.addDevCard(1, SOCInventory.NEW, cardType);
             break;
 

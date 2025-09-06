@@ -2487,7 +2487,6 @@ public class MessageHandler
         switch (act)
         {
         case SOCDevCardAction.DRAW:
-            ga.setLastAction(null);  // since the "buy dev card" action type isn't yet recorded for ga.getLastAction, just clear it
             player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
             break;
 
@@ -3030,10 +3029,8 @@ public class MessageHandler
 
         case SOCSimpleAction.TRADE_PORT_REMOVED:
         case SOCSimpleAction.DEVCARD_BOUGHT:
-            SOCDisplaylessPlayerClient.handleSIMPLEACTION(mes, client.games.get(gaName));
-            // fall through so pcl.simpleAction updates displayed board and game data
-
         case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
+            SOCDisplaylessPlayerClient.handleSIMPLEACTION(mes, client.games.get(gaName));
             pcl.simpleAction(mes.getPlayerNumber(), atype, mes.getValue1(), mes.getValue2());
             break;
 

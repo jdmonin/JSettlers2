@@ -2603,7 +2603,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
         switch (act)
         {
         case SOCDevCardAction.DRAW:
-            ga.setLastAction(null);  // since the "buy dev card" action type isn't yet recorded for ga.getLastAction, just clear it
             player.getInventory().addDevCard(1, SOCInventory.NEW, ctype);
             break;
 
@@ -3096,6 +3095,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             break;
 
         case SOCSimpleAction.DEVCARD_BOUGHT:
+            ga.setLastAction(null);  // since this action type isn't yet recorded for ga.getLastAction, just clear it
             ga.setNumDevCards(mes.getValue1());
             break;
 
@@ -3111,10 +3111,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
             }
             break;
 
+        case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
+            ga.setLastAction(null);  // since this action type isn't yet recorded for ga.getLastAction, just clear it
+            break;
+
         // Known types with no game data update:
         // Catch these before default case, so 'unknown type' won't be printed
 
-        case SOCSimpleAction.RSRC_TYPE_MONOPOLIZED:
         case SOCSimpleAction.SC_PIRI_FORT_ATTACK_RESULT:
             // game data updates are sent in preceding or following messages, can ignore this one
             break;
