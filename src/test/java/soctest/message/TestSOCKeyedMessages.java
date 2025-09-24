@@ -36,7 +36,7 @@ import soc.message.SOCUndoNotAllowedReasonText;
 public class TestSOCKeyedMessages
 {
     /**
-     * Tests for {@link SOCUndoNotAllowedReasonText}.
+     * Tests for {@link SOCUndoNotAllowedReasonText} constructor and {@code parseDataStr}.
      */
     @Test
     public void testSOCUndoNotAllowedReasonText()
@@ -87,6 +87,33 @@ public class TestSOCKeyedMessages
         assertFalse(msg.isNotAllowed);
         assertEquals("rlocal", ((SOCUndoNotAllowedReasonText) msgLocal).reason);
         assertEquals("rlocal", ((SOCUndoNotAllowedReasonText) msgLocal).getKey());
+
+        // make sure parseDataStr is OK, although tested elsewhere too, because we're about to check a parse-reject situation:
+
+        msg = SOCUndoNotAllowedReasonText.parseDataStr("ga,0");
+        assertNotNull("basic parseDataStr OK", msg);
+        assertEquals("ga", msg.game);
+        assertFalse(msg.isNotAllowed);
+
+        msg = SOCUndoNotAllowedReasonText.parseDataStr("ga,1,X");
+        assertNotNull("basic parseDataStr OK", msg);
+        assertEquals("ga", msg.game);
+        assertTrue(msg.isNotAllowed);
+        assertEquals("X", msg.reason);
+
+        // now check reject if flag field not boolean:
+
+        msg = SOCUndoNotAllowedReasonText.parseDataStr("ga,2");
+        assertNull("parseDataStr rejects when bool isNotAllowed > 1", msg);
+
+        msg = SOCUndoNotAllowedReasonText.parseDataStr("ga,2,X");
+        assertNull("parseDataStr rejects when bool isNotAllowed > 1", msg);
+
+        msg = SOCUndoNotAllowedReasonText.parseDataStr("ga,-1");
+        assertNull("parseDataStr rejects when bool isNotAllowed < 0", msg);
+
+        msg = SOCUndoNotAllowedReasonText.parseDataStr("ga,-1,X");
+        assertNull("parseDataStr rejects when bool isNotAllowed < 0", msg);
     }
 
 }
