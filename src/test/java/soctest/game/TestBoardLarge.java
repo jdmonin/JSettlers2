@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2019-2020,2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +21,7 @@
 package soctest.game;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
@@ -258,6 +259,58 @@ public class TestBoardLarge
         doTestPair_getNodeBetweenAdjacentEdges(b, 0x406, 0x207, 0, true);  // same axis 1 hex away
         doTestPair_getNodeBetweenAdjacentEdges(b, 0x406, 0x605, 0, true);  // same axis
         doTestPair_getNodeBetweenAdjacentEdges(b, 0x406, 0x505, 0, true);  // 2 edges away
+    }
+
+    /**
+     * Test {@link SOCBoardLarge#getFogHiddenHexes()} and {@link SOCBoardLarge#setFogHiddenHexes(java.util.HashMap)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testFogHiddenHexes()
+    {
+        SOCBoardLarge b = new SOCBoardLarge(null, 4, SOCBoardLarge.getBoardSize(null));
+
+        HashMap<Integer, Integer> fogHexes = b.getFogHiddenHexes();
+        assertNotNull("empty not null by default", fogHexes);
+        assertTrue("empty by default", fogHexes.isEmpty());
+
+        HashMap<Integer, Integer> hv = new HashMap<>();
+        hv.put(0x706, 0x010a);
+        hv.put(0xb0b, 0x0408);
+        b.setFogHiddenHexes(hv);
+
+        fogHexes = b.getFogHiddenHexes();
+        assertNotNull(fogHexes);
+        assertFalse(fogHexes.isEmpty());
+        assertEquals(2, fogHexes.size());
+        assertEquals(0x010a, fogHexes.get(0x706).intValue());
+        assertEquals(0x0408, fogHexes.get(0xb0b).intValue());
+
+        hv.clear();
+        hv.put(0x90b, 0x0408);
+        b.setFogHiddenHexes(hv);
+        fogHexes = b.getFogHiddenHexes();
+        assertNotNull(fogHexes);
+        assertEquals("set replaces and does not add to current contents", 1, fogHexes.size());
+        assertEquals(0x0408, fogHexes.get(0x90b).intValue());
+
+        hv.clear();
+        b.setFogHiddenHexes(hv);
+        fogHexes = b.getFogHiddenHexes();
+        assertNotNull(fogHexes);
+        assertTrue(fogHexes.isEmpty());
+
+        // set nonempty before next test
+        hv.put(0x906, 0x0409);
+        b.setFogHiddenHexes(hv);
+        fogHexes = b.getFogHiddenHexes();
+        assertNotNull(fogHexes);
+        assertEquals(1, fogHexes.size());
+
+        b.setFogHiddenHexes(null);
+        fogHexes = b.getFogHiddenHexes();
+        assertNotNull("set(null) makes empty not null", fogHexes);
+        assertTrue(fogHexes.isEmpty());
     }
 
 }

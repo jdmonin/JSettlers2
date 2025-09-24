@@ -72,6 +72,7 @@ JARs for recent JSettlers versions can be downloaded from
 - For developers:
 	- Enhanced GameAction class to start unifying info about actions and their side-effects
 	- Save/load games:
+	    - Can save and load games with Fog Hexes scenario
 	    - After loading, current player can now resume game and move a ship immediately
 	      if client is this version or newer, instead of waiting until their next turn
 	    - `*LOADGAME*`: If SavedGameModel.devCardDeck has an unknown card type, give card's index in warning to user
@@ -79,6 +80,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - SavedGameModel:
 	        - Game: add optional field lastAction
 	        - PlayerInfo: When saving, omit resTradeStats if all tradeTypes are empty
+	        - BoardInfo: add optional field fogHiddenHexes
 	        - MODEL_VERSION still 2400; earlier server versions will ignore lastAction while loading a savegame
 	- Robots: If SOCGame.restoreLargestArmyState called before saveLargestArmyState, do nothing
 	- To help unit tests, SOCGame.initAtServer now calls startGame_setupDevCards

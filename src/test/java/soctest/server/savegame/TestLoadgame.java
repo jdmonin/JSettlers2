@@ -1153,9 +1153,12 @@ public class TestLoadgame
         assertEquals(3, plDebug.getScenarioSVPLandAreas());
     }
 
-    /** Test loading a not-yet-supported scenario: {@code bad-scen-unsupported.game.json} */
+    /**
+     * Test loading a not-yet-supported scenario: {@code bad-scen-unsupported.game.json}.
+     * Before v2.7.00 this was {@code testLoadUnsupportedScenFOG()}.
+     */
     @Test
-    public void testLoadUnsupportedScenFOG()
+    public void testLoadUnsupportedScenCLVI()
         throws IOException
     {
         try
@@ -1164,8 +1167,8 @@ public class TestLoadgame
             // should throw exception before here
             assertEquals("game name", "hopefully-unreached-code", sgm.gameName);
         } catch (SavedGameModel.UnsupportedSGMOperationException e) {
-            assertEquals("SC_FOG", e.param1);
-            assertEquals("_SC_FOG", e.param2);
+            assertEquals("SC_CLVI", e.param1);
+            assertEquals("_SC_CLVI", e.param2);
         }
     }
 

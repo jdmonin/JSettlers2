@@ -132,6 +132,8 @@ public class SavedGameModel
      * <LI> Earlier server versions will ignore this added field while loading a savegame
      * <LI> Adds {@link SOCPlayerElement.PEType#NUM_UNDOS_REMAINING} to {@link PlayerInfo#elements}
      *      if {@link SOCPlayer#getUndosRemaining()} &gt; 0
+     * <LI> {@link BoardInfo} adds {@code fogHiddenHexes} for {@link SOCScenario#K_SC_FOG SC_FOG} scenario
+     *      (earlier versions won't load most scenarios, including that one, so no back-compat needed)
      *</UL>
      *
      *<H4>2.5.00</H4>
@@ -406,7 +408,8 @@ public class SavedGameModel
 
         for (final String okey : opts.keySet())
             if (okey.startsWith("_SC_")
-                && ! (okey.equals(SOCGameOptionSet.K_SC_SEAC) || okey.equals(SOCGameOptionSet.K_SC_SANY)))
+                && ! (okey.equals(SOCGameOptionSet.K_SC_SEAC) || okey.equals(SOCGameOptionSet.K_SC_SANY)
+                      || okey.equals(SOCGameOptionSet.K_SC_FOG)))
                 return okey;
 
         return null;
@@ -1586,6 +1589,13 @@ public class SavedGameModel
         public SOCPotentialSettlements[] playerPotentials;
 
         /**
+         * Hidden hex info for {@link SOCScenario#K_SC_FOG SC_FOG} scenario.
+         * Earlier server versions won't load most scenarios, including that one.
+         * @since 2.7.00
+         */
+        public HashMap<Integer, Integer> fogHiddenHexes;
+
+        /**
          * @throws IllegalArgumentException if {@link SOCGameHandler#getBoardLayoutMessage(SOCGame)}
          *     returns an unexpected layout message type
          */
@@ -1602,6 +1612,14 @@ public class SavedGameModel
                     ("unexpected boardlayout msg type " + m.getType() + " " + m.getClass().getSimpleName());
 
             playerPotentials = SOCGameHandler.gatherBoardPotentials(ga, Integer.MAX_VALUE);
+
+            final SOCBoard board = ga.getBoard();
+            if (board instanceof SOCBoardLarge)
+            {
+                final HashMap<Integer, Integer> fogHexes = ((SOCBoardLarge) board).getFogHiddenHexes();
+                if ((fogHexes != null) && ! fogHexes.isEmpty())
+                    fogHiddenHexes = fogHexes;
+            }
         }
 
         void loadInto(final SOCGame ga)
@@ -1613,6 +1631,9 @@ public class SavedGameModel
 
             for (final SOCPotentialSettlements potenMsg : playerPotentials)
                 SOCDisplaylessPlayerClient.handlePOTENTIALSETTLEMENTS(potenMsg, ga);
+
+            if (fogHiddenHexes != null)
+                ((SOCBoardLarge) ga.getBoard()).setFogHiddenHexes(fogHiddenHexes);
         }
     }
 

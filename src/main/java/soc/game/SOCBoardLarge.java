@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2390,10 +2390,24 @@ public class SOCBoardLarge extends SOCBoard
      * @return A map where key = hex coordinate, value = 0 or encoded hex type and dice number.
      *     May be empty, will never be {@code null}.
      * @see #getLandHexCoords()
+     * @see #setFogHiddenHexes(HashMap)
      */
     public final HashMap<Integer, Integer> getFogHiddenHexes()
     {
         return fogHiddenHexes;
+    }
+
+    /**
+     * Set the hex coordinates which are currently {@link #FOG_HEX}. Used at server while loading games.
+     * @param fogHexes New fog hex info in same format as {@link #getFogHiddenHexes()}, or {@code null} to clear
+     * @see #getFogHiddenHexes()
+     * @since 2.7.00
+     */
+    public void setFogHiddenHexes(final HashMap<Integer, Integer> fogHexes)
+    {
+        fogHiddenHexes.clear();
+        if (fogHexes != null)
+            fogHiddenHexes.putAll(fogHexes);
     }
 
     /**
