@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -196,12 +196,14 @@ public class TestRecorder
         System.out.println(sb);
         System.out.flush();
 
+        assertFalse("game has no eventlistener until resumed", ga.hasGameEventListener());
         assertNull
             ("resume loaded game; if trouble, search output for \"--- Resuming loaded game\"",
              server.resumeReloadedGame(cliConn, ga));
                 // note: SOCServer.RESUME_RELOADED_FETCHING_ROBOTS counts as "trouble" here because
                 // unit test should have connected all "human" players already before calling this method
                 // to prevent timing/gamestate-assert problems
+        assertTrue("resuming game sets its eventlistener", ga.hasGameEventListener());
     }
 
     /**

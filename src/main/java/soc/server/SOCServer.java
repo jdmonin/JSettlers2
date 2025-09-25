@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -8171,6 +8171,7 @@ public class SOCServer extends Server
      * sets game state to {@link SOCGame#LOADING_RESUMING} and tries to invite bots
      * if available to join and sit down. If enough bots are available, once they've
      * all sat down the game will resume automatically.
+     * Either way, sends the new game state to clients.
      *
      * @param c  Client sending the command, game owner if being called by server after last bot has sat down,
      *     or null if owner not available
@@ -8258,7 +8259,7 @@ public class SOCServer extends Server
             sgm.resumePlay(false);
             final GameHandler hand = gameList.getGameTypeHandler(gaName);
             if (hand != null)
-                hand.sendGameState(ga);
+                hand.sendGameStateResumingReloaded(ga);
 
             messageToGameKeyed
                 (ga, true, true, "admin.resumegame.ok.resuming");

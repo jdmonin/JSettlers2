@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -199,8 +199,19 @@ public abstract class GameHandler
      * Set game state to {@link SOCGame#READY} or higher, from an earlier/lower state.
      *
      * @param ga  the game
+     * @see #sendGameStateResumingReloaded(SOCGame)
      */
     public abstract void startGame(SOCGame ga);
+
+    /**
+     * This game, which was recently loaded from a save, is resuming play.
+     * Send its {@link SOCGameState} to clients and do anything else needed to track the now-active game
+     * (similar to {@link #startGame(SOCGame)}).
+     *
+     * @param ga  the game
+     * @since 2.7.00
+     */
+    public abstract void sendGameStateResumingReloaded(SOCGame ga);
 
     /**
      * Decline a player client's request or requested action.

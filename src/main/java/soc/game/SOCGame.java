@@ -1889,7 +1889,9 @@ public class SOCGame implements Serializable, Cloneable
      * Set or clear the scenario event listener.
      * Used with {@link #hasSeaBoard large sea board} scenario events.
      *<P>
-     * Only one listener is allowed.  If you are setting the listener, it must currently be null.
+     * Only one listener is allowed. If you are setting the listener, it must currently be null
+     * (call {@link #hasGameEventListener()} to check).
+     *
      * @param sel  Listener, or null for none
      * @throws IllegalStateException  If listener already not null, <tt>sel</tt> is not null, and listener is not <tt>sel</tt>
      * @since 2.0.00
@@ -1901,6 +1903,16 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException("Listener already " + gameEventListener + ", wants " + sel);
 
         gameEventListener = sel;
+    }
+
+    /**
+     * Has this game been given a scenario event listener with {@link #setGameEventListener(SOCGameEventListener)}?
+     * @return true if game event listener is not null
+     * @since 2.7.00
+     */
+    public boolean hasGameEventListener()
+    {
+        return (gameEventListener != null);
     }
 
     /**

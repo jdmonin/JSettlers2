@@ -77,6 +77,7 @@ JARs for recent JSettlers versions can be downloaded from
 	      if client is this version or newer, instead of waiting until their next turn
 	    - `*LOADGAME*`: If SavedGameModel.devCardDeck has an unknown card type, give card's index in warning to user
 	    - TestRecorder.connectLoadJoinResumeGame: Resume any loaded game file
+	    - Bugfix: When resuming game, set GameEventListener so scenario events will fire
 	    - SavedGameModel:
 	        - Game: add optional field lastAction
 	        - PlayerInfo: When saving, omit resTradeStats if all tradeTypes are empty

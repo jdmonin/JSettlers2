@@ -4130,6 +4130,13 @@ public class SOCGameHandler extends GameHandler
         }
     }
 
+    // javadoc inherited from GameHandler
+    public void sendGameStateResumingReloaded(final SOCGame ga)
+    {
+        ga.setGameEventListener(this);
+        sendGameState(ga);
+    }
+
     /**
      * After a player action during initial placement or free placement/resource pick: Send new game state.
      * If current player changed, an initial-placement round ended ({@link SOCGame#isInitialPlacementRoundDone(int)}),
