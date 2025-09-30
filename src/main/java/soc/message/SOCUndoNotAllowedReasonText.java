@@ -38,6 +38,7 @@ import soc.game.SOCScenario;
  * when sending to each client. This allows new reason explanations without client changes.
  *
  * @see SOCUndoPutPiece
+ * @see SOCSetLastAction
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.7.00
  */

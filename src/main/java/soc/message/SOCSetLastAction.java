@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2022,2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,6 +32,7 @@ import soc.game.GameAction.ActionType;  // for javadocs only
  * {@link GameAction} game data message sent from server to client joining a game,
  * towards the end of the sequence documented at {@link SOCGameMembers}.
  * Info on the most recent action is needed to properly handle some types of undo.
+ * May be followed by {@link SOCUndoNotAllowedReasonText}.
  * If this message isn't sent, joining client should assume {@link SOCGame#getLastAction()} is null.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;

@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -1699,13 +1700,31 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
                     new SOCGameElements(gameName, GEType.IS_PLACING_ROBBER_FOR_KNIGHT_CARD_FLAG, 1));
 
+            // Send lastAction in case client wants to sit down and then undo it;
+            // if client is older, they aren't able to undo anyway
             if (cliVers >= SOCSetLastAction.VERSION_FOR_SETLASTACTION)
             {
                 final GameAction act = gameData.getLastAction();
                 if (act != null)
+                {
                     srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
                         new SOCSetLastAction
                             (gameName, act.actType.value, act.param1, act.param2, act.param3, act.rset1, act.rset2));
+
+                    String reasonText = act.cannotUndoReason;
+                    if (reasonText != null)
+                    {
+                        if (reasonText != "?")
+                            try
+                            {
+                                reasonText = c.getLocalized(reasonText);
+                            }
+                            catch (MissingResourceException e) {}
+
+                        srv.messageToPlayer(c, gameName, SOCServer.PN_OBSERVER,
+                            new SOCUndoNotAllowedReasonText(gameName, true, reasonText, true));
+                    }
+                }
             }
         }
 
