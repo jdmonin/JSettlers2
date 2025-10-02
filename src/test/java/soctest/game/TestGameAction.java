@@ -51,13 +51,13 @@ public class TestGameAction
         assertEquals("GameAction(UNKNOWN)", new GameAction(ActionType.UNKNOWN).toString());
         assertEquals("GameAction(ROLL_DICE, p1=7)", new GameAction(ActionType.ROLL_DICE, 7, 0, 0).toString());
         assertEquals("GameAction(ROLL_DICE, p1=7, p2=0, p3=1)", new GameAction(ActionType.ROLL_DICE, 7, 0, 1).toString());
-        assertEquals("GameAction(BUILD_PIECE, p1=1, p2=3, p3=33)", new GameAction(ActionType.BUILD_PIECE, 1, 3, 33).toString());
+        assertEquals("GameAction(BUILD_PIECE, p1=1, p2=33, p3=3)", new GameAction(ActionType.BUILD_PIECE, 1, 33, 3).toString());
         assertEquals("GameAction(UNDO_BUILD_PIECE, p1=1, p2=33)", new GameAction
-            (new GameAction(ActionType.BUILD_PIECE, 1, 3, 33), ActionType.UNDO_BUILD_PIECE, 1, 33, 0).toString());
-        assertEquals("GameAction(BUILD_PIECE, p1=1, p2=3, p3=33, rs1=clay=1|ore=0|sheep=0|wheat=0|wood=2|unknown=0)",
-            new GameAction(ActionType.BUILD_PIECE, 1, 3, 33, new SOCResourceSet(1, 0, 0, 0, 2, 0), null).toString());
-        assertEquals("GameAction(BUILD_PIECE, p1=1, p2=3, p3=33, rs1=null, rs2=clay=1|ore=0|sheep=0|wheat=0|wood=2|unknown=0)",
-            new GameAction(ActionType.BUILD_PIECE, 1, 3, 33, null, new SOCResourceSet(1, 0, 0, 0, 2, 0)).toString());
+            (new GameAction(ActionType.BUILD_PIECE, 1, 33, 3), ActionType.UNDO_BUILD_PIECE, 1, 33, 0).toString());
+        assertEquals("GameAction(BUILD_PIECE, p1=1, p2=33, p3=3, rs1=clay=1|ore=0|sheep=0|wheat=0|wood=2|unknown=0)",
+            new GameAction(ActionType.BUILD_PIECE, 1, 33, 3, new SOCResourceSet(1, 0, 0, 0, 2, 0), null).toString());
+        assertEquals("GameAction(BUILD_PIECE, p1=1, p2=33, p3=3, rs1=null, rs2=clay=1|ore=0|sheep=0|wheat=0|wood=2|unknown=0)",
+            new GameAction(ActionType.BUILD_PIECE, 1, 33, 3, null, new SOCResourceSet(1, 0, 0, 0, 2, 0)).toString());
         GameAction act = new GameAction(ActionType.CHOOSE_FREE_RESOURCES, new SOCResourceSet(0, 1, 0, 1, 0, 0), null);
         assertEquals("GameAction(CHOOSE_FREE_RESOURCES, rs1=clay=0|ore=1|sheep=0|wheat=1|wood=0|unknown=0)",
             act.toString());
@@ -67,14 +67,14 @@ public class TestGameAction
         Effect eLRP = new GameAction.Effect(EffectType.CHANGE_LONGEST_ROAD_PLAYER, new int[]{1, 3});
         ArrayList<Effect> el = new ArrayList<>();
         el.add(eLRP);
-        assertEquals("GameAction(BUILD_PIECE, p1=1, p2=3, p3=33, e=[CHANGE_LONGEST_ROAD_PLAYER(1, 3)])",
-            new GameAction(ActionType.BUILD_PIECE, 1, 3, 33, el).toString());
+        assertEquals("GameAction(BUILD_PIECE, p1=1, p2=33, p3=3, e=[CHANGE_LONGEST_ROAD_PLAYER(1, 3)])",
+            new GameAction(ActionType.BUILD_PIECE, 1, 33, 3, el).toString());
         el.add(new GameAction.Effect(EffectType.REVEAL_FOG_HEX));
-        act = new GameAction(ActionType.BUILD_PIECE, 1, 3, 33, el);
-        assertEquals("GameAction(BUILD_PIECE, p1=1, p2=3, p3=33, e=[CHANGE_LONGEST_ROAD_PLAYER(1, 3), REVEAL_FOG_HEX])",
+        act = new GameAction(ActionType.BUILD_PIECE, 1, 33, 3, el);
+        assertEquals("GameAction(BUILD_PIECE, p1=1, p2=33, p3=3, e=[CHANGE_LONGEST_ROAD_PLAYER(1, 3), REVEAL_FOG_HEX])",
             act.toString());
         act.cannotUndoReason = "example text";
-        assertEquals("GameAction(BUILD_PIECE, p1=1, p2=3, p3=33, e=[CHANGE_LONGEST_ROAD_PLAYER(1, 3), REVEAL_FOG_HEX], cannotUndo=example text)",
+        assertEquals("GameAction(BUILD_PIECE, p1=1, p2=33, p3=3, e=[CHANGE_LONGEST_ROAD_PLAYER(1, 3), REVEAL_FOG_HEX], cannotUndo=example text)",
             act.toString());
     }
 
