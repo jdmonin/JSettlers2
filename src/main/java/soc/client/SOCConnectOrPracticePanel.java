@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2008-2009,2012-2013,2017,2019-2022,2024 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2009,2012-2013,2017,2019-2022,2024-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -127,30 +127,13 @@ import soc.util.Version;
     }
 
     /**
-     * Check with the {@link java.lang.SecurityManager} about being a tcp server.
+     * Check whether we can be a tcp server.
      * Port {@link ClientNetwork#SOC_PORT_DEFAULT} and some subsequent ports are checked (to be above 1024).
      * @return True if we have perms to start a server and listen on a port
      */
     public static boolean checkCanLaunchServer()
     {
-        try
-        {
-            SecurityManager sm = System.getSecurityManager();
-            if (sm == null)
-                return true;
-            try
-            {
-                sm.checkAccept("localhost", ClientNetwork.SOC_PORT_DEFAULT);
-                sm.checkListen(ClientNetwork.SOC_PORT_DEFAULT);
-            }
-            catch (SecurityException se)
-            {
-                return false;
-            }
-        }
-        catch (SecurityException se)
-        {
-            // can't read security mgr; check it the hard way
+            // check default port and a few others, that's good enough for this basic test
             int port = ClientNetwork.SOC_PORT_DEFAULT;
             for (int i = 0; i <= 100; ++i)
             {
@@ -182,7 +165,7 @@ import soc.util.Version;
                     return false;  // Not allowed to have a server socket
                 }
             }
-        }
+
         return false;
     }
 
