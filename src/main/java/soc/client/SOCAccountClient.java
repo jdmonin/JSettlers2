@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009-2011,2013-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2011,2013-2023,2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,11 +37,8 @@ import soc.util.Version;
 
 import net.nand.util.i18n.mgr.StringManager;
 
-import java.applet.Applet;
-
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -86,7 +83,7 @@ import javax.swing.WindowConstants;
  * @author Robert S Thomas
  */
 @SuppressWarnings("serial")
-public class SOCAccountClient extends Applet
+public class SOCAccountClient extends JPanel
     implements Runnable, ActionListener, KeyListener
 {
     /**
@@ -572,64 +569,6 @@ public class SOCAccountClient extends Applet
         nickLabel.setText(strings.get("account.create.nickname.its"));  // "Nickname:"
         nickLabel.setToolTipText(strings.get("account.create.nickname.its.tip"));
             // "This will be the new account's username."
-    }
-
-    /**
-     * Retrieve a parameter and translate to a hex value.
-     *
-     * @param name a parameter name. null is ignored
-     * @return the parameter parsed as a hex value or -1 on error
-     */
-    public int getHexParameter(String name)
-    {
-        String value = null;
-        int iValue = -1;
-        try
-        {
-            value = getParameter(name);
-            if (value != null)
-                iValue = Integer.parseInt(value, 16);
-        } catch (Exception e) {
-            System.err.println("Invalid " + name + ": " + value);
-        }
-
-        return iValue;
-    }
-
-    /**
-     * Initialize the applet
-     */
-    public synchronized void init()
-    {
-        Version.printVersionText(System.out, "Java Settlers Account Client ");
-
-        String param = null;
-        int intValue;
-
-        intValue = getHexParameter("background");
-        if (intValue != -1)
-            setBackground(new Color(intValue));
-
-        intValue = getHexParameter("foreground");
-        if (intValue != -1)
-            setForeground(new Color(intValue));
-
-        initVisualElements(); // after the background is set
-
-        System.out.println("Getting host...");
-        host = getCodeBase().getHost();
-        if (host.equals(""))
-            host = null;  // localhost
-
-        try {
-            param = getParameter("PORT");
-            if (param != null)
-                port = Integer.parseInt(param);
-        } catch (Exception e) {
-            System.err.println("Invalid port: " + param);
-        }
-
-        connect();
     }
 
     /**
