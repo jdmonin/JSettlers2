@@ -87,6 +87,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- To help unit tests, SOCGame.initAtServer now calls startGame_setupDevCards
 	- Gradle 7 compatibility
 	- Gradle build auto-selects `python3` or `python` command to run tests
+	- Removed obsolete `SOCApplet`; you can run `SOCPlayerClient` instead
 - Code internals:
 	- Refactored soc.game.GameAction out of soc.extra.robot.GameActionLog.Action
 	- Refactored SOCGame.lastAction out of SOCPlayer.lastActionBankTrade_give, _get
