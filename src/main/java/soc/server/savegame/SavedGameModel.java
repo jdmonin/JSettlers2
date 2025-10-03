@@ -559,6 +559,8 @@ public class SavedGameModel
      * at any seat before resuming. Clears {@link SOCGame#savedGameModel} field to null.
      *<P>
      * If model's game state is {@link SOCGame#OVER}, skips constraint and seat/bot checks.
+     *<P>
+     * Doesn't do full game metadata setup like {@link SOCServer#resumeReloadedGame(Connection, SOCGame)}.
      *
      * @param ignoreConstraints  If true, don't check any {@link Constraint}s in the model
      * @return game ready to play, with {@link SOCGame#getGameState()} same as when it was saved

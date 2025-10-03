@@ -207,6 +207,7 @@ public abstract class GameHandler
      * This game, which was recently loaded from a save, is resuming play.
      * Send its {@link SOCGameState} to clients and do anything else needed to track the now-active game
      * (similar to {@link #startGame(SOCGame)}).
+     * Called from {@link SOCServer#resumeReloadedGame(Connection, SOCGame)}.
      *
      * @param ga  the game
      * @since 2.7.00

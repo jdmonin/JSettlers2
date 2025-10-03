@@ -8171,6 +8171,7 @@ public class SOCServer extends Server
      * sets game state to {@link SOCGame#LOADING_RESUMING} and tries to invite bots
      * if available to join and sit down. If enough bots are available, once they've
      * all sat down the game will resume automatically.
+     *<P>
      * Either way, sends the new game state to clients.
      *
      * @param c  Client sending the command, game owner if being called by server after last bot has sat down,
@@ -8184,6 +8185,7 @@ public class SOCServer extends Server
      * @throws IllegalStateException if game state isn't {@link SOCGame#LOADING} or {@link SOCGame#LOADING_RESUMING},
      *     or {@link SOCGame#savedGameModel} is null or not a {@link SavedGameModel}
      * @see #createAndJoinReloadedGame(SavedGameModel, Connection, String)
+     * @see GameHandler#sendGameStateResumingReloaded(SOCGame)
      * @since 2.5.00
      */
     public String resumeReloadedGame(final Connection c, final SOCGame ga)
