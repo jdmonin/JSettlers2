@@ -7869,6 +7869,7 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> {@link GameAction.ActionType#BUILD_PIECE}
      * <LI> {@link GameAction.ActionType#MOVE_PIECE}
      * <LI> {@link GameAction.ActionType#TRADE_BANK}
+     * <LI> {@link GameAction.ActionType#SHIP_CONVERT_TO_WARSHIP}
      *</UL>
      *
      * @return  Most recent action if that action type is recorded, otherwise {@code null}
@@ -9314,6 +9315,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * <b>In scenario {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI},</b> instead the player
      * converts a normal ship to a warship.  There is no robber piece in this scenario.
+     * gameState doesn't change. {@link #getLastAction()} becomes {@link ActionType#SHIP_CONVERT_TO_WARSHIP}.
      * Call {@link SOCPlayer#getNumWarships()} afterwards to get the current player's new count.
      * Ships are converted in the chronological order they're placed, out to sea from the
      * player's coastal settlement; see {@link #isShipWarship(SOCShip)}.
@@ -9352,6 +9354,7 @@ public class SOCGame implements Serializable, Cloneable
             }
         } else {
             pl.setNumWarships(1 + pl.getNumWarships());
+            lastAction = new GameAction(ActionType.SHIP_CONVERT_TO_WARSHIP);
         }
     }
 
@@ -9449,6 +9452,9 @@ public class SOCGame implements Serializable, Cloneable
      *     or is placing robber/pirate for a {@link SOCDevCardConstants#KNIGHT KNIGHT} card
      *     ({@link #isPlacingRobberForKnightCard()} true) and state is
      *     {@link #WAITING_FOR_ROBBER_OR_PIRATE}, {@link #PLACING_ROBBER}, or {@link #PLACING_PIRATE}.
+     *     Also can cancel {@link ActionType#SHIP_CONVERT_TO_WARSHIP} in
+     *     {@link SOCScenario#K_SC_PIRI Pirate Islands} scenario
+     *     (game state {@link #ROLL_OR_CARD} or {@link #PLAY1}).
      * @since 2.7.00
      */
     public boolean canCancelPlayCurrentDevCard()
@@ -9468,6 +9474,14 @@ public class SOCGame implements Serializable, Cloneable
             ok = placingRobberForKnightCard;
             break;
 
+        case ROLL_OR_CARD:
+        case PLAY1:
+            {
+                final GameAction lastAct = lastAction;
+                ok = ((lastAct != null) && (lastAct.actType == ActionType.SHIP_CONVERT_TO_WARSHIP));
+            }
+            break;
+
         default:
             ok = false;
         }
@@ -9479,6 +9493,8 @@ public class SOCGame implements Serializable, Cloneable
      * The current player is canceling the dev card they're currently playing
      * (Knight/Soldier, Discovery/Year of Plenty, Monopoly)
      * while choosing a resource, resource type, or moving the robber or pirate.
+     * Also can cancel when {@link #getLastAction()} is {@link ActionType#SHIP_CONVERT_TO_WARSHIP} in
+     * {@link SOCScenario#K_SC_PIRI Pirate Islands} scenario.
      * Assumes {@link #canCancelPlayCurrentDevCard()} has already been called.
      *<P>
      * For Road Building, call {@link #cancelBuildRoad(int)} instead.
@@ -9490,7 +9506,8 @@ public class SOCGame implements Serializable, Cloneable
      * <LI> Removes card from {@link SOCPlayer#getDevCardsPlayed()}
      * <LI> Sets game state back to {@link #ROLL_OR_CARD} or {@link #PLAY1}
      * <LI> For {@link SOCDevCardConstants#KNIGHT}, calls {@link #restoreLargestArmyState()}
-     *      (save was called in {@link #playKnight()})
+     *      (save was called in {@link #playKnight()}) unless in Pirate Islands scenario
+     * <LI> In Pirate Islands, decrements {@link SOCPlayer#getNumWarships()} and clears {@link SOCGame#getLastAction()}
      *</UL>
      * Added in v2.7.00 ({@link #VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD}).
      *
@@ -9504,6 +9521,7 @@ public class SOCGame implements Serializable, Cloneable
         throws IllegalStateException
     {
         final int devCardType;
+        boolean isConvertToWarship = false;
 
         switch (gameState)
         {
@@ -9521,6 +9539,18 @@ public class SOCGame implements Serializable, Cloneable
             devCardType = SOCDevCardConstants.KNIGHT;
             break;
 
+        case ROLL_OR_CARD:
+        case PLAY1:
+            {
+                final GameAction lastAct = lastAction;
+                if ((lastAct == null) || (lastAct.actType != ActionType.SHIP_CONVERT_TO_WARSHIP))
+                    throw new IllegalStateException("last not warship, gameState: " + gameState);
+
+                isConvertToWarship = true;
+                devCardType = SOCDevCardConstants.KNIGHT;
+            }
+            break;
+
         default:
             throw new IllegalStateException("gameState: " + gameState);
         }
@@ -9530,12 +9560,20 @@ public class SOCGame implements Serializable, Cloneable
         currPl.getInventory().addDevCard(1, SOCInventory.OLD, devCardType);
         currPl.updateDevCardsPlayed(devCardType, true);
 
-        gameState = oldGameState;
-
-        if (devCardType == SOCDevCardConstants.KNIGHT)
+        if (isConvertToWarship)
         {
-            currPl.setNumKnights(currPl.getNumKnights() - 1);
-            restoreLargestArmyState();
+            final int n = currPl.getNumWarships();
+            if (n > 0)
+                currPl.setNumWarships(n - 1);
+            lastAction = null;
+        } else {
+            gameState = oldGameState;
+
+            if (devCardType == SOCDevCardConstants.KNIGHT)
+            {
+                currPl.setNumKnights(currPl.getNumKnights() - 1);
+                restoreLargestArmyState();
+            }
         }
 
         return devCardType;

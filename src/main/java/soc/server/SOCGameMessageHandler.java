@@ -2175,6 +2175,7 @@ public class SOCGameMessageHandler
                 String sendDeclineTextKey = null;
                 int cardTypeRet = -1;  // send SOCDevCardAction if != -1
                 String cardTypeRetTextKey = null;
+                boolean isConvertToWarship = false;  // if true, canceling KNIGHT in scenario SC_PIRI
                 boolean noAction = false;  // If true, there was nothing cancelable: Don't call handler.sendGameState
 
                 switch (mes.getPieceType())
@@ -2282,6 +2283,13 @@ public class SOCGameMessageHandler
                 case SOCCancelBuildRequest.CARD:
                     if (ga.canCancelPlayCurrentDevCard())
                     {
+                        // check lastAction before cancelPlayCurrentDevCard clears it
+                        {
+                            final GameAction lastAct = ga.getLastAction();
+                            isConvertToWarship = ((lastAct != null)
+                                && (lastAct.actType == GameAction.ActionType.SHIP_CONVERT_TO_WARSHIP));
+                        }
+
                         cardTypeRet = ga.cancelPlayCurrentDevCard();
                         switch (cardTypeRet)
                         {
@@ -2290,6 +2298,7 @@ public class SOCGameMessageHandler
                                 // "{0} cancelled the Year of Plenty card."
                             break;
                         case SOCDevCardConstants.KNIGHT:
+                            // TODO if isConvertToWarship, text about cancelled converting to warship
                             cardTypeRetTextKey = "action.card.soldier.cancel";
                                 // "{0} cancelled the Soldier card."
                             break;
@@ -2357,7 +2366,10 @@ public class SOCGameMessageHandler
                             (gaName, true, new SOCDevCardAction
                                 (gaName, pn, SOCDevCardAction.ADD_OLD, cardTypeRet));
 
-                        if (isKnight)
+                        if (isConvertToWarship && isKnight)
+                            srv.messageToGame(gaName, true, new SOCPlayerElement
+                                (gaName, pn, SOCPlayerElement.SET, PEType.SCENARIO_WARSHIP_COUNT, player.getNumWarships()));
+                        else if (isKnight)
                         {
                             srv.messageToGame
                                 (gaName, true, new SOCPlayerElement

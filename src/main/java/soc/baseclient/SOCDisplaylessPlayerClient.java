@@ -1916,6 +1916,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             case SOCPlayerElement.GAIN:
                 pl.setNumWarships(pl.getNumWarships() + val);
+                ga.setLastAction(new GameAction(GameAction.ActionType.SHIP_CONVERT_TO_WARSHIP));
                 break;
             }
             break;

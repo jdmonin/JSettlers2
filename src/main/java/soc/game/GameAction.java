@@ -432,6 +432,7 @@ public class GameAction
          *<P>
          * For knight/soldier ({@link SOCDevCardConstants#KNIGHT}),
          * see note at {@link #MOVE_ROBBER_OR_PIRATE} about when Largest Army can win the game.
+         * In Pirate Islands scenario, next action may be {@link #SHIP_CONVERT_TO_WARSHIP}.
          *<P>
          * If Road Building ({@link SOCDevCardConstants#ROADS}) is cancelled by ending turn,
          * gameState will still be {@link SOCGame#PLACING_FREE_ROAD1} or {@link SOCGame#PLACING_FREE_ROAD2}
@@ -466,6 +467,15 @@ public class GameAction
          * choice may be hidden; {@code p1} = 0 if so.
          */
         CHOOSE_MOVE_ROBBER_OR_PIRATE(110),
+
+        /**
+         * In the Pirate Islands scenario, after a knight/soldier dev card is played ({@link #PLAY_DEV_CARD}),
+         * convert one of the player's ships to a Warship.
+         *<P>
+         * The node coordinate of the converted ship isn't recorded here or sent in network messages,
+         * but determined by chronological build order: See {@link SOCGame#isShipWarship(SOCShip)} for details.
+         */
+        SHIP_CONVERT_TO_WARSHIP(111),
 
         /**
          * Move the robber or the pirate.
