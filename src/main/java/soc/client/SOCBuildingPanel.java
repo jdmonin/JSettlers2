@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014,2016-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014,2016-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@
 package soc.client;
 
 import soc.client.stats.GameStatisticsFrame;
+import soc.game.GameAction;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCard;
@@ -33,6 +34,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
+import soc.game.SOCScenario;  // for javadocs only
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.message.SOCCancelBuildRequest;  // for CARD constant
@@ -203,6 +205,13 @@ import javax.swing.SwingConstants;
      * @since 2.0.00
      */
     private int pieceButtonsState;
+
+    /**
+     * If true, {@link #cardBut} is showing "Cancel" and clicking it will ask server to cancel player's recent
+     * conversion of a ship to a warship in the {@link SOCScenario#K_SC_PIRI Pirate Islands} scenario.
+     * @since 2.7.00
+     */
+    private boolean cardButIsCancelConvertToWarship;
 
     /**
      * "Game Options" window, from {@link #gameOptsBut} click, or null.
@@ -935,7 +944,8 @@ import javax.swing.SwingConstants;
         }
         else if (target == CARD)
         {
-            if ((gstate == SOCGame.PLACING_ROBBER) || (gstate == SOCGame.PLACING_PIRATE))
+            if (cardButIsCancelConvertToWarship
+                || (gstate == SOCGame.PLACING_ROBBER) || (gstate == SOCGame.PLACING_PIRATE))
             {
                 messageSender.cancelBuildRequest(game, SOCCancelBuildRequest.CARD);
             }
@@ -1032,6 +1042,15 @@ import javax.swing.SwingConstants;
             final int gstate = game.getGameState();
             boolean currentCanBuy = (! isDebugFreePlacement)
                 && game.canBuyOrAskSpecialBuild(pnum);
+            final boolean currentCanCancelConvertToWarship;
+            if (isCurrent && ((gstate == SOCGame.ROLL_OR_CARD) || (gstate == SOCGame.PLAY1)))
+            {
+                final GameAction lastAct = game.getLastAction();
+                currentCanCancelConvertToWarship = (lastAct != null)
+                    && (lastAct.actType == GameAction.ActionType.SHIP_CONVERT_TO_WARSHIP);
+            } else {
+                currentCanCancelConvertToWarship = false;
+            }
             final SOCPlayerClient pcli = pi.getClient();
 
             if (isCurrent && (gstate == SOCGame.PLACING_FREE_ROAD1)
@@ -1098,6 +1117,8 @@ import javax.swing.SwingConstants;
                 cityBut.setText("---");
             }
 
+            cardBut.setToolTipText(null);
+            cardButIsCancelConvertToWarship = false;
             if (game.couldBuyDevCard(pnum))
             {
                 cardBut.setEnabled(currentCanBuy);
@@ -1110,6 +1131,13 @@ import javax.swing.SwingConstants;
             {
                 cardBut.setEnabled(true);
                 cardBut.setText(strings.get("base.cancel"));
+            }
+            else if (currentCanCancelConvertToWarship)
+            {
+                cardBut.setEnabled(true);
+                cardBut.setText(strings.get("base.cancel"));
+                cardBut.setToolTipText("Cancel conversion of ship to warship");  // TODO i18n
+                cardButIsCancelConvertToWarship = true;
             }
             else
             {

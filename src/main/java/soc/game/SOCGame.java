@@ -9492,9 +9492,11 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * The current player is canceling the dev card they're currently playing
      * (Knight/Soldier, Discovery/Year of Plenty, Monopoly)
-     * while choosing a resource, resource type, or moving the robber or pirate.
-     * Also can cancel when {@link #getLastAction()} is {@link ActionType#SHIP_CONVERT_TO_WARSHIP} in
-     * {@link SOCScenario#K_SC_PIRI Pirate Islands} scenario.
+     * while choosing a resource, resource type, or moving the robber or pirate,
+     * or canceling conversion of a ship to a warship
+     * ({@link #getLastAction()} is {@link ActionType#SHIP_CONVERT_TO_WARSHIP})
+     * in the {@link SOCScenario#K_SC_PIRI Pirate Islands} scenario.
+     *<P>
      * Assumes {@link #canCancelPlayCurrentDevCard()} has already been called.
      *<P>
      * For Road Building, call {@link #cancelBuildRoad(int)} instead.
