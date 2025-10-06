@@ -1911,7 +1911,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
             switch (action)
             {
             case SOCPlayerElement.SET:
-                pl.setNumWarships(val);
+                {
+                    int prevNum = pl.getNumWarships();
+                    pl.setNumWarships(val);
+                    if (val < prevNum)
+                        ga.setLastAction(null);  // is undoing SHIP_CONVERT_TO_WARSHIP
+                }
                 break;
 
             case SOCPlayerElement.GAIN:
