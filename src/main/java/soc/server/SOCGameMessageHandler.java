@@ -2298,8 +2298,9 @@ public class SOCGameMessageHandler
                                 // "{0} cancelled the Year of Plenty card."
                             break;
                         case SOCDevCardConstants.KNIGHT:
-                            // TODO if isConvertToWarship, text about cancelled converting to warship
-                            cardTypeRetTextKey = "action.card.soldier.cancel";
+                            cardTypeRetTextKey =
+                                isConvertToWarship ? "action.card.soldier.warship.cancel" : "action.card.soldier.cancel";
+                                // "{0} cancelled converting a ship to a warship.", or
                                 // "{0} cancelled the Soldier card."
                             break;
                         case SOCDevCardConstants.MONO:
