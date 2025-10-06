@@ -9577,10 +9577,10 @@ import javax.swing.JComponent;
       {
           if (! playerInterface.isClientCurrentPlayer())
               return;
-          if (! menuPlayerIsCurrent)
+          Object target = e.getSource();
+          if (! (menuPlayerIsCurrent || (target == cancelBuildItem)))
               return;
 
-          Object target = e.getSource();
           if (target == buildRoadItem)
           {
               tryBuild(SOCPlayingPiece.ROAD);
@@ -9610,7 +9610,7 @@ import javax.swing.JComponent;
           }
           else if (target == cancelBuildItem)
           {
-              if (wantsUndo)
+              if (wantsUndo && menuPlayerIsCurrent)
                   tryUndo();
               else
                   tryCancel();
