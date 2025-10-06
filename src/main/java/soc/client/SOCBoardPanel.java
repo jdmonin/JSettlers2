@@ -38,6 +38,7 @@ import soc.game.SOCScenario;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
+import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCSimpleRequest;  // to request simple things from the server without defining a lot of methods
 import soc.util.SOCStringManager;
 
@@ -9043,6 +9044,7 @@ import javax.swing.JComponent;
        * Menu item to cancel a build as we're placing it,
        * or cancel moving a ship,
        * or undo previous placement/move in {@link SOCGame#PLAY1} or {@link SOCGame#SPECIAL_BUILDING},
+       * or cancel converting a ship to a Warship in the {@link SOCScenario#K_SC_PIRI Pirate Islands} scenario,
        * or "Cannot undo" for a dialog to show the reason why not.
        * Piece type to cancel/undo is {@link #cancelBuildType}.
        * The only piece that can be undone is {@link SOCBoardPanel#latestPiecePlacement}.
@@ -9064,6 +9066,7 @@ import javax.swing.JComponent;
       /**
        * If allow cancel, type of building piece ({@link SOCPlayingPiece#ROAD}, SETTLEMENT, ...) to cancel.
        * Used only when {@link #cancelBuildItem} is enabled and not {@link #wantsUndo}, can be 0 otherwise.
+       * Can also be {@link SOCCancelBuildRequest#CARD}, using that other class since cards aren't a piece type.
        */
       private int cancelBuildType;
 
@@ -9282,6 +9285,17 @@ import javax.swing.JComponent;
                   }
               }
 
+              final boolean currentCanCancelConvertToWarship;
+              if ((gs == SOCGame.ROLL_OR_CARD) || (gs == SOCGame.PLAY1))
+              {
+                  final GameAction lastAct = game.getLastAction();
+                  currentCanCancelConvertToWarship = (lastAct != null)
+                      && (lastAct.actType == GameAction.ActionType.SHIP_CONVERT_TO_WARSHIP)
+                      && (playerInterface.client.getServerVersion(game) >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD);
+              } else {
+                  currentCanCancelConvertToWarship = false;
+              }
+
               switch (gs)
               {
               case SOCGame.START1A:
@@ -9400,13 +9414,22 @@ import javax.swing.JComponent;
                           }
                       }
 
-                      if ((! wantsUndo) && (act != null) && (act.cannotUndoReason != null))
+                      if ((! wantsUndo) && (! currentCanCancelConvertToWarship)
+                          && (act != null) && (act.cannotUndoReason != null))
                       {
                           wantsUndo = true;
                           cancelBuildItem.setEnabled(true);
                           cancelBuildType = 0;
                           cancelBuildItem.setLabel(strings.get("board.undo.cannot"));  // "Cannot undo"
                       }
+                  }
+
+                  if ((! wantsUndo) && currentCanCancelConvertToWarship)
+                  {
+                      wantsCancel = true;
+                      cancelBuildItem.setEnabled(true);
+                      cancelBuildType = SOCCancelBuildRequest.CARD;
+                      cancelBuildItem.setLabel("Cancel convert Ship to Warship");  // TODO i18n
                   }
               }
           }
@@ -9737,7 +9760,8 @@ import javax.swing.JComponent;
 
       /**
        * Cancel placing a building piece, or cancel moving a ship.
-       * Calls {@link SOCBuildingPanel#clickBuildingButton(SOCGame, String, boolean)}.
+       * Calls {@link SOCBuildingPanel#clickBuildingButton(SOCGame, String, boolean)},
+       * except for {@link SOCCancelBuildRequest#CARD} for which it calls {@link GameMessageSender#cancelBuildRequest(SOCGame, int)}.
        */
       void tryCancel()
       {
@@ -9764,6 +9788,9 @@ import javax.swing.JComponent;
           case SOCPlayingPiece.SHIP:
               btarget = SOCBuildingPanel.SHIP;
               break;
+          case SOCCancelBuildRequest.CARD:
+              playerInterface.getClient().getGameMessageSender().cancelBuildRequest(game, SOCCancelBuildRequest.CARD);
+              return;  // <--- Early return: has now sent cancel request ---
           }
           // Use buttons to cancel the build request
           playerInterface.getBuildingPanel().clickBuildingButton

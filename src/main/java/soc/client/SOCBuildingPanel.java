@@ -1042,16 +1042,17 @@ import javax.swing.SwingConstants;
             final int gstate = game.getGameState();
             boolean currentCanBuy = (! isDebugFreePlacement)
                 && game.canBuyOrAskSpecialBuild(pnum);
+            final SOCPlayerClient pcli = pi.getClient();
             final boolean currentCanCancelConvertToWarship;
             if (isCurrent && ((gstate == SOCGame.ROLL_OR_CARD) || (gstate == SOCGame.PLAY1)))
             {
                 final GameAction lastAct = game.getLastAction();
                 currentCanCancelConvertToWarship = (lastAct != null)
-                    && (lastAct.actType == GameAction.ActionType.SHIP_CONVERT_TO_WARSHIP);
+                    && (lastAct.actType == GameAction.ActionType.SHIP_CONVERT_TO_WARSHIP)
+                    && (pcli.getServerVersion(game) >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD);
             } else {
                 currentCanCancelConvertToWarship = false;
             }
-            final SOCPlayerClient pcli = pi.getClient();
 
             if (isCurrent && (gstate == SOCGame.PLACING_FREE_ROAD1)
                 && (game.isPractice
