@@ -4760,6 +4760,7 @@ import javax.swing.JComponent;
                 final SOCPlayer pl = game.getPlayer(pn);
 
                 // count warships here, for efficiency, instead of calling SOCGame.isShipWarship for each one
+                // (same algorithm used in updateAtWarshipsChanged)
                 int numWarships = pl.getNumWarships();
                 for (SOCRoutePiece rs : pl.getRoadsAndShips())
                 {
@@ -4772,7 +4773,7 @@ import javax.swing.JComponent;
                          ! isShip, isWarship);
                         // easier to draw lpp here if isWarship
                     if (isWarship)
-                        --numWarships;  // this works since warships begin with player's 1st-placed ship in getRoads()
+                        --numWarships;  // this works since warships begin with player's 1st-placed ship in getRoadsAndShips()
                 }
 
                 /**
@@ -6209,6 +6210,44 @@ import javax.swing.JComponent;
             repaint();
         }
         updateHoverTipToMode();
+    }
+
+    /**
+     * Handle updates after warship pieces have been added or removed on the board
+     * in the {@link SOCGameOptionSet#K_SC_PIRI Pirate Islands} scenario.
+     * Calls {@link #setLatestPiecePlacement(SOCPlayingPiece)} with the new warship if {@code isGain},
+     * otherwise with {@code null} because placement is no longer the latest action.
+     * Repaints the board.
+     *<P>
+     * Call <b>after</b> updating game state.
+     *
+     * @param isGain True if current player has gained a warship
+     * @since 2.7.00
+     */
+    public void updateAtWarshipsChanged(final boolean isGain)
+    {
+        SOCRoutePiece newLatest = null;
+        if (isGain)
+        {
+            final SOCPlayer pl = game.getPlayer(game.getCurrentPlayerNumber());
+            int numWarships = pl.getNumWarships();
+            // (determines warships using same algorithm as in drawBoard)
+            for (SOCRoutePiece rs : pl.getRoadsAndShips())
+            {
+                if (rs instanceof SOCShip)
+                {
+                    if (numWarships == 1)
+                        newLatest = rs;
+
+                    --numWarships;  // this works since warships begin with player's 1st-placed ship in getRoadsAndShips()
+                    if (numWarships <= 0)
+                        break;
+                }
+            }
+        }
+
+        latestPiecePlacement = newLatest;
+        repaint();
     }
 
     /**

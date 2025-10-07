@@ -29,6 +29,7 @@ JARs for recent JSettlers versions can be downloaded from
 - Client:
 	- Game window:
 	    - For visibility when a player builds, highlight most recently placed piece until end of their turn
+	        - Also when ship is converted to warship in Pirate Islands scenario
 	    - Bank/port trade: Bugfix: After making a trade, if player wants to undo that trade but accidentally clicks "Bank/Port" instead of "Undo", couldn't then click Undo because hand panel forgot previous trade
 	    - Road Building: Confirm with dialog when player skips (cancels) placing second free road or ship
 	    - Discard, Year of Plenty dialogs: Each resource pick square won't go past prompted amount  

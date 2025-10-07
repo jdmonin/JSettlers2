@@ -1770,7 +1770,7 @@ public class MessageHandler
      */
     private void handlePLAYERELEMENT
         (final PlayerClientListener pcl, final SOCGame ga, SOCPlayer pl, final int pn,
-         final int action, final PEType etype, final int amount, final boolean isNews)
+         final int action, final PEType etype, final int amount, boolean isNews)
     {
         if ((ga == null) || (etype == null))
             return;
@@ -1917,6 +1917,7 @@ public class MessageHandler
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple
                 (ga, pl, pn, action, etype, amount, null);
             utype = PlayerClientListener.UpdateType.Warship;
+            isNews = (action == SOCPlayerElement.GAIN);
             break;
 
         default:

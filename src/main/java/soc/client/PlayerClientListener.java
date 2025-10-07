@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2013-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2013-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -777,7 +777,11 @@ public interface PlayerClientListener
          */
         // GoldGains -- removed in v2.7.00
 
-        /** Number of Warships built, in {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} scenario */
+        /**
+         * Number of Warships built, in {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} scenario.
+         * When player gains a warship, will set {@code isGoodNews} flag
+         * when calling {@link PlayerClientListener#playerElementUpdated(SOCPlayer, UpdateType, boolean, boolean)}.
+         */
         Warship,
 
         /** Cloth Count update, in {@link SOCGameOptionSet#K_SC_CLVI _SC_CLVI} scenario */

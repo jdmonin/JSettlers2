@@ -3437,14 +3437,14 @@ public class SOCPlayerInterface extends JFrame
     /**
      * Handle updates after pieces have changed on the board.
      * For example, when scenario {@link SOCGameOptionSet#K_SC_PIRI}
-     * converts players' ships to warships, changes the strength
-     * of a pirate fortress, etc.
+     * changes the strength of a pirate fortress.
      *<P>
      * Call <b>after</b> updating game state.  This is different than
      * {@link #updateAtPutPiece(int, int, int, boolean, int)} which
      * updates both the {@link SOCGame} and the board.
      *<P>
      * Currently, hand panels aren't updated (piece counts or VP total), only {@link SOCBoardPanel}.
+     * @see #updateAtWarshipsChanged(boolean)
      * @since 2.0.00
      */
     public void updateAtPiecesChanged()
@@ -3649,6 +3649,21 @@ public class SOCPlayerInterface extends JFrame
         else
             print(plName + " has undone building " + aPieceType, true);
         // TODO i18n
+    }
+
+    /**
+     * Handle updates after warship pieces have been added or removed on the board
+     * in the {@link SOCGameOptionSet#K_SC_PIRI Pirate Islands} scenario.
+     * Currently updates only {@link SOCBoardPanel}.
+     *<P>
+     * Call <b>after</b> updating game state.
+     *
+     * @param isGain  True if current player has gained a warship
+     * @since 2.7.00
+     */
+    public void updateAtWarshipsChanged(final boolean isGain)
+    {
+        boardPanel.updateAtWarshipsChanged(isGain);
     }
 
     /**
@@ -4379,7 +4394,7 @@ public class SOCPlayerInterface extends JFrame
                 break;
 
             case Warship:
-                pi.updateAtPiecesChanged();
+                pi.updateAtWarshipsChanged(isGoodNews);
                 break;
 
             case WonderLevel:
