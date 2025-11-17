@@ -2432,6 +2432,9 @@ public class SOCGameHandler extends GameHandler
                     continue;
 
                 Connection plConn = srv.getConnection(name);
+                if (plConn == null)
+                    continue;  // While running unit tests, sometimes another client disconnects in another thread during this loop
+
                 long connAtMillis = plConn.getConnectTime().getTime();
 
                 if ((oldestRemainingConn == null) || (connAtMillis < oldestRemainingConnAtMillis))
