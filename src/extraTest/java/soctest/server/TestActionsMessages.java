@@ -49,6 +49,7 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
+import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
@@ -1266,14 +1267,11 @@ public class TestActionsMessages
         }
     }
 
-    //
-    // TODO also write testUndoBuild_SVP_SC_SEAC
-    //
-
     /**
      * Tests building settlements for SVP and undoing those builds
-     * when game has scenario game option {@link soc.game.SOCGameOptionSet#K_SC_SANY _SC_SANY}.
+     * when game has scenario game option {@link SOCGameOptionSet#K_SC_SANY _SC_SANY}.
      * @since 2.7.00
+     * @see #testUndoBuild_SVP_SC_SEAC()
      * @see #testUndoBuildAndMove()
      * @see #testBuildAndMove()
      */
@@ -1283,21 +1281,52 @@ public class TestActionsMessages
     {
         assertNotNull(srv);
 
-        testOne_testUndoBuild_SVP_SC_SANY(false, false);
-        testOne_testUndoBuild_SVP_SC_SANY(false, true);
-        testOne_testUndoBuild_SVP_SC_SANY(true, false);
-        testOne_testUndoBuild_SVP_SC_SANY(true, true);
+        testOne_testUndoBuild_SVP_SC_SANY_SEAC(true, false, false);
+        testOne_testUndoBuild_SVP_SC_SANY_SEAC(true, false, true);
+        testOne_testUndoBuild_SVP_SC_SANY_SEAC(true, true, false);
+        testOne_testUndoBuild_SVP_SC_SANY_SEAC(true, true, true);
     }
 
-    private void testOne_testUndoBuild_SVP_SC_SANY
-        (final boolean clientAsRobot, final boolean othersAsRobot)
+    /**
+     * Tests building settlements for SVP and undoing those builds
+     * when game has scenario game option {@link SOCGameOptionSet#K_SC_SEAC _SC_SEAC}.
+     * @since 2.7.00
+     * @see #testUndoBuild_SVP_SC_SANY()
+     * @see #testUndoBuildAndMove()
+     * @see #testBuildAndMove()
+     */
+    @Test
+    public void testUndoBuild_SVP_SC_SEAC()
+        throws IOException
+    {
+        assertNotNull(srv);
+
+        testOne_testUndoBuild_SVP_SC_SANY_SEAC(false, false, false);
+        testOne_testUndoBuild_SVP_SC_SANY_SEAC(false, false, true);
+        testOne_testUndoBuild_SVP_SC_SANY_SEAC(false, true, false);
+        testOne_testUndoBuild_SVP_SC_SANY_SEAC(false, true, true);
+    }
+
+    /**
+     * Test one client setup for {@link #testUndoBuild_SVP_SC_SANY()} or {@link #testUndoBuild_SVP_SC_SANY()}.
+     * @param isSanyNotSeac  If true, testing {@code _SC_SANY} with {@code testscen-simple-sany.game.json},
+     *     not {@code _SC_SEAC} with {@code testscen-simple-4isl.game.json}
+     * @param clientAsRobot  If true, server should treat debug player's client as robot
+     * @param othersAsRobot  If true, server should treat other client(s) as bots
+     * @since 2.7.00
+     */
+    private void testOne_testUndoBuild_SVP_SC_SANY_SEAC
+        (final boolean isSanyNotSeac, final boolean clientAsRobot, final boolean othersAsRobot)
         throws IOException
     {
         // unique client nickname, in case tests run in parallel; max length 20
-        final String CLIENT_NAME = "testUndoBui_SANY_" + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
+        final String CLIENT_NAME = "testUndoBui_"
+            + (isSanyNotSeac ? "SANY_" : "SEAC_")
+            + (clientAsRobot ? 'r' : 'h') + (othersAsRobot ? "_r" : "_h");
         final int CLIENT_PN = 3;
 
-        final SavedGameModel sgm = TestLoadgame.load("testscen-simple-sany.game.json", srv);
+        final SavedGameModel sgm = TestLoadgame.load
+            ((isSanyNotSeac ? "testscen-simple-sany.game.json" : "testscen-simple-4isl.game.json"), srv);
         final StartedTestGameObjects objs =
             TestRecorder.connectLoadJoinResumeGame
                 (srv, CLIENT_NAME, null, 0, sgm, true, 0, clientAsRobot, othersAsRobot);
@@ -1308,45 +1337,52 @@ public class TestActionsMessages
         final Vector<EventEntry> records = objs.records;
         assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
 
-        assertEquals(2, cliPl.getPublicVP());
-        assertEquals(2, cliPlAtCli.getPublicVP());
+        assertTrue
+            ("has scenario game opt", ga.isGameOptionSet(isSanyNotSeac ? SOCGameOptionSet.K_SC_SANY : SOCGameOptionSet.K_SC_SEAC));
+
+        assertEquals(isSanyNotSeac ? 2 : 5, cliPl.getPublicVP());
+        assertEquals(isSanyNotSeac ? 2 : 5, cliPlAtCli.getPublicVP());
         assertArrayEquals(new int[]{2, 0, 4, 1, 4}, cliPl.getResources().getAmounts(false));
         assertArrayEquals(new int[]{2, 0, 4, 1, 4}, cliPlAtCli.getResources().getAmounts(false));
-        assertEquals(0, cliPl.getSpecialVP());
-        assertEquals(0, cliPlAtCli.getSpecialVP());
+        assertEquals(isSanyNotSeac ? 0 : 2, cliPl.getSpecialVP());
+        assertEquals(isSanyNotSeac ? 0 : 2, cliPlAtCli.getSpecialVP());
         assertEquals(0, cliPl.getPlayerEvents());  // _SC_SANY updates this
         assertEquals(0, cliPlAtCli.getPlayerEvents());
-        assertEquals(0, cliPl.getScenarioSVPLandAreas());  // _SC_SEAC updates this
-        assertEquals(0, cliPlAtCli.getScenarioSVPLandAreas());
+        assertEquals(isSanyNotSeac ? 0 : 0x1, cliPl.getScenarioSVPLandAreas());  // _SC_SEAC updates this
+        assertEquals(isSanyNotSeac ? 0 : 0x1, cliPlAtCli.getScenarioSVPLandAreas());
 
         /* ship to east, settlement on small island */
 
         records.clear();
-        int ship_edge = 0x60d;
-        assertEquals(13, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
-        assertTrue(board.roadOrShipAtEdge(0x60c) instanceof SOCShip);
+        int ship_edge = isSanyNotSeac ? 0x60d : 0x70a;
+        assertEquals(isSanyNotSeac ? 13 : 11, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
+        assertEquals(isSanyNotSeac ? 13 : 11, cliPlAtCli.getNumPieces(SOCPlayingPiece.SHIP));
+        assertTrue(board.roadOrShipAtEdge(isSanyNotSeac ? 0x60c : 0x609) instanceof SOCShip);
         assertNull(board.roadOrShipAtEdge(ship_edge));
         List<Integer> shipsThisTurnList = ga.getShipsPlacedThisTurn(), shipsThisTurnListAtCli = gaAtCli.getShipsPlacedThisTurn();
         assertNotNull(shipsThisTurnList);
         assertNotNull(shipsThisTurnListAtCli);
-        assertTrue(shipsThisTurnList.isEmpty());
-        assertTrue(shipsThisTurnListAtCli.isEmpty());
+        if (isSanyNotSeac)
+        {
+            assertTrue(shipsThisTurnList.isEmpty());
+            assertTrue(shipsThisTurnListAtCli.isEmpty());
+        }
         tcli.putPiece(ga, new SOCShip(cliPl, ship_edge, board));
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertTrue("ship built", board.roadOrShipAtEdge(ship_edge) instanceof SOCShip);
-        assertEquals(12, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
-        assertEquals(12, cliPlAtCli.getNumPieces(SOCPlayingPiece.SHIP));
+        assertEquals(isSanyNotSeac ? 12 : 10, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
+        assertEquals(isSanyNotSeac ? 12 : 10, cliPlAtCli.getNumPieces(SOCPlayingPiece.SHIP));
         assertNull(ga.canMoveShip(CLIENT_PN, ship_edge));
         assertNull(gaAtCli.canMoveShip(CLIENT_PN, ship_edge));
         assertArrayEquals(new int[]{2, 0, 3, 1, 3}, cliPl.getResources().getAmounts(false));
         assertArrayEquals(new int[]{2, 0, 3, 1, 3}, cliPlAtCli.getResources().getAmounts(false));
         shipsThisTurnList = ga.getShipsPlacedThisTurn();
-        assertEquals(1, shipsThisTurnList.size());
+        assertEquals(isSanyNotSeac ? 1 : 3, shipsThisTurnList.size());
         assertTrue(shipsThisTurnList.contains(Integer.valueOf(ship_edge)));
         shipsThisTurnListAtCli = gaAtCli.getShipsPlacedThisTurn();
-        assertEquals(1, shipsThisTurnListAtCli.size());
+        assertEquals(isSanyNotSeac ? 1 : 3, shipsThisTurnListAtCli.size());
         assertTrue(shipsThisTurnListAtCli.contains(Integer.valueOf(ship_edge)));
 
         GameAction act = ga.getLastAction(), actAtCli = gaAtCli.getLastAction();
@@ -1371,24 +1407,33 @@ public class TestActionsMessages
             assertNull(e.params);
         }
 
-        int settlement_isl_node = 0x60e;  // settlement on small island to east
+        int settlement_isl_node = isSanyNotSeac ? 0x60e : 0x80a;  // settlement on small island to east or southeast
         assertNull(board.settlementAtNode(settlement_isl_node));
-        assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(isSanyNotSeac ? 3 : 2, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(isSanyNotSeac ? 3 : 2, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
         tcli.putPiece(ga, new SOCSettlement(cliPl, settlement_isl_node, board));
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertNotNull("settlement built", board.settlementAtNode(settlement_isl_node));
-        assertEquals(2, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
-        assertEquals(2, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
-        assertEquals(4, cliPl.getPublicVP());
-        assertEquals(4, cliPlAtCli.getPublicVP());
-        assertEquals(1, cliPl.getSpecialVP());
-        assertEquals(1, cliPlAtCli.getSpecialVP());
-        assertEquals("has event because _SC_SANY", 1, cliPl.getPlayerEvents());
-        assertEquals("has event because _SC_SANY", 1, cliPlAtCli.getPlayerEvents());
-        assertEquals("still 0 because LA tracked for _SC_SEAC not _SC_SANY", 0, cliPl.getScenarioSVPLandAreas());
-        assertEquals("still 0 because LA tracked for _SC_SEAC not _SC_SANY", 0, cliPlAtCli.getScenarioSVPLandAreas());
+        assertEquals(isSanyNotSeac ? 2 : 1, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(isSanyNotSeac ? 2 : 1, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(isSanyNotSeac ? 4 : 8, cliPl.getPublicVP());
+        assertEquals(isSanyNotSeac ? 4 : 8, cliPlAtCli.getPublicVP());
+        assertEquals(isSanyNotSeac ? 1 : 4, cliPl.getSpecialVP());
+        assertEquals(isSanyNotSeac ? 1 : 4, cliPlAtCli.getSpecialVP());
+        if (isSanyNotSeac)
+        {
+            assertEquals("has event because _SC_SANY", 1, cliPl.getPlayerEvents());
+            assertEquals("has event because _SC_SANY", 1, cliPlAtCli.getPlayerEvents());
+            assertEquals("still 0 because LA tracked for _SC_SEAC not _SC_SANY", 0, cliPl.getScenarioSVPLandAreas());
+            assertEquals("still 0 because LA tracked for _SC_SEAC not _SC_SANY", 0, cliPlAtCli.getScenarioSVPLandAreas());
+        } else {
+            assertEquals("no event because _SC_SEAC", 0, cliPl.getPlayerEvents());
+            assertEquals("no event because _SC_SEAC", 0, cliPlAtCli.getPlayerEvents());
+            assertEquals("another LA tracked for _SC_SEAC", 0x9, cliPl.getScenarioSVPLandAreas());
+            assertEquals("another LA tracked for _SC_SEAC", 0x9, cliPlAtCli.getScenarioSVPLandAreas());
+        }
         assertArrayEquals(new int[]{1, 0, 2, 0, 2}, cliPl.getResources().getAmounts(false));
         assertArrayEquals(new int[]{1, 0, 2, 0, 2}, cliPlAtCli.getResources().getAmounts(false));
 
@@ -1410,10 +1455,10 @@ public class TestActionsMessages
 
             GameAction.Effect e = effects.get(0);
             assertEquals(GameAction.EffectType.CLOSE_SHIP_ROUTE, e.eType);
-            assertArrayEquals(new int[]{1549, 1548}, e.params);
+            assertArrayEquals(new int[]{isSanyNotSeac ? 1549 : 1802, isSanyNotSeac ? 1548 : 1545}, e.params);
             e = effects.get(1);
-            assertEquals(GameAction.EffectType.PLAYER_GAIN_SVP, e.eType);
-            assertArrayEquals(new int[]{0, 1, 0, 1}, e.params);
+            assertEquals(isSanyNotSeac ? GameAction.EffectType.PLAYER_GAIN_SVP : GameAction.EffectType.PLAYER_GAIN_SETTLED_LANDAREA, e.eType);
+            assertArrayEquals(isSanyNotSeac ? new int[]{0, 1, 0, 1} : new int[]{2, 1, 9}, e.params);
             e = effects.get(2);
             assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
             assertNull(e.params);
@@ -1424,14 +1469,14 @@ public class TestActionsMessages
             {
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e3=1,e5=1"},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a ship."},
-                {"all:SOCPutPiece:", "|playerNumber=3|pieceType=3|coord=60d"},
+                {"all:SOCPutPiece:", "|playerNumber=3|pieceType=3|coord=" + (isSanyNotSeac ? "60d" : "70a")},
                 {"all:SOCGameState:", "|state=20"},
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e1=1,e3=1,e4=1,e5=1"},
                 {"all:SOCGameServerText:", "|text="+ CLIENT_NAME + " built a settlement."},
-                {"all:SOCPutPiece:", "|playerNumber=3|pieceType=1|coord=60e"},
-                {"all:SOCSVPTextMessage:", "|pn=3|svp=1|desc=growing past the main island"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=102|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=103|amount=1"},
+                {"all:SOCPutPiece:", "|playerNumber=3|pieceType=1|coord=" + (isSanyNotSeac ? "60e" : "80a")},
+                {"all:SOCSVPTextMessage:", isSanyNotSeac ? "|pn=3|svp=1|desc=growing past the main island" : "|pn=3|svp=2|desc=settling a new island"},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET" + (isSanyNotSeac ? "|elementType=102|amount=1" : "|elementType=104|amount=9")},
+                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET" + (isSanyNotSeac ? "|elementType=103|amount=1" : "|elementType=102|amount=4")},
                 {"all:SOCGameState:", "|state=20"}
             }, false);
 
@@ -1443,16 +1488,16 @@ public class TestActionsMessages
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertNull(board.settlementAtNode(settlement_isl_node));
-        assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
-        assertEquals(3, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
-        assertEquals(2, cliPl.getPublicVP());
-        assertEquals(2, cliPlAtCli.getPublicVP());
-        assertEquals(0, cliPl.getSpecialVP());
-        assertEquals(0, cliPlAtCli.getSpecialVP());
+        assertEquals(isSanyNotSeac ? 3 : 2, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(isSanyNotSeac ? 3 : 2, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(isSanyNotSeac ? 2 : 5, cliPl.getPublicVP());
+        assertEquals(isSanyNotSeac ? 2 : 5, cliPlAtCli.getPublicVP());
+        assertEquals(isSanyNotSeac ? 0 : 2, cliPl.getSpecialVP());
+        assertEquals(isSanyNotSeac ? 0 : 2, cliPlAtCli.getSpecialVP());
         assertEquals(0, cliPl.getPlayerEvents());
         assertEquals(0, cliPlAtCli.getPlayerEvents());
-        assertEquals(0, cliPl.getScenarioSVPLandAreas());
-        assertEquals(0, cliPlAtCli.getScenarioSVPLandAreas());
+        assertEquals(isSanyNotSeac ? 0 : 0x1, cliPl.getScenarioSVPLandAreas());
+        assertEquals(isSanyNotSeac ? 0 : 0x1, cliPlAtCli.getScenarioSVPLandAreas());
         assertArrayEquals(new int[]{2, 0, 3, 1, 3}, cliPl.getResources().getAmounts(false));
         assertArrayEquals(new int[]{2, 0, 3, 1, 3}, cliPlAtCli.getResources().getAmounts(false));
 
@@ -1474,10 +1519,10 @@ public class TestActionsMessages
 
             GameAction.Effect e = effects.get(0);
             assertEquals(GameAction.EffectType.CLOSE_SHIP_ROUTE, e.eType);
-            assertArrayEquals(new int[]{1549, 1548}, e.params);
+            assertArrayEquals(new int[]{isSanyNotSeac ? 1549 : 1802, isSanyNotSeac ? 1548 : 1545}, e.params);
             e = effects.get(1);
-            assertEquals(GameAction.EffectType.PLAYER_GAIN_SVP, e.eType);
-            assertArrayEquals(new int[]{0, 1, 0, 1}, e.params);
+            assertEquals(isSanyNotSeac ? GameAction.EffectType.PLAYER_GAIN_SVP : GameAction.EffectType.PLAYER_GAIN_SETTLED_LANDAREA, e.eType);
+            assertArrayEquals(isSanyNotSeac ? new int[]{0, 1, 0, 1} : new int[]{2, 1, 9}, e.params);
             e = effects.get(2);
             assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
             assertNull(e.params);
@@ -1486,173 +1531,180 @@ public class TestActionsMessages
         StringBuilder comparesUndoSettleEastIsl = TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCSetShipRouteClosed:", "|p=0|p=1549|p=1548"},
-                {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=1|coord=60e"},
-                {"all:SOCPlayerElements:", "|playerNum=3|actionType=SET|e102=0,e103=0"},
+                {"all:SOCSetShipRouteClosed:", isSanyNotSeac ? "|p=0|p=1549|p=1548" : "|p=0|p=1802|p=1545"},
+                {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=1|coord=" + (isSanyNotSeac ? "60e" : "80a")},
+                {"all:SOCPlayerElements:", "|playerNum=3|actionType=SET" + (isSanyNotSeac ? "|e102=0,e103=0" : "|e102=2,e104=1")},
                 {"all:SOCPlayerElements:", "|playerNum=3|actionType=GAIN|e1=1,e3=1,e4=1,e5=1"},
                 {"all:SOCGameState:", "|state=20"}
             }, false);
 
-        /* ships to southwest, settlement on small island */
+        /* SC_SANY: ships to southwest, settlement on small island */
 
-        records.clear();
-
-        ship_edge = 0xd05;
-        assertEquals(12, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
-        assertTrue(board.roadOrShipAtEdge(0xc05) instanceof SOCShip);
-        assertNull(board.roadOrShipAtEdge(ship_edge));
-        tcli.putPiece(ga, new SOCShip(cliPl, ship_edge, board));
-
-        try { Thread.sleep(60); }
-        catch(InterruptedException e) {}
-        assertTrue("ship built", board.roadOrShipAtEdge(ship_edge) instanceof SOCShip);
-        assertEquals(11, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
-        assertEquals(11, cliPlAtCli.getNumPieces(SOCPlayingPiece.SHIP));
-        assertNull(ga.canMoveShip(CLIENT_PN, ship_edge));
-        assertNull(gaAtCli.canMoveShip(CLIENT_PN, ship_edge));
-        assertArrayEquals(new int[]{2, 0, 2, 1, 2}, cliPl.getResources().getAmounts(false));
-        assertArrayEquals(new int[]{2, 0, 2, 1, 2}, cliPlAtCli.getResources().getAmounts(false));
-
-        ship_edge = 0xe04;
-        assertEquals(11, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
-        assertNull(board.roadOrShipAtEdge(ship_edge));
-        tcli.putPiece(ga, new SOCShip(cliPl, ship_edge, board));
-
-        try { Thread.sleep(60); }
-        catch(InterruptedException e) {}
-        assertTrue("ship built", board.roadOrShipAtEdge(ship_edge) instanceof SOCShip);
-        assertEquals(10, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
-        assertEquals(10, cliPlAtCli.getNumPieces(SOCPlayingPiece.SHIP));
-        assertNull(ga.canMoveShip(CLIENT_PN, ship_edge));
-        assertNull(gaAtCli.canMoveShip(CLIENT_PN, ship_edge));
-        assertArrayEquals(new int[]{2, 0, 1, 1, 1}, cliPl.getResources().getAmounts(false));
-        assertArrayEquals(new int[]{2, 0, 1, 1, 1}, cliPlAtCli.getResources().getAmounts(false));
-
-        settlement_isl_node = 0xe04;  // settlement on small island to southwest
-        assertNull(board.settlementAtNode(settlement_isl_node));
-        assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
-        tcli.putPiece(ga, new SOCSettlement(cliPl, settlement_isl_node, board));
-
-        try { Thread.sleep(60); }
-        catch(InterruptedException e) {}
-        assertNotNull("settlement built", board.settlementAtNode(settlement_isl_node));
-        assertEquals(2, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
-        assertEquals(2, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
-        assertEquals(4, cliPl.getPublicVP());
-        assertEquals(4, cliPlAtCli.getPublicVP());
-        assertEquals(1, cliPl.getSpecialVP());
-        assertEquals(1, cliPlAtCli.getSpecialVP());
-        assertEquals("has event because _SC_SANY", 1, cliPl.getPlayerEvents());
-        assertEquals("has event because _SC_SANY", 1, cliPlAtCli.getPlayerEvents());
-        assertEquals("still 0 because LA tracked for _SC_SEAC not _SC_SANY", 0, cliPl.getScenarioSVPLandAreas());
-        assertEquals("still 0 because LA tracked for _SC_SEAC not _SC_SANY", 0, cliPlAtCli.getScenarioSVPLandAreas());
-        assertArrayEquals(new int[]{1, 0, 0, 0, 0}, cliPl.getResources().getAmounts(false));
-        assertArrayEquals(new int[]{1, 0, 0, 0, 0}, cliPlAtCli.getResources().getAmounts(false));
-
-        act = ga.getLastAction();
-        actAtCli = gaAtCli.getLastAction();
-        assertNotNull(act);
-        assertNotNull(actAtCli);
-        assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
-        assertEquals(GameAction.ActionType.BUILD_PIECE, actAtCli.actType);
-        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
-        assertEquals(SOCPlayingPiece.SETTLEMENT, actAtCli.param1);
-        assertEquals(settlement_isl_node, act.param2);
-        assertEquals(settlement_isl_node, actAtCli.param2);
-
+        final StringBuilder comparesShipSettleSWIsl, comparesUndoSettleSWIsl;
+        if (isSanyNotSeac)
         {
-            List<GameAction.Effect> effects = act.effects;
-            assertNotNull(effects);
-            assertEquals(3, effects.size());
+            records.clear();
 
-            GameAction.Effect e = effects.get(0);
-            assertEquals(GameAction.EffectType.CLOSE_SHIP_ROUTE, e.eType);
-            assertArrayEquals(new int[]{3588, 3333, 3077}, e.params);
-            e = effects.get(1);
-            assertEquals(GameAction.EffectType.PLAYER_GAIN_SVP, e.eType);
-            assertArrayEquals(new int[]{0, 1, 0, 1}, e.params);
-            e = effects.get(2);
-            assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
-            assertNull(e.params);
-        }
+            ship_edge = 0xd05;
+            assertEquals(12, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
+            assertTrue(board.roadOrShipAtEdge(0xc05) instanceof SOCShip);
+            assertNull(board.roadOrShipAtEdge(ship_edge));
+            tcli.putPiece(ga, new SOCShip(cliPl, ship_edge, board));
 
-        StringBuilder comparesShipSettleSWIsl = TestRecorder.compareRecordsToExpected
-            (records, new String[][]
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertTrue("ship built", board.roadOrShipAtEdge(ship_edge) instanceof SOCShip);
+            assertEquals(11, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
+            assertEquals(11, cliPlAtCli.getNumPieces(SOCPlayingPiece.SHIP));
+            assertNull(ga.canMoveShip(CLIENT_PN, ship_edge));
+            assertNull(gaAtCli.canMoveShip(CLIENT_PN, ship_edge));
+            assertArrayEquals(new int[]{2, 0, 2, 1, 2}, cliPl.getResources().getAmounts(false));
+            assertArrayEquals(new int[]{2, 0, 2, 1, 2}, cliPlAtCli.getResources().getAmounts(false));
+
+            ship_edge = 0xe04;
+            assertEquals(11, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
+            assertNull(board.roadOrShipAtEdge(ship_edge));
+            tcli.putPiece(ga, new SOCShip(cliPl, ship_edge, board));
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertTrue("ship built", board.roadOrShipAtEdge(ship_edge) instanceof SOCShip);
+            assertEquals(10, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
+            assertEquals(10, cliPlAtCli.getNumPieces(SOCPlayingPiece.SHIP));
+            assertNull(ga.canMoveShip(CLIENT_PN, ship_edge));
+            assertNull(gaAtCli.canMoveShip(CLIENT_PN, ship_edge));
+            assertArrayEquals(new int[]{2, 0, 1, 1, 1}, cliPl.getResources().getAmounts(false));
+            assertArrayEquals(new int[]{2, 0, 1, 1, 1}, cliPlAtCli.getResources().getAmounts(false));
+
+            settlement_isl_node = 0xe04;  // settlement on small island to southwest
+            assertNull(board.settlementAtNode(settlement_isl_node));
+            assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+            tcli.putPiece(ga, new SOCSettlement(cliPl, settlement_isl_node, board));
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertNotNull("settlement built", board.settlementAtNode(settlement_isl_node));
+            assertEquals(2, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+            assertEquals(2, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+            assertEquals(4, cliPl.getPublicVP());
+            assertEquals(4, cliPlAtCli.getPublicVP());
+            assertEquals(1, cliPl.getSpecialVP());
+            assertEquals(1, cliPlAtCli.getSpecialVP());
+            assertEquals("has event because _SC_SANY", 1, cliPl.getPlayerEvents());
+            assertEquals("has event because _SC_SANY", 1, cliPlAtCli.getPlayerEvents());
+            assertEquals("still 0 because LA tracked for _SC_SEAC not _SC_SANY", 0, cliPl.getScenarioSVPLandAreas());
+            assertEquals("still 0 because LA tracked for _SC_SEAC not _SC_SANY", 0, cliPlAtCli.getScenarioSVPLandAreas());
+            assertArrayEquals(new int[]{1, 0, 0, 0, 0}, cliPl.getResources().getAmounts(false));
+            assertArrayEquals(new int[]{1, 0, 0, 0, 0}, cliPlAtCli.getResources().getAmounts(false));
+
+            act = ga.getLastAction();
+            actAtCli = gaAtCli.getLastAction();
+            assertNotNull(act);
+            assertNotNull(actAtCli);
+            assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+            assertEquals(GameAction.ActionType.BUILD_PIECE, actAtCli.actType);
+            assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+            assertEquals(SOCPlayingPiece.SETTLEMENT, actAtCli.param1);
+            assertEquals(settlement_isl_node, act.param2);
+            assertEquals(settlement_isl_node, actAtCli.param2);
+
             {
-                {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e3=1,e5=1"},
-                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a ship."},
-                {"all:SOCPutPiece:", "|playerNumber=3|pieceType=3|coord=d05"},
-                {"all:SOCGameState:", "|state=20"},
-                {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e3=1,e5=1"},
-                {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a ship."},
-                {"all:SOCPutPiece:", "|playerNumber=3|pieceType=3|coord=e04"},
-                {"all:SOCGameState:", "|state=20"},
-                {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e1=1,e3=1,e4=1,e5=1"},
-                {"all:SOCGameServerText:", "|text="+ CLIENT_NAME + " built a settlement."},
-                {"all:SOCPutPiece:", "|playerNumber=3|pieceType=1|coord=e04"},
-                {"all:SOCSVPTextMessage:", "|pn=3|svp=1|desc=growing past the main island"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=102|amount=1"},
-                {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=103|amount=1"},
-                {"all:SOCGameState:", "|state=20"}
-            }, false);
+                List<GameAction.Effect> effects = act.effects;
+                assertNotNull(effects);
+                assertEquals(3, effects.size());
 
-        /* undo build that settlement (on small island) */
+                GameAction.Effect e = effects.get(0);
+                assertEquals(GameAction.EffectType.CLOSE_SHIP_ROUTE, e.eType);
+                assertArrayEquals(new int[]{3588, 3333, 3077}, e.params);
+                e = effects.get(1);
+                assertEquals(GameAction.EffectType.PLAYER_GAIN_SVP, e.eType);
+                assertArrayEquals(new int[]{0, 1, 0, 1}, e.params);
+                e = effects.get(2);
+                assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+                assertNull(e.params);
+            }
 
-        records.clear();
+            comparesShipSettleSWIsl = TestRecorder.compareRecordsToExpected
+                (records, new String[][]
+                {
+                    {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e3=1,e5=1"},
+                    {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a ship."},
+                    {"all:SOCPutPiece:", "|playerNumber=3|pieceType=3|coord=d05"},
+                    {"all:SOCGameState:", "|state=20"},
+                    {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e3=1,e5=1"},
+                    {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a ship."},
+                    {"all:SOCPutPiece:", "|playerNumber=3|pieceType=3|coord=e04"},
+                    {"all:SOCGameState:", "|state=20"},
+                    {"all:SOCPlayerElements:", "|playerNum=3|actionType=LOSE|e1=1,e3=1,e4=1,e5=1"},
+                    {"all:SOCGameServerText:", "|text="+ CLIENT_NAME + " built a settlement."},
+                    {"all:SOCPutPiece:", "|playerNumber=3|pieceType=1|coord=e04"},
+                    {"all:SOCSVPTextMessage:", "|pn=3|svp=1|desc=growing past the main island"},
+                    {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=102|amount=1"},
+                    {"all:SOCPlayerElement:", "|playerNum=3|actionType=SET|elementType=103|amount=1"},
+                    {"all:SOCGameState:", "|state=20"}
+                }, false);
 
-        tcli.undoPutOrMovePieceRequest(ga, SOCPlayingPiece.SETTLEMENT, settlement_isl_node, 0);
-        try { Thread.sleep(60); }
-        catch(InterruptedException e) {}
-        assertNull(board.settlementAtNode(settlement_isl_node));
-        assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
-        assertEquals(3, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
-        assertEquals(2, cliPl.getPublicVP());
-        assertEquals(2, cliPlAtCli.getPublicVP());
-        assertEquals(0, cliPl.getSpecialVP());
-        assertEquals(0, cliPlAtCli.getSpecialVP());
-        assertEquals(0, cliPl.getPlayerEvents());
-        assertEquals(0, cliPlAtCli.getPlayerEvents());
-        assertEquals(0, cliPl.getScenarioSVPLandAreas());
-        assertEquals(0, cliPlAtCli.getScenarioSVPLandAreas());
-        assertArrayEquals(new int[]{2, 0, 1, 1, 1}, cliPl.getResources().getAmounts(false));
-        assertArrayEquals(new int[]{2, 0, 1, 1, 1}, cliPlAtCli.getResources().getAmounts(false));
+            /* undo build that settlement (on small island) */
 
-        act = ga.getLastAction();
-        actAtCli = gaAtCli.getLastAction();
-        assertNotNull(act);
-        assertNotNull(actAtCli);
-        assertEquals(GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);
-        assertEquals(GameAction.ActionType.UNDO_BUILD_PIECE, actAtCli.actType);
-        assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
-        assertEquals(SOCPlayingPiece.SETTLEMENT, actAtCli.param1);
-        assertEquals(settlement_isl_node, act.param2);
-        assertEquals(settlement_isl_node, actAtCli.param2);
+            records.clear();
 
-        {
-            List<GameAction.Effect> effects = act.effects;
-            assertNotNull(effects);
-            assertEquals(3, effects.size());
+            tcli.undoPutOrMovePieceRequest(ga, SOCPlayingPiece.SETTLEMENT, settlement_isl_node, 0);
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+            assertNull(board.settlementAtNode(settlement_isl_node));
+            assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+            assertEquals(3, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+            assertEquals(2, cliPl.getPublicVP());
+            assertEquals(2, cliPlAtCli.getPublicVP());
+            assertEquals(0, cliPl.getSpecialVP());
+            assertEquals(0, cliPlAtCli.getSpecialVP());
+            assertEquals(0, cliPl.getPlayerEvents());
+            assertEquals(0, cliPlAtCli.getPlayerEvents());
+            assertEquals(0, cliPl.getScenarioSVPLandAreas());
+            assertEquals(0, cliPlAtCli.getScenarioSVPLandAreas());
+            assertArrayEquals(new int[]{2, 0, 1, 1, 1}, cliPl.getResources().getAmounts(false));
+            assertArrayEquals(new int[]{2, 0, 1, 1, 1}, cliPlAtCli.getResources().getAmounts(false));
 
-            GameAction.Effect e = effects.get(0);
-            assertEquals(GameAction.EffectType.CLOSE_SHIP_ROUTE, e.eType);
-            assertArrayEquals(new int[]{3588, 3333, 3077}, e.params);
-            e = effects.get(1);
-            assertEquals(GameAction.EffectType.PLAYER_GAIN_SVP, e.eType);
-            assertArrayEquals(new int[]{0, 1, 0, 1}, e.params);
-            e = effects.get(2);
-            assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
-            assertNull(e.params);
-        }
+            act = ga.getLastAction();
+            actAtCli = gaAtCli.getLastAction();
+            assertNotNull(act);
+            assertNotNull(actAtCli);
+            assertEquals(GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);
+            assertEquals(GameAction.ActionType.UNDO_BUILD_PIECE, actAtCli.actType);
+            assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
+            assertEquals(SOCPlayingPiece.SETTLEMENT, actAtCli.param1);
+            assertEquals(settlement_isl_node, act.param2);
+            assertEquals(settlement_isl_node, actAtCli.param2);
 
-        StringBuilder comparesUndoSettleSWIsl = TestRecorder.compareRecordsToExpected
-            (records, new String[][]
             {
-                {"all:SOCSetShipRouteClosed:", "|p=0|p=3588|p=3333|p=3077"},
-                {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=1|coord=e04"},
-                {"all:SOCPlayerElements:", "|playerNum=3|actionType=SET|e102=0,e103=0"},
-                {"all:SOCPlayerElements:", "|playerNum=3|actionType=GAIN|e1=1,e3=1,e4=1,e5=1"},
-                {"all:SOCGameState:", "|state=20"}
-            }, false);
+                List<GameAction.Effect> effects = act.effects;
+                assertNotNull(effects);
+                assertEquals(3, effects.size());
+
+                GameAction.Effect e = effects.get(0);
+                assertEquals(GameAction.EffectType.CLOSE_SHIP_ROUTE, e.eType);
+                assertArrayEquals(new int[]{3588, 3333, 3077}, e.params);
+                e = effects.get(1);
+                assertEquals(GameAction.EffectType.PLAYER_GAIN_SVP, e.eType);
+                assertArrayEquals(new int[]{0, 1, 0, 1}, e.params);
+                e = effects.get(2);
+                assertEquals(GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+                assertNull(e.params);
+            }
+
+            comparesUndoSettleSWIsl = TestRecorder.compareRecordsToExpected
+                (records, new String[][]
+                {
+                    {"all:SOCSetShipRouteClosed:", "|p=0|p=3588|p=3333|p=3077"},
+                    {"all:SOCUndoPutPiece:", "|playerNumber=3|pieceType=1|coord=e04"},
+                    {"all:SOCPlayerElements:", "|playerNum=3|actionType=SET|e102=0,e103=0"},
+                    {"all:SOCPlayerElements:", "|playerNum=3|actionType=GAIN|e1=1,e3=1,e4=1,e5=1"},
+                    {"all:SOCGameState:", "|state=20"}
+                }, false);
+        } else {
+            comparesShipSettleSWIsl = null;
+            comparesUndoSettleSWIsl = null;
+        }
 
         /* leave game, consolidate results */
 

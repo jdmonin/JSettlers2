@@ -1098,7 +1098,7 @@ public class TestLoadgame
 
         final String[] NAMES = {null, "robot 5", "droid 1", "debug"};
         final int[] TOTAL_VP = {0, 2, 2, 5};
-        final int[][] RESOURCES = {null, {0, 0, 0, 3, 1}, {1, 0, 1, 1, 0}, {0, 0, 1, 0, 0}};
+        final int[][] RESOURCES = {null, {0, 0, 0, 3, 1}, {1, 0, 1, 1, 0}, {2, 0, 4, 1, 4}};
         final int[][] PIECE_COUNTS = {{15, 5, 4, 15, 0}, {13, 3, 4, 15, 0}, {13, 3, 4, 15, 0}, {15, 2, 4, 11, 0}};
         checkPlayerData(sgm, NAMES, null, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
 
