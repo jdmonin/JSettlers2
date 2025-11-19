@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2019-2021,2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,9 +20,11 @@
 
 package soctest.game;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
+import soc.game.GameAction;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
@@ -35,6 +37,8 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCRoad;
 import soc.game.SOCScenario;
 import soc.game.SOCSettlement;
+import soc.game.SOCShip;
+import soc.game.SOCVillage;
 import soc.server.SOCBoardAtServer;
 import soc.server.SOCGameHandler;
 import soc.server.SOCGameListAtServer;
@@ -48,6 +52,7 @@ import static org.junit.Assert.*;
  * Nowhere near comprehensive at this point:
  * Currently tests only:
  *<UL>
+ * <LI> {@link SOCScenario#K_SC_CLVI SC_CLVI}: Placing ships to a village gives 1 cloth, closes route; 2 cloth gives a VP
  * <LI> {@link SOCScenario#K_SC_PIRI SC_PIRI}: A few rules for pirate fleet robbery.
  * <LI> {@link SOCScenario#K_SC_TTD SC_TTD}: 2 SVP for placing past the desert, but no SVP for placing in desert
  *</UL>
@@ -57,6 +62,7 @@ import static org.junit.Assert.*;
  */
 public class TestScenarioRules
 {
+    private final static Random rand = new Random();
     private static SOCGameListAtServer gl;
     private static SOCGameHandler sgh;
 
@@ -64,7 +70,7 @@ public class TestScenarioRules
     public static void setup()
     {
         sgh = new SOCGameHandler(null);
-        gl = new SOCGameListAtServer(new Random(), SOCGameOptionSet.getAllKnownOptions());
+        gl = new SOCGameListAtServer(rand, SOCGameOptionSet.getAllKnownOptions());
     }
 
     /**
@@ -358,6 +364,379 @@ public class TestScenarioRules
 
         // Cleanup
         gl.deleteGame(gaName);
+    }
+
+    /**
+     * {@link SOCScenario#K_SC_CLVI SC_CLVI}: Placing ships to a village gives 1 cloth, closes route; 2 cloth gives a VP.
+     * @since 2.7.00
+     */
+    @Test
+    public void test_SC_CLVI_ships_to_village()
+    {
+        final String gaName = SOCScenario.K_SC_CLVI + ":2";  // use scenario's 2-player layout
+        final SOCGame ga = GameTestUtils.createGame
+            (2, SOCScenario.K_SC_CLVI, "NT=t,N7=t7,UB=t,UBL=t7", gaName, gl, sgh);
+
+        // Create the board and 2 players. Adapted from SOCGameHandler.startGame
+        for (int pn = 0; pn < 2; ++pn)
+            ga.addPlayer("player" + pn, pn);
+        ga.startGame();  // SOCBoard/SOCBoardAtServer.makeNewBoard is called here
+        SOCBoardAtServer.startGame_scenarioSetup(ga);
+
+        final SOCBoardAtServer board = (SOCBoardAtServer) ga.getBoard();
+        final SOCPlayer pl0 = ga.getPlayer(0), pl1 = ga.getPlayer(1);
+
+        /**
+         * Initial placement and subsequent ships for 2 players:
+         * Each subarray has a coastal settle node, 2 sea edges,
+         * and a village node next to 2nd sea edge (partial set of board's villages)
+         */
+        final int[][] COASTAL_SETTLE_2_SHIPS_VILLAGE = new int[][]
+            {
+                {0x607, 0x607, 0x608, 0x609},
+                {0x60b, 0x60a, 0x609, 0x609},
+                {0x804, 0x804, 0x805, 0x806},
+                {0xc07, 0xc07, 0xc08, 0xc09},
+                {0xc0b, 0xc0a, 0xc09, 0xc09},
+                {0xa0e, 0xa0d, 0xa0c, 0xa0c},
+            };
+
+        // Assert test assumptions on 2-player board:
+        // - water for ships to villages
+        for (final int HEXCOORD : new int[]{0x508, 0x50a, 0x707, 0x70b, 0x705, 0x904, 0xd08, 0xd0a, 0xb07, 0xb0b, 0xb0d, 0x90e})
+            assertEquals("expected water at hex 0x" + Integer.toHexString(HEXCOORD),
+                SOCBoard.WATER_HEX, board.getHexTypeFromCoord(HEXCOORD));
+        // - land for init placements
+        for (final int HEXCOORD : new int[]{0x506, 0x50c, 0x703, 0xd06, 0xd0c, 0xb0f})
+            assertNotEquals("expected land at hex 0x" + Integer.toHexString(HEXCOORD),
+                SOCBoard.WATER_HEX, board.getHexTypeFromCoord(HEXCOORD));
+        // - the villages we'll build to
+        for (final int[] CS_SH_VI : COASTAL_SETTLE_2_SHIPS_VILLAGE)
+        {
+            final int nodeCoord = CS_SH_VI[3];
+            SOCVillage vi = ((SOCBoardLarge) board).getVillageAtNode(nodeCoord);
+            assertNotNull("expected village at 0x" + Integer.toHexString(nodeCoord), vi);
+            assertEquals("cloth count at village at 0x" + Integer.toHexString(nodeCoord), SOCVillage.STARTING_CLOTH, vi.getCloth());
+        }
+
+        // set first player instead of the normal random start
+        ga.setGameState(SOCGame.START1A);
+        assertEquals(SOCGame.START1A, ga.getGameState());
+        ga.setCurrentPlayerNumber(0);
+        assertEquals(0, ga.getCurrentPlayerNumber());
+        ga.setFirstPlayer(0);
+        assertEquals(0, ga.getFirstPlayer());
+
+        // do initial placement the usual way, more or less, so it will
+        // behave like an actual played game and transition to normal gameplay
+
+        /** Subarrays are each player number's 3 indexes into COASTAL_SETTLE_2_SHIPS_VILLAGE */
+        final int[][] plPlacementIndexes = new int[2][3];
+        {
+            int[] indexes = new int[COASTAL_SETTLE_2_SHIPS_VILLAGE.length];
+            for (int i = 0; i < indexes.length; ++i)
+                indexes[i] = i;
+            // standard Durstenfeld shuffle: Knuth AOCP Algorithm P (Shuffling)
+            for (int i = indexes.length - 1; i > 0; i--)
+            {
+                int idx = rand.nextInt(i + 1);
+                int swap = indexes[idx];
+                indexes[idx] = indexes[i];
+                indexes[i] = swap;
+            }
+
+            int iOverall = 0;
+            for (int i = 0; i < 3; ++i)
+                plPlacementIndexes[0][i] = indexes[iOverall++];
+            for (int i = 0; i < 3; ++i)
+                plPlacementIndexes[1][i] = indexes[iOverall++];
+        }
+
+        // 3 init placements per player
+        final int[][] INITPLACE_PN_STARTSTATE = new int[][]
+            {
+                {0, SOCGame.START1A}, {1, SOCGame.START1A},
+                {1, SOCGame.START2A}, {0, SOCGame.START2A},
+                {0, SOCGame.START3A}, {1, SOCGame.START3A},
+            };
+        for (int ipIdx = 0; ipIdx < INITPLACE_PN_STARTSTATE.length; ++ipIdx)
+        {
+            final int pn = INITPLACE_PN_STARTSTATE[ipIdx][0];
+            final SOCPlayer pl = (pn == 0) ? pl0 : pl1;
+
+            assertEquals(INITPLACE_PN_STARTSTATE[ipIdx][1], ga.getGameState());
+            assertEquals(pn, ga.getCurrentPlayerNumber());
+
+            int playerNextIdx = pl.getPublicVP();  // since each placed settlement is 1 VP
+            final int[] INIT_SETTLE_SHIPS = COASTAL_SETTLE_2_SHIPS_VILLAGE[plPlacementIndexes[pn][playerNextIdx]];
+
+            int coord = INIT_SETTLE_SHIPS[0];
+            assertNull("expect no settlement yet at 0x" + Integer.toHexString(coord), board.settlementAtNode(coord));
+            SOCPlayingPiece p = new SOCSettlement(pl, coord, board);
+            ga.putPiece(p);
+            assertNotNull(board.settlementAtNode(coord));
+
+            coord = INIT_SETTLE_SHIPS[1];
+            assertNull("expect no ship yet at 0x" + Integer.toHexString(coord), board.roadOrShipAtEdge(coord));
+            assertEquals(1 + INITPLACE_PN_STARTSTATE[ipIdx][1], ga.getGameState());
+            p = new SOCShip(pl,coord, board);
+            ga.putPiece(p);
+            assertNotNull(board.roadOrShipAtEdge(coord));
+        }
+
+        // initial placement should have auto-transitioned to first turn of normal gameplay
+        assertEquals("should be done with initial placement", SOCGame.ROLL_OR_CARD, ga.getGameState());
+        for (int pn = 0; pn < 2; ++pn)
+        {
+            final SOCPlayer pl = ga.getPlayer(pn);
+            assertEquals("pn " + pn + " total 3 VP", 3, pl.getTotalVP());
+            assertEquals("pn " + pn + " no SVP", 0,  pl.getSpecialVP());
+            assertEquals("pn " + pn + " no cloth yet", 0, pl.getCloth());
+        }
+
+        HashSet<Integer> villagesBuiltTo = new HashSet<>();
+        int ship1Edge, ship2Edge;
+        final int villageNode;
+        {
+            int csIdx = plPlacementIndexes[0][0];  // player 0's first placement
+            ship1Edge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][1];
+            ship2Edge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][2];
+            villageNode = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][3];
+        }
+        test_SC_CLVI_ships_to_village_placeShip(ga, board, 0, 3, 3, 0, ship1Edge, ship2Edge, villageNode, true, villagesBuiltTo, 0);
+
+        int village2Node, clothVPIncr;
+        {
+            int csIdx = plPlacementIndexes[0][1];  // player 0's second placement
+            ship1Edge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][1];
+            ship2Edge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][2];
+            village2Node = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][3];
+            clothVPIncr = (village2Node != villageNode) ? 1 : 0;
+        }
+        test_SC_CLVI_ships_to_village_placeShip(ga, board, 0, 3, 3 + clothVPIncr, 1, ship1Edge, ship2Edge, village2Node, false, villagesBuiltTo, 0);
+
+        // For third, make sure undo/redo move also has the expected effects.
+        // Move player 0's third placed ship to placement 2's ship2Edge (since that was undone)
+        int moveShipFromEdge;
+        {
+            int csIdx = plPlacementIndexes[0][2];  // player 0's third placement
+            moveShipFromEdge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][1];
+        }
+        test_SC_CLVI_ships_to_village_placeShip(ga, board, 0, 3, 3 + clothVPIncr, 1, ship1Edge, ship2Edge, village2Node, true, villagesBuiltTo, moveShipFromEdge);
+
+        // Cleanup
+        gl.deleteGame(gaName);
+    }
+
+    /**
+     * {@link SOCScenario#K_SC_CLVI SC_CLVI}: Place (build or move) a ship to a village and undo that for {@link #test_SC_CLVI_ships_to_village()}.
+     * @param ga
+     * @param board
+     * @param pn  Player number to place for; should be current player
+     * @param playerVP  Player's expected {@link SOCPlayer#getTotalVP()} before placing the second ship
+     * @param playerVPAfter  Player's expected {@link SOCPlayer#getTotalVP()} after placing the second ship
+     * @param playerCloth  Player's expected {@link SOCPlayer#getCloth()} before placing the second ship.
+     *     This is also used to indicate whether it's the player's first village (if 0) or subsequent.
+     * @param ship1Edge  Edge coord of already-placed first ship
+     * @param ship2Edge  Edge coord of ship to be placed here, then undone
+     * @param villageNode  Node coord of village to be placed to
+     * @param redoPlacement  If true, redo ship placement after undo
+     * @param villagesBuiltTo  Since 2 ships can build to same village, track the nodes built-to and redone so we know how much cloth to expect there
+     * @param moveShipFromEdge  If nonzero, move ship from here to {@code ship2Edge} instead of building a ship
+     * @since 2.7.00
+     */
+    private void test_SC_CLVI_ships_to_village_placeShip
+        (final SOCGame ga, final SOCBoardAtServer board,
+         final int pn, final int playerVP, final int playerVPAfter, final int playerCloth,
+         final int ship1Edge, final int ship2Edge, final int villageNode, final boolean redoPlacement,
+         final HashSet<Integer> villagesBuiltTo, final int moveShipFromEdge)
+    {
+        assertEquals("current player number", pn, ga.getCurrentPlayerNumber());
+
+        /* check conditions before building the ship to village: */
+
+        final SOCPlayer pl = ga.getPlayer(pn);
+        assertEquals("pn " + pn + " cloth count before village", playerCloth, pl.getCloth());
+        assertEquals("pn " + pn + " total VP before village", playerVP, pl.getTotalVP());
+
+        SOCShip sh = (SOCShip) board.roadOrShipAtEdge(ship1Edge);
+        assertNotNull(sh);
+        assertEquals(pn, sh.getPlayerNumber());
+        assertFalse(sh.isClosed());
+
+        sh = (SOCShip) board.roadOrShipAtEdge(ship2Edge);
+        assertNull("no ship yet at 0x" + Integer.toHexString(ship2Edge), sh);
+
+        final SOCVillage vi = ((SOCBoardLarge) board).getVillageAtNode(villageNode);
+        final boolean villageAlreadyBuiltTo = (villagesBuiltTo.contains(villageNode));
+        final int villageCloth = SOCVillage.STARTING_CLOTH - (villageAlreadyBuiltTo ? 1 : 0);
+        assertNotNull("expected village at 0x" + Integer.toHexString(villageNode), vi);
+        assertEquals("cloth count before build at village at 0x" + Integer.toHexString(villageNode), villageCloth, vi.getCloth());
+
+        /* place ship adjacent to village: */
+
+        ga.setGameState(SOCGame.PLAY1);
+        assertEquals(SOCGame.PLAY1, ga.getGameState());
+
+        if (moveShipFromEdge == 0)
+        {
+            sh = new SOCShip(pl, ship2Edge, board);
+            ga.putPiece(sh);
+        } else {
+            sh = ga.canMoveShip(pn, moveShipFromEdge, ship2Edge);
+            assertNotNull("can move ship from 0x" + Integer.toHexString(moveShipFromEdge) + " to 0x" + Integer.toHexString(ship2Edge), sh);
+            ga.moveShip(sh, ship2Edge);
+        }
+
+        sh = (SOCShip) board.roadOrShipAtEdge(ship1Edge);
+        assertTrue("ship 1 route now closed: 0x" + Integer.toHexString(ship1Edge), sh.isClosed());
+
+        sh = (SOCShip) (board.roadOrShipAtEdge(ship2Edge));
+        assertNotNull(sh);
+        assertTrue("ship 2 route now closed: 0x" + Integer.toHexString(ship2Edge), sh.isClosed());
+
+        assertEquals("pn " + pn + " cloth count after village", playerCloth + (villageAlreadyBuiltTo ? 0 : 1), pl.getCloth());
+        assertEquals("pn " + pn + " total VP after village", playerVPAfter, pl.getTotalVP());
+        assertEquals("cloth count after build at village at 0x" + Integer.toHexString(villageNode), villageCloth - (villageAlreadyBuiltTo ? 0 : 1), vi.getCloth());
+
+        GameAction act = ga.getLastAction();
+        assertNotNull(act);
+        assertEquals((moveShipFromEdge != 0) ? GameAction.ActionType.MOVE_PIECE : GameAction.ActionType.BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals((moveShipFromEdge != 0) ? moveShipFromEdge : ship2Edge, act.param2);
+        assertEquals((moveShipFromEdge != 0) ? ship2Edge : pn, act.param3);
+        {
+            List<GameAction.Effect> effects = act.effects;
+            assertNotNull(effects);
+            assertEquals(1 + (villageAlreadyBuiltTo ? 0 : 1) + ((playerCloth == 0) ? 1 : 0), effects.size());
+
+            int i = 0;
+            GameAction.Effect e;
+            if (playerCloth == 0)
+            {
+                e = effects.get(i++);
+                assertEquals(GameAction.EffectType.PLAYER_SET_EVENT_FLAGS, e.eType);
+                assertArrayEquals(new int[]{4, 1}, e.params);
+            }
+
+            if (! villageAlreadyBuiltTo)
+            {
+                e = effects.get(i++);
+                assertEquals(GameAction.EffectType.PLAYER_SCEN_CLVI_RECEIVE_CLOTH, e.eType);
+                assertArrayEquals(new int[]{1, villageNode, 1}, e.params);
+            }
+
+            e = effects.get(i++);
+            assertEquals(GameAction.EffectType.CLOSE_SHIP_ROUTE, e.eType);
+            assertArrayEquals(new int[]{ship2Edge, ship1Edge}, e.params);
+        }
+
+        /* undo place ship adjacent to village: */
+
+        assertEquals(SOCGame.PLAY1, ga.getGameState());
+        if (moveShipFromEdge != 0)
+        {
+            assertTrue(ga.canUndoMoveShip(pn, sh));
+            final GameAction undoMove = ga.undoMoveShip(sh);
+            assertNotNull(undoMove);
+        } else {
+            assertTrue(ga.canUndoPutPiece(pn, sh));
+            final GameAction undoBuild = ga.undoPutPiece(sh);
+            assertNotNull(undoBuild);
+        }
+
+        act = ga.getLastAction();
+        assertNotNull(act);
+        assertEquals((moveShipFromEdge != 0) ? GameAction.ActionType.UNDO_MOVE_PIECE : GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);
+        assertEquals(SOCPlayingPiece.SHIP, act.param1);
+        assertEquals(ship2Edge, act.param2);
+        assertEquals((moveShipFromEdge != 0) ? moveShipFromEdge : pn, act.param3);
+        assertNull(act.rset1);
+        {
+            List<GameAction.Effect> effects = act.effects;
+            assertNotNull(effects);
+            assertEquals(1 + (villageAlreadyBuiltTo ? 0 : 1) + ((playerCloth == 0) ? 1 : 0), effects.size());
+
+            int i = 0;
+            GameAction.Effect e;
+            if (playerCloth == 0)
+            {
+                e = effects.get(i++);
+                assertEquals(GameAction.EffectType.PLAYER_SET_EVENT_FLAGS, e.eType);
+                assertArrayEquals(new int[]{4, 1}, e.params);
+            }
+
+            if (! villageAlreadyBuiltTo)
+            {
+                e = effects.get(i++);
+                assertEquals(GameAction.EffectType.PLAYER_SCEN_CLVI_RECEIVE_CLOTH, e.eType);
+                assertArrayEquals(new int[]{1, villageNode, 1}, e.params);
+            }
+
+            e = effects.get(i++);
+            assertEquals(GameAction.EffectType.CLOSE_SHIP_ROUTE, e.eType);
+            assertArrayEquals(new int[]{ship2Edge, ship1Edge}, e.params);
+        }
+
+        assertNull(board.roadOrShipAtEdge(ship2Edge));
+
+        assertEquals("cloth count after undo at village at 0x" + Integer.toHexString(villageNode), villageCloth, vi.getCloth());
+
+        sh = (SOCShip) board.roadOrShipAtEdge(ship1Edge);
+        assertNotNull(sh);
+        assertFalse("ship 1 route reopened: 0x" + Integer.toHexString(ship1Edge), sh.isClosed());
+
+        assertEquals("pn " + pn + " cloth count after undo village", playerCloth, pl.getCloth());
+        assertEquals("pn " + pn + " total VP after undo village", playerVP, pl.getTotalVP());
+
+        if (redoPlacement)
+        {
+            assertEquals(SOCGame.PLAY1, ga.getGameState());
+
+            sh = new SOCShip(pl, ship2Edge, board);
+            ga.putPiece(sh);
+
+            sh = (SOCShip) board.roadOrShipAtEdge(ship1Edge);
+            assertTrue("ship 1 route now closed: 0x" + Integer.toHexString(ship1Edge), sh.isClosed());
+
+            sh = (SOCShip) (board.roadOrShipAtEdge(ship2Edge));
+            assertNotNull(sh);
+            assertTrue("ship 2 route now closed: 0x" + Integer.toHexString(ship2Edge), sh.isClosed());
+
+            assertEquals("pn " + pn + " cloth count after redo village", playerCloth + (villageAlreadyBuiltTo ? 0 : 1), pl.getCloth());
+            assertEquals("pn " + pn + " total VP after redo village", playerVPAfter, pl.getTotalVP());
+            assertEquals("cloth count after redo at village at 0x" + Integer.toHexString(villageNode), villageCloth - (villageAlreadyBuiltTo ? 0 : 1), vi.getCloth());
+
+            act = ga.getLastAction();
+            assertNotNull(act);
+            {
+                List<GameAction.Effect> effects = act.effects;
+                assertNotNull(effects);
+                assertEquals(1 + (villageAlreadyBuiltTo ? 0 : 1) + ((playerCloth == 0) ? 1 : 0), effects.size());
+
+                int i = 0;
+                GameAction.Effect e;
+                if (playerCloth == 0)
+                {
+                    e = effects.get(i++);
+                    assertEquals(GameAction.EffectType.PLAYER_SET_EVENT_FLAGS, e.eType);
+                    assertArrayEquals(new int[]{4, 1}, e.params);
+                }
+
+                if (! villageAlreadyBuiltTo)
+                {
+                    e = effects.get(i++);
+                    assertEquals(GameAction.EffectType.PLAYER_SCEN_CLVI_RECEIVE_CLOTH, e.eType);
+                    assertArrayEquals(new int[]{1, villageNode, 1}, e.params);
+                }
+
+                e = effects.get(i++);
+                assertEquals(GameAction.EffectType.CLOSE_SHIP_ROUTE, e.eType);
+                assertArrayEquals(new int[]{ship2Edge, ship1Edge}, e.params);
+            }
+
+            villagesBuiltTo.add(villageNode);
+        }
     }
 
 }
