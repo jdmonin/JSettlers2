@@ -226,7 +226,7 @@ public class TestActionsMessages
         // final SavedGameModel sgm = objs.sgm;
         final SOCGame ga = objs.gameAtServer, gaAtCli = tcli.getGame(ga.getName());
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
-        final SOCPlayer cliPl = objs.clientPlayer;
+        final SOCPlayer cliPl = objs.clientPlayer, cliPlAtCli = gaAtCli.getPlayer(CLIENT_PN);
         final Vector<EventEntry> records = objs.records;
         assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
 
@@ -252,7 +252,9 @@ public class TestActionsMessages
         final int SETTLEMENT_NODE = 0x60a;
         assertNull(board.settlementAtNode(SETTLEMENT_NODE));
         assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(3, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
         assertEquals(2, cliPl.getPublicVP());
+        assertEquals(2, cliPlAtCli.getPublicVP());
         assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPl.getResources().getAmounts(false));
         if (withBuildRequest)
         {
@@ -261,6 +263,7 @@ public class TestActionsMessages
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
             assertEquals(SOCGame.PLACING_SETTLEMENT, ga.getGameState());
+            assertEquals(SOCGame.PLACING_SETTLEMENT, gaAtCli.getGameState());
             assertArrayEquals(new int[]{2, 3, 2, 3, 3}, cliPl.getResources().getAmounts(false));
         }
         tcli.putPiece(ga, new SOCSettlement(cliPl, SETTLEMENT_NODE, board));
@@ -269,7 +272,9 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertNotNull("settlement built", board.settlementAtNode(SETTLEMENT_NODE));
         assertEquals(2, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(2, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
         assertEquals(3, cliPl.getPublicVP());
+        assertEquals(3, cliPlAtCli.getPublicVP());
         assertArrayEquals(new int[]{2, 3, 2, 3, 3}, cliPl.getResources().getAmounts(false));
 
         GameAction act = ga.getLastAction();
@@ -278,6 +283,7 @@ public class TestActionsMessages
         assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
         assertEquals(SETTLEMENT_NODE, act.param2);
         assertEquals(CLIENT_PN, act.param3);
+        // effects are tracked only at server
         {
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(effects);
@@ -309,7 +315,9 @@ public class TestActionsMessages
 
         records.clear();
         assertEquals(4, cliPl.getNumPieces(SOCPlayingPiece.CITY));
+        assertEquals(4, cliPlAtCli.getNumPieces(SOCPlayingPiece.CITY));
         assertEquals(2, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(2, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
         if (withBuildRequest)
         {
             tcli.buildRequest(ga, SOCPlayingPiece.CITY);
@@ -317,6 +325,7 @@ public class TestActionsMessages
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
             assertEquals(SOCGame.PLACING_CITY, ga.getGameState());
+            assertEquals(SOCGame.PLACING_CITY, gaAtCli.getGameState());
             assertArrayEquals(new int[]{2, 0, 2, 1, 3}, cliPl.getResources().getAmounts(false));
         }
         tcli.putPiece(ga, new SOCCity(cliPl, SETTLEMENT_NODE, board));
@@ -325,8 +334,11 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertTrue("city built", board.settlementAtNode(SETTLEMENT_NODE) instanceof SOCCity);
         assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.CITY));
+        assertEquals(3, cliPlAtCli.getNumPieces(SOCPlayingPiece.CITY));
         assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(3, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
         assertEquals(4, cliPl.getPublicVP());
+        assertEquals(4, cliPlAtCli.getPublicVP());
         assertArrayEquals(new int[]{2, 0, 2, 1, 3}, cliPl.getResources().getAmounts(false));
 
         act = ga.getLastAction();
@@ -370,6 +382,7 @@ public class TestActionsMessages
 
         records.clear();
         assertEquals(11, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
+        assertEquals(11, cliPlAtCli.getNumPieces(SOCPlayingPiece.SHIP));
         assertTrue(board.roadOrShipAtEdge(0xd05) instanceof SOCShip);
         final int SHIP_EDGE = 0xe05;
         assertNull(board.roadOrShipAtEdge(SHIP_EDGE));
@@ -385,6 +398,7 @@ public class TestActionsMessages
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
             assertEquals(SOCGame.PLACING_SHIP, ga.getGameState());
+            assertEquals(SOCGame.PLACING_SHIP, gaAtCli.getGameState());
             assertArrayEquals(new int[]{2, 0, 1, 1, 2}, cliPl.getResources().getAmounts(false));
         }
         tcli.putPiece(ga, new SOCShip(cliPl, SHIP_EDGE, board));
@@ -393,6 +407,8 @@ public class TestActionsMessages
         catch(InterruptedException e) {}
         assertTrue("ship built", board.roadOrShipAtEdge(SHIP_EDGE) instanceof SOCShip);
         assertEquals(10, cliPl.getNumPieces(SOCPlayingPiece.SHIP));
+        assertEquals(10, cliPlAtCli.getNumPieces(SOCPlayingPiece.SHIP));
+        assertNull(ga.canMoveShip(CLIENT_PN, SHIP_EDGE));
         assertNull(gaAtCli.canMoveShip(CLIENT_PN, SHIP_EDGE));
         assertArrayEquals(new int[]{2, 0, 1, 1, 2}, cliPl.getResources().getAmounts(false));
         shipsThisTurnListAtCli = gaAtCli.getShipsPlacedThisTurn();
@@ -439,6 +455,7 @@ public class TestActionsMessages
             MOVESHIP_EDGE_TO = 0xf06;
         assertTrue("moving ship from here", board.roadOrShipAtEdge(MOVESHIP_EDGE_FROM) instanceof SOCShip);
         assertNull("no ship here yet", board.roadOrShipAtEdge(MOVESHIP_EDGE_TO));
+        assertNotNull(ga.canMoveShip(CLIENT_PN, MOVESHIP_EDGE_FROM, MOVESHIP_EDGE_TO));
         assertNotNull(gaAtCli.canMoveShip(CLIENT_PN, MOVESHIP_EDGE_FROM, MOVESHIP_EDGE_TO));
         tcli.movePieceRequest(ga, CLIENT_PN, SOCPlayingPiece.SHIP, MOVESHIP_EDGE_FROM, MOVESHIP_EDGE_TO);
 
@@ -447,6 +464,7 @@ public class TestActionsMessages
         assertTrue("ship moved", board.roadOrShipAtEdge(MOVESHIP_EDGE_TO) instanceof SOCShip);
         assertNull("ship moved from here", board.roadOrShipAtEdge(MOVESHIP_EDGE_FROM));
         assertEquals(4, cliPl.getPublicVP());  // unchanged by this move
+        assertEquals(4, cliPlAtCli.getPublicVP());
         shipsThisTurnListAtCli = gaAtCli.getShipsPlacedThisTurn();
         assertEquals(3, shipsThisTurnListAtCli.size());
         assertTrue(shipsThisTurnListAtCli.contains(Integer.valueOf(MOVESHIP_EDGE_TO)));
@@ -479,13 +497,16 @@ public class TestActionsMessages
         final int SETTLEMENT_ISL_NODE = 0x1006;
         assertNull(board.settlementAtNode(SETTLEMENT_ISL_NODE));
         assertEquals(3, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(3, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
         tcli.putPiece(ga, new SOCSettlement(cliPl, SETTLEMENT_ISL_NODE, board));
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertNotNull("settlement built", board.settlementAtNode(SETTLEMENT_ISL_NODE));
         assertEquals(2, cliPl.getNumPieces(SOCPlayingPiece.SETTLEMENT));
+        assertEquals(2, cliPlAtCli.getNumPieces(SOCPlayingPiece.SETTLEMENT));
         assertEquals(5, cliPl.getPublicVP());
+        assertEquals(5, cliPlAtCli.getPublicVP());
         assertArrayEquals(new int[]{1, 0, 0, 0, 1}, cliPl.getResources().getAmounts(false));
 
         StringBuilder comparesSettleIsl = TestRecorder.compareRecordsToExpected
