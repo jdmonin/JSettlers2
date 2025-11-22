@@ -3311,7 +3311,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         /**
          * before adding a non-temporary ship, check to see if its trade route is now closed,
-         * or if it's reached a Special Edge or an _SC_FTRI "gift" trade port.
+         * or if it's reached a Village, Special Edge, or an _SC_FTRI "gift" trade port.
          */
         if ((piece instanceof SOCShip) && ! isTempPiece)
             effects = putPiece_roadOrShip_checkNewShipTradeRouteAndSpecialEdges
@@ -3408,10 +3408,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Check this new ship for adjacent settlements/cities/villages, to see if its trade route
-     * will be closed.  Close it if so.
+     * will be closed.  Close it if so, and give cloth if appropriate from a village.
      *<P>
      * If the route becomes closed and is the player's first Cloth Trade route with a {@link SOCVillage},
      * this method sets that player flag and fires {@link SOCPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     * If establishing trade at any village, sets {@link GameAction.EffectType#PLAYER_SCEN_CLVI_RECEIVE_CLOTH} at server.
      *<P>
      * If the board layout has Special Edges, check if the new ship has reached one, and if so
      * reward the player and fire an event like {@link SOCPlayerEvent#SVP_REACHED_SPECIAL_EDGE}
@@ -3506,7 +3507,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             if (gotCloth)
                                 effects.add(new GameAction.Effect
                                     (GameAction.EffectType.PLAYER_SCEN_CLVI_RECEIVE_CLOTH,
-                                     new int[]{1, pp.getCoordinates(), flagNew ? 1 : 0}));
+                                     new int[]{1, pp.getCoordinates(), 1}));
                         }
                     }
                 }
