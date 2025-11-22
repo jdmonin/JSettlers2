@@ -494,35 +494,47 @@ public class TestScenarioRules
             assertEquals("pn " + pn + " no cloth yet", 0, pl.getCloth());
         }
 
-        HashSet<Integer> villagesBuiltTo = new HashSet<>();
-        int ship1Edge, ship2Edge;
-        final int villageNode;
-        {
-            int csIdx = plPlacementIndexes[0][0];  // player 0's first placement
-            ship1Edge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][1];
-            ship2Edge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][2];
-            villageNode = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][3];
-        }
-        test_SC_CLVI_ships_to_village_placeShip(ga, board, 0, 3, 3, 0, ship1Edge, ship2Edge, villageNode, true, villagesBuiltTo, 0);
+        // Have each player build/move ships to 3 villages, which will use some villages twice:
 
-        int village2Node, clothVPIncr;
+        HashSet<Integer> villageGaveCloth = new HashSet<>();  // has this village already given anyone cloth?
+        for (int pn = 0; pn <= 1; ++pn)
         {
-            int csIdx = plPlacementIndexes[0][1];  // player 0's second placement
-            ship1Edge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][1];
-            ship2Edge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][2];
-            village2Node = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][3];
-            clothVPIncr = (village2Node != villageNode) ? 1 : 0;
-        }
-        test_SC_CLVI_ships_to_village_placeShip(ga, board, 0, 3, 3 + clothVPIncr, 1, ship1Edge, ship2Edge, village2Node, false, villagesBuiltTo, 0);
+            ga.setCurrentPlayerNumber(pn);
+            assertEquals(pn, ga.getCurrentPlayerNumber());
 
-        // For third, make sure undo/redo move also has the expected effects.
-        // Move player 0's third placed ship to placement 2's ship2Edge (since that was undone)
-        int moveShipFromEdge;
-        {
-            int csIdx = plPlacementIndexes[0][2];  // player 0's third placement
-            moveShipFromEdge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][1];
+            HashSet<Integer> villageReachedByPlayer = new HashSet<>();  // has this village been reached by this player?
+            int ship1Edge, ship2Edge;
+            final int villageNode;
+            {
+                int csIdx = plPlacementIndexes[pn][0];  // player's first placement
+                ship1Edge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][1];
+                ship2Edge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][2];
+                villageNode = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][3];
+            }
+            test_SC_CLVI_ships_to_village_placeShip(ga, board, pn, 3, 3, 0, ship1Edge, ship2Edge, villageNode, true, 0,
+                villageGaveCloth, villageReachedByPlayer);
+
+            int village2Node, clothVPIncr;
+            {
+                int csIdx = plPlacementIndexes[pn][1];  // player 0's second placement
+                ship1Edge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][1];
+                ship2Edge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][2];
+                village2Node = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][3];
+                clothVPIncr = (village2Node != villageNode) ? 1 : 0;
+            }
+            test_SC_CLVI_ships_to_village_placeShip(ga, board, pn, 3, 3 + clothVPIncr, 1, ship1Edge, ship2Edge, village2Node, false, 0,
+                villageGaveCloth, villageReachedByPlayer);
+
+            // For third, make sure undo/redo move also has the expected effects.
+            // Move player's third placed ship to placement 2's ship2Edge (since that was undone)
+            int moveShipFromEdge;
+            {
+                int csIdx = plPlacementIndexes[pn][2];
+                moveShipFromEdge = COASTAL_SETTLE_2_SHIPS_VILLAGE[csIdx][1];
+            }
+            test_SC_CLVI_ships_to_village_placeShip(ga, board, pn, 3, 3 + clothVPIncr, 1, ship1Edge, ship2Edge, village2Node, true, moveShipFromEdge,
+                villageGaveCloth, villageReachedByPlayer);
         }
-        test_SC_CLVI_ships_to_village_placeShip(ga, board, 0, 3, 3 + clothVPIncr, 1, ship1Edge, ship2Edge, village2Node, true, villagesBuiltTo, moveShipFromEdge);
 
         // Cleanup
         gl.deleteGame(gaName);
@@ -530,6 +542,7 @@ public class TestScenarioRules
 
     /**
      * {@link SOCScenario#K_SC_CLVI SC_CLVI}: Place (build or move) a ship to a village and undo that for {@link #test_SC_CLVI_ships_to_village()}.
+     * Since 2 ships can build to the same village, params include Sets to track the villages built to so we know how much cloth to expect there.
      * @param ga
      * @param board
      * @param pn  Player number to place for; should be current player
@@ -541,15 +554,16 @@ public class TestScenarioRules
      * @param ship2Edge  Edge coord of ship to be placed here, then undone
      * @param villageNode  Node coord of village to be placed to
      * @param redoPlacement  If true, redo ship placement after undo
-     * @param villagesBuiltTo  Since 2 ships can build to same village, track the nodes built-to and redone so we know how much cloth to expect there
      * @param moveShipFromEdge  If nonzero, move ship from here to {@code ship2Edge} instead of building a ship
+     * @param villageGaveCloth  Village nodes which have already given anyone a cloth
+     * @param villageReachedByPlayer  Village nodes which have been reached by this player
      * @since 2.7.00
      */
     private void test_SC_CLVI_ships_to_village_placeShip
         (final SOCGame ga, final SOCBoardAtServer board,
          final int pn, final int playerVP, final int playerVPAfter, final int playerCloth,
-         final int ship1Edge, final int ship2Edge, final int villageNode, final boolean redoPlacement,
-         final HashSet<Integer> villagesBuiltTo, final int moveShipFromEdge)
+         final int ship1Edge, final int ship2Edge, final int villageNode, final boolean redoPlacement, final int moveShipFromEdge,
+         final HashSet<Integer> villageGaveCloth, final HashSet<Integer> villageReachedByPlayer)
     {
         assertEquals("current player number", pn, ga.getCurrentPlayerNumber());
 
@@ -568,10 +582,10 @@ public class TestScenarioRules
         assertNull("no ship yet at 0x" + Integer.toHexString(ship2Edge), sh);
 
         final SOCVillage vi = ((SOCBoardLarge) board).getVillageAtNode(villageNode);
-        final boolean villageAlreadyBuiltTo = (villagesBuiltTo.contains(villageNode));
-        final int villageCloth = SOCVillage.STARTING_CLOTH - (villageAlreadyBuiltTo ? 1 : 0);
+        final boolean villageAlreadyReachedByPlayer = villageReachedByPlayer.contains(villageNode);
+        final int villageCloth = SOCVillage.STARTING_CLOTH - (villageGaveCloth.contains(villageNode) ? 1 : 0);
         assertNotNull("expected village at 0x" + Integer.toHexString(villageNode), vi);
-        assertEquals("cloth count before build at village at 0x" + Integer.toHexString(villageNode), villageCloth, vi.getCloth());
+        assertEquals("cloth count before pn " + pn + " build at village at 0x" + Integer.toHexString(villageNode), villageCloth, vi.getCloth());
 
         /* place ship adjacent to village: */
 
@@ -595,9 +609,9 @@ public class TestScenarioRules
         assertNotNull(sh);
         assertTrue("ship 2 route now closed: 0x" + Integer.toHexString(ship2Edge), sh.isClosed());
 
-        assertEquals("pn " + pn + " cloth count after village", playerCloth + (villageAlreadyBuiltTo ? 0 : 1), pl.getCloth());
+        assertEquals("pn " + pn + " cloth count after village", playerCloth + (villageAlreadyReachedByPlayer ? 0 : 1), pl.getCloth());
         assertEquals("pn " + pn + " total VP after village", playerVPAfter, pl.getTotalVP());
-        assertEquals("cloth count after build at village at 0x" + Integer.toHexString(villageNode), villageCloth - (villageAlreadyBuiltTo ? 0 : 1), vi.getCloth());
+        assertEquals("cloth count after pn " + pn + " build at village at 0x" + Integer.toHexString(villageNode), villageCloth - (villageAlreadyReachedByPlayer ? 0 : 1), vi.getCloth());
 
         GameAction act = ga.getLastAction();
         assertNotNull(act);
@@ -608,7 +622,7 @@ public class TestScenarioRules
         {
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(effects);
-            assertEquals(1 + (villageAlreadyBuiltTo ? 0 : 1) + ((playerCloth == 0) ? 1 : 0), effects.size());
+            assertEquals(1 + (villageAlreadyReachedByPlayer ? 0 : 1) + ((playerCloth == 0) ? 1 : 0), effects.size());
 
             int i = 0;
             GameAction.Effect e;
@@ -619,7 +633,7 @@ public class TestScenarioRules
                 assertArrayEquals(new int[]{4, 1}, e.params);
             }
 
-            if (! villageAlreadyBuiltTo)
+            if (! villageAlreadyReachedByPlayer)
             {
                 e = effects.get(i++);
                 assertEquals(GameAction.EffectType.PLAYER_SCEN_CLVI_RECEIVE_CLOTH, e.eType);
@@ -650,12 +664,13 @@ public class TestScenarioRules
         assertEquals((moveShipFromEdge != 0) ? GameAction.ActionType.UNDO_MOVE_PIECE : GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);
         assertEquals(SOCPlayingPiece.SHIP, act.param1);
         assertEquals(ship2Edge, act.param2);
-        assertEquals((moveShipFromEdge != 0) ? moveShipFromEdge : pn, act.param3);
+        if (moveShipFromEdge != 0)
+            assertEquals(moveShipFromEdge, act.param3);
         assertNull(act.rset1);
         {
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(effects);
-            assertEquals(1 + (villageAlreadyBuiltTo ? 0 : 1) + ((playerCloth == 0) ? 1 : 0), effects.size());
+            assertEquals(1 + (villageAlreadyReachedByPlayer ? 0 : 1) + ((playerCloth == 0) ? 1 : 0), effects.size());
 
             int i = 0;
             GameAction.Effect e;
@@ -666,7 +681,7 @@ public class TestScenarioRules
                 assertArrayEquals(new int[]{4, 1}, e.params);
             }
 
-            if (! villageAlreadyBuiltTo)
+            if (! villageAlreadyReachedByPlayer)
             {
                 e = effects.get(i++);
                 assertEquals(GameAction.EffectType.PLAYER_SCEN_CLVI_RECEIVE_CLOTH, e.eType);
@@ -680,7 +695,7 @@ public class TestScenarioRules
 
         assertNull(board.roadOrShipAtEdge(ship2Edge));
 
-        assertEquals("cloth count after undo at village at 0x" + Integer.toHexString(villageNode), villageCloth, vi.getCloth());
+        assertEquals("cloth count after pn " + pn + " undo at village at 0x" + Integer.toHexString(villageNode), villageCloth, vi.getCloth());
 
         sh = (SOCShip) board.roadOrShipAtEdge(ship1Edge);
         assertNotNull(sh);
@@ -703,16 +718,16 @@ public class TestScenarioRules
             assertNotNull(sh);
             assertTrue("ship 2 route now closed: 0x" + Integer.toHexString(ship2Edge), sh.isClosed());
 
-            assertEquals("pn " + pn + " cloth count after redo village", playerCloth + (villageAlreadyBuiltTo ? 0 : 1), pl.getCloth());
+            assertEquals("pn " + pn + " cloth count after redo village", playerCloth + (villageAlreadyReachedByPlayer ? 0 : 1), pl.getCloth());
             assertEquals("pn " + pn + " total VP after redo village", playerVPAfter, pl.getTotalVP());
-            assertEquals("cloth count after redo at village at 0x" + Integer.toHexString(villageNode), villageCloth - (villageAlreadyBuiltTo ? 0 : 1), vi.getCloth());
+            assertEquals("cloth count after pn " + pn + " redo at village at 0x" + Integer.toHexString(villageNode), villageCloth - (villageAlreadyReachedByPlayer ? 0 : 1), vi.getCloth());
 
             act = ga.getLastAction();
             assertNotNull(act);
             {
                 List<GameAction.Effect> effects = act.effects;
                 assertNotNull(effects);
-                assertEquals(1 + (villageAlreadyBuiltTo ? 0 : 1) + ((playerCloth == 0) ? 1 : 0), effects.size());
+                assertEquals(1 + (villageAlreadyReachedByPlayer ? 0 : 1) + ((playerCloth == 0) ? 1 : 0), effects.size());
 
                 int i = 0;
                 GameAction.Effect e;
@@ -723,7 +738,7 @@ public class TestScenarioRules
                     assertArrayEquals(new int[]{4, 1}, e.params);
                 }
 
-                if (! villageAlreadyBuiltTo)
+                if (! villageAlreadyReachedByPlayer)
                 {
                     e = effects.get(i++);
                     assertEquals(GameAction.EffectType.PLAYER_SCEN_CLVI_RECEIVE_CLOTH, e.eType);
@@ -735,7 +750,8 @@ public class TestScenarioRules
                 assertArrayEquals(new int[]{ship2Edge, ship1Edge}, e.params);
             }
 
-            villagesBuiltTo.add(villageNode);
+            villageGaveCloth.add(villageNode);
+            villageReachedByPlayer.add(villageNode);
         }
     }
 
