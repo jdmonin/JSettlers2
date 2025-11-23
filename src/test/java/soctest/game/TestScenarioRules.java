@@ -32,6 +32,7 @@ import soc.game.SOCGame;
 import soc.game.SOCGameOptionSet;
 import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayerEvent;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCRoad;
@@ -52,7 +53,7 @@ import static org.junit.Assert.*;
  * Nowhere near comprehensive at this point:
  * Currently tests only:
  *<UL>
- * <LI> {@link SOCScenario#K_SC_CLVI SC_CLVI}: Placing ships to a village gives 1 cloth, closes route; 2 cloth gives a VP
+ * <LI> {@link SOCScenario#K_SC_CLVI SC_CLVI}: Placing ships to a village gives 1 cloth, closes route, allows move pirate; 2 cloth gives a VP
  * <LI> {@link SOCScenario#K_SC_PIRI SC_PIRI}: A few rules for pirate fleet robbery.
  * <LI> {@link SOCScenario#K_SC_TTD SC_TTD}: 2 SVP for placing past the desert, but no SVP for placing in desert
  *</UL>
@@ -367,7 +368,7 @@ public class TestScenarioRules
     }
 
     /**
-     * {@link SOCScenario#K_SC_CLVI SC_CLVI}: Placing ships to a village gives 1 cloth, closes route; 2 cloth gives a VP.
+     * {@link SOCScenario#K_SC_CLVI SC_CLVI}: Placing ships to a village gives 1 cloth, closes route, allows move pirate; 2 cloth gives a VP.
      * @since 2.7.00
      */
     @Test
@@ -572,6 +573,9 @@ public class TestScenarioRules
         final SOCPlayer pl = ga.getPlayer(pn);
         assertEquals("pn " + pn + " cloth count before village", playerCloth, pl.getCloth());
         assertEquals("pn " + pn + " total VP before village", playerVP, pl.getTotalVP());
+        assertEquals("can pn " + pn + " move pirate yet? has " + playerCloth + ", cloth, before village",
+            (playerCloth > 0),
+            pl.hasPlayerEvent(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE));  // same condition checked by game.canChooseMovePirate
 
         SOCShip sh = (SOCShip) board.roadOrShipAtEdge(ship1Edge);
         assertNotNull(sh);
@@ -612,6 +616,8 @@ public class TestScenarioRules
         assertEquals("pn " + pn + " cloth count after village", playerCloth + (villageAlreadyReachedByPlayer ? 0 : 1), pl.getCloth());
         assertEquals("pn " + pn + " total VP after village", playerVPAfter, pl.getTotalVP());
         assertEquals("cloth count after pn " + pn + " build at village at 0x" + Integer.toHexString(villageNode), villageCloth - (villageAlreadyReachedByPlayer ? 0 : 1), vi.getCloth());
+        assertTrue("can pn " + pn + " move pirate after build village 0x" + Integer.toHexString(villageNode),
+            pl.hasPlayerEvent(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE));
 
         GameAction act = ga.getLastAction();
         assertNotNull(act);
@@ -703,6 +709,9 @@ public class TestScenarioRules
 
         assertEquals("pn " + pn + " cloth count after undo village", playerCloth, pl.getCloth());
         assertEquals("pn " + pn + " total VP after undo village", playerVP, pl.getTotalVP());
+        assertEquals("can pn " + pn + " still move pirate? has " + playerCloth + ", cloth, after undo village",
+            (playerCloth > 0),
+            pl.hasPlayerEvent(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE));
 
         if (redoPlacement)
         {
@@ -721,6 +730,8 @@ public class TestScenarioRules
             assertEquals("pn " + pn + " cloth count after redo village", playerCloth + (villageAlreadyReachedByPlayer ? 0 : 1), pl.getCloth());
             assertEquals("pn " + pn + " total VP after redo village", playerVPAfter, pl.getTotalVP());
             assertEquals("cloth count after pn " + pn + " redo at village at 0x" + Integer.toHexString(villageNode), villageCloth - (villageAlreadyReachedByPlayer ? 0 : 1), vi.getCloth());
+            assertTrue("can pn " + pn + " still move pirate after redo build village 0x" + Integer.toHexString(villageNode),
+                pl.hasPlayerEvent(SOCPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE));
 
             act = ga.getLastAction();
             assertNotNull(act);
