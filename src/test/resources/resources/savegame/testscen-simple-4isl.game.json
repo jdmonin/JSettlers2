@@ -53,6 +53,34 @@
     1029,
     1028
   ],
+  "lastAction": {
+    "actType": "TRADE_BANK",
+    "param1": 0,
+    "param2": 0,
+    "param3": 0,
+    "rset1": {
+      "resources": [
+        0,
+        0,
+        0,
+        4,
+        0,
+        0,
+        0
+      ]
+    },
+    "rset2": {
+      "resources": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
   "boardInfo": {
     "layout2": {
       "game": "testscen-simple-4isl",
@@ -395,6 +423,29 @@
         "STARTING_LANDAREAS": 3,
         "SCENARIO_SVP_LANDAREAS_BITMASK": 1
       },
+      "currentTradeOffer": {
+        "give": {
+          "clay": 0,
+          "ore": 0,
+          "sheep": 0,
+          "wheat": 0,
+          "wood": 1
+        },
+        "receive": {
+          "clay": 0,
+          "ore": 1,
+          "sheep": 0,
+          "wheat": 0,
+          "wood": 0
+        },
+        "offeredTo": [
+          false,
+          true,
+          true,
+          false
+        ],
+        "offeredAtDurationMillis": 116322
+      },
       "elements": {
         "SETTLEMENTS": 2,
         "SHIPS": 11,
@@ -411,6 +462,46 @@
         0,
         0,
         0
+      ],
+      "resTradeStats": [
+        {
+          "tradeType": "3:1 Port"
+        },
+        {
+          "tradeType": "2:1 Clay port"
+        },
+        {
+          "tradeType": "2:1 Ore port"
+        },
+        {
+          "tradeType": "2:1 Sheep port"
+        },
+        {
+          "tradeType": "2:1 Wheat port"
+        },
+        {
+          "tradeType": "2:1 Wood port"
+        },
+        {
+          "tradeType": "4:1 Bank",
+          "gave": {
+            "clay": 0,
+            "ore": 0,
+            "sheep": 4,
+            "wheat": 0,
+            "wood": 0
+          },
+          "received": {
+            "clay": 0,
+            "ore": 1,
+            "sheep": 0,
+            "wheat": 0,
+            "wood": 0
+          }
+        },
+        {
+          "tradeType": "All trades with players"
+        }
       ],
       "oldDevCards": [],
       "newDevCards": [],

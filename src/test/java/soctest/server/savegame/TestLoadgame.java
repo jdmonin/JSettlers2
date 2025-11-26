@@ -573,7 +573,8 @@ public class TestLoadgame
     }
 
     /**
-     * Test loading and resuming a Sea Board game, including open/closed ship routes ({@link SOCShip#isClosed()}).
+     * Test loading and resuming a Sea Board game, including open/closed ship routes ({@link SOCShip#isClosed()})
+     * and {@link SOCGame#getLastAction()}.
      * Because {@code testsea-closed.game.json} is a known setup, use it to test a few basic game actions
      * like {@link SOCGame#putPiece(SOCPlayingPiece)} and {@link SOCGame#moveShip(SOCShip, int)}.
      */
@@ -1132,6 +1133,18 @@ public class TestLoadgame
             assertNotNull(assertDesc, rp);
             assertFalse(assertDesc, rp.isRoadNotShip());
             assertTrue("should be closed: " + assertDesc, ((SOCShip) rp).isClosed());
+        }
+
+        {
+            final GameAction act = ga.getLastAction();
+            assertNotNull(act);
+            assertEquals(GameAction.ActionType.TRADE_BANK, act.actType);
+            assertEquals(0, act.param1);
+            assertEquals(0, act.param2);
+            assertEquals(0, act.param3);
+            assertEquals(new SOCResourceSet(0, 0, 4, 0, 0, 0), act.rset1);
+            assertEquals(new SOCResourceSet(0, 1, 0, 0, 0, 0), act.rset2);
+            assertNull(act.effects);
         }
 
         fillSeatsForResume(sgm);
