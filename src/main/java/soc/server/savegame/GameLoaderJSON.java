@@ -27,10 +27,8 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -147,7 +145,6 @@ public class GameLoaderJSON
         gb.registerTypeAdapter
             (new TypeToken<HashMap<PEType, Integer>>(){}.getType(),
              new EnumKeyedMapDeserializer<PEType>(PEType.class));
-        gb.registerTypeAdapter(ResourceSet.class, new ResourceSetDeserializer());
 
         gsonb = gb;
     }
@@ -204,55 +201,6 @@ public class GameLoaderJSON
             }
 
             return ret;
-        }
-    }
-
-    /**
-     * Custom deserializer for the {@link ResourceSet} interface, returning a {@link SOCResourceSet}.
-     * Can't just use a {@link com.google.gson.InstanceCreator} because the field layout is different.
-     * @since 2.7.00
-     */
-    public static class ResourceSetDeserializer
-        implements JsonDeserializer<ResourceSet>
-    {
-        public ResourceSet deserialize
-            (JsonElement elem, final Type t, final JsonDeserializationContext ctx)
-            throws JsonParseException
-        {
-            int[] amounts = new int[6];
-
-            Set<Map.Entry<String, JsonElement>> elemFields = elem.getAsJsonObject().entrySet();
-            if (elemFields.size() != 1)
-                throw new JsonParseException("expected ResourceSet to contain 1 field: resources");
-            for (Map.Entry<String, JsonElement> ent : elemFields)
-            {
-                final String key = ent.getKey();
-                if (! key.equals("resources"))
-                    throw new JsonParseException("expected ResourceSet to contain 1 field: resources");
-                final JsonElement val = ent.getValue();
-                if (! val.isJsonArray())
-                    throw new JsonParseException("expected ResourceSet.resources array");
-                final JsonArray valArr = val.getAsJsonArray();
-                final int n = valArr.size();
-                if (n < 6)
-                    throw new JsonParseException("ResourceSet.resources[] min length: 6");
-                if (n > 7)
-                    throw new JsonParseException("ResourceSet.resources[] max length: 7");
-                for (int i = 1; i < n; ++i) // from 1 to skip unused 0 of serialized SOCResourceSet
-                {
-                    final JsonElement arrElem = valArr.get(i);
-                    if (arrElem.isJsonPrimitive() && arrElem.getAsJsonPrimitive().isNumber())
-                        try {
-                            amounts[i - 1] = arrElem.getAsInt();
-                        } catch (NumberFormatException e) {
-                            throw new JsonParseException("ResourceSet.resources[" + i + "] not an integer: " + arrElem, e);
-                        }
-                    else
-                        throw new JsonParseException("ResourceSet.resources[" + i + "] not a number: " + arrElem);
-                }
-            }
-
-            return new SOCResourceSet(amounts);
         }
     }
 

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
- * Portions of this file Copyright (C) 2017,2019-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2017,2019-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -475,6 +475,9 @@ public class TestResourceSet
 
         rs.setAmounts(new SavedGameModel.KnownResourceSet(new SOCResourceSet(1, 0, 2, 0, 3, 0)));
         assertArrayEquals("from other ResourceSet impl", new int[]{1, 0, 2, 0, 3, 0}, rs.getAmounts(true));
+
+        rs.setAmounts(new SavedGameModel.NamedResourceSet(new SOCResourceSet(1, 0, 2, 0, 3, 4)));
+        assertArrayEquals("from NamedResourceSet impl", new int[]{1, 0, 2, 0, 3, 4}, rs.getAmounts(true));
     }
 
     /**

@@ -20,6 +20,7 @@
 package soc.server.savegame;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,9 +35,14 @@ import java.util.regex.Pattern;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.JsonAdapter;
@@ -426,6 +432,8 @@ public class SavedGameModel
     /* package */ static void initGsonRegisterAdapters(final GsonBuilder gb)
     {
         PlayerInfo.initGsonRegisterAdapters(gb);
+        gb.registerTypeAdapter(ResourceSet.class, new ResourceSetAdapter());
+        gb.registerTypeAdapter(SOCResourceSet.class, new SOCResourceSetAdapter());
     }
 
     /**
@@ -1404,10 +1412,83 @@ public class SavedGameModel
     }
 
     /**
+     * Adapter to write/read {@link ResourceSet} as {@link NamedResourceSet} or {@link KnownResourceSet}
+     * in order to have named resource type fields, not generic int array, in the json.
+     * @since 2.7.00
+     * @see SOCResourceSetAdapter
+     */
+    private static class ResourceSetAdapter implements JsonSerializer<ResourceSet>, JsonDeserializer<ResourceSet>
+    {
+        public JsonElement serialize
+            (final ResourceSet rs, final Type type, final JsonSerializationContext context)
+        {
+            if (rs == null)
+                return JsonNull.INSTANCE;
+
+            return
+                (rs.getAmount(SOCResourceConstants.UNKNOWN) != 0)
+                ? context.serialize(new NamedResourceSet(rs))
+                : context.serialize(new KnownResourceSet(rs));
+        }
+
+        public ResourceSet deserialize
+            (JsonElement elem, Type type, JsonDeserializationContext context)
+            throws JsonParseException
+        {
+            if (! elem.isJsonObject())
+                throw new JsonParseException("expected ResourceSet to be JSON object");
+
+            return new SOCResourceSet
+                ((elem.getAsJsonObject().has("unknown"))
+                 ? ((NamedResourceSet) context.deserialize(elem, NamedResourceSet.class))
+                 : ((KnownResourceSet) context.deserialize(elem, KnownResourceSet.class)));
+        }
+    }
+
+    /**
+     * Adapter to write/read {@link SOCResourceSet} as {@link NamedResourceSet} or {@link KnownResourceSet}
+     * in order to have named resource type fields, not generic int array, in the json.
+     * @since 2.7.00
+     * @see ResourceSetAdapter
+     */
+    private static class SOCResourceSetAdapter implements JsonSerializer<SOCResourceSet>, JsonDeserializer<SOCResourceSet>
+    {
+        public JsonElement serialize
+            (final SOCResourceSet rs, final Type type, final JsonSerializationContext context)
+        {
+            if (rs == null)
+                return JsonNull.INSTANCE;
+
+            return
+                (rs.getAmount(SOCResourceConstants.UNKNOWN) != 0)
+                ? context.serialize(new NamedResourceSet(rs))
+                : context.serialize(new KnownResourceSet(rs));
+        }
+
+        public SOCResourceSet deserialize
+            (JsonElement elem, Type type, JsonDeserializationContext context)
+            throws JsonParseException
+        {
+            if (! elem.isJsonObject())
+                throw new JsonParseException("expected SOCResourceSet to be JSON object");
+
+            return new SOCResourceSet
+                ((elem.getAsJsonObject().has("unknown"))
+                 ? ((NamedResourceSet) context.deserialize(elem, NamedResourceSet.class))
+                 : ((KnownResourceSet) context.deserialize(elem, KnownResourceSet.class)));
+        }
+    }
+
+    /**
      * Set of the 5 known resource types, to use in saved game
      * instead of raw 7-element int array from {@link SOCResourceSet}.
      *<P>
+     * If the resource set might contain {@link SOCResourceConstants#UNKNOWN}, use subclass {@link NamedResourceSet}.
+     *<P>
      * Also implements {@link ResourceSet} to help with unit tests in v2.6.00 and newer.
+     *<P>
+     * Deliberately does not implement {@code equals(SOCResourceSet)} because this class should not be generally used
+     * outside of the {@code savegame} package; instances should be converted to SOCResourceSet or ResourceSet by the loader.
      */
     public static class KnownResourceSet
         implements ResourceSet
@@ -1415,6 +1496,15 @@ public class SavedGameModel
         public int clay, ore, sheep, wheat, wood;
 
         public KnownResourceSet(SOCResourceSet rs)
+        {
+            clay  = rs.getAmount(SOCResourceConstants.CLAY);
+            ore   = rs.getAmount(SOCResourceConstants.ORE);
+            sheep = rs.getAmount(SOCResourceConstants.SHEEP);
+            wheat = rs.getAmount(SOCResourceConstants.WHEAT);
+            wood  = rs.getAmount(SOCResourceConstants.WOOD);
+        }
+
+        public KnownResourceSet(ResourceSet rs)
         {
             clay  = rs.getAmount(SOCResourceConstants.CLAY);
             ore   = rs.getAmount(SOCResourceConstants.ORE);
@@ -1479,6 +1569,89 @@ public class SavedGameModel
         public int getTotal()
         {
             return clay + ore + sheep + wheat + wood;
+        }
+
+        /**
+         * Amounts of each resource kind, for debugging.
+         * @since 2.7.00
+         */
+        public String toString()
+        {
+            return "KnownResourceSet{clay=" + clay
+            + "|ore=" + ore
+            + "|sheep=" + sheep
+            + "|wheat=" + wheat
+            + "|wood=" + wood
+            + "}";
+        }
+    }
+
+    /**
+     * Subclass of {@link KnownResourceSet} which might contain {@link SOCResourceConstants#UNKNOWN} quantities.
+     * @since 2.7.00
+     */
+    public static class NamedResourceSet extends KnownResourceSet
+    {
+        public int unknown;
+
+        public NamedResourceSet(SOCResourceSet rs)
+        {
+            super(rs);
+            unknown = rs.getAmount(SOCResourceConstants.UNKNOWN);
+        }
+
+        public NamedResourceSet(ResourceSet rs)
+        {
+            super(rs);
+            unknown = rs.getAmount(SOCResourceConstants.UNKNOWN);
+        }
+
+        @Override
+        public SOCResourceSet toResourceSet()
+        {
+            return new SOCResourceSet(clay, ore, sheep, wheat, wood, unknown);
+        }
+
+        @Override
+        public boolean isEmpty()
+        {
+            return (unknown == 0) && super.isEmpty();
+        }
+
+        @Override
+        public int getAmount(int resourceType)
+        {
+            return (resourceType == SOCResourceConstants.UNKNOWN)
+                ? unknown
+                : super.getAmount(resourceType);
+        }
+
+        @Override
+        public boolean contains(ResourceSet rs)
+        {
+            return
+                (getAmount(SOCResourceConstants.UNKNOWN) >= rs.getAmount(SOCResourceConstants.UNKNOWN))
+                && super.contains(rs);
+        }
+
+        // no override for getResourceTypeCount: it ignores unknown
+
+        @Override
+        public int getTotal()
+        {
+            return unknown + super.getTotal();
+        }
+
+        @Override
+        public String toString()
+        {
+            return "NamedResourceSet{clay=" + clay
+            + "|ore=" + ore
+            + "|sheep=" + sheep
+            + "|wheat=" + wheat
+            + "|wood=" + wood
+            + "|unknown=" + unknown
+            + "}";
         }
     }
 

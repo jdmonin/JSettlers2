@@ -1143,7 +1143,7 @@ public class TestLoadgame
             assertEquals(0, act.param2);
             assertEquals(0, act.param3);
             assertEquals(new SOCResourceSet(0, 0, 4, 0, 0, 0), act.rset1);
-            assertEquals(new SOCResourceSet(0, 1, 0, 0, 0, 0), act.rset2);
+            assertEquals(new SOCResourceSet(0, 1, 0, 0, 0, 1), act.rset2);
             assertNull(act.effects);
         }
 
