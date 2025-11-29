@@ -1329,7 +1329,7 @@ public class TestActionsMessages
     }
 
     /**
-     * Test one client setup for {@link #testUndoBuild_SVP_SC_SANY()} or {@link #testUndoBuild_SVP_SC_SANY()}.
+     * Test one client setup for {@link #testUndoBuild_SVP_SC_SANY()} or {@link #testUndoBuild_SVP_SC_SEAC()}.
      * @param isSanyNotSeac  If true, testing {@code _SC_SANY} with {@code testscen-simple-sany.game.json},
      *     not {@code _SC_SEAC} with {@code testscen-simple-4isl.game.json}
      * @param clientAsRobot  If true, server should treat debug player's client as robot
