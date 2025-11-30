@@ -352,7 +352,7 @@ import javax.swing.JComponent;
     private static final int HEX_PORT_CIRCLE_DIA = 38;
 
     /**
-     * Line stroke width when drawing {@link HilightStyle#MOST_RECENT_PLACEMENT} pieces.
+     * Line stroke width when drawing {@link HilightStyle#MOST_RECENT_PLACEMENT_SHADOW} pieces.
      * @since 2.7.00
      */
     private static final int MOST_RECENT_PLACEMENT_STROKE_WIDTH_OUTER = 5,
@@ -3994,10 +3994,10 @@ import javax.swing.JComponent;
 
         g.translate(hx, hy);
 
-        if (hilightStyle == HilightStyle.MOST_RECENT_PLACEMENT)
+        if (hilightStyle == HilightStyle.MOST_RECENT_PLACEMENT_SHADOW)
         {
             if (g instanceof Graphics2D)
-                drawPieceMostRecentPlacement((Graphics2D) g, roadX, roadY);
+                drawPieceMostRecentPlacementShadow((Graphics2D) g, roadX, roadY);
             else
                 // fallback; unlikely to need this
                 hilightStyle = HilightStyle.HOVER;
@@ -4086,15 +4086,15 @@ import javax.swing.JComponent;
 
         if (isCity)
         {
-            if (hilightStyle == HilightStyle.MOST_RECENT_PLACEMENT)
+            if (hilightStyle == HilightStyle.MOST_RECENT_PLACEMENT_SHADOW)
             {
                 if (g instanceof Graphics2D)
-                    drawPieceMostRecentPlacement((Graphics2D) g, scaledCityX, scaledCityY);
+                    drawPieceMostRecentPlacementShadow((Graphics2D) g, scaledCityX, scaledCityY);
                 else
                     // fallback; unlikely to need this
                     hilightStyle = HilightStyle.HOVER;
             }
-            else if (hilightStyle != null)
+            else if (hilightStyle == HilightStyle.HOVER)
             {
                 g.setColor(playerInterface.getPlayerColor(pn, true));
                 g.drawPolygon(scaledCityX, scaledCityY, 8);
@@ -4117,10 +4117,10 @@ import javax.swing.JComponent;
 
             final boolean isHilightMostRecent = (hilightStyle == HilightStyle.MOST_RECENT_PLACEMENT);
 
-            if (isHilightMostRecent)
+            if (hilightStyle == HilightStyle.MOST_RECENT_PLACEMENT_SHADOW)
             {
                 if (g instanceof Graphics2D)
-                    drawPieceMostRecentPlacement((Graphics2D) g, scaledSettlementX, scaledSettlementY);
+                    drawPieceMostRecentPlacementShadow((Graphics2D) g, scaledSettlementX, scaledSettlementY);
                 else
                     // fallback; unlikely to need this
                     hilightStyle = HilightStyle.HOVER;
@@ -4155,7 +4155,7 @@ import javax.swing.JComponent;
      * @param polyY  Piece shape's y-coordinates, scaled to screen
      * @since 2.7.00
      */
-    private void drawPieceMostRecentPlacement(final Graphics2D g, final int[] polyX, final int[] polyY)
+    private void drawPieceMostRecentPlacementShadow(final Graphics2D g, final int[] polyX, final int[] polyY)
     {
         final Stroke prevStroke = g.getStroke();
 
@@ -4699,18 +4699,18 @@ import javax.swing.JComponent;
             switch (lpp.getType())
             {
             case SOCPlayingPiece.ROAD:
-                drawRoadOrShip(g, co, pn, HilightStyle.MOST_RECENT_PLACEMENT, true, false);
+                drawRoadOrShip(g, co, pn, HilightStyle.MOST_RECENT_PLACEMENT_SHADOW, true, false);
                 break;
             case SOCPlayingPiece.SHIP:
                 if (! game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
-                    drawRoadOrShip(g, co, pn, HilightStyle.MOST_RECENT_PLACEMENT, false, false);
+                    drawRoadOrShip(g, co, pn, HilightStyle.MOST_RECENT_PLACEMENT_SHADOW, false, false);
                     // for SC_PIRI, is easier to draw with rest of ships in case has been upgraded to warship
                 break;
             case SOCPlayingPiece.SETTLEMENT:
-                drawSettlement(g, co, pn, HilightStyle.MOST_RECENT_PLACEMENT, false);
+                drawSettlement(g, co, pn, HilightStyle.MOST_RECENT_PLACEMENT_SHADOW, false);
                 break;
             case SOCPlayingPiece.CITY:
-                drawCity(g, co, pn, HilightStyle.MOST_RECENT_PLACEMENT);
+                drawCity(g, co, pn, HilightStyle.MOST_RECENT_PLACEMENT_SHADOW);
                 break;
             default:
                 // shouldn't happen; no code to draw other types, so ignore it
@@ -4749,11 +4749,9 @@ import javax.swing.JComponent;
         if (! game.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
         {
             for (SOCRoutePiece rs : board.getRoadsAndShips())
-            {
-                if (rs == lpp)
-                    continue;
-                drawRoadOrShip(g, rs.getCoordinates(), rs.getPlayerNumber(), null, ! (rs instanceof SOCShip), false);
-            }
+                drawRoadOrShip
+                    (g, rs.getCoordinates(), rs.getPlayerNumber(), (rs == lpp) ? HilightStyle.MOST_RECENT_PLACEMENT : null,
+                     ! (rs instanceof SOCShip), false);
         } else {
             for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
@@ -4765,9 +4763,11 @@ import javax.swing.JComponent;
                 for (SOCRoutePiece rs : pl.getRoadsAndShips())
                 {
                     final boolean isShip = (rs instanceof SOCShip);
-                    if ((! isShip) && (rs == lpp))
-                        continue;
                     final boolean isWarship = isShip && (numWarships > 0);
+                    if (isShip)
+                        drawRoadOrShip
+                            (g, rs.getCoordinates(), pn, (rs == lpp) ? HilightStyle.MOST_RECENT_PLACEMENT_SHADOW : null,
+                             ! isShip, isWarship);
                     drawRoadOrShip
                         (g, rs.getCoordinates(), pn, (rs == lpp) ? HilightStyle.MOST_RECENT_PLACEMENT : null,
                          ! isShip, isWarship);
@@ -4789,21 +4789,15 @@ import javax.swing.JComponent;
          * draw the settlements
          */
         for (SOCSettlement s : board.getSettlements())
-        {
-            if (s == lpp)
-                continue;
-            drawSettlement(g, s.getCoordinates(), s.getPlayerNumber(), null, false);
-        }
+            drawSettlement
+                (g, s.getCoordinates(), s.getPlayerNumber(), (s == lpp) ? HilightStyle.MOST_RECENT_PLACEMENT : null, false);
 
         /**
          * draw the cities
          */
         for (SOCCity c : board.getCities())
-        {
-            if (c == lpp)
-                continue;
-            drawCity(g, c.getCoordinates(), c.getPlayerNumber(), null);
-        }
+            drawCity
+                (g, c.getCoordinates(), c.getPlayerNumber(), (c == lpp) ? HilightStyle.MOST_RECENT_PLACEMENT : null);
 
         if (xlat)
             g.translate(-panelMarginX, -panelMarginY);
@@ -10332,8 +10326,11 @@ import javax.swing.JComponent;
          */
         HOVER,
 
-        /** Most recently placed piece, including ship moves */
-        MOST_RECENT_PLACEMENT
+        /** Highlight most recently placed piece, including ship moves */
+        MOST_RECENT_PLACEMENT,
+
+        /** Wide shadow for most recently placed piece, including ship moves */
+        MOST_RECENT_PLACEMENT_SHADOW
     }
 
 }  // class SOCBoardPanel
