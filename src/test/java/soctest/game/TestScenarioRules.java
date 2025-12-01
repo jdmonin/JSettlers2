@@ -28,14 +28,17 @@ import soc.game.GameAction;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
+import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
 import soc.game.SOCGameOptionSet;
+import soc.game.SOCInventory;
 import soc.game.SOCMoveRobberResult;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayerEvent;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCRoad;
+import soc.game.SOCRoutePiece;
 import soc.game.SOCScenario;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
@@ -54,7 +57,7 @@ import static org.junit.Assert.*;
  * Currently tests only:
  *<UL>
  * <LI> {@link SOCScenario#K_SC_CLVI SC_CLVI}: Placing ships to a village gives 1 cloth, closes route, allows move pirate; 2 cloth gives a VP
- * <LI> {@link SOCScenario#K_SC_PIRI SC_PIRI}: A few rules for pirate fleet robbery.
+ * <LI> {@link SOCScenario#K_SC_PIRI SC_PIRI}: A few rules for pirate fleet robbery; warship conversion
  * <LI> {@link SOCScenario#K_SC_TTD SC_TTD}: 2 SVP for placing past the desert, but no SVP for placing in desert
  *</UL>
  * See also {@link TestBoardLayouts#testLayout_SC_CLVI(SOCGame)}.
@@ -76,6 +79,7 @@ public class TestScenarioRules
 
     /**
      * {@link SOCScenario#K_SC_PIRI SC_PIRI}: Tests for pirate fleet robbery.
+     * Also tests converting ship to warship.
      * TODO: Maybe break this up into several methods, as it tests several conditions.
      */
     @Test
@@ -209,8 +213,88 @@ public class TestScenarioRules
         assertTrue((robResult.sc_piri_loot == null) || (robResult.sc_piri_loot.getTotal() == 0));
         assertTrue(robResult.getVictims().isEmpty());
 
+        // Convert player's free/initial ship to warship during ROLL_OR_CARD and PLAY1
+        int shipLoc = 0;
+        for (SOCRoutePiece rs: pl0.getRoadsAndShips())
+        {
+            if (! (rs instanceof SOCShip))
+                continue;
+            if (shipLoc != 0)
+                fail("pl0 should have only 1 ship");
+            shipLoc = rs.getCoordinates();
+        }
+        assertNotEquals("pl0 should have 1 ship", 0, shipLoc);
+        ga.setCurrentPlayerNumber(0);
+        pl0.setNumWarships(0);
+        for (int i = 0; i < 2; ++i)
+            test_SC_PIRI_convertToWarship(pl0, shipLoc, (i == 0) ? SOCGame.ROLL_OR_CARD : SOCGame.PLAY1);
+
         // Cleanup
         gl.deleteGame(gaName);
+    }
+
+    /**
+     * Test converting player's ship to warship temporarily, by giving and playing a {@link SOCDevCardConstants#KNIGHT} card.
+     * Afterwards, game data will be altered to 0 warships and no dev card played to roll back the effects of this subtest.
+     * @param pl  Player to test for; should be current player, should have 1 ship and no warships yet
+     * @param buildShipEdge  Edge having the player's sole ship, which will be converted
+     * @param duringGmeState  Game state to test during: {@link SOCGame#ROLL_OR_CARD} or {@link SOCGame#PLAY1}
+     * @since 2.7.00
+     */
+    private void test_SC_PIRI_convertToWarship
+        (final SOCPlayer pl, final int buildShipEdge, final int duringGmeState)
+    {
+        final String testDesc = "Convert ship to warship in gstate " + duringGmeState;
+        final int pn = pl.getPlayerNumber();
+        final SOCGame ga = pl.getGame();
+        final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
+        assertEquals(testDesc, pn, ga.getCurrentPlayerNumber());
+        assertEquals(testDesc, 0, pl.getNumWarships());
+
+        String descShipEdge = testDesc + ": Ship at 0x" + Integer.toHexString(buildShipEdge);
+        SOCRoutePiece rs = board.roadOrShipAtEdge(buildShipEdge);
+        assertNotNull(descShipEdge, rs);
+        assertTrue(descShipEdge, rs instanceof SOCShip);
+        assertEquals(testDesc, pn, rs.getPlayerNumber());
+        assertFalse(descShipEdge, ga.isShipWarship((SOCShip) rs));
+
+        // give player an OLD knight card they can play to convert
+        pl.getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
+        pl.setPlayedDevCard(false);
+        ga.setGameState(duringGmeState);
+        assertTrue(testDesc, ga.canPlayKnight(pn));
+
+        // if numWarships >= numShips, they can't convert
+        pl.setNumWarships(1 + pl.getRoadsAndShips().size());
+        assertFalse(testDesc, ga.canPlayKnight(pn));
+        pl.setNumWarships(0);  // we asserted above this is 0, so go ahead and set to that directly
+        assertEquals(testDesc, 0, pl.getNumWarships());
+
+        // play the dev card to conv to warship
+        final int nCards = pl.getInventory().getTotal();
+        ga.playKnight();
+        assertEquals(testDesc + ": Playing knight removes from inventory", nCards - 1, pl.getInventory().getTotal());
+
+        // check results
+        assertEquals(testDesc, 1, pl.getNumWarships());
+        assertTrue(descShipEdge, ga.isShipWarship((SOCShip) rs));
+        final GameAction act = ga.getLastAction();
+        {
+            final String descUnused = testDesc + ": unused param set empty";
+            assertNotNull(act);
+            assertEquals(GameAction.ActionType.SHIP_CONVERT_TO_WARSHIP, act.actType);
+            assertEquals(descUnused, 0, act.param1);
+            assertEquals(descUnused, 0, act.param2);
+            assertEquals(descUnused, 0, act.param3);
+            assertNull(descUnused, act.rset1);
+            assertNull(descUnused, act.rset2);
+            assertNull(descUnused, act.effects);
+        }
+
+        // in game data, undo conversion
+        pl.setNumWarships(0);
+        pl.setPlayedDevCard(false);
+        assertFalse(descShipEdge, ga.isShipWarship((SOCShip) rs));
     }
 
     /**
