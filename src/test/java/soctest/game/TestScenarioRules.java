@@ -79,7 +79,7 @@ public class TestScenarioRules
 
     /**
      * {@link SOCScenario#K_SC_PIRI SC_PIRI}: Tests for pirate fleet robbery.
-     * Also tests converting ship to warship.
+     * Also tests converting ship to warship, undoing/canceling conversion, redoing it.
      * TODO: Maybe break this up into several methods, as it tests several conditions.
      */
     @Test
@@ -269,29 +269,47 @@ public class TestScenarioRules
         assertFalse(testDesc, ga.canPlayKnight(pn));
         pl.setNumWarships(0);  // we asserted above this is 0, so go ahead and set to that directly
         assertEquals(testDesc, 0, pl.getNumWarships());
+        assertTrue(testDesc, ga.canPlayKnight(pn));
 
-        // play the dev card to conv to warship
         final int nCards = pl.getInventory().getTotal();
-        ga.playKnight();
-        assertEquals(testDesc + ": Playing knight removes from inventory", nCards - 1, pl.getInventory().getTotal());
 
-        // check results
-        assertEquals(testDesc, 1, pl.getNumWarships());
-        assertTrue(descShipEdge, ga.isShipWarship((SOCShip) rs));
-        final GameAction act = ga.getLastAction();
+        for (int subtestNum = 0; subtestNum <= 1; ++subtestNum)
         {
-            final String descUnused = testDesc + ": unused param set empty";
-            assertNotNull(act);
-            assertEquals(GameAction.ActionType.SHIP_CONVERT_TO_WARSHIP, act.actType);
-            assertEquals(descUnused, 0, act.param1);
-            assertEquals(descUnused, 0, act.param2);
-            assertEquals(descUnused, 0, act.param3);
-            assertNull(descUnused, act.rset1);
-            assertNull(descUnused, act.rset2);
-            assertNull(descUnused, act.effects);
+            // play the dev card to conv to warship
+            ga.playKnight();
+            assertEquals(testDesc + ": Playing knight removes from inventory", nCards - 1, pl.getInventory().getTotal());
+
+            // check results
+            assertEquals(testDesc, 1, pl.getNumWarships());
+            assertTrue(descShipEdge, ga.isShipWarship((SOCShip) rs));
+            assertTrue(testDesc, ga.canCancelPlayCurrentDevCard());
+            final GameAction act = ga.getLastAction();
+            {
+                final String descUnused = testDesc + ": unused param set empty";
+                assertNotNull(act);
+                assertEquals(GameAction.ActionType.SHIP_CONVERT_TO_WARSHIP, act.actType);
+                assertEquals(descUnused, 0, act.param1);
+                assertEquals(descUnused, 0, act.param2);
+                assertEquals(descUnused, 0, act.param3);
+                assertNull(descUnused, act.rset1);
+                assertNull(descUnused, act.rset2);
+                assertNull(descUnused, act.effects);
+            }
+
+            // between subtest 0 and 1: undo the way client would: cancel play knight card
+            if (subtestNum == 0)
+            {
+                final int cardTypeRet = ga.cancelPlayCurrentDevCard();
+                assertEquals(testDesc, SOCDevCardConstants.KNIGHT, cardTypeRet);
+                assertNull(testDesc, ga.getLastAction());
+                assertEquals(testDesc, 0, pl.getNumWarships());
+                assertFalse(descShipEdge, ga.isShipWarship((SOCShip) rs));
+                assertEquals(testDesc, nCards, pl.getInventory().getTotal());
+                assertTrue(testDesc, ga.canPlayKnight(pn));
+            }
         }
 
-        // in game data, undo conversion
+        // after subtest 1: in game data, undo conversion
         pl.setNumWarships(0);
         pl.setPlayedDevCard(false);
         assertFalse(descShipEdge, ga.isShipWarship((SOCShip) rs));
