@@ -891,11 +891,7 @@ public class TestRecorder
         // NOTE: connectObserver uses similar setup code.
         // If changing anything here, check that method too.
 
-        if (clientName == null)
-            throw new IllegalArgumentException("clientName");
-        if (clientName.length() > SOCServer.PLAYER_NAME_MAX_LENGTH)
-            throw new IllegalArgumentException("clientName.length " + clientName.length()
-                + ", max is " + SOCServer.PLAYER_NAME_MAX_LENGTH);
+        validateAndUseClientName("clientName", clientName);
         if (client2Name == null)
         {
             if (client2PN != 0)
@@ -905,25 +901,11 @@ public class TestRecorder
                 throw new IllegalArgumentException("clientName == client2Name: " + clientName);
 
             // client2PN will be checked soon, once sgm seats' robot and vacant flags are known
+
+            validateAndUseClientName("client2Name", client2Name);
         }
         if ((observabilityMode < 0) || (observabilityMode > 2))
             throw new IllegalArgumentException("observabilityMode: " + observabilityMode);
-
-        synchronized(clientNamesUsed)
-        {
-            if (clientNamesUsed.contains(clientName))
-                throw new IllegalStateException("already used clientName " + clientName);
-
-            clientNamesUsed.add(clientName);
-
-            if (client2Name != null)
-            {
-                if (clientNamesUsed.contains(client2Name))
-                    throw new IllegalStateException("already used client2Name " + client2Name);
-
-                clientNamesUsed.add(client2Name);
-            }
-        }
 
         assertNotNull(server);
 
@@ -932,18 +914,8 @@ public class TestRecorder
         if (observabilityMode > 0)
         {
             final String key = (observabilityMode == 1) ? SOCGameOptionSet.K_PLAY_VPO : SOCGameOptionSet.K_PLAY_FO;
-            SOCGameOption opt = server.knownOpts.getKnownOption(key, true);
-            assertNotNull("server found option " + key, opt);
-            boolean wasInactiveAtServer = (opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
-
-            clientKnownOpts = activateOptionAtServerForClient(server, opt);
-            if (wasInactiveAtServer)
-            {
-                opt = server.knownOpts.getKnownOption(key, true);
-                assertTrue(opt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
-            }
-
-            observabilityOpt = opt;
+            clientKnownOpts = activateObservabilityGameOption(server, key);
+            observabilityOpt = server.knownOpts.getKnownOption(key, true);
         } else {
             observabilityOpt = null;
         }
@@ -1139,38 +1111,17 @@ public class TestRecorder
         // NOTE: connectLoadJoinResumeGame uses similar setup code.
         // If changing anything here, check that method too.
 
-        if (observerClientName == null)
-            throw new IllegalArgumentException("observerClientName");
-        if (observerClientName.length() > SOCServer.PLAYER_NAME_MAX_LENGTH)
-            throw new IllegalArgumentException("observerClientName.length " + observerClientName.length()
-                + ", max is " + SOCServer.PLAYER_NAME_MAX_LENGTH);
+        validateAndUseClientName("observerClientName", observerClientName);
         assertNotNull(server);
         if ((observabilityMode < 0) || (observabilityMode > 2))
             throw new IllegalArgumentException("observabilityMode: " + observabilityMode);
         final String gameName = gameAtServer.getName();
 
-        synchronized(clientNamesUsed)
-        {
-            if (clientNamesUsed.contains(observerClientName))
-                throw new IllegalStateException("already used observerClientName " + observerClientName);
-
-            clientNamesUsed.add(observerClientName);
-        }
-
         SOCGameOptionSet clientKnownOpts = null;
         if (observabilityMode > 0)
         {
             final String key = (observabilityMode == 1) ? SOCGameOptionSet.K_PLAY_VPO : SOCGameOptionSet.K_PLAY_FO;
-            SOCGameOption opt = server.knownOpts.getKnownOption(key, true);
-            assertNotNull("server found option " + key, opt);
-            boolean wasInactiveAtServer = (opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
-
-            clientKnownOpts = activateOptionAtServerForClient(server, opt);
-            if (wasInactiveAtServer)
-            {
-                opt = server.knownOpts.getKnownOption(key, true);
-                assertTrue(opt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
-            }
+            clientKnownOpts = activateObservabilityGameOption(server, key);
         }
 
         final DisplaylessTesterClient tcli = new DisplaylessTesterClient
@@ -1195,6 +1146,61 @@ public class TestRecorder
         assertTrue("tcli member of reloaded game?", server.getGameList().isMember(tcliConn, gameName));
 
         return tcli;
+    }
+
+    /**
+     * For test-client connect methods, validate a client name and add it to {@link #clientNamesUsed}.
+     * @param  cliVarName  Variable name of {@code clientName} in caller, for more helpful exception detail strings
+     * @param  clientName  Unique client name to be validated for a new testing client
+     * @throws IllegalArgumentException if {@code clientName} is null or too long
+     *     (max length is {@link SOCServer#PLAYER_NAME_MAX_LENGTH})
+     * @throws IllegalStateException if {@code clientName} was already in {@link #clientNamesUsed},
+     *     probably because a different test used it.
+     *     Use unique names for each test client to avoid intermittent auth problems.
+     * @since 2.7.00
+     */
+    private static void validateAndUseClientName
+        (final String cliVarName, final String clientName)
+        throws IllegalStateException
+    {
+        if (clientName == null)
+            throw new IllegalArgumentException(cliVarName);
+        if (clientName.length() > SOCServer.PLAYER_NAME_MAX_LENGTH)
+            throw new IllegalArgumentException(cliVarName + ".length " + clientName.length()
+                + ", max is " + SOCServer.PLAYER_NAME_MAX_LENGTH);
+
+        synchronized(clientNamesUsed)
+        {
+            if (clientNamesUsed.contains(clientName))
+                throw new IllegalStateException("already used " + cliVarName + ' ' + clientName);
+
+            clientNamesUsed.add(clientName);
+        }
+    }
+
+    /**
+     * For test-client connect methods, activate a possibly-inactive observability game option at a test server.
+     * After calling, flag {@link SOCGameOption#FLAG_ACTIVATED} will be true for the option in {@link SOCServer#knownOpts server.knownOpts}.
+     * @param server  Server at which to activate the option
+     * @param key  Observability option's {@code optKey}, such as {@link SOCGameOptionSet#K_PLAY_VPO} or {@link SOCGameOptionSet#K_PLAY_FO}
+     * @return  Client's updated known options from calling {@link #activateOptionAtServerForClient(SOCServer, SOCGameOption)}
+     * @since 2.7.00
+     */
+    private static SOCGameOptionSet activateObservabilityGameOption
+        (final RecordingSOCServer server, final String key)
+    {
+        SOCGameOption opt = server.knownOpts.getKnownOption(key, true);
+        assertNotNull("server found option " + key, opt);
+        boolean wasInactiveAtServer = (opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN));
+
+        final SOCGameOptionSet clientKnownOpts = activateOptionAtServerForClient(server, opt);
+        if (wasInactiveAtServer)
+        {
+            opt = server.knownOpts.getKnownOption(key, true);
+            assertTrue(opt.hasFlag(SOCGameOption.FLAG_ACTIVATED));
+        }
+
+        return clientKnownOpts;
     }
 
     /**
