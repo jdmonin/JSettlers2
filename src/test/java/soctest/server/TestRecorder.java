@@ -920,29 +920,12 @@ public class TestRecorder
             observabilityOpt = null;
         }
 
-        final DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingSOCServer.STRINGPORT_NAME, clientName, null, clientKnownOpts);
-        tcli.init();
-        assertEquals(clientName, tcli.getNickname());
-
-        try { Thread.sleep(120); }
-        catch(InterruptedException e) {}
-        assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
-
+        final DisplaylessTesterClient tcli = connectNewTesterClient(clientName, clientKnownOpts);
         final DisplaylessTesterClient tcli2;
         if (client2Name != null)
-        {
-            tcli2 = new DisplaylessTesterClient
-                (RecordingSOCServer.STRINGPORT_NAME, client2Name, null, clientKnownOpts);
-            tcli2.init();
-            assertEquals(client2Name, tcli2.getNickname());
-
-            try { Thread.sleep(120); }
-            catch(InterruptedException e) {}
-            assertEquals("get version from test SOCServer", Version.versionNumber(), tcli2.getServerVersion());
-        } else {
+            tcli2 = connectNewTesterClient(client2Name, clientKnownOpts);
+        else
             tcli2 = null;
-        }
 
         final SavedGameModel sgm = (gameArtifactSGM != null)
             ? gameArtifactSGM
@@ -1124,14 +1107,7 @@ public class TestRecorder
             clientKnownOpts = activateObservabilityGameOption(server, key);
         }
 
-        final DisplaylessTesterClient tcli = new DisplaylessTesterClient
-            (RecordingSOCServer.STRINGPORT_NAME, observerClientName, null, clientKnownOpts);
-        tcli.init();
-        assertEquals(observerClientName, tcli.getNickname());
-
-        try { Thread.sleep(120); }
-        catch(InterruptedException e) {}
-        assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
+        final DisplaylessTesterClient tcli = connectNewTesterClient(observerClientName, clientKnownOpts);
 
         final Connection tcliConn = server.getConnection(observerClientName);
         assertNotNull("server has tcliConn(" + observerClientName + ")", tcliConn);
@@ -1201,6 +1177,28 @@ public class TestRecorder
         }
 
         return clientKnownOpts;
+    }
+
+    /**
+     * For test-client connect methods, connect to the local server running at {@link RecordingSOCServer#STRINGPORT}.
+     * @param clientName  Testing client name; should already be validated by {@link #validateAndUseClientName(String, String)}
+     * @param clientKnownOpts  Null for defaults or client's known options, including observability, from {@link #activateObservabilityGameOption(RecordingSOCServer, String)}
+     * @return  Connected new client
+     * @since 2.7.00
+     */
+    private static DisplaylessTesterClient connectNewTesterClient
+        (String clientName, SOCGameOptionSet clientKnownOpts)
+    {
+        final DisplaylessTesterClient tcli = new DisplaylessTesterClient
+            (RecordingSOCServer.STRINGPORT_NAME, clientName, null, clientKnownOpts);
+        tcli.init();
+        assertEquals(clientName, tcli.getNickname());
+
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+        assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
+
+        return tcli;
     }
 
     /**
