@@ -34,6 +34,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import soc.baseclient.SOCDisplaylessPlayerClient;
 import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.EventEntry;
 import soc.extra.server.RecordingSOCServer;
@@ -817,6 +818,125 @@ public class TestRecorder
     }
 
     /**
+     * Create a new game and connect a test client to it on the RecordingServer, with related asserts.
+     * Can be used to set up a test instead of loading an artifact with
+     * {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}.
+     *<P>
+     * Game name will be {@code clientName}, possibly with a unique suffix if somehow there's a name collision at the server.
+     * Game state will be {@link SOCGame#NEW} just as if a person had created the game from client.
+     * So caller should set up as needed, then have client call {@link SOCDisplaylessPlayerClient#startGame(SOCGame)}.
+     *<UL>
+     * <LI> Assert {@code server} not null
+     * <LI> Connect to test server with a new client
+     * <LI> Calls {@link SOCServer#createOrJoinGame(Connection, int, String, SOCGameOptionSet, SOCGame, int)}
+     *      to create and announce the new game.
+     * <LI> server will connect client and robots to it
+     * <LI> Sit down at game's highest player number (3 or 5): {@link SOCGame#maxPlayers} - 1
+     * <LI> Confirm and retrieve {@link SOCGame} and client {@link SOCPlayer} info
+     * <LI> Override all players' {@link SOCPlayer#isRobot()} flags to test varied server response message sequences
+     *</UL>
+     * When {@code clientAsRobot}, the client's locale and i18n manager are cleared to null as a bot's would be.
+     *<P>
+     * Limitation: Even when ! {@code othersAsRobot}, those fields can't be set non-null for robot clients because
+     * those bot connections are also in other games which may have a different value for {@code othersAsRobot}.
+     *<P>
+     * To connect an observer to the new game, call {@link #connectObserver(RecordingSOCServer, SOCGame, String, int)}
+     * afterwards.
+     *
+     * @param clientName  Unique client name to use for this client and game;
+     *     will sit at player number 3, or 5 if a 6-player game
+     * @param gameOpts  Options to use for new game, in the usual format
+     *     used by {@link SOCGameOption#parseOptionsToSet(String, SOCGameOptionSet)}, or {@code null}
+     * @param observabilityMode Whether to test using normally-inactive game options for "observability":
+     *     <UL>
+     *      <LI> 0: Normal mode: Resources and Victory Point/development cards are hidden as usual
+     *      <LI> 1: Activate and test with VP Observable mode: {@link SOCGameOptionSet#K_PLAY_VPO PLAY_VPO}
+     *      <LI> 2: Activate and test with Fully Observable mode: {@link SOCGameOptionSet#K_PLAY_FO PLAY_FO}
+     *     </UL>
+     * @return  all the useful objects mentioned above
+     * @throws IllegalArgumentException if {@code clientName} is null or too long
+     *     (max length is {@link SOCServer#PLAYER_NAME_MAX_LENGTH});
+     *     or if {@code observabilityMode} not in range 0..2
+     * @throws IllegalStateException if {@code clientName} was already used for a different call to this method,
+     *     {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean) connectLoadJoinResumeGame(..)},
+     *     or {@link #connectObserver(RecordingSOCServer, SOCGame, String, int) connectObserver(..)}:
+     *     Use unique names for each call to avoid intermittent auth problems
+     * @since 2.7.00
+     */
+    public static StartedTestGameObjects connectCreateJoinNewGame
+        (final RecordingSOCServer server, final String clientName, String gameOpts,
+         final int observabilityMode)
+        throws IllegalArgumentException, IllegalStateException
+    {
+        // NOTE: connectLoadJoinResumeGame and connectObserver use similar setup code.
+        // If changing anything here, check those methods too.
+
+        validateAndUseClientName("clientName", clientName);
+        if ((observabilityMode < 0) || (observabilityMode > 2))
+            throw new IllegalArgumentException("observabilityMode: " + observabilityMode);
+
+        assertNotNull(server);
+
+        final SOCGameOptionSet gameOptsSet;
+        SOCGameOptionSet clientKnownOpts = null;
+        if (observabilityMode > 0)
+        {
+            final String key = (observabilityMode == 1) ? SOCGameOptionSet.K_PLAY_VPO : SOCGameOptionSet.K_PLAY_FO;
+            clientKnownOpts = activateObservabilityGameOption(server, key);
+            final SOCGameOption observabilityOpt = server.knownOpts.getKnownOption(key, true);
+
+            gameOptsSet = (gameOpts != null)
+                ? (SOCGameOption.parseOptionsToSet(gameOpts, server.knownOpts))
+                : new SOCGameOptionSet();
+            assertNotNull(gameOptsSet);
+            final String optKey = observabilityOpt.key;
+            assertFalse
+                ("game shouldn't already have observ gameopt " + optKey,
+                 gameOptsSet.containsKey(optKey));
+
+            observabilityOpt.setBoolValue(true);
+            gameOptsSet.put(observabilityOpt);
+        } else {
+            gameOptsSet = (gameOpts != null)
+                ? (SOCGameOption.parseOptionsToSet(gameOpts, server.knownOpts))
+                : null;
+        }
+
+        final DisplaylessTesterClient tcli = connectNewTesterClient(clientName, clientKnownOpts);
+
+        final Connection tcliConn = server.getConnection(clientName);
+        assertNotNull("server has tcliConn(" + clientName + ")", tcliConn);
+        assertEquals("conn.getData==" + clientName, clientName, tcliConn.getData());
+
+        // actually create the game, and have server ask client to join
+        final SOCGame ga = server.createOrJoinGame(tcliConn, Version.versionNumber(), clientName, gameOptsSet, null, SOCServer.AUTH_OR_REJECT__OK);
+        assertNotNull("Internal error, please re-run test: Couldn't create new game for client " + clientName, ga);
+        final String gameName = ga.getName();  // in case server added suffix to requested name
+
+        // have server ask client to join; have this thread wait until client's thread joins
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        assertTrue("tcliConn member of created game?", server.getGameList().isMember(tcliConn, gameName));
+        assertNotNull("client knows game exists: " + gameName, tcli.getGame(gameName));
+
+        final int clientPN = ga.maxPlayers - 1;
+        tcli.sitDown(ga, clientPN);
+
+        try { Thread.sleep(90); }
+        catch(InterruptedException e) {}
+
+        final SOCPlayer cliPl = ga.getPlayer(clientPN);
+        assertEquals(clientName, cliPl.getName());
+
+        final GameEventLog log = server.records.get(gameName);
+        assertNotNull("log exists for game", log);
+
+        return new StartedTestGameObjects
+            (tcli, null, tcliConn, null, null, ga, ga.getBoard(), cliPl, null, log.entries);
+    }
+
+    /**
      * Common code to use when beginning a test:
      *<UL>
      * <LI> Assert {@code server} not null
@@ -873,7 +993,8 @@ public class TestRecorder
      *     or if using {@code client2Name} but {@code client2PN} isn't a non-vacant robot player number;
      *     or if {@code observabilityMode} not in range 0..2
      * @throws IllegalStateException if {@code clientName} or {@code client2Name} was already used for
-     *     a different call to this method or
+     *     a different call to this method,
+     *     {@link #connectCreateJoinNewGame(RecordingSOCServer, String, String, int, boolean, boolean) connectCreateJoinNewGame(..)}, or
      *     {@link #connectObserver(RecordingSOCServer, SOCGame, String, int) connectObserver(..)}:
      *     Use unique names for each call to avoid intermittent auth problems
      * @throws IOException if game artifact file can't be loaded
@@ -1077,7 +1198,8 @@ public class TestRecorder
      *     (max length is {@link SOCServer#PLAYER_NAME_MAX_LENGTH});
      *     or if {@code observabilityMode} not in range 0..2
      * @throws IllegalStateException if {@code observerClientName} was already used for
-     *     a different call to this method or
+     *     a different call to this method,
+     *     {@link #connectCreateJoinNewGame(RecordingSOCServer, String, String, int, boolean, boolean) connectCreateJoinNewGame(..)}, or
      *     {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean) connectLoadJoinResumeGame(..)}:
      *     Use unique names for each call to avoid intermittent auth problems
      * @since 2.7.00

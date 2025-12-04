@@ -86,6 +86,9 @@ JARs for recent JSettlers versions can be downloaded from
 	        - MODEL_VERSION still 2400; earlier server versions will ignore lastAction while loading a savegame
 	- Robots: If SOCGame.restoreLargestArmyState called before saveLargestArmyState, do nothing
 	- To help unit tests, SOCGame.initAtServer now calls startGame_setupDevCards
+	- To help unit tests which create games:
+	    - TestRecorder: New convenience method connectCreateJoinNewGame
+	    - SOCServer.createOrJoinGame is now public, returning the created or joined SOCGame
 	- Gradle 7 compatibility
 	- Gradle build auto-selects `python3` or `python` command to run tests
 	- Removed obsolete `SOCApplet`; you can run `SOCPlayerClient` instead

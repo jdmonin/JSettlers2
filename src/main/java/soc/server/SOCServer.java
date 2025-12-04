@@ -892,15 +892,16 @@ public class SOCServer extends Server
 
     /** {@link AuthSuccessRunnable#success(Connection, int)}
      *  result flag bit: Authentication succeeded.
+     *  Used when calling {@link #createOrJoinGame(Connection, int, String, SOCGameOptionSet, SOCGame, int)}.
      *  @see #AUTH_OR_REJECT__SET_USERNAME
      *  @see #AUTH_OR_REJECT__TAKING_OVER
      *  @since 1.1.19
      */
-    static final int AUTH_OR_REJECT__OK = 0x1;
+    public static final int AUTH_OR_REJECT__OK = 0x1;
 
     /** {@link AuthSuccessRunnable#success(Connection, int)}
      *  result flag bit: Authentication succeeded, is taking over another connection
-     *  @see #AUTH_OR_REJECT__OK
+     *  for internal use (unlike {@link #AUTH_OR_REJECT__OK}).
      *  @since 1.1.19
      */
     static final int AUTH_OR_REJECT__TAKING_OVER = 0x2;
@@ -910,7 +911,7 @@ public class SOCServer extends Server
      *  client must be sent a status message with its exact nickname. See
      *  {@link #authOrRejectClientUser(Connection, String, String, int, boolean, boolean, AuthSuccessRunnable)}
      *  javadoc.
-     *  @see #AUTH_OR_REJECT__OK
+     *  For internal use (unlike {@link #AUTH_OR_REJECT__OK}).
      *  @since 1.2.00
      */
     static final int AUTH_OR_REJECT__SET_USERNAME = 0x4;
@@ -2873,9 +2874,12 @@ public class SOCServer extends Server
 
     /**
      * Adds a connection to a game, unless they're already a member.
+     * Public users should probably instead call {@link #createOrJoinGame(Connection, int, String, SOCGameOptionSet, SOCGame, int)}
+     * which has more robust functionality and returns the new game object.
+     *<P>
      * If the game doesn't yet exist, creates it and announces the new game to all clients
      * by calling {@link #createGameAndBroadcast(Connection, String, SOCGameOptionSet, SOCGame, int, boolean, boolean)}.
-     * After this method returns, caller must call {@link #joinGame(SOCGame, Connection, boolean, boolean, boolean)}
+     * After this method returns, caller must call {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean, boolean)}
      * to send game state to the player/observer.
      *<P>
      * If this method creates a new game: After it returns, other human players may join until
@@ -3024,6 +3028,8 @@ public class SOCServer extends Server
 
     /**
      * Create a new game and announce it with a broadcast.
+     * If the game owner client should auto-join the game and be sent game data,
+     * call {@link #createOrJoinGame(Connection, int, String, SOCGameOptionSet, SOCGame, int)} instead.
      *<P>
      * The new game is created with
      * {@link SOCGameListAtServer#createGame(String, String, String, SOCGameOptionSet, GameHandler)}
@@ -7609,28 +7615,10 @@ public class SOCServer extends Server
      * That way, the requested game's window will appear last,
      * not hidden behind the others.
      *<P>
-     *<b>Process if gameOpts != null:</b>
-     *<UL>
-     *  <LI> if game with this name already exists, respond with
-     *      STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_ALREADY_EXISTS SV_NEWGAME_ALREADY_EXISTS})
-     *  <LI> compare cli's param name-value pairs, with srv's known values. <br>
-     *      - if any are above/below max/min, clip to the max/min value <br>
-     *      - if any are unknown, resp with
-     *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_UNKNOWN SV_NEWGAME_OPTION_UNKNOWN}) <br>
-     *      - if any are too new for client's version, resp with
-     *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_VALUE_TOONEW SV_NEWGAME_OPTION_VALUE_TOONEW}) <br>
-     *      Comparison is done by {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}.
-     *  <LI> if ok: create new game with params;
-     *      socgame will calc game's minCliVersion,
-     *      and this method will check that against cli's version.
-     *  <LI> announce to all players using NEWGAMEWITHOPTIONS;
-     *       older clients get NEWGAME, won't see the options
-     *  <LI> send JOINGAMEAUTH to requesting client,
-     *       via {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean, boolean)}
-     *  <LI> send game status details to requesting client,
-     *       via {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean, boolean)}
-     *       -- If the game is already in progress, this will include all pieces on the board, and the rest of game state.
-     *</UL>
+     * If game with this name already exists, responds with
+     * STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_ALREADY_EXISTS SV_NEWGAME_ALREADY_EXISTS}).
+     * Otherwise: For the process and message sequence if gameOpts != null, see
+     * {@link #createOrJoinGame(Connection, int, String, SOCGameOptionSet, SOCGame, int)} javadocs.
      *
      * @param c connection requesting the game, must not be null
      * @param msgUser username of client in message. Must pass {@link SOCMessage#isSingleLineAndSafe(String)}
@@ -7685,15 +7673,44 @@ public class SOCServer extends Server
     /**
      * After successful client user auth, take care of the rest of
      * {@link #createOrJoinGameIfUserOK(Connection, String, String, String, SOCGameOptionSet)}.
+     * Joins an existing game, or creates announces and joins a new one.
      *<P>
      * Can also be used with a {@code loadedGame} being reloaded
      * (having current state {@link SOCGame#LOADING}); will check its name and game options,
      * add it to game list, and generally act as if a new game is being created.
      * If {@code c} isn't a player in {@code loadedGame}, they'll be given the option to
      * sit down and take over any seat as if all players were bots.
-     *<P>
-     * Before v2.3.00 this method was {@code createOrJoinGameIfUserOK_postAuth}.
      *
+     *<H3>Process and message sequence if gameOpts != null</H3>
+     *<UL>
+     *  <LI> compare cli's param name-value pairs, with srv's known values. <br>
+     *      - if any are above/below max/min, clip to the max/min value <br>
+     *      - if any are unknown, resp with
+     *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_UNKNOWN SV_NEWGAME_OPTION_UNKNOWN}) <br>
+     *      - if any are too new for client's version, resp with
+     *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_VALUE_TOONEW SV_NEWGAME_OPTION_VALUE_TOONEW}) <br>
+     *      Comparison is done by {@link SOCGameOptionSet#adjustOptionsToKnown(SOCGameOptionSet, boolean, SOCFeatureSet)}.
+     *  <LI> if ok: create new game with params;
+     *      socgame will calc game's minCliVersion,
+     *      and this method will check that against cli's version.
+     *  <LI> announce to all players using NEWGAMEWITHOPTIONS;
+     *       older clients get NEWGAME, won't see the options
+     *  <LI> send JOINGAMEAUTH to requesting client,
+     *       via {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean, boolean)}
+     *  <LI> send game status details to requesting client,
+     *       via {@link GameHandler#joinGame(SOCGame, Connection, boolean, boolean, boolean)}
+     *       -- If the game was loaded from savegame and is already in progress,
+     *       this will include all pieces on the board, and the rest of game state.
+     *</UL>
+     *
+     *<H3>Notable changes</H3>
+     *<UL>
+     *  <LI> Before v2.7.00 this method wasn't public and returned success/failure instead of the created/joined game data.
+     *  <LI> Before v2.3.00 this method was {@code createOrJoinGameIfUserOK_postAuth}.
+     *</UL>
+     *
+     * @param c  connection requesting the game; must not be null
+     * @param cliVers  {@code c}'s version, so we don't have to call {@link Connection#getVersion()} again here
      * @param connGaName  Name of game to create or join.
      *     If {@code loadingGame != null}: Will instead check {@link SOCGame#getName() loadingGame.getGameName()} for
      *     validity, and use {@code connGaName} as the game name in which to send any error messages back to user {@code c};
@@ -7701,23 +7718,28 @@ public class SOCServer extends Server
      *     will use {@link SOCStatusMessage} to report errors if null.
      * @param gameOpts  New or reloaded game's {@link SOCGameOption}s, or null
      *     to join an existing game as usual (not one that's currently being reloaded).
+     *     May be adjusted, see details above.
      * @param loadedGame  Game being reloaded, or {@code null} when joining an existing game or creating a new one.
      *     Should not be in server's gameList yet.
      * @param authResult  Auth check result flags: {@link SOCServer#AUTH_OR_REJECT__OK AUTH_OR_REJECT__OK},
      *     {@link SOCServer#AUTH_OR_REJECT__SET_USERNAME AUTH_OR_REJECT__SET_USERNAME}, etc. See
      *     {@link SOCServer#authOrRejectClientUser(Connection, String, String, int, boolean, boolean, AuthSuccessRunnable)}
      *     for details. If user is already auth'd, use {@link {@link SOCServer#AUTH_OR_REJECT__OK AUTH_OR_REJECT__OK}.
-     * @return  True if succeeded, false if failed and a message was sent to user {@code c}.
+     * @return  Game object if succeeded, {@code null} if failed and a message was sent to user {@code c}.
+     * @throws IllegalArgumentException  if {@code c} is null
      * @throws IllegalStateException if {@code loadedGame != null} but its gameState isn't {@link SOCGame#LOADING}
      *     or {@link SOCGame#OVER}
      * @see #createAndJoinReloadedGame(SavedGameModel, Connection, String)
      * @since 1.2.00
      */
-    /*package*/ boolean createOrJoinGame
+    public SOCGame createOrJoinGame
         (final Connection c, final int cliVers, final String connGaName, final SOCGameOptionSet gameOpts,
          final SOCGame loadedGame, final int authResult)
         throws IllegalStateException
     {
+        if (c == null)
+            throw new IllegalArgumentException("c");
+
         final boolean isTakingOver = (0 != (authResult & AUTH_OR_REJECT__TAKING_OVER));
         final boolean sendErrorViaStatus = ((loadedGame == null) || (connGaName == null));
         final SOCClientData scd = (SOCClientData) c.getAppData();
@@ -7750,7 +7772,7 @@ public class SOCServer extends Server
             else
                 messageToPlayer(c, connGaName, PN_NON_EVENT, txt);
 
-            return false;  // <---- Early return ----
+            return null;  // <---- Early return ----
         }
 
         /**
@@ -7771,7 +7793,7 @@ public class SOCServer extends Server
                          c.getLocalized("netmsg.status.newgame_too_many_created", CLIENT_MAX_CREATE_GAMES)));
                 // "Too many of your games still active; maximum: 5"
 
-                return false;  // <---- Early return ----
+                return null;  // <---- Early return ----
             }
 
             String rejectText = null;
@@ -7797,7 +7819,7 @@ public class SOCServer extends Server
                 else
                     messageToPlayer(c, connGaName, PN_NON_EVENT, rejectText);
 
-                return false;  // <---- Early return ----
+                return null;  // <---- Early return ----
             }
         }
 
@@ -7820,7 +7842,7 @@ public class SOCServer extends Server
                 else
                     messageToPlayer(c, connGaName, PN_NON_EVENT, txt);
 
-                return false;  // <---- Early return ----
+                return null;  // <---- Early return ----
             }
 
             // Make sure all requested options are known and active.
@@ -7888,7 +7910,7 @@ public class SOCServer extends Server
                     c.put(SOCGameOptionInfo.OPTINFO_NO_MORE_OPTS);  // GAMEOPTIONINFO("-")
                 }
 
-                return false;  // <---- Early return ----
+                return null;  // <---- Early return ----
             }
         }
 
@@ -7902,6 +7924,7 @@ public class SOCServer extends Server
          *<P>
          * If rejoining after a lost connection, first rejoin all their other games.
          */
+        SOCGame ga = null;
         try
         {
             if (0 != (authResult & SOCServer.AUTH_OR_REJECT__SET_USERNAME))
@@ -7928,7 +7951,12 @@ public class SOCServer extends Server
                 } else {
                     // Send list backwards: requested game will be sent last.
                     for (int i = allConnGames.size() - 1; i >= 0; --i)
-                        joinGame(allConnGames.get(i), c, false, false, true);
+                    {
+                        SOCGame gi = allConnGames.get(i);
+                        joinGame(gi, c, false, false, true);
+                        if (i == 0)
+                            ga = gi;
+                    }
                 }
             }
             else if (connectToGame(c, gameName, gameOpts, loadedGame))  // join or create the game
@@ -7941,7 +7969,7 @@ public class SOCServer extends Server
                  * send the entire state of the game to client,
                  * send client join event to other players of game
                  */
-                final SOCGame ga = gameList.getGameData(gameName);
+                ga = gameList.getGameData(gameName);
                 if (ga != null)
                 {
                     boolean sendLikeTakingOver = false;
@@ -7980,7 +8008,7 @@ public class SOCServer extends Server
                 + Integer.toString(e.gameOptsVersion)
                 + SOCMessage.sep2_char + gameName
                 + SOCMessage.sep2_char + e.problemOptionsList()));
-            return false;
+            return null;
         } catch (MissingResourceException e)
         {
             // Let them know they can't join or create it because
@@ -7994,7 +8022,7 @@ public class SOCServer extends Server
                 "Cannot " + verb + "; this client is incompatible with features of the game"
                 + SOCMessage.sep2_char + gameName
                 + SOCMessage.sep2_char + feats));
-            return false;
+            return null;
         } catch (IllegalArgumentException e)
         {
             SOCGame game = gameList.getGameData(gameName);
@@ -8010,7 +8038,7 @@ public class SOCServer extends Server
                     + Integer.toString(game.getClientVersionMinRequired())
                     + ": " + gameName));
             }
-            return false;
+            return null;
         } catch (NoSuchElementException e)
         {
             if (loadedGame != null)
@@ -8019,10 +8047,10 @@ public class SOCServer extends Server
                     // I18N OK: very unlikely, not worth translating
             else
                 D.ebugPrintStackTrace(e, "Exception in createOrJoinGame");
-            return false;
+            return null;
         }
 
-        return true;
+        return ga;
     }
 
     /**
@@ -8053,7 +8081,7 @@ public class SOCServer extends Server
         // by an existing game.
         // If debug/admin user isn't a player, will send each sitDown with isRobot=true
         // to let them sit down at any player's seat.
-        if (! createOrJoinGame
+        if (null == createOrJoinGame
                (c, c.getVersion(), connGaName, ga.getGameOptions(), ga, SOCServer.AUTH_OR_REJECT__OK))
         {
             return null;
@@ -9356,7 +9384,7 @@ public class SOCServer extends Server
      *          If {@code isRejoinOrLoadgame}, sends {@code c} their hand's private info for game in progress.
      *
      * @see #connectToGame(Connection, String, SOCGameOptionSet, SOCGame)
-     * @see #createOrJoinGameIfUserOK(Connection, String, String, String, SOCGameOptionSet)
+     * @see #createOrJoinGame(Connection, int, String, SOCGameOptionSet, SOCGame, int)
      * @since 1.1.00
      */
     private void joinGame
