@@ -491,13 +491,9 @@ public class TestRecorder
         }
 
         // game with gameopts
-        final SOCGameOptionSet gaOpts = new SOCGameOptionSet();
-        {
-            SOCGameOption optNT = srv.knownOpts.getKnownOption("NT", true);
-            assertNotNull(optNT);
-            optNT.setBoolValue(true);
-            gaOpts.add(optNT);
-        }
+        final SOCGameOptionSet gaOpts = SOCGameOption.parseOptionsToSet("NT=t", srv.knownOpts);
+        assertEquals(1, gaOpts.size());
+        assertTrue(gaOpts.get("NT").getBoolValue());
         ga = srv.createGameAndBroadcast(null, "testNewGameO", gaOpts, false);
         assertNotNull("Internal error, please re-run test: Couldn't create new game", ga);
         gaName = ga.getName();
