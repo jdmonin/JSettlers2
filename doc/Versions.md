@@ -89,6 +89,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- To help unit tests which create games:
 	    - TestRecorder: New convenience method connectCreateJoinNewGame
 	    - SOCServer.createOrJoinGame is now public, returning the created or joined SOCGame
+	    - SOCRobotBrain: New `ALWAYS_PAUSE_FASTER` static flag
 	- Gradle 7 compatibility
 	- Gradle build auto-selects `python3` or `python` command to run tests
 	- Removed obsolete `SOCApplet`; you can run `SOCPlayerClient` instead
