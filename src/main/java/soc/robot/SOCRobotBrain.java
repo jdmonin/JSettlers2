@@ -163,6 +163,12 @@ public class SOCRobotBrain extends Thread
     public static float BOTS_ONLY_FAST_PAUSE_FACTOR = .25f;
 
     /**
+     * If true, always pause faster by setting {@link #pauseFaster} for every new game, not just 6-player games.
+     * @since 2.7.00
+     */
+    public static boolean ALWAYS_PAUSE_FASTER = false;
+
+    /**
      * If, during a turn, we make this many illegal build
      * requests that the server denies, stop trying.
      * Also includes general ({@link SOCDeclinePlayerRequest}s).
@@ -247,6 +253,7 @@ public class SOCRobotBrain extends Thread
      * {@link #pause(int) Pause} for less time;
      * speeds up response in 6-player games.
      * Ignored if {@link SOCGame#isBotsOnly}, which pauses for even less time.
+     * @see #ALWAYS_PAUSE_FASTER
      * @since 1.1.09
      */
     private boolean pauseFaster;
@@ -835,7 +842,7 @@ public class SOCRobotBrain extends Thread
         robotParameters = params.copyIfOptionChanged(ga.getGameOptions());
         game = ga;
         gameIs6Player = (ga.maxPlayers > 4);
-        pauseFaster = gameIs6Player;
+        pauseFaster = gameIs6Player || ALWAYS_PAUSE_FASTER;
         gameEventQ = mq;
         turnEventsCurrent = new Vector<SOCMessage>();
         turnEventsPrev = new Vector<SOCMessage>();

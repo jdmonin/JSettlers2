@@ -236,6 +236,9 @@ public class TestScenarioRules
     /**
      * Test converting player's ship to warship temporarily, by giving and playing a {@link SOCDevCardConstants#KNIGHT} card.
      * Afterwards, game data will be altered to 0 warships and no dev card played to roll back the effects of this subtest.
+     *<P>
+     * See also extraTest TestActionsMessages.testPlayCancelKnightDevCard_SC_PIRI().
+     *
      * @param pl  Player to test for; should be current player, should have 1 ship and no warships yet
      * @param buildShipEdge  Edge having the player's sole ship, which will be converted
      * @param duringGameState  Game state to test during: {@link SOCGame#ROLL_OR_CARD} or {@link SOCGame#PLAY1}

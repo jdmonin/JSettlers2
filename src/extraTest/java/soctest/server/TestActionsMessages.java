@@ -64,6 +64,7 @@ import soc.game.SOCTradeOffer;
 import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCNewGameWithOptions;
+import soc.robot.SOCRobotBrain;
 import soc.server.SOCGameHandler;
 import soc.server.SOCServer;
 import soc.server.savegame.SavedGameModel;
@@ -85,6 +86,7 @@ public class TestActionsMessages
     public static void startStringportServer()
     {
         SOCGameHandler.DESTROY_BOT_ONLY_GAMES_WHEN_OVER = false;  // keep games around, to check asserts
+        SOCRobotBrain.ALWAYS_PAUSE_FASTER = true;  // run tests slightly faster
 
         srv = new RecordingSOCServer();
         srv.setPriority(5);  // same as in SOCServer.main
@@ -2309,6 +2311,7 @@ public class TestActionsMessages
 
     /**
      * Tests different cases and side-effects of playing and canceling a Knight card.
+     * @see #testPlayCancelKnightDevCard_SC_PIRI()
      * @see #testPlayDevCards()
      * @since 2.7.00
      */
@@ -2699,6 +2702,282 @@ public class TestActionsMessages
             System.err.println(compares);
             fail(compares.toString());
         }
+    }
+
+    /**
+     * Tests playing and immediately canceling a Knight card in SC_PIRI.
+     * This tests some of the conditions and all of the actions of
+     * {@code soctest.game.TestScenarioRules.test_SC_PIRI_convertToWarship()}
+     * at server and client.
+     * @see #testPlayCancelKnightDevCard()
+     * @since 2.7.00
+     */
+    @Test
+    public void testPlayCancelKnightDevCard_SC_PIRI()
+        throws IOException
+    {
+        assertNotNull(srv);
+
+        for (int observabilityMode = 0; observabilityMode <= 2; ++observabilityMode)
+            testOne_PlayCancelKnightDevCard_SC_PIRI(observabilityMode);
+    }
+
+    private void testOne_PlayCancelKnightDevCard_SC_PIRI(final int observabilityMode)
+    {
+        // unique client nickname, in case tests run in parallel
+        final String CLIENT_NAME, OBSERVER_NAME;
+        final String nameSuffix = "PIRI_" + observabilityMode;
+        {
+            CLIENT_NAME   = "testPlCnclKn_" + nameSuffix;
+            OBSERVER_NAME = "testPlCnKnOb_" + nameSuffix;
+        }
+
+        final int CLIENT_PN = 3, BOT_PN = 0;
+        final StartedTestGameObjects objs =
+            TestRecorder.connectCreateJoinNewGame
+                (srv, CLIENT_NAME, ",SC=SC_PIRI,BC=t4,RD=f,_SC_0RVP=t,N7=t99,_SC_PIRI=t,VP=t10,SBL=t,PL=2", observabilityMode);
+        final DisplaylessTesterClient tcli = objs.tcli;
+        final SOCGame gaAtSrv = objs.gameAtServer, gaAtCli = tcli.getGame(gaAtSrv.getName());
+        final DisplaylessTesterClient obsCli = TestRecorder.connectObserver(srv, gaAtSrv, OBSERVER_NAME, observabilityMode);
+        final SOCGame gaAtObs = obsCli.getGame(gaAtSrv.getName());
+        final SOCPlayer cliPlAtSrv = objs.clientPlayer,
+            cliPlAtCli = gaAtCli.getPlayer(CLIENT_PN),
+            cliPlAtObs = gaAtObs.getPlayer(CLIENT_PN);
+
+        final HashMap<String, SOCGame> gameViews = new HashMap<>();
+        gameViews.put("gameAtSrv_" + nameSuffix, gaAtSrv);
+        gameViews.put("gameAtCli_" + nameSuffix, gaAtCli);
+        gameViews.put("gameAtObs_" + nameSuffix, gaAtObs);
+        final HashMap<String, SOCPlayer> cliPlViews = new HashMap<>();
+        cliPlViews.put("cliPlAtSrv_" + nameSuffix, cliPlAtSrv);
+        cliPlViews.put("cliPlAtCli_" + nameSuffix, cliPlAtCli);
+        cliPlViews.put("cliPlAtObs_" + nameSuffix, cliPlAtObs);
+
+        assertEquals(2, gaAtSrv.getGameOptionIntValue("PL"));
+        assertEquals(CLIENT_PN, cliPlAtSrv.getPlayerNumber());
+
+        final Vector<EventEntry> records = objs.records;
+
+        // start game, bot joins; note max 2 players in gameopts above
+        tcli.startGame(gaAtCli);
+
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        // expect 2 players, initial-placement states
+        for (Map.Entry<String, SOCGame> eGame : gameViews.entrySet())
+        {
+            final String desc = eGame.getKey();
+            final SOCGame ga = eGame.getValue();
+            assertFalse(desc, ga.isSeatVacant(BOT_PN));  // 0
+            assertTrue(desc, ga.isSeatVacant(1));
+            assertTrue(desc, ga.isSeatVacant(2));
+            assertFalse(desc, ga.isSeatVacant(CLIENT_PN));  // 3
+            int gs = ga.getGameState();
+            assertTrue(desc + ".gs(==" + gs + ") >= START1A", gs >= SOCGame.START1A);
+        }
+
+        // In case other player (bot) was chosen to be first, wait for them to do first initial settlement and road placement;
+        // then it will become our test client player's turn.
+        // remember that the bot pauses deliberately during roadbuilding (~1150 msec when rbrain.pauseFaster flag set).
+        for (int tries = 40, botInSTART1B = 0; tries >= 0; --tries)
+        {
+            if (gaAtSrv.getCurrentPlayerNumber() == CLIENT_PN)
+                break;
+
+            final int gs = gaAtSrv.getGameState() ;
+            if (tries == 0)
+                fail("timeout, retry running test: current PN not clientPN yet, is " + gaAtSrv.getCurrentPlayerNumber() + ", gstate==" + gs
+                    + ", botInSTART1B for " + botInSTART1B + " of these 120ms sleeps");
+            if (gs == SOCGame.START1B)
+                ++botInSTART1B;
+            else if (gs >= SOCGame.START2A)
+                botInSTART1B = 0;
+
+            try { Thread.sleep(120); }
+            catch(InterruptedException e) {}
+        }
+
+        // wait a bit for clients to catch up to server
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+
+        for (Map.Entry<String, SOCGame> eGame : gameViews.entrySet())
+        {
+            final String desc = eGame.getKey();
+            final SOCGame ga = eGame.getValue();
+            assertEquals(desc, CLIENT_PN, ga.getCurrentPlayerNumber());
+            int gs = ga.getGameState();
+            assertTrue(desc + ".gs(==" + gs + ") >= START1A", gs >= SOCGame.START1A);
+            SOCPlayer cliPl = ga.getPlayer(CLIENT_PN);
+            assertEquals(desc, 1, cliPl.getRoadsAndShips().size());
+            assertEquals(desc, 0, cliPl.getNumWarships());
+        }
+
+        // For this test, we don't need to decide build locations and complete initial placement: We have a ship already.
+        // So we'll override gameState to skip right to "normal gameplay".
+
+        /* during game state ROLL_OR_CARD */
+        StringBuilder compareRoll = testOne_PlayCancelKnightDevCard_SC_PIRI_convertToWarship
+            (gaAtSrv, cliPlAtSrv, tcli, cliPlAtCli, gameViews, cliPlViews, records, SOCGame.ROLL_OR_CARD);
+
+        /* during game state PLAY1 */
+        StringBuilder comparePlay1 = testOne_PlayCancelKnightDevCard_SC_PIRI_convertToWarship
+            (gaAtSrv, cliPlAtSrv, tcli, cliPlAtCli, gameViews, cliPlViews, records, SOCGame.PLAY1);
+
+        /* leave game, consolidate results */
+
+        srv.destroyGameAndBroadcast(gaAtSrv.getName(), null);
+        tcli.destroy();
+        obsCli.destroy();;
+
+        StringBuilder compares = new StringBuilder();
+        if (compareRoll != null)
+        {
+            compares.append("Convert and cancel in ROLL_OR_CARD: Message mismatch: ");
+            compares.append(compareRoll);
+        }
+        if (comparePlay1 != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("Convert and cancel in PLAY1: Message mismatch: ");
+            compares.append(comparePlay1);
+        }
+
+        if (compares.length() > 0)
+        {
+            compares.insert(0, "For test " + CLIENT_NAME + ": ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+    }
+
+    // TODO jdoc?
+    private StringBuilder testOne_PlayCancelKnightDevCard_SC_PIRI_convertToWarship
+        (final SOCGame gaAtSrv, final SOCPlayer cliPlAtSrv, final DisplaylessTesterClient tcli, final SOCPlayer cliPlAtCli,
+         final HashMap<String, SOCGame> gameViews, final HashMap<String, SOCPlayer> cliPlViews,
+         final Vector<EventEntry> records, final int duringGameState)
+    {
+        records.clear();
+
+        // TODO test at other pl views too
+
+        final String testDesc = "Convert ship to warship in gstate " + duringGameState;
+        final int cliPN = cliPlAtSrv.getPlayerNumber();
+        final SOCBoardLarge board = (SOCBoardLarge) gaAtSrv.getBoard();
+        assertEquals(testDesc, cliPN, gaAtSrv.getCurrentPlayerNumber());
+        assertEquals(testDesc, 0, cliPlAtSrv.getNumWarships());
+
+        // get sole ship location
+        List<SOCRoutePiece> plRoadsShips = cliPlAtSrv.getRoadsAndShips();
+        assertEquals(1, plRoadsShips.size());
+        final SOCRoutePiece plShip = plRoadsShips.get(0);
+        assertTrue(plShip instanceof SOCShip);
+        final int buildShipEdge = plShip.getCoordinates();
+        String descShipEdge = testDesc + ": Ship at 0x" + Integer.toHexString(buildShipEdge);
+        SOCRoutePiece rsAtSrv = board.roadOrShipAtEdge(buildShipEdge);
+        assertNotNull(descShipEdge, rsAtSrv);
+        assertTrue(descShipEdge, rsAtSrv instanceof SOCShip);
+        assertEquals(testDesc, cliPN, rsAtSrv.getPlayerNumber());
+        assertFalse(descShipEdge, gaAtSrv.isShipWarship((SOCShip) rsAtSrv));
+
+        // set gameState, give player an OLD knight card they can play to convert
+        for (SOCGame ga : gameViews.values())
+            ga.setGameState(duringGameState);
+        for (SOCPlayer cliPl : cliPlViews.values())
+        {
+            cliPl.getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
+            cliPl.setPlayedDevCard(false);
+            assertTrue(testDesc, cliPl.getGame().canPlayKnight(cliPN));
+        }
+
+        final int nCards = cliPlAtSrv.getInventory().getTotal();
+        final SOCGame gaAtCli = cliPlAtCli.getGame();
+
+        for (int subtestNum = 0; subtestNum <= 1; ++subtestNum)
+        {
+            // play the dev card to conv to warship
+            tcli.playDevCard(gaAtCli, SOCDevCardConstants.KNIGHT);
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+
+            for (SOCPlayer cliPl : cliPlViews.values())
+            {
+                // TODO: local testDesc + which cliPl, from cliPlViews.entries key
+                assertEquals(testDesc + ": Playing knight removes from inventory", nCards - 1, cliPl.getInventory().getTotal());
+
+                // check results
+                assertEquals(testDesc, 1, cliPl.getNumWarships());
+                final SOCGame ga = cliPl.getGame();
+                assertTrue(descShipEdge, ga.isShipWarship((SOCShip) cliPl.getRoadOrShip(buildShipEdge)));
+                assertTrue(testDesc, ga.canCancelPlayCurrentDevCard());
+                final GameAction act = ga.getLastAction();
+                {
+                    final String descUnused = testDesc + ": unused param set empty";
+                    assertNotNull(act);
+                    assertEquals(GameAction.ActionType.SHIP_CONVERT_TO_WARSHIP, act.actType);
+                    assertEquals(descUnused, 0, act.param1);
+                    assertEquals(descUnused, 0, act.param2);
+                    assertEquals(descUnused, 0, act.param3);
+                    assertNull(descUnused, act.rset1);
+                    assertNull(descUnused, act.rset2);
+                    assertNull(descUnused, act.effects);
+                }
+            }
+
+            // between subtest 0 and 1: undo the way client would: cancel play knight card
+            if (subtestNum == 0)
+            {
+                tcli.cancelBuildRequest(gaAtCli, SOCCancelBuildRequest.CARD);
+                try { Thread.sleep(60); }
+                catch(InterruptedException e) {}
+
+                for (SOCPlayer cliPl : cliPlViews.values())
+                {
+                    // TODO: local testDesc + which cliPl, from cliPlViews.entries key
+
+                    final SOCGame ga = cliPl.getGame();
+                    assertNull(testDesc, ga.getLastAction());
+                    assertEquals(testDesc, 0, cliPl.getNumWarships());
+                    assertFalse(descShipEdge, ga.isShipWarship((SOCShip) cliPl.getRoadOrShip(buildShipEdge)));
+                    assertEquals(testDesc, nCards, cliPl.getInventory().getTotal());
+                    assertTrue(testDesc, ga.canPlayKnight(cliPN));
+                }
+            }
+        }
+
+        // after last subtest: in game data, undo conversion
+        for (SOCPlayer cliPl : cliPlViews.values())
+        {
+            cliPl.setNumWarships(0);
+            cliPl.setPlayedDevCard(false);
+            SOCGame ga = cliPl.getGame();
+            assertFalse(descShipEdge, ga.isShipWarship((SOCShip) cliPl.getRoadOrShip(buildShipEdge)));
+        }
+
+        final String cliName = cliPlAtSrv.getName();
+        StringBuilder compare = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCGameServerText:", "|text=" + cliName + " converted a ship to a warship."},
+                {"all:SOCDevCardAct", "|playerNum=3|actionType=PLAY|cardType=9"},
+                {"all:SOCPlayerElement", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
+                {"all:SOCPlayerElement", "|playerNum=3|actionType=GAIN|elementType=107|amount=1"},
+                {"all:SOCGameServerText", "|text=" + cliName + " cancelled converting a ship to a warship."},
+                {"all:SOCDevCardAction", "|playerNum=3|actionType=ADD_OLD|cardType=9"},
+                {"all:SOCPlayerElement", "|playerNum=3|actionType=SET|elementType=107|amount=0"},
+                {"all:SOCPlayerElement", "|playerNum=3|actionType=SET|elementType=19|amount=0"},
+                {"all:SOCGameState:", "|state=" + duringGameState},
+                ((duringGameState == SOCGame.ROLL_OR_CARD) ? new String[]{"all:SOCRollDicePrompt", "|playerNumber=3"} : null),
+                {"all:SOCGameServerText:", "|text=" + cliName + " converted a ship to a warship."},
+                {"all:SOCDevCardAction", "|playerNum=3|actionType=PLAY|cardType=9"},
+                {"all:SOCPlayerElement", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
+                {"all:SOCPlayerElement", "|playerNum=3|actionType=GAIN|elementType=107|amount=1"},
+            }, false);
+
+        return compare;
     }
 
     /**
