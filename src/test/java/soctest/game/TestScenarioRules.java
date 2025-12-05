@@ -238,13 +238,13 @@ public class TestScenarioRules
      * Afterwards, game data will be altered to 0 warships and no dev card played to roll back the effects of this subtest.
      * @param pl  Player to test for; should be current player, should have 1 ship and no warships yet
      * @param buildShipEdge  Edge having the player's sole ship, which will be converted
-     * @param duringGmeState  Game state to test during: {@link SOCGame#ROLL_OR_CARD} or {@link SOCGame#PLAY1}
+     * @param duringGameState  Game state to test during: {@link SOCGame#ROLL_OR_CARD} or {@link SOCGame#PLAY1}
      * @since 2.7.00
      */
-    private void test_SC_PIRI_convertToWarship
-        (final SOCPlayer pl, final int buildShipEdge, final int duringGmeState)
+    private static void test_SC_PIRI_convertToWarship
+        (final SOCPlayer pl, final int buildShipEdge, final int duringGameState)
     {
-        final String testDesc = "Convert ship to warship in gstate " + duringGmeState;
+        final String testDesc = "Convert ship to warship in gstate " + duringGameState;
         final int pn = pl.getPlayerNumber();
         final SOCGame ga = pl.getGame();
         final SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
@@ -261,7 +261,7 @@ public class TestScenarioRules
         // give player an OLD knight card they can play to convert
         pl.getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
         pl.setPlayedDevCard(false);
-        ga.setGameState(duringGmeState);
+        ga.setGameState(duringGameState);
         assertTrue(testDesc, ga.canPlayKnight(pn));
 
         // if numWarships >= numShips, they can't convert
@@ -309,7 +309,7 @@ public class TestScenarioRules
             }
         }
 
-        // after subtest 1: in game data, undo conversion
+        // after last subtest: in game data, undo conversion
         pl.setNumWarships(0);
         pl.setPlayedDevCard(false);
         assertFalse(descShipEdge, ga.isShipWarship((SOCShip) rs));
