@@ -303,6 +303,7 @@ public class TestRecorder
         catch(InterruptedException e) {}
 
         assertTrue("debug cli member of reloaded game?", server.getGameList().isMember(tcliConn, loadedName));
+        assertNotNull("client knows game exists: " + loadedName, tcli.getGame(loadedName));
 
         final SOCGame ga = server.getGame(loadedName);
         assertNotNull("game object at server", ga);
@@ -1005,8 +1006,8 @@ public class TestRecorder
          final int observabilityMode, final boolean clientAsRobot, final boolean othersAsRobot)
         throws IllegalArgumentException, IllegalStateException, IOException
     {
-        // NOTE: connectObserver uses similar setup code.
-        // If changing anything here, check that method too.
+        // NOTE: connectCreateJoinNewGame and connectObserver use similar setup code.
+        // If changing anything here, check those methods too.
 
         validateAndUseClientName("clientName", clientName);
         if (client2Name == null)
@@ -1099,6 +1100,7 @@ public class TestRecorder
         catch(InterruptedException e) {}
 
         assertTrue("debug cli member of reloaded game?", server.getGameList().isMember(tcliConn, loadedName));
+        assertNotNull("client knows game exists: " + loadedName, tcli.getGame(loadedName));
 
         final SOCGame ga = server.getGame(loadedName);
         assertNotNull("game object at server", ga);
@@ -1120,6 +1122,7 @@ public class TestRecorder
             catch(InterruptedException e) {}
 
             assertTrue("cli2 member of reloaded game?", server.getGameList().isMember(tcli2Conn, loadedName));
+            assertNotNull("cli2 knows game exists: " + loadedName, tcli2.getGame(loadedName));
 
             tcli2.sitDown(ga, client2PN);
 
@@ -1209,8 +1212,8 @@ public class TestRecorder
          final String observerClientName, final int observabilityMode)
         throws IllegalArgumentException, IllegalStateException
     {
-        // NOTE: connectLoadJoinResumeGame uses similar setup code.
-        // If changing anything here, check that method too.
+        // NOTE: connectLoadJoinResumeGame and connectCreateJoinNewGame use similar setup code.
+        // If changing anything here, check those methods too.
 
         validateAndUseClientName("observerClientName", observerClientName);
         assertNotNull(server);
