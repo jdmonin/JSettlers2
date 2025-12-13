@@ -2755,66 +2755,13 @@ public class TestActionsMessages
         cliPlViews.put("cliPlAtCli_" + nameSuffix, cliPlAtCli);
         cliPlViews.put("cliPlAtObs_" + nameSuffix, cliPlAtObs);
 
-        assertEquals(2, gaAtSrv.getGameOptionIntValue("PL"));
         assertEquals(CLIENT_PN, cliPlAtSrv.getPlayerNumber());
 
         final Vector<EventEntry> records = objs.records;
 
         // start game, bot joins; note max 2 players in gameopts above
-        tcli.startGame(gaAtCli);
-
-        try { Thread.sleep(120); }
-        catch(InterruptedException e) {}
-
-        // expect 2 players, initial-placement states
-        for (Map.Entry<String, SOCGame> eGame : gameViews.entrySet())
-        {
-            final String desc = eGame.getKey();
-            final SOCGame ga = eGame.getValue();
-            assertFalse(desc, ga.isSeatVacant(BOT_PN));  // 0
-            assertTrue(desc, ga.isSeatVacant(1));
-            assertTrue(desc, ga.isSeatVacant(2));
-            assertFalse(desc, ga.isSeatVacant(CLIENT_PN));  // 3
-            int gs = ga.getGameState();
-            assertTrue(desc + ".gs(==" + gs + ") >= START1A", gs >= SOCGame.START1A);
-        }
-
-        // In case other player (bot) was chosen to be first, wait for them to do first initial settlement and road placement;
-        // then it will become our test client player's turn.
-        // Remember that the bot pauses deliberately during roadbuilding (~1150 msec when rbrain.pauseFaster flag is set).
-        for (int tries = 40, botInSTART1B = 0; tries >= 0; --tries)
-        {
-            if (gaAtSrv.getCurrentPlayerNumber() == CLIENT_PN)
-                break;
-
-            final int gs = gaAtSrv.getGameState() ;
-            if (tries == 0)
-                fail("timeout, retry running test: current PN not clientPN yet, is " + gaAtSrv.getCurrentPlayerNumber() + ", gstate==" + gs
-                    + ", botInSTART1B for " + botInSTART1B + " of these 120ms sleeps");
-            if (gs == SOCGame.START1B)
-                ++botInSTART1B;
-            else if (gs >= SOCGame.START2A)
-                botInSTART1B = 0;
-
-            try { Thread.sleep(120); }
-            catch(InterruptedException e) {}
-        }
-
-        // wait a bit for clients to catch up to server
-        try { Thread.sleep(60); }
-        catch(InterruptedException e) {}
-
-        for (Map.Entry<String, SOCGame> eGame : gameViews.entrySet())
-        {
-            final String desc = eGame.getKey();
-            final SOCGame ga = eGame.getValue();
-            assertEquals(desc, CLIENT_PN, ga.getCurrentPlayerNumber());
-            int gs = ga.getGameState();
-            assertTrue(desc + ".gs(==" + gs + ") >= START1A", gs >= SOCGame.START1A);
-            SOCPlayer cliPl = ga.getPlayer(CLIENT_PN);
-            assertEquals(desc, 1, cliPl.getRoadsAndShips().size());
-            assertEquals(desc, 0, cliPl.getNumWarships());
-        }
+        startGame2pAwaitClientPlacementTurn
+            (gaAtSrv, gaAtCli, tcli, CLIENT_PN, BOT_PN, gameViews);
 
         // For this test, we don't need to decide build locations and complete initial placement: We have a ship already.
         // So we'll override gameState to skip right to "normal gameplay".
@@ -4351,6 +4298,85 @@ public class TestActionsMessages
 
             System.err.println(compares);
             fail(compares.toString());
+        }
+    }
+
+    /**
+     * Start a 2-player game by calling {@link DisplaylessTesterClient#startGame(SOCGame) tcli.startGame(gaAtCli)}.
+     * A bot will join, and if the bot is chosen as the starting player, wait until they've
+     * done their first initial placement and it becomes {@code clientPN}'s initial placement turn.
+     *
+     * @param gaAtSrv  Game object at server
+     * @param gaAtCli  Game object at {@code tcli}
+     * @param tcli  Test client for {@code clientPN}
+     * @param clientPN  {@code tcli}'s player number
+     * @param botPN   Bot's player number
+     * @param gameViews  Map of views of game at server, tcli, observer, etc; game state asserts will be checked in each entry
+     * @since 2.7.00
+     */
+    private void startGame2pAwaitClientPlacementTurn
+        (final SOCGame gaAtSrv, final SOCGame gaAtCli,
+         final DisplaylessTesterClient tcli, final int clientPN, final int botPN,
+         final HashMap<String, SOCGame> gameViews)
+    {
+        assertEquals(2, gaAtSrv.getGameOptionIntValue("PL"));
+
+        tcli.startGame(gaAtCli);
+
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        // expect 2 players, initial-placement states
+        for (Map.Entry<String, SOCGame> eGame : gameViews.entrySet())
+        {
+            final String desc = eGame.getKey();
+            final SOCGame ga = eGame.getValue();
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                if ((pn == botPN) || (pn == clientPN))
+                    assertFalse(desc, ga.isSeatVacant(pn));
+                else
+                    assertTrue(desc, ga.isSeatVacant(pn));
+
+            int gs = ga.getGameState();
+            assertTrue(desc + ".gs(==" + gs + ") >= START1A", gs >= SOCGame.START1A);
+        }
+
+        // In case other player (bot) was chosen to be first, wait for them to do first initial settlement and road placement;
+        // then it will become our test client player's turn.
+        // Remember that the bot pauses deliberately during roadbuilding (~1150 msec when rbrain.pauseFaster flag is set).
+        for (int tries = 40, botInSTART1B = 0; tries >= 0; --tries)
+        {
+            if (gaAtSrv.getCurrentPlayerNumber() == clientPN)
+                break;
+
+            final int gs = gaAtSrv.getGameState() ;
+            if (tries == 0)
+                fail("timeout, retry running test: current PN not clientPN yet, is " + gaAtSrv.getCurrentPlayerNumber() + ", gstate==" + gs
+                    + ", botInSTART1B for " + botInSTART1B + " of these 120ms sleeps");
+            if (gs == SOCGame.START1B)
+                ++botInSTART1B;
+            else if (gs >= SOCGame.START2A)
+                botInSTART1B = 0;
+
+            try { Thread.sleep(120); }
+            catch(InterruptedException e) {}
+        }
+
+        // wait a bit for clients to catch up to server
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+
+        // validate expected state and player
+        for (Map.Entry<String, SOCGame> eGame : gameViews.entrySet())
+        {
+            final String desc = eGame.getKey();
+            final SOCGame ga = eGame.getValue();
+            assertEquals(desc, clientPN, ga.getCurrentPlayerNumber());
+            int gs = ga.getGameState();
+            assertTrue(desc + ".gs(==" + gs + ") >= START1A", gs >= SOCGame.START1A);
+            SOCPlayer cliPl = ga.getPlayer(clientPN);
+            assertEquals(desc, 1, cliPl.getRoadsAndShips().size());
+            assertEquals(desc, 0, cliPl.getNumWarships());
         }
     }
 
