@@ -1774,6 +1774,281 @@ public class TestActionsMessages
     }
 
     /**
+     * Tests moving/building and undoing ships to Special Edge locations in scenario {@link SOCScenario#K_SC_FTRI SC_FTRI}.
+     * This tests all 3 types of special edges at server and client,
+     * in game states {@link SOCGame#ROLL_OR_CARD}, {@link SOCGame#PLAY1}, and {@link SOCGame#SPECIAL_BUILDING}.
+     * (Reminder: Ships can't be moved during the Special Building Phase.)
+     * @since 2.7.00
+     */
+    @Test
+    public void testUndoBuild_SC_FTRI_specialEdges()
+        throws IOException
+    {
+        assertNotNull(srv);
+
+        for (int observabilityMode = 0; observabilityMode <= 2; ++observabilityMode)
+            testOne_UndoBuild_SC_FTRI_specialEdges(observabilityMode);
+    }
+
+    private void testOne_UndoBuild_SC_FTRI_specialEdges(final int observabilityMode)
+    {
+        // unique client nickname, in case tests run in parallel
+        final String CLIENT_NAME, OBSERVER_NAME;
+        final String nameSuffix = "FTRI_" + observabilityMode;
+        {
+            CLIENT_NAME   = "testPlCnclKn_" + nameSuffix;
+            OBSERVER_NAME = "testPlCnKnOb_" + nameSuffix;
+        }
+
+        final int CLIENT_PN = 5, BOT_PN = 0;
+        final StartedTestGameObjects objs =
+            TestRecorder.connectCreateJoinNewGame
+                (srv, CLIENT_NAME, ",SC=SC_FTRI,_SC_FTRI=t,BC=f4,RD=f,NT=t,PLB=t,N7=t99,VP=t20,SBL=t,PL=2,UB=t,UBL=t99", observabilityMode);
+        final DisplaylessTesterClient tcli = objs.tcli;
+        final SOCGame gaAtSrv = objs.gameAtServer, gaAtCli = tcli.getGame(gaAtSrv.getName());
+        final DisplaylessTesterClient obsCli = TestRecorder.connectObserver(srv, gaAtSrv, OBSERVER_NAME, observabilityMode);
+        final SOCGame gaAtObs = obsCli.getGame(gaAtSrv.getName());
+        final SOCPlayer cliPlAtSrv = objs.clientPlayer,
+            cliPlAtCli = gaAtCli.getPlayer(CLIENT_PN),
+            cliPlAtObs = gaAtObs.getPlayer(CLIENT_PN);
+
+        final HashMap<String, SOCGame> gameViews = new HashMap<>();
+        gameViews.put("gameAtSrv_" + nameSuffix, gaAtSrv);
+        gameViews.put("gameAtCli_" + nameSuffix, gaAtCli);
+        gameViews.put("gameAtObs_" + nameSuffix, gaAtObs);
+        final HashMap<String, SOCPlayer> cliPlViews = new HashMap<>();
+        cliPlViews.put("cliPlAtSrv_" + nameSuffix, cliPlAtSrv);
+        cliPlViews.put("cliPlAtCli_" + nameSuffix, cliPlAtCli);
+        cliPlViews.put("cliPlAtObs_" + nameSuffix, cliPlAtObs);
+
+        assertEquals(CLIENT_PN, cliPlAtSrv.getPlayerNumber());
+
+        final Vector<EventEntry> records = objs.records;
+
+        // start game, bot joins; note max 2 players in gameopts above
+        startGame2pAwaitClientPlacementTurn
+            (gaAtSrv, gaAtCli, tcli, CLIENT_PN, BOT_PN, gameViews);
+
+        // First: initial building of their coastal settlement
+        // and out to, but not start of, special edge.
+        // and also a ship they can move somehow (remove it from shipsPlacedThisTurn?) to get to a special edge
+        // Major index 0 starts at northwest part of main island, 1 is south slightly western side.
+        // The second INIT_SHIP is off to the side, they can move it during testing
+        // (after we adjust game data so it's not considered placed this turn).
+        final int[] INIT_COASTAL_SETTLE = {0x603, 0xc09};
+        final int[][] INIT_SHIPS = {
+            { 0x503, 0x402, 0x403 },
+            { 0xd09, 0xe08, 0xe09, 0xf0a }
+        };
+        /** First INIT_SHIP is at a Special Edge with a Dev Card; second is at one giving SVP. */
+        final int[][] SPECIAL_EDGE_SHIPS = {
+            { 0x304, 0x204 },
+            { 0x100a, 0x100b }
+        };
+        // TODO once that passes, add ships from there to the Gift Port special edge
+
+        // For this test, we don't need to decide build locations and complete initial placement: Board layout is fixed.
+        // So we'll override gameState to skip right to "normal gameplay".
+        // That's done inside the subtest method we call here:
+
+        StringBuilder compareRoll = testOne_UndoBuild_SC_FTRI_specialEdges_fromShip
+            (gaAtSrv, cliPlAtSrv, tcli, cliPlAtCli, gameViews, cliPlViews, records, SPECIAL_EDGE_SHIPS[0], SOCGame.ROLL_OR_CARD);
+
+        StringBuilder comparePlay1 = testOne_UndoBuild_SC_FTRI_specialEdges_fromShip
+            (gaAtSrv, cliPlAtSrv, tcli, cliPlAtCli, gameViews, cliPlViews, records, SPECIAL_EDGE_SHIPS[0], SOCGame.PLAY1);
+
+        StringBuilder compareSBP = testOne_UndoBuild_SC_FTRI_specialEdges_fromShip
+            (gaAtSrv, cliPlAtSrv, tcli, cliPlAtCli, gameViews, cliPlViews, records, SPECIAL_EDGE_SHIPS[0], SOCGame.SPECIAL_BUILDING);
+
+        /* leave game, consolidate results */
+
+        srv.destroyGameAndBroadcast(gaAtSrv.getName(), null);
+        tcli.destroy();
+        obsCli.destroy();
+
+        StringBuilder compares = new StringBuilder();
+        if (compareRoll != null)
+        {
+            compares.append("Convert and cancel in ROLL_OR_CARD: Message mismatch: ");
+            compares.append(compareRoll);
+        }
+        if (comparePlay1 != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("Convert and cancel in PLAY1: Message mismatch: ");
+            compares.append(comparePlay1);
+        }
+        if (compareSBP != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("Convert and cancel in SPECIAL_BUILDING: Message mismatch: ");
+            compares.append(compareSBP);
+        }
+
+        if (compares.length() > 0)
+        {
+            compares.insert(0, "For test " + CLIENT_NAME + ": ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+    }
+
+    /**
+     * Test during one game state for {@link #testUndoBuild_SC_FTRI_specialEdges()}.
+     * Most parameters here are locals in that method.
+     * @param duringGameState  Game state to test: {@link SOCGame#ROLL_OR_CARD}, {@link SOCGame#PLAY1}, or {@link SOCGame#SPECIAL_BUILDING}
+     * @return results of this method's call to {@link TestRecorder#compareRecordsToExpected(List, String[][], boolean)}
+     * @since 2.7.00
+     */
+    private StringBuilder testOne_UndoBuild_SC_FTRI_specialEdges_fromShip
+        (final SOCGame gaAtSrv, final SOCPlayer cliPlAtSrv, final DisplaylessTesterClient tcli, final SOCPlayer cliPlAtCli,
+         final HashMap<String, SOCGame> gameViews, final HashMap<String, SOCPlayer> cliPlViews,
+         final Vector<EventEntry> records, final int[] SPECIAL_EDGE_SHIPS, final int duringGameState)
+    {
+        records.clear();
+
+        // TODO use SPECIAL_EDGE_SHIPS
+
+        final String testDesc = "Build to Special Edges in gstate " + duringGameState;
+        final int cliPN = cliPlAtSrv.getPlayerNumber();
+        for (Map.Entry<String, SOCPlayer> ePlayer : cliPlViews.entrySet())
+        {
+            final String desc = testDesc + ": " + ePlayer.getKey();
+            final SOCPlayer cliPl = ePlayer.getValue();
+            assertEquals(desc, cliPN, cliPl.getGame().getCurrentPlayerNumber());
+        }
+
+        // TODO here on down is a previous test, must replace with new test.
+        // get player's sole ship location: buildShipEdge
+        int buildShipEdge = 0;
+        String descShipEdge = null;
+        for (Map.Entry<String, SOCPlayer> ePlayer : cliPlViews.entrySet())
+        {
+            final String desc = testDesc + ": " + ePlayer.getKey();
+            final SOCPlayer cliPl = ePlayer.getValue();
+
+            List<SOCRoutePiece> plRoadsShips = cliPl.getRoadsAndShips();
+            assertEquals(desc, 1, plRoadsShips.size());
+            final SOCRoutePiece plShip = plRoadsShips.get(0);
+            assertTrue(desc, plShip instanceof SOCShip);
+            if (descShipEdge == null)
+            {
+                buildShipEdge = plShip.getCoordinates();
+                descShipEdge = ": Ship at 0x" + Integer.toHexString(buildShipEdge);
+            } else {
+                assertEquals(desc, plShip.getCoordinates(), buildShipEdge);
+            }
+            SOCGame ga = cliPl.getGame();
+            SOCRoutePiece rs = ga.getBoard().roadOrShipAtEdge(buildShipEdge);
+            assertNotNull(desc + descShipEdge, rs);
+            assertTrue(desc + descShipEdge, rs instanceof SOCShip);
+            assertEquals(desc + descShipEdge, cliPN, rs.getPlayerNumber());
+        }
+        assertNotEquals(testDesc, 0, buildShipEdge);
+        assertNotNull(testDesc, descShipEdge);
+
+        // set gameState, give player an old knight card they can play to convert
+        for (SOCGame ga : gameViews.values())
+            ga.setGameState(duringGameState);
+        for (Map.Entry<String, SOCPlayer> ePlayer : cliPlViews.entrySet())
+        {
+            final String desc = testDesc + ": " + ePlayer.getKey();
+            final SOCPlayer cliPl = ePlayer.getValue();
+            cliPl.getInventory().addDevCard(1, SOCInventory.OLD, SOCDevCardConstants.KNIGHT);
+            cliPl.setPlayedDevCard(false);
+            assertTrue(desc, cliPl.getGame().canPlayKnight(cliPN));
+        }
+
+        final int nCards = cliPlAtSrv.getInventory().getTotal();
+        final SOCGame gaAtCli = cliPlAtCli.getGame();
+
+        for (int subtestNum = 0; subtestNum <= 1; ++subtestNum)
+        {
+            // play the dev card to conv to warship
+            tcli.playDevCard(gaAtCli, SOCDevCardConstants.KNIGHT);
+
+            try { Thread.sleep(60); }
+            catch(InterruptedException e) {}
+
+            for (Map.Entry<String, SOCPlayer> ePlayer : cliPlViews.entrySet())
+            {
+                final String desc = testDesc + ": " + ePlayer.getKey();
+                final SOCPlayer cliPl = ePlayer.getValue();
+                assertEquals(desc + ": Playing knight removes from inventory", nCards - 1, cliPl.getInventory().getTotal());
+
+                // check results
+                final SOCGame ga = cliPl.getGame();
+                assertTrue(desc, ga.canCancelPlayCurrentDevCard());
+                final GameAction act = ga.getLastAction();
+                {
+                    final String descUnused = desc + ": unused param set empty";
+                    assertNotNull(desc, act);
+                    assertEquals(desc, GameAction.ActionType.SHIP_CONVERT_TO_WARSHIP, act.actType);
+                    assertEquals(descUnused, 0, act.param1);
+                    assertEquals(descUnused, 0, act.param2);
+                    assertEquals(descUnused, 0, act.param3);
+                    assertNull(descUnused, act.rset1);
+                    assertNull(descUnused, act.rset2);
+                    assertNull(descUnused, act.effects);
+                }
+            }
+
+            // between subtest 0 and 1: undo the way client would: cancel play knight card
+            if (subtestNum == 0)
+            {
+                tcli.cancelBuildRequest(gaAtCli, SOCCancelBuildRequest.CARD);
+                try { Thread.sleep(60); }
+                catch(InterruptedException e) {}
+
+                for (Map.Entry<String, SOCPlayer> ePlayer : cliPlViews.entrySet())
+                {
+                    final String desc = testDesc + ": " + ePlayer.getKey();
+                    final SOCPlayer cliPl = ePlayer.getValue();
+                    final SOCGame ga = cliPl.getGame();
+                    assertNull(desc, ga.getLastAction());
+                    assertEquals(desc, nCards, cliPl.getInventory().getTotal());
+                    assertTrue(desc, ga.canPlayKnight(cliPN));
+                }
+            }
+        }
+
+        // after last subtest: in game data, undo conversion
+        for (Map.Entry<String, SOCPlayer> ePlayer : cliPlViews.entrySet())
+        {
+            final String desc = testDesc + ": " + ePlayer.getKey();
+            final SOCPlayer cliPl = ePlayer.getValue();
+            cliPl.setPlayedDevCard(false);
+            SOCGame ga = cliPl.getGame();
+            assertFalse(desc + descShipEdge, ga.isShipWarship((SOCShip) cliPl.getRoadOrShip(buildShipEdge)));
+        }
+
+        final String cliName = cliPlAtSrv.getName();
+        StringBuilder compare = TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCGameServerText:", "|text=" + cliName + " converted a ship to a warship."},
+                {"all:SOCDevCardAct", "|playerNum=3|actionType=PLAY|cardType=9"},
+                {"all:SOCPlayerElement", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
+                {"all:SOCPlayerElement", "|playerNum=3|actionType=GAIN|elementType=107|amount=1"},
+                {"all:SOCGameServerText", "|text=" + cliName + " cancelled converting a ship to a warship."},
+                {"all:SOCDevCardAction", "|playerNum=3|actionType=ADD_OLD|cardType=9"},
+                {"all:SOCPlayerElement", "|playerNum=3|actionType=SET|elementType=107|amount=0"},
+                {"all:SOCPlayerElement", "|playerNum=3|actionType=SET|elementType=19|amount=0"},
+                {"all:SOCGameState:", "|state=" + duringGameState},
+                ((duringGameState == SOCGame.ROLL_OR_CARD) ? new String[]{"all:SOCRollDicePrompt", "|playerNumber=3"} : null),
+                {"all:SOCGameServerText:", "|text=" + cliName + " converted a ship to a warship."},
+                {"all:SOCDevCardAction", "|playerNum=3|actionType=PLAY|cardType=9"},
+                {"all:SOCPlayerElement", "|playerNum=3|actionType=SET|elementType=19|amount=1"},
+                {"all:SOCPlayerElement", "|playerNum=3|actionType=GAIN|elementType=107|amount=1"},
+            }, false);
+
+        return compare;
+    }
+
+
+    /**
      * Tests buying a dev card.
      * Expands on quick test done in {@link TestRecorder#testLoadAndBasicSequences()}.
      * @see #testPlayDevCards()
