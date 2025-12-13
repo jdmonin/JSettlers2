@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 
@@ -44,6 +45,7 @@ import soc.extra.server.GameEventLog;
 import soc.extra.server.GameEventLog.EventEntry;
 import soc.extra.server.RecordingSOCServer;
 import soc.game.GameAction;
+import soc.game.ResourceSet;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
@@ -66,6 +68,7 @@ import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCNewGameWithOptions;
 import soc.robot.SOCRobotBrain;
+import soc.robot.SOCRobotClient;
 import soc.server.SOCGameHandler;
 import soc.server.SOCServer;
 import soc.server.savegame.SavedGameModel;
@@ -77,6 +80,11 @@ import soctest.server.savegame.TestLoadgame;
 /**
  * Extra testing to cover all core game actions and their messages, as recorded by {@link RecordingSOCServer}.
  * Expands coverage past the basic unit tests done by {@link TestRecorder}.
+ *<P>
+ * The {@code observabilityMode}s used here are the ones passed to
+ * {@link TestRecorder#connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)};
+ * see that for more info if needed.
+ *
  * @since 2.5.00
  */
 public class TestActionsMessages
@@ -1774,6 +1782,615 @@ public class TestActionsMessages
     }
 
     /**
+     * Tests moving/building and undoing ships to Special Edge locations in scenario {@link SOCScenario#K_SC_FTRI SC_FTRI}.
+     * This tests all 3 types of special edges at server and client,
+     * in game states {@link SOCGame#ROLL_OR_CARD}, {@link SOCGame#PLAY1}, and {@link SOCGame#SPECIAL_BUILDING}.
+     * (Reminder: Ships can't be moved during the Special Building Phase.)
+     * @since 2.7.00
+     */
+    @Test
+    public void testUndoBuild_SC_FTRI_specialEdges()
+        throws IOException
+    {
+        assertNotNull(srv);
+
+        for (int observabilityMode = 0; observabilityMode <= 2; ++observabilityMode)
+            testOne_UndoBuild_SC_FTRI_specialEdges(observabilityMode);
+    }
+
+    /**
+     * Do {@link #testUndoBuild_SC_FTRI_specialEdges()} for one observability mode.
+     * @since 2.7.00
+     */
+    private void testOne_UndoBuild_SC_FTRI_specialEdges(final int observabilityMode)
+    {
+        // unique client nickname, in case tests run in parallel
+        final String CLIENT_NAME, OBSERVER_NAME;
+        final String nameSuffix = "FTRI_" + observabilityMode;
+        {
+            CLIENT_NAME   = "testPlBldSECl_" + nameSuffix;
+            OBSERVER_NAME = "testPlBldSEOb_" + nameSuffix;
+        }
+
+        final int CLIENT_PN = 5, BOT_PN = 0;
+        final StartedTestGameObjects objs =
+            TestRecorder.connectCreateJoinNewGame
+                (srv, CLIENT_NAME, ",SC=SC_FTRI,_SC_FTRI=t,BC=f4,RD=f,NT=t,PLB=t,N7=t99,VP=t20,SBL=t,PL=2,UB=t,UBL=t99", observabilityMode);
+        final DisplaylessTesterClient tcli = objs.tcli;
+        final SOCGame gaAtSrv = objs.gameAtServer;
+        final String gaName = gaAtSrv.getName();
+        final SOCGame gaAtCli = tcli.getGame(gaName);
+        final DisplaylessTesterClient obsCli = TestRecorder.connectObserver(srv, gaAtSrv, OBSERVER_NAME, observabilityMode);
+        final SOCGame gaAtObs = obsCli.getGame(gaName);
+
+        final SOCPlayer cliPlAtSrv = objs.clientPlayer,
+            cliPlAtCli = gaAtCli.getPlayer(CLIENT_PN),
+            cliPlAtObs = gaAtObs.getPlayer(CLIENT_PN);
+        assertEquals(CLIENT_PN, cliPlAtSrv.getPlayerNumber());
+
+        final HashMap<String, SOCGame> gameViews = new HashMap<>();
+        gameViews.put("gameAtSrv_" + nameSuffix, gaAtSrv);
+        gameViews.put("gameAtCli_" + nameSuffix, gaAtCli);
+        gameViews.put("gameAtObs_" + nameSuffix, gaAtObs);
+
+        final HashMap<String, SOCPlayer> cliPlViews = new HashMap<>();
+        cliPlViews.put("cliPlAtSrv_" + nameSuffix, cliPlAtSrv);
+        cliPlViews.put("cliPlAtCli_" + nameSuffix, cliPlAtCli);
+        cliPlViews.put("cliPlAtObs_" + nameSuffix, cliPlAtObs);
+
+        final Vector<EventEntry> records = objs.records;
+
+        /** start game, bot joins; note max 2 players in gameopts above */
+
+        startGame2pAwaitClientPlacementTurn
+            (gaAtSrv, gaAtCli, tcli, CLIENT_PN, BOT_PN, 0, gameViews);
+
+        assertFalse(gaAtSrv.isSeatVacant(BOT_PN));
+        SOCRobotClient rcli = srv.getRobotClient(gaAtSrv.getPlayer(BOT_PN).getName());
+        assertNotNull(rcli);
+        final SOCGame gaAtBot = rcli.getGame(gaName);
+        assertNotEquals("bot has own copy of game data", gaAtSrv, gaAtBot);
+        final SOCPlayer cliPlAtBot = gaAtBot.getPlayer(CLIENT_PN);
+        gameViews.put("gameAtBot_" + nameSuffix, gaAtBot);
+        cliPlViews.put("cliPlAtBot_" + nameSuffix, cliPlAtBot);
+
+        /** Test player's possible coastal settlement locations, from which INIT_SHIPS will be built. */
+        final int[] INIT_COASTAL_SETTLE = { 0x604, 0xc09 };
+
+        /**
+         * Test player's ships out to, but not at, Special Edges.
+         * The second INIT_SHIP is off to the side, so they can move it during testing to get to a special edge.
+         * In all these arrays, Major index 0 starts at northwest part of main island, 1 is south slightly western side.
+         */
+        final int[][] INIT_SHIPS = {
+            { 0x603, 0x602, 0x503, 0x403 },
+            { 0xd09, 0xe08, 0xe09, 0xf0a }
+        };
+
+        /** First SPECIAL_EDGE_SHIPS is at a Special Edge with a Dev Card; second is at one giving SVP and is their 5th ship so Longest Route. */
+        final int[][] SPECIAL_EDGE_SHIPS = {
+            { 0x304, 0x204 },
+            { 0x100a, 0x100b }
+        };
+
+        /**
+         * The route past SPECIAL_EDGE_SHIPS to Gift Port special edges.
+         * Note: some along the way are special edges which grant 1 SVP; that's ignored/not checked for
+         * because we already tested SVP special edges.
+         */
+        final int[][] TO_GIFT_PORT_SHIPS = {
+            { 0x205, 0x206, 0x207 },
+            { 0x100c, 0x100d }
+        };
+
+        // determine whether to use major index 0 or 1; random, pick other if 1st is unavailable
+        int pathIndex = -1;
+        {
+            final SOCBoard boardAtSrv = gaAtSrv.getBoard();
+            final int firstIdx = new Random().nextInt(2);
+            int idx = firstIdx;
+            do
+            {
+                int settleNode = INIT_COASTAL_SETTLE[idx];
+                if (null == boardAtSrv.settlementAtNode(settleNode))
+                {
+                    boolean edgesOK = true;
+                    for (int edge : boardAtSrv.getAdjacentEdgesToNode(settleNode))
+                        if (null != boardAtSrv.roadOrShipAtEdge(edge))
+                        {
+                            edgesOK = false;
+                            break;
+                        }
+
+                    if (edgesOK)
+                    {
+                        pathIndex = idx;
+                        break;
+                    }
+                }
+                // this one didn't work, so try next one with wraparound
+                idx = (idx + 1) % 2;
+            } while (idx != firstIdx);
+        }
+        if (pathIndex == -1)
+            fail(gaName + ": no available INIT_COASTAL_SETTLE location");
+
+        putPiece
+            (gaName, CLIENT_PN, SOCPlayingPiece.SETTLEMENT, INIT_COASTAL_SETTLE[pathIndex],
+             tcli, cliPlAtCli, cliPlAtBot, cliPlViews,
+             4, null, 1);
+
+        // For this test, we don't need to decide build locations and complete initial placement: Board layout is fixed.
+        // So we'll override gameState to skip right to "normal gameplay"
+        // and give player enough resources for the initial ships and special edge ships
+        for (SOCGame ga : gameViews.values())
+            ga.setGameState(SOCGame.PLAY1);
+        {
+            final int nShips =
+                INIT_SHIPS[pathIndex].length + SPECIAL_EDGE_SHIPS[pathIndex].length + TO_GIFT_PORT_SHIPS[pathIndex].length;
+            final SOCResourceSet rs = new SOCResourceSet(0, 0, nShips, 0, nShips, 0);
+            for (Map.Entry<String, SOCPlayer> ePlayer : cliPlViews.entrySet())
+            {
+                final SOCPlayer cliPl = ePlayer.getValue();
+                cliPl.getResources().add(rs);
+            }
+        }
+
+        /** now build rest of the ships out to special edges */
+        assertEquals(4, INIT_SHIPS[pathIndex].length);
+        for (int i = 0; i < INIT_SHIPS[pathIndex].length; ++i)
+        {
+            putPiece
+                (gaName, CLIENT_PN, SOCPlayingPiece.SHIP, INIT_SHIPS[pathIndex][i],
+                 tcli, cliPlAtCli, cliPlAtBot, cliPlViews,
+                 SOCPlayer.SHIP_COUNT - i - 1, null, 1);
+            if (i == 1)
+                for (SOCGame ga : gameViews.values())
+                {
+                    // clear shipsPlacedThisTurn, so later we can move 2nd ship placed
+                    ga.updateAtTurn();
+                    assertEquals(SOCGame.PLAY1, ga.getGameState());
+                    assertTrue(ga.getShipsPlacedThisTurn().isEmpty());
+                }
+        }
+
+        /** now test building at Special Edges: */
+
+        StringBuilder comparePlay1 = testOne_UndoBuild_SC_FTRI_specialEdges_fromShip
+            (gaAtSrv, cliPlAtSrv, tcli, cliPlAtCli, cliPlAtBot, gameViews, cliPlViews, records, observabilityMode, SPECIAL_EDGE_SHIPS[pathIndex], SOCGame.PLAY1);
+
+        // StringBuilder compareSBP = testOne_UndoBuild_SC_FTRI_specialEdges_fromShip
+        //     (gaAtSrv, cliPlAtSrv, tcli, cliPlAtCli, cliPlAtBot, gameViews, cliPlViews, records, observabilityMode, SPECIAL_EDGE_SHIPS[pathIndex], SOCGame.SPECIAL_BUILDING);
+
+        // TODO add ships along TO_GIFT_PORT_SHIPS to the Gift Port special edge (final ship edge coord gifts port) 
+
+        /** leave game, consolidate results */
+
+        srv.destroyGameAndBroadcast(gaName, null);
+        tcli.destroy();
+        obsCli.destroy();
+
+        StringBuilder compares = new StringBuilder();
+        if (comparePlay1 != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("Build/move/undo at Special Edges in PLAY1: Message mismatch: ");
+            compares.append(comparePlay1);
+        }
+        /*
+        if (compareSBP != null)
+        {
+            if (compares.length() > 0)
+                compares.append("   ");
+            compares.append("Build/move/undo at Special Edges in SPECIAL_BUILDING: Message mismatch: ");
+            compares.append(compareSBP);
+        }
+        */
+
+        if (compares.length() > 0)
+        {
+            compares.insert(0, "For test " + CLIENT_NAME + ": ");
+            System.err.println(compares);
+            fail(compares.toString());
+        }
+    }
+
+    /**
+     * Test during one game state for {@link #testUndoBuild_SC_FTRI_specialEdges()}.
+     * Should be {@code cliPlAtSrv}'s turn already. Will set game state to {@code duringGameState}.
+     * @param SPECIAL_EDGE_SHIPS  Build here from an already-placed adjacent ship;
+     *     first of these should be a Special Edge with a Dev Card; second is one giving SVP
+     *     and also their 5th ship, to gain Longest Route
+     * @param duringGameState  Game state to test: {@link SOCGame#PLAY1} or {@link SOCGame#SPECIAL_BUILDING}
+     * @return results of this method's call to {@link TestRecorder#compareRecordsToExpected(List, String[][], boolean)}
+     * @since 2.7.00
+     */
+    private StringBuilder testOne_UndoBuild_SC_FTRI_specialEdges_fromShip
+        (final SOCGame gaAtSrv, final SOCPlayer cliPlAtSrv, final DisplaylessTesterClient tcli,
+         final SOCPlayer cliPlAtCli, final SOCPlayer cliPlAtBot,
+         final HashMap<String, SOCGame> gameViews, final HashMap<String, SOCPlayer> cliPlViews,
+         final Vector<EventEntry> records, final int observabilityMode,
+         final int[] SPECIAL_EDGE_SHIPS, final int duringGameState)
+    {
+        assertEquals(2, SPECIAL_EDGE_SHIPS.length);
+
+        StringBuilder compares = null;
+        final String testDesc = "Build to Special Edges in gstate " + duringGameState + " obsMode " + observabilityMode;
+        final String gaName = gaAtSrv.getName();
+        final int cliPN = cliPlAtSrv.getPlayerNumber();
+        for (Map.Entry<String, SOCPlayer> ePlayer : cliPlViews.entrySet())
+        {
+            final String desc = testDesc + ": " + ePlayer.getKey();
+            final SOCPlayer cliPl = ePlayer.getValue();
+            final SOCGame ga = cliPl.getGame();
+            ga.setGameState(duringGameState);
+            if (cliPlAtBot == cliPl)
+            {
+                ga.setCurrentPlayerNumber(cliPN);
+                continue;
+            } else {
+                assertEquals(desc, cliPN, ga.getCurrentPlayerNumber());
+            }
+            final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
+            int e = SPECIAL_EDGE_SHIPS[0];
+            assertEquals
+                (desc + ": edge 0x" + Integer.toHexString(e) + " is DEV_CARD",
+                 SOCBoardLarge.SPECIAL_EDGE_DEV_CARD, bl.getSpecialEdgeType(e));
+            assertTrue(desc, cliPl.isPotentialShip(e));
+            e = SPECIAL_EDGE_SHIPS[1];
+            assertEquals
+                (desc + ": edge 0x" + Integer.toHexString(e) + " is SVP",
+                 SOCBoardLarge.SPECIAL_EDGE_SVP, bl.getSpecialEdgeType(e));
+            assertTrue(desc, cliPl.isLegalShip(e));  // probably not potential yet, because hasn't built to previous edge
+        }
+
+        // Build at SPECIAL_EDGE_SHIPS:
+
+        /** First should give DEV_CARD: */
+
+        int specialEdge = SPECIAL_EDGE_SHIPS[0];
+        for (int subtestNum = 0; subtestNum <= 2; ++subtestNum)
+        {
+            // subtest 0: build and undo
+            // subtest 1: move and undo (TBD)
+            // subtest 2: redo build
+
+            StringBuilder sb;
+            if (subtestNum != 1)
+            {
+                sb = testOne_UndoBuild_SC_FTRI_specialEdges_buildOrMoveAtSpecialEdge
+                    (testDesc, cliPlAtSrv, duringGameState, specialEdge, SOCBoardLarge.SPECIAL_EDGE_DEV_CARD,
+                     tcli, cliPlAtCli, cliPlAtBot, cliPlViews, records, observabilityMode);
+                if (sb != null)
+                {
+                    if (compares == null)
+                        compares = new StringBuilder(testDesc).append(": ") ;
+                    compares.append
+                        (((subtestNum == 2) ? "Redo " : "") + "Build at SPECIAL_EDGE_DEV_CARD 0x" + Integer.toHexString(specialEdge) + ": Message mismatch: ");
+                    compares.append(sb);
+                }
+            }
+
+            // undo that build and check results
+            if (subtestNum == 0)
+            {
+                sb = testOne_UndoBuild_SC_FTRI_specialEdges_undoBuildOrMoveAtSpecialEdge
+                    (testDesc, cliPlAtSrv, duringGameState, specialEdge, SOCBoardLarge.SPECIAL_EDGE_DEV_CARD,
+                     tcli, cliPlAtCli, cliPlAtBot, cliPlViews, records, observabilityMode);
+                if (sb != null)
+                {
+                    if (compares == null)
+                        compares = new StringBuilder(testDesc).append(": ") ;
+                    compares.append
+                        ("Undo build at SPECIAL_EDGE_DEV_CARD 0x" + Integer.toHexString(specialEdge) + ": Message mismatch: ");
+                    compares.append(sb);
+                }
+            }
+
+            // TODO subtest 1: move piece and check results
+            // TODO subtest 1: undo move and check results
+        }
+
+        /** Second special edge should give SVP (and LR): */
+
+        specialEdge = SPECIAL_EDGE_SHIPS[1];
+        for (int subtestNum = 0; subtestNum <= 2; ++subtestNum)
+        {
+            // subtest 0: build and undo
+            // subtest 1: move and undo (TBD)
+            // subtest 2: redo build
+
+            StringBuilder sb;
+            if (subtestNum != 1)
+            {
+                sb = testOne_UndoBuild_SC_FTRI_specialEdges_buildOrMoveAtSpecialEdge
+                    (testDesc, cliPlAtSrv, duringGameState, specialEdge, SOCBoardLarge.SPECIAL_EDGE_SVP,
+                     tcli, cliPlAtCli, cliPlAtBot, cliPlViews, records, observabilityMode);
+                if (sb != null)
+                {
+                    if (compares == null)
+                        compares = new StringBuilder(testDesc).append(": ");
+                    compares.append
+                        (((subtestNum == 2) ? "Redo " : "") + "Build at SPECIAL_EDGE_SVP 0x" + Integer.toHexString(specialEdge) + ": Message mismatch: ");
+                    compares.append(sb);
+                }
+            }
+
+            if (subtestNum == 0)
+            {
+                // undo that build and check results
+                sb = testOne_UndoBuild_SC_FTRI_specialEdges_undoBuildOrMoveAtSpecialEdge
+                    (testDesc, cliPlAtSrv, duringGameState, specialEdge, SOCBoardLarge.SPECIAL_EDGE_SVP,
+                     tcli, cliPlAtCli, cliPlAtBot, cliPlViews, records, observabilityMode);
+                if (sb != null)
+                {
+                    if (compares == null)
+                        compares = new StringBuilder(testDesc).append(": ");
+                    compares.append("Undo build at SPECIAL_EDGE_SVP 0x" + Integer.toHexString(specialEdge) + ": Message mismatch: ");
+                    compares.append(sb);
+                }
+            }
+
+            // TODO subtest 1: move piece and check results
+            // TODO subtest 1: undo move and check results
+        }
+
+        /** leave game, report comparison results */
+
+        srv.destroyGameAndBroadcast(gaName, null);
+        tcli.destroy();
+
+        return compares;
+    }
+
+    /**
+     * For {@link #testUndoBuild_SC_FTRI_specialEdges()}, test building or moving a ship at a Special Edge.
+     * @param testDesc  Test description for asserts, since this is called from multiple places and loops
+     * @param cliPlAtSrv  Client player in server's game data
+     * @param duringGameState  Game state to test: {@link SOCGame#ROLL_OR_CARD} or {@link SOCGame#PLAY1}
+     * @param specialEdge  Build or move to this edge coordinate which is a Special Edge
+     * @param specialEdgeType  Either {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD} or {@link SOCBoardLarge#SPECIAL_EDGE_SVP};
+     *    if {@code SPECIAL_EDGE_SVP}, will also expect to gain Longest Route
+     * @param tcli  Test client for requesting the build
+     * @param cliPlAtCli  Client player at {@code tcli}
+     * @param cliPlAtBot  Client player at bot; will skip game data verification at bot because it's slower and thus flaky while testing
+     * @param cliPlViews  Client player at server, client, bot, observer, for game data verification/asserts
+     * @param records  The test game's records vector; will {@link Vector#clear()} at start of this method, compare to expected at end
+     * @param observabilityMode  Same meaning as in {@link TestRecorder#connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
+     * @return  results of this method's call to {@link TestRecorder#compareRecordsToExpected(List, String[][], boolean)}
+     * @since 2.7.00
+     */
+    private StringBuilder testOne_UndoBuild_SC_FTRI_specialEdges_buildOrMoveAtSpecialEdge
+        (String testDesc, final SOCPlayer cliPlAtSrv,
+         final int duringGameState, final int specialEdge, final int specialEdgeType,
+         final DisplaylessTesterClient tcli, final SOCPlayer cliPlAtCli, final SOCPlayer cliPlAtBot,
+         final HashMap<String, SOCPlayer> cliPlViews, final Vector<EventEntry> records, final int observabilityMode)
+    {
+        records.clear();
+        testDesc = testDesc + ": special edge type " + specialEdgeType + " at 0x" + Integer.toHexString(specialEdge);
+
+        final SOCGame gaAtSrv = cliPlAtSrv.getGame();
+        final String gaName = gaAtSrv.getName();
+        final int cliPN = cliPlAtSrv.getPlayerNumber();
+        final int nSVP = cliPlAtSrv.getSpecialVP();
+        final int nCardsTotal = cliPlAtSrv.getInventory().getTotal(),
+            nCardsNew = nCardsTotal - cliPlAtSrv.getInventory().getByState(SOCInventory.PLAYABLE).size();
+
+        putPiece
+            (gaName, cliPN, SOCPlayingPiece.SHIP, specialEdge, tcli, cliPlAtCli, cliPlAtBot, cliPlViews, -1, null, -1);
+
+        // check game data and lastAction:
+        for (Map.Entry<String, SOCPlayer> ePlayer : cliPlViews.entrySet())
+        {
+            final String desc = testDesc + ": " + ePlayer.getKey();
+            final SOCPlayer cliPl = ePlayer.getValue();
+            if (cliPlAtBot == cliPl)
+                continue;
+            final SOCGame ga = cliPl.getGame();
+            switch(specialEdgeType)
+            {
+                case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD:
+                    assertEquals(desc, 1 + nCardsTotal, cliPl.getInventory().getTotal());
+                    assertEquals(desc, 1 + nCardsNew, nCardsTotal + 1 - cliPlAtSrv.getInventory().getByState(SOCInventory.PLAYABLE).size());
+                    // TODO try check for new devcard's details; should be same cardtype as the special edge (can we check that at srv?)  if so, check that vs effects.params[2]
+                    break;
+
+                case SOCBoardLarge.SPECIAL_EDGE_SVP:
+                    assertEquals(desc, 1 + nSVP, cliPlAtSrv.getSpecialVP());
+                    break;
+
+                default:
+                    fail(testDesc + ": untested specialEdgeType " + specialEdgeType);
+            }
+            final GameAction act = ga.getLastAction();
+            {
+                final String descUnused = desc + ": unused param set empty";
+                assertNotNull(desc, act);
+                assertEquals(desc, GameAction.ActionType.BUILD_PIECE, act.actType);
+                assertEquals(SOCPlayingPiece.SHIP, act.param1);
+                assertEquals(specialEdge, act.param2);
+                assertEquals(cliPN, act.param3);
+                assertNull(descUnused, act.rset1);
+                assertNull(descUnused, act.rset2);
+            }
+        }
+        // effects are tracked only at server
+        int devcardTypeAtServer = -1;
+        {
+            final GameAction act = gaAtSrv.getLastAction();
+            List<GameAction.Effect> effects = act.effects;
+            assertNotNull(testDesc, effects);
+            assertEquals(testDesc,
+              ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP)  && (duringGameState == SOCGame.PLAY1))
+              ? 3 : 2, effects.size());
+
+            GameAction.Effect e = effects.get(0);
+            assertEquals(testDesc, GameAction.EffectType.PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE, e.eType);
+            assertNotNull(testDesc, e.params);
+            assertEquals(testDesc, (specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_DEV_CARD) ? 3 : 2, e.params.length);
+            assertEquals(testDesc, specialEdge, e.params[0]);
+            assertEquals(testDesc, specialEdgeType, e.params[1]);
+            if (specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_DEV_CARD)
+            {
+                devcardTypeAtServer = e.params[2];  // TODO actually validate this, instead of assuming it's correct
+                assertNotEquals(testDesc, -1, devcardTypeAtServer);
+            }
+
+            e = effects.get(1);
+            assertEquals(testDesc, GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+            assertNull(testDesc, e.params);
+
+            if ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) && (duringGameState == SOCGame.PLAY1))
+            {
+                e = effects.get(2);
+                assertEquals(testDesc, GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
+                assertEquals(testDesc, 2, e.params.length);
+                assertEquals(testDesc, -1, e.params[0]);
+                assertEquals(testDesc, cliPN, e.params[1]);
+            }
+        }
+
+        // check results
+        final String cliName = cliPlAtSrv.getName();
+        return TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCPlayerElements:", "|playerNum=5|actionType=LOSE|e3=1,e5=1"},
+                ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_DEV_CARD) ? new String[]{"p5:SOCDevCardAction:", "|playerNum=5|actionType=DRAW|cardType=" + devcardTypeAtServer} : null),
+                ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_DEV_CARD) ? new String[]{"!p5:SOCDevCardAction:", "|playerNum=5|actionType=DRAW|cardType=" + Integer.toString(observabilityMode == 0 ? 0 : devcardTypeAtServer)} : null),
+                {"all:SOCSimpleAction:", "|pn=-1|actType=4|v1=" + specialEdge + "|v2=0"},
+                {"all:SOCGameServerText:", "|text=" + cliName + " built a ship."},  // TODO or Moved
+                {"all:SOCPutPiece:", "|playerNumber=5|pieceType=3|coord=" + Integer.toHexString(specialEdge)},
+                ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_DEV_CARD) ? new String[]{"all:SOCGameServerText", "|text=" + cliName + " gets a Development Card as a gift from the Forgotten Tribe."} : null),
+                ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) ? new String[]{"all:SOCGameElements:", "|e6=5"} : null),
+                ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) ? new String[]{"all:SOCSVPTextMessage:", "|pn=5|svp=1|desc=a gift from the Forgotten Tribe"} : null),
+                ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) ? new String[]{"all:SOCPlayerElement:", "|playerNum=5|actionType=SET|elementType=102|amount=1"} : null),
+                {"all:SOCGameState:", "|state=" + duringGameState},
+            }, false);
+    }
+
+    /**
+     * For {@link #testUndoBuild_SC_FTRI_specialEdges()}, test undo of building or moving a ship at a Special Edge.
+     * @param testDesc  Test description for asserts, since this is called from multiple places and loops
+     * @param cliPlAtSrv  Client player in server's game data
+     * @param duringGameState  Game state to test: {@link SOCGame#ROLL_OR_CARD} or {@link SOCGame#PLAY1}
+     * @param specialEdge  Undo build/move at this edge coordinate which is a Special Edge
+     * @param specialEdgeType  Either {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD} or {@link SOCBoardLarge#SPECIAL_EDGE_SVP};
+     *    if {@code SPECIAL_EDGE_SVP}, will also expect to undo gaining Longest Route
+     * @param tcli  Test client for requesting the undo
+     * @param cliPlAtCli  Client player at {@code tcli}
+     * @param cliPlAtBot  Client player at bot; will skip game data verification at bot because it's slower and thus flaky while testing
+     * @param cliPlViews  Client player at server, client, bot, observer, for game data verification/asserts
+     * @param records  The test game's records vector; will {@link Vector#clear()} at start of this method, compare to expected at end
+     * @param observabilityMode@param observabilityMode  Same meaning as in {@link TestRecorder#connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
+     * @return  results of this method's call to {@link TestRecorder#compareRecordsToExpected(List, String[][], boolean)}
+     * @since 2.7.00
+     */
+    private StringBuilder testOne_UndoBuild_SC_FTRI_specialEdges_undoBuildOrMoveAtSpecialEdge
+        (String testDesc, final SOCPlayer cliPlAtSrv,
+         final int duringGameState, final int specialEdge, final int specialEdgeType,
+         final DisplaylessTesterClient tcli, final SOCPlayer cliPlAtCli, final SOCPlayer cliPlAtBot,
+         final HashMap<String, SOCPlayer> cliPlViews, final Vector<EventEntry> records, final int observabilityMode)
+    {
+        records.clear();
+        testDesc = testDesc + ": undo build at special edge type " + specialEdgeType + " at 0x" + Integer.toHexString(specialEdge);
+
+        final SOCGame gaAtSrv = cliPlAtSrv.getGame();
+        final String gaName = gaAtSrv.getName();
+        final int cliPN = cliPlAtSrv.getPlayerNumber();
+        final int nSVP = cliPlAtSrv.getSpecialVP();
+        final int nCardsTotal = cliPlAtSrv.getInventory().getTotal(),
+            nCardsNew = nCardsTotal - cliPlAtSrv.getInventory().getByState(SOCInventory.PLAYABLE).size();
+
+        undoPutOrMovePiece
+            (gaName, cliPN, SOCPlayingPiece.SHIP, specialEdge, 0, tcli, cliPlAtCli, cliPlAtBot, cliPlViews, -1, null, -1, null);
+
+        // check game data and lastAction:
+        for (Map.Entry<String, SOCPlayer> ePlayer : cliPlViews.entrySet())
+        {
+            final String desc = testDesc + ": " + ePlayer.getKey();
+            final SOCPlayer cliPl = ePlayer.getValue();
+            if (cliPlAtBot == cliPl)
+                continue;
+            final SOCGame ga = cliPl.getGame();
+            switch(specialEdgeType)
+            {
+                case SOCBoardLarge.SPECIAL_EDGE_DEV_CARD:
+                    assertEquals(desc, nCardsTotal - 1, cliPl.getInventory().getTotal());
+                    assertEquals(desc, nCardsNew - 1, nCardsTotal - 1 - cliPlAtSrv.getInventory().getByState(SOCInventory.PLAYABLE).size());
+                    break;
+
+                case SOCBoardLarge.SPECIAL_EDGE_SVP:
+                    assertEquals(desc, nSVP - 1, cliPlAtSrv.getSpecialVP());
+                    break;
+
+                default:
+                    fail(testDesc + ": untested specialEdgeType " + specialEdgeType);
+            }
+            final GameAction act = ga.getLastAction();
+            {
+                final String descUnused = desc + ": unused param set empty";
+                assertNotNull(desc, act);
+                assertEquals(desc, GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);
+                assertEquals(SOCPlayingPiece.SHIP, act.param1);
+                assertEquals(specialEdge, act.param2);
+                assertEquals(descUnused, 0, act.param3);
+                assertNull(descUnused, act.rset1);
+                assertNull(descUnused, act.rset2);
+            }
+        }
+        // effects are tracked only at server
+        int devcardTypeAtServer = -1;
+        {
+            final GameAction act = gaAtSrv.getLastAction();
+            List<GameAction.Effect> effects = act.effects;
+            assertNotNull(testDesc, effects);
+            assertEquals(testDesc,
+                ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) && (duringGameState == SOCGame.PLAY1))
+                ? 3 : 2, effects.size());
+
+            GameAction.Effect e = effects.get(0);
+            assertEquals(testDesc, GameAction.EffectType.PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE, e.eType);
+            assertNotNull(testDesc, e.params);
+            assertEquals(testDesc, (specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_DEV_CARD) ? 3 : 2, e.params.length);
+            assertEquals(testDesc, specialEdge, e.params[0]);
+            assertEquals(testDesc, specialEdgeType, e.params[1]);
+            if (specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_DEV_CARD)
+            {
+                devcardTypeAtServer = e.params[2];  // TODO actually validate this, instead of assuming it's correct
+                assertNotEquals(testDesc, -1, devcardTypeAtServer);
+            }
+
+            e = effects.get(1);
+            assertEquals(testDesc, GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+            assertNull(testDesc, e.params);
+
+            if ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) && (duringGameState == SOCGame.PLAY1))
+            {
+                e = effects.get(2);
+                assertEquals(testDesc, GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
+                assertEquals(testDesc, 2, e.params.length);
+                assertEquals(testDesc, -1, e.params[0]);
+                assertEquals(testDesc, cliPN, e.params[1]);
+            }
+        }
+
+        // check results
+        return TestRecorder.compareRecordsToExpected
+            (records, new String[][]
+            {
+                {"all:SOCUndoPutPiece:", "|playerNumber=5|pieceType=3|coord=" + Integer.toHexString(specialEdge)},
+                ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_DEV_CARD) ? new String[]{"all:SOCDevCardAction:", "|playerNum=5|actionType=REMOVE_NEW|cardType=" + devcardTypeAtServer} : null),
+                ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) ? new String[]{"all:SOCPlayerElement:", "|playerNum=5|actionType=SET|elementType=102|amount=" + (nSVP - 1)} : null),
+                {"all:SOCSimpleAction", "|pn=-1|actType=4|v1=" + specialEdge + "|v2=" + specialEdgeType},
+                {"all:SOCPlayerElements:", "|playerNum=5|actionType=GAIN|e3=1,e5=1"},
+                ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) && (duringGameState == SOCGame.PLAY1) ? new String[]{"all:SOCLongestRoad:", "|playerNumber=-1"} : null),
+                {"all:SOCGameState:", "|state=" + duringGameState},
+            }, false);
+    }
+
+    /**
      * Tests buying a dev card.
      * Expands on quick test done in {@link TestRecorder#testLoadAndBasicSequences()}.
      * @see #testPlayDevCards()
@@ -2745,6 +3362,7 @@ public class TestActionsMessages
         final SOCPlayer cliPlAtSrv = objs.clientPlayer,
             cliPlAtCli = gaAtCli.getPlayer(CLIENT_PN),
             cliPlAtObs = gaAtObs.getPlayer(CLIENT_PN);
+        assertEquals(CLIENT_PN, cliPlAtSrv.getPlayerNumber());
 
         final HashMap<String, SOCGame> gameViews = new HashMap<>();
         gameViews.put("gameAtSrv_" + nameSuffix, gaAtSrv);
@@ -2755,13 +3373,11 @@ public class TestActionsMessages
         cliPlViews.put("cliPlAtCli_" + nameSuffix, cliPlAtCli);
         cliPlViews.put("cliPlAtObs_" + nameSuffix, cliPlAtObs);
 
-        assertEquals(CLIENT_PN, cliPlAtSrv.getPlayerNumber());
-
         final Vector<EventEntry> records = objs.records;
 
         // start game, bot joins; note max 2 players in gameopts above
         startGame2pAwaitClientPlacementTurn
-            (gaAtSrv, gaAtCli, tcli, CLIENT_PN, BOT_PN, gameViews);
+            (gaAtSrv, gaAtCli, tcli, CLIENT_PN, BOT_PN, 1, gameViews);
 
         // For this test, we don't need to decide build locations and complete initial placement: We have a ship already.
         // So we'll override gameState to skip right to "normal gameplay".
@@ -4311,12 +4927,15 @@ public class TestActionsMessages
      * @param tcli  Test client for {@code clientPN}
      * @param clientPN  {@code tcli}'s player number
      * @param botPN   Bot's player number
+     * @param expectedRoadShipCount  Expected size of test player's {@link SOCPlayer#getRoadsAndShips()} at start of game;
+     *     usually 0, varies by scenario
      * @param gameViews  Map of views of game at server, tcli, observer, etc; game state asserts will be checked in each entry
      * @since 2.7.00
      */
     private void startGame2pAwaitClientPlacementTurn
         (final SOCGame gaAtSrv, final SOCGame gaAtCli,
          final DisplaylessTesterClient tcli, final int clientPN, final int botPN,
+         final int expectedRoadShipCount,
          final HashMap<String, SOCGame> gameViews)
     {
         assertEquals(2, gaAtSrv.getGameOptionIntValue("PL"));
@@ -4375,8 +4994,237 @@ public class TestActionsMessages
             int gs = ga.getGameState();
             assertTrue(desc + ".gs(==" + gs + ") >= START1A", gs >= SOCGame.START1A);
             SOCPlayer cliPl = ga.getPlayer(clientPN);
-            assertEquals(desc, 1, cliPl.getRoadsAndShips().size());
+            assertEquals(desc, expectedRoadShipCount, cliPl.getRoadsAndShips().size());
             assertEquals(desc, 0, cliPl.getNumWarships());
+        }
+    }
+
+    /**
+     * Request to build one piece, then check game data afterwards.
+     * @param testDesc  Test description for asserts, since this is called from multiple places and loops
+     * @param testClientPN  Our test player number; current player who is building
+     * @param pieceType  Piece type to build
+     * @param pieceCoord  Coordinate to build at
+     * @param tcli   Test client for requesting the build
+     * @param testPlayerAtCli  Test player at {@code tcli}
+     * @param testPlayerAtBot  Test player at bot; will skip game data verification at bot because it's slower and thus flaky while testing
+     * @param testPlayerViews  Client player at server, client, bot, observer, for game data verification/asserts/overrides
+     * @param expectedNewNumPieces  expected new remaining unplaced pieces amount,
+     *     from {@link SOCPlayer#getNumPieces(int) cliPlayer.getNumPieces(pieceType)}, or -1 to ignore
+     * @param expectedNewResourceAmounts  null or 5-element resource count array,
+     *     same format as {@link SOCResourceSet#getAmounts(boolean) cliPlayer.getResources().getAmounts(false)}
+     * @param expectedPublicVP  Expected new {@link SOCPlayer#getPublicVP()}, or -1 to ignore
+     * @since 2.7.00
+     */
+    private void putPiece
+        (final String testDesc, final int testClientPN, final int pieceType, final int pieceCoord,
+         final DisplaylessTesterClient tcli, final SOCPlayer testPlayerAtCli, final SOCPlayer testPlayerAtBot,
+         final HashMap<String, SOCPlayer> testPlayerViews,
+         final int expectedNewNumPieces, final int[] expectedNewResourceAmounts, final int expectedPublicVP)
+    {
+        for (Map.Entry<String, SOCPlayer> ePlayer : testPlayerViews.entrySet())
+        {
+            final String desc = testDesc + ": not yet built at 0x" + Integer.toHexString(pieceCoord) + ": " + ePlayer.getKey();
+            final SOCPlayer pl = ePlayer.getValue();
+            final SOCBoard board = pl.getGame().getBoard();
+            switch (pieceType)
+            {
+            case SOCPlayingPiece.ROAD:
+            case SOCPlayingPiece.SHIP:
+                assertNull(desc, board.roadOrShipAtEdge(pieceCoord));
+                break;
+            case SOCPlayingPiece.SETTLEMENT:
+            case SOCPlayingPiece.CITY:
+                assertNull(desc, board.settlementAtNode(pieceCoord));
+                break;
+            default:
+                fail(desc + ": unsupported pieceType for test");
+                return;  // to satisfy compiler
+            }
+        }
+
+        final SOCGame gaAtCli = testPlayerAtCli.getGame();
+        final SOCBoard boardAtCli = gaAtCli.getBoard();
+        final SOCPlayingPiece pieceToPut;
+        switch (pieceType)
+        {
+        case SOCPlayingPiece.ROAD:
+            pieceToPut = new SOCRoad(testPlayerAtCli, pieceCoord, boardAtCli);
+            break;
+        case SOCPlayingPiece.SETTLEMENT:
+            pieceToPut = new SOCSettlement(testPlayerAtCli, pieceCoord, boardAtCli);
+            break;
+        case SOCPlayingPiece.SHIP:
+            pieceToPut = new SOCShip(testPlayerAtCli, pieceCoord, boardAtCli);
+            break;
+        case SOCPlayingPiece.CITY:
+            pieceToPut = new SOCCity(testPlayerAtCli, pieceCoord, boardAtCli);
+            break;
+        default:
+            fail(testDesc + ": unsupported pieceType for test");
+            return;  // to satisfy compiler
+        }
+
+        tcli.putPiece(gaAtCli, pieceToPut);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+
+        for (Map.Entry<String, SOCPlayer> ePlayer : testPlayerViews.entrySet())
+        {
+            final String desc = testDesc + ": built at 0x" + Integer.toHexString(pieceCoord) + ": " + ePlayer.getKey();
+            final SOCPlayer pl = ePlayer.getValue();
+            if (testPlayerAtBot == pl)
+                continue;  // skip: game data at bot client lags because processing takes longer than other client types
+
+            final SOCGame ga = pl.getGame();
+            final SOCBoard board = ga.getBoard();
+            SOCRoutePiece rp;
+            switch (pieceType)
+            {
+            case SOCPlayingPiece.ROAD:
+                rp = board.roadOrShipAtEdge(pieceCoord);
+                assertNotNull(desc, rp);
+                assertFalse(desc, rp instanceof SOCShip);
+                break;
+            case SOCPlayingPiece.SHIP:
+                rp = board.roadOrShipAtEdge(pieceCoord);
+                assertNotNull(desc, rp);
+                assertTrue(desc, rp instanceof SOCShip);
+                break;
+            case SOCPlayingPiece.SETTLEMENT:
+            case SOCPlayingPiece.CITY:
+                assertNotNull(desc, board.settlementAtNode(pieceCoord));
+                break;
+            default:
+                fail(desc + ": unsupported pieceType for test");
+                return;  // to satisfy compiler
+            }
+
+            if (expectedNewNumPieces != -1)
+                assertEquals(desc, expectedNewNumPieces, pl.getNumPieces(pieceType));
+            if (expectedPublicVP != -1)
+                assertEquals(desc, expectedPublicVP, pl.getPublicVP());
+            if (expectedNewResourceAmounts != null)
+                assertArrayEquals(desc, expectedNewResourceAmounts, pl.getResources().getAmounts(false));
+
+            GameAction act = ga.getLastAction();
+            assertNotNull(desc, act);
+            assertEquals(desc, GameAction.ActionType.BUILD_PIECE, act.actType);
+            assertEquals(desc, pieceType, act.param1);
+            assertEquals(desc, pieceCoord, act.param2);
+            assertEquals(desc, testClientPN, act.param3);
+        }
+    }
+
+    /**
+     * Request undo last action which was a build or move, then check game data afterwards.
+     * @param testDesc  Test description for asserts, since this is called from multiple places and loops
+     * @param testClientPN  Our test player number; current player who is building
+     * @param pieceType  Piece type to undo build or move
+     * @param pieceCoord  Piece coordinate to undo at
+     * @param movedFromCoord   if undoing a move, the coordinate where piece was moved from, otherwise 0
+     * @param tcli   Test client for requesting the undo
+     * @param testPlayerAtCli  Test player at {@code tcli}
+     * @param testPlayerAtBot  Test player at bot; will skip game data verification at bot because it's slower and thus flaky while testing
+     * @param testPlayerViews  Client player at server, client, bot, observer, for game data verification/asserts/overrides
+     * @param expectedNewNumPieces  expected new remaining unplaced pieces amount,
+     *     from {@link SOCPlayer#getNumPieces(int) cliPlayer.getNumPieces(pieceType)}, or -1 to ignore
+     * @param expectedNewResourceAmounts  null or 5-element resource count array,
+     *     same format as {@link SOCResourceSet#getAmounts(boolean) cliPlayer.getResources().getAmounts(false)}
+     * @param expectedPublicVP  Expected new {@link SOCPlayer#getPublicVP()}, or -1 to ignore
+     * @param expectedResToReturn  If the build/move gave free resources, expect these to be returned (checks {@link SOCGame#getLastAction()};
+     *     {@code null} otherwise
+     * @since 2.7.00
+     */
+    private void undoPutOrMovePiece
+        (final String testDesc, final int testClientPN, final int pieceType, final int pieceCoord, final int movedFromCoord,
+         final DisplaylessTesterClient tcli, final SOCPlayer testPlayerAtCli, final SOCPlayer testPlayerAtBot,
+         final HashMap<String, SOCPlayer> testPlayerViews,
+         final int expectedNewNumPieces, final int[] expectedNewResourceAmounts, final int expectedPublicVP,
+         final ResourceSet expectedResToReturn)
+    {
+        if (movedFromCoord != 0)
+            throw new IllegalArgumentException("not yet implemented");  // TODO
+
+        final SOCGame gaAtCli = testPlayerAtCli.getGame();
+
+        for (Map.Entry<String, SOCPlayer> ePlayer : testPlayerViews.entrySet())
+        {
+            final String desc = testDesc + ": about to undo build/move at 0x" + Integer.toHexString(pieceCoord) + ": " + ePlayer.getKey();
+            final SOCPlayer pl = ePlayer.getValue();
+            if (testPlayerAtBot == pl)
+                continue;  // skip: game data at bot client lags because processing takes longer than other client types
+
+            final SOCGame ga = pl.getGame();
+            final SOCBoard board = ga.getBoard();
+            SOCRoutePiece rp;
+            switch (pieceType)
+            {
+            case SOCPlayingPiece.ROAD:
+                rp = board.roadOrShipAtEdge(pieceCoord);
+                assertNotNull(desc, rp);
+                assertFalse(desc, rp instanceof SOCShip);
+                break;
+            case SOCPlayingPiece.SHIP:
+                rp = board.roadOrShipAtEdge(pieceCoord);
+                assertNotNull(desc, rp);
+                assertTrue(desc, rp instanceof SOCShip);
+                break;
+            case SOCPlayingPiece.SETTLEMENT:
+            case SOCPlayingPiece.CITY:
+                assertNotNull(desc, board.settlementAtNode(pieceCoord));
+                break;
+            default:
+                fail(desc + ": unsupported pieceType for test");
+                return;  // to satisfy compiler
+            }
+        }
+
+        tcli.undoPutOrMovePieceRequest
+            (gaAtCli, pieceType, pieceCoord, movedFromCoord);
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+
+        for (Map.Entry<String, SOCPlayer> ePlayer : testPlayerViews.entrySet())
+        {
+            final String desc = testDesc + ": undid build/move at 0x" + Integer.toHexString(pieceCoord) + ": " + ePlayer.getKey();
+            final SOCPlayer pl = ePlayer.getValue();
+            if (testPlayerAtBot == pl)
+                continue;
+            final SOCBoard board = pl.getGame().getBoard();
+            switch (pieceType)
+            {
+            case SOCPlayingPiece.ROAD:
+            case SOCPlayingPiece.SHIP:
+                assertNull(desc, board.roadOrShipAtEdge(pieceCoord));
+                // TODO if movedFromCoord != 0, check that it's at that location again and can be moved this turn
+               break;
+            case SOCPlayingPiece.SETTLEMENT:
+            case SOCPlayingPiece.CITY:
+                assertNull(desc, board.settlementAtNode(pieceCoord));
+                break;
+            default:
+                fail(desc + ": unsupported pieceType for test");
+                return;  // to satisfy compiler
+            }
+
+            if (expectedNewNumPieces != -1)
+                assertEquals(desc, expectedNewNumPieces, pl.getNumPieces(pieceType));
+            if (expectedPublicVP != -1)
+                assertEquals(desc, expectedPublicVP, pl.getPublicVP());
+            if (expectedNewResourceAmounts != null)
+                assertArrayEquals(desc, expectedNewResourceAmounts, pl.getResources().getAmounts(false));
+
+            GameAction act = pl.getGame().getLastAction();
+            assertNotNull(desc, act);
+            assertEquals(desc, GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);  // TODO check fields for UNDO_MOVE_PIECE if movedFromCoord != 0
+            assertEquals(desc, pieceType, act.param1);
+            assertEquals(desc, pieceCoord, act.param2);
+            assertEquals(desc, 0, act.param3);  // unused
+            assertEquals(desc, expectedResToReturn, act.rset1);
+            assertNull(desc, act.rset2);
         }
     }
 

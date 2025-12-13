@@ -88,7 +88,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- To help unit tests, SOCGame.initAtServer now calls startGame_setupDevCards
 	- To help unit tests which create games:
 	    - TestRecorder: New convenience method connectCreateJoinNewGame
-	    - TestActionsMessages: New convenience method startGame2pAwaitClientPlacementTurn
+	    - TestActionsMessages: New convenience methods startGame2pAwaitClientPlacementTurn, putPiece, undoPutOrMovePiece
 	    - SOCServer.createOrJoinGame is now public, returning the created or joined SOCGame
 	    - SOCRobotBrain: New `ALWAYS_PAUSE_FASTER` static flag
 	- Gradle 7 compatibility
