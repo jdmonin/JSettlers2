@@ -87,8 +87,10 @@ JARs for recent JSettlers versions can be downloaded from
 	- Robots: If SOCGame.restoreLargestArmyState called before saveLargestArmyState, do nothing
 	- To help unit tests, SOCGame.initAtServer now calls startGame_setupDevCards
 	- To help unit tests which create games:
-	    - TestRecorder: New convenience method connectCreateJoinNewGame
-	    - TestActionsMessages: New convenience methods startGame2pAwaitClientPlacementTurn, putPiece, undoPutOrMovePiece
+	    - TestRecorder:
+	        - New convenience method connectCreateJoinNewGame
+	        - compareRecordsToExpected: If expected != actual message count, output those extra messages
+	    - TestActionsMessages: New convenience methods startGame2pAwaitClientPlacementTurn, putPiece, movePiece, undoPutOrMovePiece
 	    - SOCServer.createOrJoinGame is now public, returning the created or joined SOCGame
 	    - SOCRobotBrain: New `ALWAYS_PAUSE_FASTER` static flag
 	- Gradle 7 compatibility

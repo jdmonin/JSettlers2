@@ -1957,10 +1957,12 @@ public class TestActionsMessages
         /** now test building at Special Edges: */
 
         StringBuilder comparePlay1 = testOne_UndoBuild_SC_FTRI_specialEdges_fromShip
-            (gaAtSrv, cliPlAtSrv, tcli, cliPlAtCli, cliPlAtBot, gameViews, cliPlViews, records, observabilityMode, SPECIAL_EDGE_SHIPS[pathIndex], SOCGame.PLAY1);
+            (gaAtSrv, cliPlAtSrv, tcli, cliPlAtCli, cliPlAtBot, gameViews, cliPlViews, records, observabilityMode,
+             INIT_SHIPS[pathIndex][1], SPECIAL_EDGE_SHIPS[pathIndex], SOCGame.PLAY1);
 
         // StringBuilder compareSBP = testOne_UndoBuild_SC_FTRI_specialEdges_fromShip
-        //     (gaAtSrv, cliPlAtSrv, tcli, cliPlAtCli, cliPlAtBot, gameViews, cliPlViews, records, observabilityMode, SPECIAL_EDGE_SHIPS[pathIndex], SOCGame.SPECIAL_BUILDING);
+        //     (gaAtSrv, cliPlAtSrv, tcli, cliPlAtCli, cliPlAtBot, gameViews, cliPlViews, records, observabilityMode,
+        //      INIT_SHIPS[pathIndex][1], SPECIAL_EDGE_SHIPS[pathIndex], SOCGame.SPECIAL_BUILDING);
 
         // TODO add ships along TO_GIFT_PORT_SHIPS to the Gift Port special edge (final ship edge coord gifts port) 
 
@@ -2011,7 +2013,7 @@ public class TestActionsMessages
          final SOCPlayer cliPlAtCli, final SOCPlayer cliPlAtBot,
          final HashMap<String, SOCGame> gameViews, final HashMap<String, SOCPlayer> cliPlViews,
          final Vector<EventEntry> records, final int observabilityMode,
-         final int[] SPECIAL_EDGE_SHIPS, final int duringGameState)
+         final int MOVE_SHIP_FROM_EDGE, final int[] SPECIAL_EDGE_SHIPS, final int duringGameState)
     {
         assertEquals(2, SPECIAL_EDGE_SHIPS.length);
 
@@ -2053,43 +2055,40 @@ public class TestActionsMessages
         for (int subtestNum = 0; subtestNum <= 2; ++subtestNum)
         {
             // subtest 0: build and undo
-            // subtest 1: move and undo (TBD)
+            // subtest 1: move and undo
             // subtest 2: redo build
 
+            final int moveFromEdge = (subtestNum != 1) ? 0 : MOVE_SHIP_FROM_EDGE;
+            final String subtestDesc = ((moveFromEdge != 0) ? "Move to " : "Build at ")
+                 + "SPECIAL_EDGE_DEV_CARD 0x" + Integer.toHexString(specialEdge);
             StringBuilder sb;
-            if (subtestNum != 1)
+            sb = testOne_UndoBuild_SC_FTRI_specialEdges_buildOrMoveAtSpecialEdge
+                (testDesc, cliPlAtSrv, duringGameState, specialEdge, SOCBoardLarge.SPECIAL_EDGE_DEV_CARD, moveFromEdge,
+                 tcli, cliPlAtCli, cliPlAtBot, cliPlViews, records, observabilityMode);
+            if (sb != null)
             {
-                sb = testOne_UndoBuild_SC_FTRI_specialEdges_buildOrMoveAtSpecialEdge
-                    (testDesc, cliPlAtSrv, duringGameState, specialEdge, SOCBoardLarge.SPECIAL_EDGE_DEV_CARD,
-                     tcli, cliPlAtCli, cliPlAtBot, cliPlViews, records, observabilityMode);
-                if (sb != null)
-                {
-                    if (compares == null)
-                        compares = new StringBuilder(testDesc).append(": ") ;
-                    compares.append
-                        (((subtestNum == 2) ? "Redo " : "") + "Build at SPECIAL_EDGE_DEV_CARD 0x" + Integer.toHexString(specialEdge) + ": Message mismatch: ");
-                    compares.append(sb);
-                }
+                if (compares == null)
+                    compares = new StringBuilder(testDesc).append(": ") ;
+                compares.append
+                    (((subtestNum == 2) ? "Redo " : "") + subtestDesc + ": Message mismatch: ");
+                compares.append(sb);
             }
 
-            // undo that build and check results
-            if (subtestNum == 0)
+            // undo that build or move and check results
+            if (subtestNum != 2)
             {
                 sb = testOne_UndoBuild_SC_FTRI_specialEdges_undoBuildOrMoveAtSpecialEdge
-                    (testDesc, cliPlAtSrv, duringGameState, specialEdge, SOCBoardLarge.SPECIAL_EDGE_DEV_CARD,
+                    (testDesc, cliPlAtSrv, duringGameState, specialEdge, SOCBoardLarge.SPECIAL_EDGE_DEV_CARD, moveFromEdge,
                      tcli, cliPlAtCli, cliPlAtBot, cliPlViews, records, observabilityMode);
                 if (sb != null)
                 {
                     if (compares == null)
                         compares = new StringBuilder(testDesc).append(": ") ;
                     compares.append
-                        ("Undo build at SPECIAL_EDGE_DEV_CARD 0x" + Integer.toHexString(specialEdge) + ": Message mismatch: ");
+                        ("Undo " + subtestDesc + ": Message mismatch: ");
                     compares.append(sb);
                 }
             }
-
-            // TODO subtest 1: move piece and check results
-            // TODO subtest 1: undo move and check results
         }
 
         /** Second special edge should give SVP (and LR): */
@@ -2098,42 +2097,39 @@ public class TestActionsMessages
         for (int subtestNum = 0; subtestNum <= 2; ++subtestNum)
         {
             // subtest 0: build and undo
-            // subtest 1: move and undo (TBD)
+            // subtest 1: move and undo
             // subtest 2: redo build
 
+            final int moveFromEdge = (subtestNum != 1) ? 0 : MOVE_SHIP_FROM_EDGE;
+            final String subtestDesc = ((moveFromEdge != 0) ? "Move to " : "Build at ")
+                 + "SPECIAL_EDGE_SVP 0x" + Integer.toHexString(specialEdge);
             StringBuilder sb;
-            if (subtestNum != 1)
+            sb = testOne_UndoBuild_SC_FTRI_specialEdges_buildOrMoveAtSpecialEdge
+                (testDesc, cliPlAtSrv, duringGameState, specialEdge, SOCBoardLarge.SPECIAL_EDGE_SVP, moveFromEdge,
+                 tcli, cliPlAtCli, cliPlAtBot, cliPlViews, records, observabilityMode);
+            if (sb != null)
             {
-                sb = testOne_UndoBuild_SC_FTRI_specialEdges_buildOrMoveAtSpecialEdge
-                    (testDesc, cliPlAtSrv, duringGameState, specialEdge, SOCBoardLarge.SPECIAL_EDGE_SVP,
-                     tcli, cliPlAtCli, cliPlAtBot, cliPlViews, records, observabilityMode);
-                if (sb != null)
-                {
-                    if (compares == null)
-                        compares = new StringBuilder(testDesc).append(": ");
-                    compares.append
-                        (((subtestNum == 2) ? "Redo " : "") + "Build at SPECIAL_EDGE_SVP 0x" + Integer.toHexString(specialEdge) + ": Message mismatch: ");
-                    compares.append(sb);
-                }
+                if (compares == null)
+                    compares = new StringBuilder(testDesc).append(": ");
+                compares.append
+                    (((subtestNum == 2) ? "Redo " : "") + subtestDesc + ": Message mismatch: ");
+                compares.append(sb);
             }
 
-            if (subtestNum == 0)
+            if (subtestNum != 2)
             {
-                // undo that build and check results
+                // undo that build or move and check results
                 sb = testOne_UndoBuild_SC_FTRI_specialEdges_undoBuildOrMoveAtSpecialEdge
-                    (testDesc, cliPlAtSrv, duringGameState, specialEdge, SOCBoardLarge.SPECIAL_EDGE_SVP,
+                    (testDesc, cliPlAtSrv, duringGameState, specialEdge, SOCBoardLarge.SPECIAL_EDGE_SVP, moveFromEdge,
                      tcli, cliPlAtCli, cliPlAtBot, cliPlViews, records, observabilityMode);
                 if (sb != null)
                 {
                     if (compares == null)
                         compares = new StringBuilder(testDesc).append(": ");
-                    compares.append("Undo build at SPECIAL_EDGE_SVP 0x" + Integer.toHexString(specialEdge) + ": Message mismatch: ");
+                    compares.append("Undo " + subtestDesc + ": Message mismatch: ");
                     compares.append(sb);
                 }
             }
-
-            // TODO subtest 1: move piece and check results
-            // TODO subtest 1: undo move and check results
         }
 
         /** leave game, report comparison results */
@@ -2152,6 +2148,7 @@ public class TestActionsMessages
      * @param specialEdge  Build or move to this edge coordinate which is a Special Edge
      * @param specialEdgeType  Either {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD} or {@link SOCBoardLarge#SPECIAL_EDGE_SVP};
      *    if {@code SPECIAL_EDGE_SVP}, will also expect to gain Longest Route
+     * @param moveFromEdge   if moving a ship, the edge coordinate to move it from, otherwise 0
      * @param tcli  Test client for requesting the build
      * @param cliPlAtCli  Client player at {@code tcli}
      * @param cliPlAtBot  Client player at bot; will skip game data verification at bot because it's slower and thus flaky while testing
@@ -2163,7 +2160,7 @@ public class TestActionsMessages
      */
     private StringBuilder testOne_UndoBuild_SC_FTRI_specialEdges_buildOrMoveAtSpecialEdge
         (String testDesc, final SOCPlayer cliPlAtSrv,
-         final int duringGameState, final int specialEdge, final int specialEdgeType,
+         final int duringGameState, final int specialEdge, final int specialEdgeType, final int moveFromEdge,
          final DisplaylessTesterClient tcli, final SOCPlayer cliPlAtCli, final SOCPlayer cliPlAtBot,
          final HashMap<String, SOCPlayer> cliPlViews, final Vector<EventEntry> records, final int observabilityMode)
     {
@@ -2177,8 +2174,12 @@ public class TestActionsMessages
         final int nCardsTotal = cliPlAtSrv.getInventory().getTotal(),
             nCardsNew = nCardsTotal - cliPlAtSrv.getInventory().getByState(SOCInventory.PLAYABLE).size();
 
-        putPiece
-            (gaName, cliPN, SOCPlayingPiece.SHIP, specialEdge, tcli, cliPlAtCli, cliPlAtBot, cliPlViews, -1, null, -1);
+        if (moveFromEdge == 0)
+            putPiece
+                (gaName, cliPN, SOCPlayingPiece.SHIP, specialEdge, tcli, cliPlAtCli, cliPlAtBot, cliPlViews, -1, null, -1);
+        else
+            movePiece
+                (gaName, cliPN, SOCPlayingPiece.SHIP, moveFromEdge, specialEdge, tcli, cliPlAtCli, cliPlAtBot, cliPlViews, -1, null, -1);
 
         // check game data and lastAction:
         for (Map.Entry<String, SOCPlayer> ePlayer : cliPlViews.entrySet())
@@ -2207,10 +2208,10 @@ public class TestActionsMessages
             {
                 final String descUnused = desc + ": unused param set empty";
                 assertNotNull(desc, act);
-                assertEquals(desc, GameAction.ActionType.BUILD_PIECE, act.actType);
+                assertEquals(desc, (moveFromEdge != 0) ? GameAction.ActionType.MOVE_PIECE : GameAction.ActionType.BUILD_PIECE, act.actType);
                 assertEquals(SOCPlayingPiece.SHIP, act.param1);
-                assertEquals(specialEdge, act.param2);
-                assertEquals(cliPN, act.param3);
+                assertEquals(desc, (moveFromEdge != 0) ? moveFromEdge : specialEdge, act.param2);
+                assertEquals(desc, (moveFromEdge != 0) ? specialEdge : cliPN, act.param3);
                 assertNull(descUnused, act.rset1);
                 assertNull(descUnused, act.rset2);
             }
@@ -2221,9 +2222,12 @@ public class TestActionsMessages
             final GameAction act = gaAtSrv.getLastAction();
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(testDesc, effects);
-            assertEquals(testDesc,
-              ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP)  && (duringGameState == SOCGame.PLAY1))
-              ? 3 : 2, effects.size());
+            int i = 1;
+            if ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) && (duringGameState == SOCGame.PLAY1))
+                ++i;
+            if (moveFromEdge == 0)
+                ++i;
+            assertEquals(testDesc, i, effects.size());
 
             GameAction.Effect e = effects.get(0);
             assertEquals(testDesc, GameAction.EffectType.PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE, e.eType);
@@ -2237,13 +2241,19 @@ public class TestActionsMessages
                 assertNotEquals(testDesc, -1, devcardTypeAtServer);
             }
 
-            e = effects.get(1);
-            assertEquals(testDesc, GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
-            assertNull(testDesc, e.params);
+            i = 1;
+            if (moveFromEdge == 0)
+            {
+                e = effects.get(i);
+                assertEquals(testDesc, GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+                assertNull(testDesc, e.params);
+
+                ++i;
+            }
 
             if ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) && (duringGameState == SOCGame.PLAY1))
             {
-                e = effects.get(2);
+                e = effects.get(i);
                 assertEquals(testDesc, GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
                 assertEquals(testDesc, 2, e.params.length);
                 assertEquals(testDesc, -1, e.params[0]);
@@ -2256,17 +2266,19 @@ public class TestActionsMessages
         return TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCPlayerElements:", "|playerNum=5|actionType=LOSE|e3=1,e5=1"},
+                ((moveFromEdge == 0) ? new String[]{"all:SOCPlayerElements:", "|playerNum=5|actionType=LOSE|e3=1,e5=1"} : null),
                 ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_DEV_CARD) ? new String[]{"p5:SOCDevCardAction:", "|playerNum=5|actionType=DRAW|cardType=" + devcardTypeAtServer} : null),
                 ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_DEV_CARD) ? new String[]{"!p5:SOCDevCardAction:", "|playerNum=5|actionType=DRAW|cardType=" + Integer.toString(observabilityMode == 0 ? 0 : devcardTypeAtServer)} : null),
                 {"all:SOCSimpleAction:", "|pn=-1|actType=4|v1=" + specialEdge + "|v2=0"},
-                {"all:SOCGameServerText:", "|text=" + cliName + " built a ship."},  // TODO or Moved
-                {"all:SOCPutPiece:", "|playerNumber=5|pieceType=3|coord=" + Integer.toHexString(specialEdge)},
+                ((moveFromEdge == 0) ? new String[]{"all:SOCGameServerText:", "|text=" + cliName + " built a ship."} : null),
+                ((moveFromEdge == 0)
+                    ? new String[]{"all:SOCPutPiece:", "|playerNumber=5|pieceType=3|coord=" + Integer.toHexString(specialEdge)}
+                    : new String[]{"all:SOCMovePiece:", "|pn=5|pieceType=3|fromCoord=" + Integer.toHexString(moveFromEdge) + "|toCoord=" + Integer.toHexString(specialEdge)}),
                 ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_DEV_CARD) ? new String[]{"all:SOCGameServerText", "|text=" + cliName + " gets a Development Card as a gift from the Forgotten Tribe."} : null),
                 ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) ? new String[]{"all:SOCGameElements:", "|e6=5"} : null),
                 ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) ? new String[]{"all:SOCSVPTextMessage:", "|pn=5|svp=1|desc=a gift from the Forgotten Tribe"} : null),
                 ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) ? new String[]{"all:SOCPlayerElement:", "|playerNum=5|actionType=SET|elementType=102|amount=1"} : null),
-                {"all:SOCGameState:", "|state=" + duringGameState},
+                ((moveFromEdge == 0) ? new String[]{"all:SOCGameState:", "|state=" + duringGameState} : null),
             }, false);
     }
 
@@ -2278,6 +2290,7 @@ public class TestActionsMessages
      * @param specialEdge  Undo build/move at this edge coordinate which is a Special Edge
      * @param specialEdgeType  Either {@link SOCBoardLarge#SPECIAL_EDGE_DEV_CARD} or {@link SOCBoardLarge#SPECIAL_EDGE_SVP};
      *    if {@code SPECIAL_EDGE_SVP}, will also expect to undo gaining Longest Route
+     * @param moveFromEdge  if undoing a move, the edge coordinate where ship was moved from, otherwise 0
      * @param tcli  Test client for requesting the undo
      * @param cliPlAtCli  Client player at {@code tcli}
      * @param cliPlAtBot  Client player at bot; will skip game data verification at bot because it's slower and thus flaky while testing
@@ -2289,12 +2302,13 @@ public class TestActionsMessages
      */
     private StringBuilder testOne_UndoBuild_SC_FTRI_specialEdges_undoBuildOrMoveAtSpecialEdge
         (String testDesc, final SOCPlayer cliPlAtSrv,
-         final int duringGameState, final int specialEdge, final int specialEdgeType,
+         final int duringGameState, final int specialEdge, final int specialEdgeType, final int moveFromEdge,
          final DisplaylessTesterClient tcli, final SOCPlayer cliPlAtCli, final SOCPlayer cliPlAtBot,
          final HashMap<String, SOCPlayer> cliPlViews, final Vector<EventEntry> records, final int observabilityMode)
     {
         records.clear();
-        testDesc = testDesc + ": undo build at special edge type " + specialEdgeType + " at 0x" + Integer.toHexString(specialEdge);
+        testDesc = testDesc + ((moveFromEdge != 0) ? ": undo move" : ": undo build")
+            + " at special edge type " + specialEdgeType + " at 0x" + Integer.toHexString(specialEdge);
 
         final SOCGame gaAtSrv = cliPlAtSrv.getGame();
         final String gaName = gaAtSrv.getName();
@@ -2304,7 +2318,8 @@ public class TestActionsMessages
             nCardsNew = nCardsTotal - cliPlAtSrv.getInventory().getByState(SOCInventory.PLAYABLE).size();
 
         undoPutOrMovePiece
-            (gaName, cliPN, SOCPlayingPiece.SHIP, specialEdge, 0, tcli, cliPlAtCli, cliPlAtBot, cliPlViews, -1, null, -1, null);
+            (gaName, cliPN, SOCPlayingPiece.SHIP, specialEdge, moveFromEdge,
+             tcli, cliPlAtCli, cliPlAtBot, cliPlViews, -1, null, -1, null);
 
         // check game data and lastAction:
         for (Map.Entry<String, SOCPlayer> ePlayer : cliPlViews.entrySet())
@@ -2332,10 +2347,10 @@ public class TestActionsMessages
             {
                 final String descUnused = desc + ": unused param set empty";
                 assertNotNull(desc, act);
-                assertEquals(desc, GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);
-                assertEquals(SOCPlayingPiece.SHIP, act.param1);
-                assertEquals(specialEdge, act.param2);
-                assertEquals(descUnused, 0, act.param3);
+                assertEquals(desc, (moveFromEdge != 0) ? GameAction.ActionType.UNDO_MOVE_PIECE : GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);
+                assertEquals(desc, SOCPlayingPiece.SHIP, act.param1);
+                assertEquals(desc, specialEdge, act.param2);
+                assertEquals(desc, moveFromEdge, act.param3);  // if not moved, is 0/unused
                 assertNull(descUnused, act.rset1);
                 assertNull(descUnused, act.rset2);
             }
@@ -2346,9 +2361,12 @@ public class TestActionsMessages
             final GameAction act = gaAtSrv.getLastAction();
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(testDesc, effects);
-            assertEquals(testDesc,
-                ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) && (duringGameState == SOCGame.PLAY1))
-                ? 3 : 2, effects.size());
+            int i = 1;
+            if ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) && (duringGameState == SOCGame.PLAY1))
+                ++i;
+            if (moveFromEdge == 0)
+                ++i;
+            assertEquals(testDesc, i, effects.size());
 
             GameAction.Effect e = effects.get(0);
             assertEquals(testDesc, GameAction.EffectType.PLAYER_SCEN_FTRI_REACHED_SPECIAL_EDGE, e.eType);
@@ -2362,13 +2380,19 @@ public class TestActionsMessages
                 assertNotEquals(testDesc, -1, devcardTypeAtServer);
             }
 
-            e = effects.get(1);
-            assertEquals(testDesc, GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
-            assertNull(testDesc, e.params);
+            i = 1;
+            if (moveFromEdge == 0)
+            {
+                e = effects.get(i);
+                assertEquals(testDesc, GameAction.EffectType.DEDUCT_COST_FROM_PLAYER, e.eType);
+                assertNull(testDesc, e.params);
+
+                ++i;
+            }
 
             if ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) && (duringGameState == SOCGame.PLAY1))
             {
-                e = effects.get(2);
+                e = effects.get(i);
                 assertEquals(testDesc, GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
                 assertEquals(testDesc, 2, e.params.length);
                 assertEquals(testDesc, -1, e.params[0]);
@@ -2380,11 +2404,12 @@ public class TestActionsMessages
         return TestRecorder.compareRecordsToExpected
             (records, new String[][]
             {
-                {"all:SOCUndoPutPiece:", "|playerNumber=5|pieceType=3|coord=" + Integer.toHexString(specialEdge)},
+                {"all:SOCUndoPutPiece:", "|playerNumber=5|pieceType=3|coord=" + Integer.toHexString(specialEdge)
+                    + ((moveFromEdge != 0) ? "|movedFromCoord=" + Integer.toHexString(moveFromEdge) : "")},
                 ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_DEV_CARD) ? new String[]{"all:SOCDevCardAction:", "|playerNum=5|actionType=REMOVE_NEW|cardType=" + devcardTypeAtServer} : null),
                 ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) ? new String[]{"all:SOCPlayerElement:", "|playerNum=5|actionType=SET|elementType=102|amount=" + (nSVP - 1)} : null),
                 {"all:SOCSimpleAction", "|pn=-1|actType=4|v1=" + specialEdge + "|v2=" + specialEdgeType},
-                {"all:SOCPlayerElements:", "|playerNum=5|actionType=GAIN|e3=1,e5=1"},
+                ((moveFromEdge == 0) ? new String[]{"all:SOCPlayerElements:", "|playerNum=5|actionType=GAIN|e3=1,e5=1"} : null),
                 ((specialEdgeType == SOCBoardLarge.SPECIAL_EDGE_SVP) && (duringGameState == SOCGame.PLAY1) ? new String[]{"all:SOCLongestRoad:", "|playerNumber=-1"} : null),
                 {"all:SOCGameState:", "|state=" + duringGameState},
             }, false);
@@ -5014,6 +5039,8 @@ public class TestActionsMessages
      * @param expectedNewResourceAmounts  null or 5-element resource count array,
      *     same format as {@link SOCResourceSet#getAmounts(boolean) cliPlayer.getResources().getAmounts(false)}
      * @param expectedPublicVP  Expected new {@link SOCPlayer#getPublicVP()}, or -1 to ignore
+     * @see #movePiece(String, int, int, int, int, DisplaylessTesterClient, SOCPlayer, SOCPlayer, HashMap, int, int[], int)
+     * @see #undoPutOrMovePiece(String, int, int, int, int, DisplaylessTesterClient, SOCPlayer, SOCPlayer, HashMap, int, int[], int, ResourceSet)
      * @since 2.7.00
      */
     private void putPiece
@@ -5067,7 +5094,7 @@ public class TestActionsMessages
 
         tcli.putPiece(gaAtCli, pieceToPut);
 
-        try { Thread.sleep(60); }
+        try { Thread.sleep(65); }
         catch(InterruptedException e) {}
 
         for (Map.Entry<String, SOCPlayer> ePlayer : testPlayerViews.entrySet())
@@ -5118,6 +5145,102 @@ public class TestActionsMessages
     }
 
     /**
+     * Request to move one ship piece, then check game data afterwards.
+     * @param testDesc  Test description for asserts, since this is called from multiple places and loops
+     * @param testClientPN  Our test player number; current player who is building
+     * @param pieceType  Piece type to move; currently must be {@link SOCPlayingPiece#SHIP}
+     * @param moveFromCoord  Coordinate to move from
+     * @param moveToCoord  Coordinate to move to
+     * @param tcli   Test client for requesting the build
+     * @param testPlayerAtCli  Test player at {@code tcli}
+     * @param testPlayerAtBot  Test player at bot; will skip game data verification at bot because it's slower and thus flaky while testing
+     * @param testPlayerViews  Client player at server, client, bot, observer, for game data verification/asserts/overrides
+     * @param expectedNewNumPieces  expected new remaining unplaced pieces amount,
+     *     from {@link SOCPlayer#getNumPieces(int) cliPlayer.getNumPieces(pieceType)}, or -1 to ignore
+     * @param expectedNewResourceAmounts  null or 5-element resource count array,
+     *     same format as {@link SOCResourceSet#getAmounts(boolean) cliPlayer.getResources().getAmounts(false)}
+     * @param expectedPublicVP  Expected new {@link SOCPlayer#getPublicVP()}, or -1 to ignore
+     * @throws IllegalArgumentException if pieceType not {@code SHIP}
+     * @see #putPiece(String, int, int, int, DisplaylessTesterClient, SOCPlayer, SOCPlayer, HashMap, int, int[], int)
+     * @see #undoPutOrMovePiece(String, int, int, int, int, DisplaylessTesterClient, SOCPlayer, SOCPlayer, HashMap, int, int[], int, ResourceSet)
+     * @since 2.7.00
+     */
+    private void movePiece
+        (final String testDesc, final int testClientPN, final int pieceType, final int moveFromCoord, final int moveToCoord,
+         final DisplaylessTesterClient tcli, final SOCPlayer testPlayerAtCli, final SOCPlayer testPlayerAtBot,
+         final HashMap<String, SOCPlayer> testPlayerViews,
+         final int expectedNewNumPieces, final int[] expectedNewResourceAmounts, final int expectedPublicVP)
+        throws IllegalArgumentException
+    {
+        for (Map.Entry<String, SOCPlayer> ePlayer : testPlayerViews.entrySet())
+        {
+            final String desc = testDesc + ": not yet moved to 0x" + Integer.toHexString(moveToCoord) + ": " + ePlayer.getKey();
+            final SOCPlayer pl = ePlayer.getValue();
+            if (testPlayerAtBot == pl)
+                continue;  // skip: game data at bot client lags because processing takes longer than other client types
+            final SOCBoard board = pl.getGame().getBoard();
+            switch (pieceType)
+            {
+            case SOCPlayingPiece.SHIP:
+                assertNull(desc, board.roadOrShipAtEdge(moveToCoord));
+                SOCRoutePiece pp = board.roadOrShipAtEdge(moveFromCoord);
+                assertNotNull(desc, pp);
+                assertTrue(desc, pp instanceof SOCShip);
+                assertEquals(desc, testClientPN, pp.getPlayerNumber());
+                assertTrue(desc, pl.canMoveShip((SOCShip) pp));
+                break;
+            default:
+                throw new IllegalArgumentException
+                    (desc + ": unsupported pieceType for test");
+            }
+        }
+
+        final SOCGame gaAtCli = testPlayerAtCli.getGame();
+        tcli.movePieceRequest(gaAtCli, testClientPN, pieceType, moveFromCoord, moveToCoord);
+
+        try { Thread.sleep(65); }
+        catch(InterruptedException e) {}
+
+        for (Map.Entry<String, SOCPlayer> ePlayer : testPlayerViews.entrySet())
+        {
+            final String desc = testDesc + ": moved to 0x" + Integer.toHexString(moveToCoord) + ": " + ePlayer.getKey();
+            final SOCPlayer pl = ePlayer.getValue();
+            if (testPlayerAtBot == pl)
+                continue;  // skip: game data at bot client lags
+
+            final SOCGame ga = pl.getGame();
+            final SOCBoard board = ga.getBoard();
+            SOCRoutePiece rp;
+            switch (pieceType)
+            {
+            case SOCPlayingPiece.SHIP:
+                rp = board.roadOrShipAtEdge(moveToCoord);
+                assertNotNull(desc, rp);
+                assertTrue(desc, rp instanceof SOCShip);
+                assertNull(desc, board.roadOrShipAtEdge(moveFromCoord));
+                break;
+            default:
+                fail(desc + ": unsupported pieceType for test");
+                return;  // to satisfy compiler
+            }
+
+            if (expectedNewNumPieces != -1)
+                assertEquals(desc, expectedNewNumPieces, pl.getNumPieces(pieceType));
+            if (expectedPublicVP != -1)
+                assertEquals(desc, expectedPublicVP, pl.getPublicVP());
+            if (expectedNewResourceAmounts != null)
+                assertArrayEquals(desc, expectedNewResourceAmounts, pl.getResources().getAmounts(false));
+
+            GameAction act = ga.getLastAction();
+            assertNotNull(desc, act);
+            assertEquals(desc, GameAction.ActionType.MOVE_PIECE, act.actType);
+            assertEquals(desc, pieceType, act.param1);
+            assertEquals(desc, moveFromCoord, act.param2);
+            assertEquals(desc, moveToCoord, act.param3);
+        }
+    }
+
+    /**
      * Request undo last action which was a build or move, then check game data afterwards.
      * @param testDesc  Test description for asserts, since this is called from multiple places and loops
      * @param testClientPN  Our test player number; current player who is building
@@ -5135,6 +5258,9 @@ public class TestActionsMessages
      * @param expectedPublicVP  Expected new {@link SOCPlayer#getPublicVP()}, or -1 to ignore
      * @param expectedResToReturn  If the build/move gave free resources, expect these to be returned (checks {@link SOCGame#getLastAction()};
      *     {@code null} otherwise
+     * @throws IllegalArgumentException if {@code movedFromCoord} != 0 but pieceType not {@code SHIP}
+     * @see #putPiece(String, int, int, int, DisplaylessTesterClient, SOCPlayer, SOCPlayer, HashMap, int, int[], int)
+     * @see #movePiece(String, int, int, int, int, DisplaylessTesterClient, SOCPlayer, SOCPlayer, HashMap, int, int[], int)
      * @since 2.7.00
      */
     private void undoPutOrMovePiece
@@ -5143,15 +5269,19 @@ public class TestActionsMessages
          final HashMap<String, SOCPlayer> testPlayerViews,
          final int expectedNewNumPieces, final int[] expectedNewResourceAmounts, final int expectedPublicVP,
          final ResourceSet expectedResToReturn)
+        throws IllegalArgumentException
     {
-        if (movedFromCoord != 0)
-            throw new IllegalArgumentException("not yet implemented");  // TODO
-
+        if ((movedFromCoord != 0) && (pieceType != SOCPlayingPiece.SHIP))
+            throw new IllegalArgumentException
+                (testDesc + ": unsupported moving pieceType for test");
+        final String testDescSuffix = (movedFromCoord != 0)
+            ? "move from 0x" + Integer.toHexString(movedFromCoord) + " to 0x" + Integer.toHexString(pieceCoord)
+            : "build at 0x" + Integer.toHexString(pieceCoord);
         final SOCGame gaAtCli = testPlayerAtCli.getGame();
 
         for (Map.Entry<String, SOCPlayer> ePlayer : testPlayerViews.entrySet())
         {
-            final String desc = testDesc + ": about to undo build/move at 0x" + Integer.toHexString(pieceCoord) + ": " + ePlayer.getKey();
+            final String desc = testDesc + ": about to undo " + testDescSuffix + ": " + ePlayer.getKey();
             final SOCPlayer pl = ePlayer.getValue();
             if (testPlayerAtBot == pl)
                 continue;  // skip: game data at bot client lags because processing takes longer than other client types
@@ -5170,6 +5300,8 @@ public class TestActionsMessages
                 rp = board.roadOrShipAtEdge(pieceCoord);
                 assertNotNull(desc, rp);
                 assertTrue(desc, rp instanceof SOCShip);
+                if (movedFromCoord != 0)
+                    assertNull(desc, board.roadOrShipAtEdge(movedFromCoord));
                 break;
             case SOCPlayingPiece.SETTLEMENT:
             case SOCPlayingPiece.CITY:
@@ -5184,12 +5316,12 @@ public class TestActionsMessages
         tcli.undoPutOrMovePieceRequest
             (gaAtCli, pieceType, pieceCoord, movedFromCoord);
 
-        try { Thread.sleep(60); }
+        try { Thread.sleep(65); }
         catch(InterruptedException e) {}
 
         for (Map.Entry<String, SOCPlayer> ePlayer : testPlayerViews.entrySet())
         {
-            final String desc = testDesc + ": undid build/move at 0x" + Integer.toHexString(pieceCoord) + ": " + ePlayer.getKey();
+            final String desc = testDesc + ": undid " + testDescSuffix + ": " + ePlayer.getKey();
             final SOCPlayer pl = ePlayer.getValue();
             if (testPlayerAtBot == pl)
                 continue;
@@ -5199,7 +5331,13 @@ public class TestActionsMessages
             case SOCPlayingPiece.ROAD:
             case SOCPlayingPiece.SHIP:
                 assertNull(desc, board.roadOrShipAtEdge(pieceCoord));
-                // TODO if movedFromCoord != 0, check that it's at that location again and can be moved this turn
+                if (movedFromCoord != 0)
+                {
+                    SOCRoutePiece rp = board.roadOrShipAtEdge(movedFromCoord);
+                    assertNotNull(desc, rp);
+                    assertTrue(desc, rp instanceof SOCShip);
+                    assertTrue(desc, pl.canMoveShip((SOCShip) rp));
+                }
                break;
             case SOCPlayingPiece.SETTLEMENT:
             case SOCPlayingPiece.CITY:
@@ -5219,10 +5357,10 @@ public class TestActionsMessages
 
             GameAction act = pl.getGame().getLastAction();
             assertNotNull(desc, act);
-            assertEquals(desc, GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);  // TODO check fields for UNDO_MOVE_PIECE if movedFromCoord != 0
+            assertEquals(desc, (movedFromCoord != 0) ? GameAction.ActionType.UNDO_MOVE_PIECE : GameAction.ActionType.UNDO_BUILD_PIECE, act.actType);
             assertEquals(desc, pieceType, act.param1);
             assertEquals(desc, pieceCoord, act.param2);
-            assertEquals(desc, 0, act.param3);  // unused
+            assertEquals(desc, movedFromCoord, act.param3);  // if not moved, is 0/unused
             assertEquals(desc, expectedResToReturn, act.rset1);
             assertNull(desc, act.rset2);
         }

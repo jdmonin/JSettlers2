@@ -1745,6 +1745,7 @@ public class TestRecorder
      *     as if the array didn't contain the null and was 1 element shorter.
      * @param withFromClient  True if client messages should be checked instead of ignored
      * @return {@code null} if no differences, or the differences found
+     *     and if expected != actual message count, the remaining extra messages
      */
     public static StringBuilder compareRecordsToExpected
         (final List<EventEntry> records, final String[][] expected, final boolean withFromClient)
@@ -1778,7 +1779,8 @@ public class TestRecorder
             compares.append("Length mismatch: Expected " + nExpected + ", got " + records.size());
 
         StringBuilder comp = new StringBuilder();
-        for (int iExpected = 0, iRecords = 0; iRecords < n; ++iExpected)
+        int iExpected = 0, iRecords = 0;
+        for (; iRecords < n; ++iExpected)
         {
             final String[] exps = expected[iExpected];
             if (exps == null)
@@ -1806,6 +1808,25 @@ public class TestRecorder
                 compares.append(" [" + iExpected + "]: " + comp);
 
             ++iRecords;
+        }
+        if (records.size() < nExpected)
+        {
+            compares.append(" Remaining expected: {");
+            for (; iExpected < expected.length; ++iExpected)
+            {
+                final String[] exps = expected[iExpected];
+                if (exps == null)
+                    continue;
+                compares.append(" [" + iExpected + "]: " + exps[0] + " , " + exps[1] + " ");
+            }
+            compares.append("} ");
+        }
+        else if (records.size() > nExpected)
+        {
+            compares.append(" Remaining seen: {");
+            for (; iRecords < records.size(); ++iRecords)
+                compares.append(" [" + iRecords + "]: " + records.get(iRecords) + " ");
+            compares.append("} ");
         }
 
         if (compares.length() == 0)
