@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -313,6 +313,31 @@ public class SOCGameOption
      * @since 2.7.00
      */
     public static final int FLAG_SET_AT_CLIENT_ONCE = 0x40;
+
+    /**
+     * {@link #optFlags} bitfield constant for an option to be opportunistically set by default for clients new enough to
+     * use it, but not reject older clients from joining a game which has it, without the game creator needing to take action.
+     * If older clients are seated when game starts, server will set the option's {@link #getBoolValue()} false
+     * as a graceful fallback.
+     *<P>
+     * Client option negotation: When a client join a server and ask for info about available game options,
+     * if client is older than the option's {@link #minVersion} it will be sent a copy of the option having the
+     * {@link #FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY} flag set, and the lowest possible {@code minVersion}:
+     * See {@link #forClientVersion(int)}. The client can then join games having the option, but if they attempt to
+     * create such a game the server will decline it.
+     *
+     * @since 2.7.00
+     */
+    public static final int FLAG_OPPORTUNISTIC = 0x80;
+
+    /**
+     * Hint to client that it's below the minimum version to create games having a {@link #FLAG_OPPORTUNISTIC} option.
+     * For compatibility, the server reported a lower {@code minVersion} to this client, and set this flag for the option.
+     * Option should be hidden in New Game dialog.
+     *
+     * @since 2.7.00
+     */
+    public static final int FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY = 0x100;
 
     // -- Option Types --
     // OTYPE_*: See comment above optType for "If you create a new option type"
@@ -1800,6 +1825,38 @@ public class SOCGameOption
         String[] evkeep = new String[ev];
         System.arraycopy(opt.enumVals, 0, evkeep, 0, ev);
         return new SOCGameOption(opt, evkeep);  // Copy option and restrict enum values
+    }
+
+    /**
+     * Return this game option in a form usable by older clients if it's Opportunistic,
+     * as a modified copy if needed; see {@link #FLAG_OPPORTUNISTIC} for details.
+     * In future versions, this method might also handle other adaptations which may arise.
+     *<P>
+     * If the option isn't {@code FLAG_OPPORTUNISTIC} or {@code clientVers} &gt;= its {@link #minVersion},
+     * returns the option unmodified. Otherwise makes a copy which:
+     *<UL>
+     * <LI> Adds {@link #FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY} to {@link #optFlags}
+     * <LI> Reduces {@link #minVersion} to -1 if possible; if its {@link SOCVersionedItem#key key} isn't compatible
+     *      with v1.x, to {@link #VERSION_FOR_LONGER_OPTNAMES}
+     *</UL>
+     * @param clientVers  Client's version, same format as {@link soc.util.Version#versionNumber()}
+     * @return  The option if no changes, or a modified copy of it
+     * @since 2.7.00
+     */
+    public SOCGameOption forClientVersion(final int clientVers)
+    {
+        if ((minVersion <= clientVers) || ! hasFlag(FLAG_OPPORTUNISTIC))
+            return this;
+
+        final int reportMinVers =
+            ((key.length() > 3) || (key.indexOf('_') != -1))
+            ? SOCGameOption.VERSION_FOR_LONGER_OPTNAMES
+            : -1;
+
+        return new SOCGameOption
+            (optType, key, reportMinVers, lastModVersion,
+             false, defaultIntValue, minIntValue, maxIntValue, enumVals,
+             optFlags | FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY, desc);
     }
 
     /**

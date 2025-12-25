@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2021,2023-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2021,2023-2025 Jeremy D Monin <jeremy@nand.net>
  * Some contents were formerly part of SOCServer.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2016 Jeremy D Monin <jeremy@nand.net>
@@ -795,6 +795,9 @@ public class SOCServerMessageHandler
 
             if (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
             {
+                if ((opt.minVersion > cliVers) && opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC))
+                    opt = opt.forClientVersion(cliVers);
+
                 final boolean sendAsUnknown = (opt.minVersion > cliVers)
                     || (hasLimitedFeats && unsupportedOpts.containsKey(okey));
 
