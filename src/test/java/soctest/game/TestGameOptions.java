@@ -1678,6 +1678,80 @@ public class TestGameOptions
     }
 
     /**
+     * Test {@link SOCGameOption#forClientVersion(int)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testForClientVersion()
+    {
+        /** should always return optPL for non-opportunistic option "PL" */
+        final SOCGameOption optPL = knownOpts.getKnownOption("PL", true);
+        assertNotNull(optPL);
+        assertFalse(optPL.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
+        assertFalse(optPL.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY));
+        assertEquals(-1, optPL.minVersion);
+
+        /** will sometimes return a modified copy of opportunistic "UB" */
+        final SOCGameOption optUB = knownOpts.getKnownOption("UB", true);
+        assertNotNull(optUB);
+        assertTrue(optUB.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
+        assertFalse(optUB.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY));
+        assertEquals(2700, optUB.minVersion);
+
+        SOCGameOption opt;
+
+        // If version new enough, returns unmodified opt:
+        opt = optPL.forClientVersion(2700);  // not opportunistic
+        assertEquals(optPL, opt);
+        opt = optUB.forClientVersion(2700);
+        assertEquals(optUB, opt);
+        opt = optUB.forClientVersion(2701);
+        assertEquals(optUB, opt);
+
+        // If version older than opt's minVers, modifies it:
+        opt = optPL.forClientVersion(1000);  // not opportunistic
+        assertEquals(optPL, opt);
+        opt = optUB.forClientVersion(2699);
+        assertNotEquals(optUB, opt);
+        assertEquals("reduces minVersion", -1, opt.minVersion);
+        assertTrue("keeps opportunistic flag", opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
+        assertTrue("sets client flag", opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY));
+
+        /** this test option is opportunistic, defaults true, and its key isn't compatible with v1.x */
+        final SOCGameOption optTestLong = new SOCGameOption
+            ("TEST", 2700, 2700, true, 5, 0, 9, SOCGameOption.FLAG_OPPORTUNISTIC, "testIntBool with long key");
+        assertEquals(SOCGameOption.OTYPE_INTBOOL, optTestLong.optType);
+        assertTrue(optTestLong.defaultBoolValue);
+        assertTrue(optTestLong.getBoolValue());
+        assertEquals(2700, optTestLong.minVersion);
+
+        opt = optTestLong.forClientVersion(2200);
+        assertNotEquals(optTestLong, opt);
+        assertEquals("reduces minVersion to 2000", SOCGameOption.VERSION_FOR_LONGER_OPTNAMES, opt.minVersion);
+        assertTrue("keeps opportunistic flag", opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
+        assertTrue("sets client flag", opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY));
+        assertFalse("clears defaultBoolValue", opt.defaultBoolValue);
+        assertFalse("clears boolValue", opt.getBoolValue());
+        // TODO intValue
+
+        /** same, key isn't compatible with v1.x because underscore */
+        final SOCGameOption optTest_ = new SOCGameOption
+            ("T_", 2700, 2700, true, SOCGameOption.FLAG_OPPORTUNISTIC, "testBool with underscore in key");
+        assertEquals(SOCGameOption.OTYPE_BOOL, optTest_.optType);
+        assertTrue(optTest_.defaultBoolValue);
+        assertTrue(optTest_.getBoolValue());
+        assertEquals(2700, optTest_.minVersion);
+
+        opt = optTest_.forClientVersion(2200);
+        assertNotEquals(optTest_, opt);
+        assertEquals("reduces minVersion to 2000", SOCGameOption.VERSION_FOR_LONGER_OPTNAMES, opt.minVersion);
+        assertTrue("keeps opportunistic flag", opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
+        assertTrue("sets client flag", opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY));
+        assertFalse("clears defaultBoolValue", opt.defaultBoolValue);
+        assertFalse("clears boolValue", opt.getBoolValue());
+    }
+
+    /**
      * Test {@link SOCGameOption#getGroupParentKey(String)}.
      * @since 2.7.00
      */
