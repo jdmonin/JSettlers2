@@ -321,8 +321,10 @@ public class SOCGameOption
      * So, this option must also have {@link #FLAG_DROP_IF_UNUSED} or {@link #FLAG_DROP_IF_PARENT_UNUSED}.
      * (And if {@code FLAG_DROP_IF_PARENT_UNUSED}, its parent might also be Opportunistic for consistency.)
      *<P>
-     * Client option negotation: When a client join a server and ask for info about available game options,
-     * if client is older than the option's {@link #minVersion} it will be sent a copy of the option having the
+     * Server should call {@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map)} at start of game to do so.
+     *<P>
+     * Client option negotiation: When a client joins a server and asks for info about available game options,
+     * if client is older than the option's {@link #minVersion} they will be sent a copy of the option having the
      * {@link #FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY} flag set, and the lowest possible {@code minVersion}:
      * See {@link #forClientVersion(int)}. The client can then join games having the option, but if they attempt to
      * create such a game the server will decline it.

@@ -1071,6 +1071,111 @@ public class TestGameOptions
     }
 
     /**
+     * Test {@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testRemoveOpportunisticIfOlderClients()
+    {
+        final SOCGameOptionSet knowns = SOCGameOptionSet.getAllKnownOptions();
+        final SOCGameOptionSet opts = new SOCGameOptionSet();
+
+        // initially empty
+        assertEquals(0, opts.size());
+        assertNull(opts.removeOpportunisticIfOlderClients(null));
+        assertNull(opts.removeOpportunisticIfOlderClients(new HashMap<String, Integer>()));
+        assertEquals(0, opts.size());
+
+        // same tests not empty, but none are opportunistic
+        SOCGameOption opt = knowns.getKnownOption("PL", true);
+        assertFalse(opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
+        opts.add(opt);
+        opt = knowns.getKnownOption("RD", true);
+        assertFalse(opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
+        opts.add(opt);
+        assertEquals(2, opts.size());
+        assertNull(opts.removeOpportunisticIfOlderClients(null));
+        assertNull(opts.removeOpportunisticIfOlderClients(new HashMap<String, Integer>()));
+        assertEquals(2, opts.size());
+
+        // now with some actual FLAG_OPPORTUNISTIC gameopts
+        final SOCGameOption optUB = knowns.getKnownOption("UB", true);
+        assertTrue(optUB.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
+        assertEquals(2700, optUB.minVersion);
+        opts.add(optUB);
+        final SOCGameOption optUBL = knowns.getKnownOption("UBL", true);
+        assertTrue(optUBL.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
+        assertEquals(2700, optUBL.minVersion);
+        opts.add(optUBL);
+        assertEquals(4, opts.size());
+        assertNull(opts.removeOpportunisticIfOlderClients(null));
+        assertNull(opts.removeOpportunisticIfOlderClients(new HashMap<String, Integer>()));
+        assertEquals(4, opts.size());
+
+        // with some clients but they're new enough
+        HashMap<String, Integer> clis = new HashMap<>();
+        clis.put("v2700", Integer.valueOf(2700));
+        clis.put("v2702", Integer.valueOf(2702));
+        assertNull(opts.removeOpportunisticIfOlderClients(clis));
+        assertEquals(4, opts.size());
+
+        // now an older client
+        clis.put("v2200", Integer.valueOf(2200));
+        SOCGameOptionSet.RemoveOpportunisticResults removs = opts.removeOpportunisticIfOlderClients(clis);
+        assertNotNull(removs);
+        assertEquals(2, opts.size());
+        assertTrue(opts.containsKey("PL"));
+        assertTrue(opts.containsKey("RD"));
+        assertFalse(opts.containsKey("UB"));
+        assertFalse(opts.containsKey("UBL"));
+        {
+            assertEquals(2, removs.optsRemoved.size());
+            assertTrue(removs.optsRemoved.containsKey("UB"));
+            assertTrue(removs.optsRemoved.containsKey("UBL"));
+            assertEquals(1, removs.olderCliNamesVersions.size());
+            Integer cliVers = removs.olderCliNamesVersions.get("v2200");
+            assertNotNull(cliVers);
+            assertEquals(2200, cliVers.intValue());
+        }
+
+        // re-add:
+        opts.add(optUB);
+        opts.add(optUBL);
+        assertEquals(4, opts.size());
+
+        // make another opportunistic opt that's older, with 2 clis which keep it but remove newer ones (UB, UBL)
+        final SOCGameOption optTestOPU = new SOCGameOption
+            ("_TESTOPU", 2300, 2500, false, SOCGameOption.FLAG_OPPORTUNISTIC | SOCGameOption.FLAG_DROP_IF_UNUSED, "test");
+        assertEquals(2300, optTestOPU.minVersion);
+        opts.add(optTestOPU);
+        assertEquals(5, opts.size());
+
+        clis.remove("v2200");
+        clis.put("v2305", Integer.valueOf(2305));
+        clis.put("v2305num2", Integer.valueOf(2305));
+        removs = opts.removeOpportunisticIfOlderClients(clis);
+        assertNotNull(removs);
+        assertEquals(3, opts.size());
+        assertTrue(opts.containsKey("PL"));
+        assertTrue(opts.containsKey("RD"));
+        assertTrue(opts.containsKey(optTestOPU.key));
+        assertFalse(opts.containsKey("UB"));
+        assertFalse(opts.containsKey("UBL"));
+        {
+            assertEquals(2, removs.optsRemoved.size());
+            assertTrue(removs.optsRemoved.containsKey("UB"));
+            assertTrue(removs.optsRemoved.containsKey("UBL"));
+            assertEquals(2, removs.olderCliNamesVersions.size());
+            Integer cliVers = removs.olderCliNamesVersions.get("v2305");
+            assertNotNull(cliVers);
+            assertEquals(2305, cliVers.intValue());
+            cliVers = removs.olderCliNamesVersions.get("v2305num2");
+            assertNotNull(cliVers);
+            assertEquals(2305, cliVers.intValue());
+        }
+    }
+
+    /**
      * Test {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, Map)}.
      * @since 2.1.00
      */

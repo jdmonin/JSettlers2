@@ -1893,6 +1893,61 @@ public class SOCGameOptionSet
     }
 
     /**
+     * If this set contains any {@link SOCGameOption#FLAG_OPPORTUNISTIC} options, check their {@link SOCGameOption#minVersion}s
+     * against its game's seated clients, and remove any which would be too old for those clients' versions.
+     * @param cliNamesVersions  Client names and versions to check against; does nothing if {@code null} or empty
+     * @return  Details on the removed options and the clients responsible, or {@code null} if nothing was removed
+     * @since 2.7.00
+     */
+    public RemoveOpportunisticResults removeOpportunisticIfOlderClients
+        (final Map<String, Integer> cliNamesVersions)
+    {
+        if ((cliNamesVersions == null) || cliNamesVersions.isEmpty() || options.isEmpty())
+            return null;
+
+        HashMap<String, SOCGameOption> optsRemoved = null;
+        HashMap<String, Integer> olderCliNamesVersions = null;
+
+        // TODO locking
+        for (Iterator<Map.Entry<String, SOCGameOption>> it = options.entrySet().iterator(); it.hasNext(); )
+        {
+            final Map.Entry<String, SOCGameOption> optEntry = it.next();
+            final SOCGameOption opt = optEntry.getValue();
+            if (! opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC))
+                continue;
+
+            final int minVers = opt.minVersion;
+            boolean remov = false;
+            for (Map.Entry<String, Integer> cliEntry : cliNamesVersions.entrySet())
+            {
+                final Integer cliVers = cliEntry.getValue();
+                if (cliVers >= minVers)
+                    continue;
+
+                remov = true;
+                final String cliName = cliEntry.getKey();
+                if (olderCliNamesVersions == null)
+                    olderCliNamesVersions = new HashMap<>();
+
+                if (! olderCliNamesVersions.containsKey(cliName))
+                    olderCliNamesVersions.put(cliName, cliVers);
+            }
+
+            if (remov)
+            {
+                it.remove();
+                if (optsRemoved == null)
+                    optsRemoved = new HashMap<>();
+                optsRemoved.put(opt.key, opt);
+            }
+        }
+
+        return (optsRemoved != null)
+            ? new RemoveOpportunisticResults(optsRemoved, olderCliNamesVersions)
+            : null;
+    }
+
+    /**
      * In a set of options or Known Options, do any require client features
      * not supported by a limited client's {@link SOCFeatureSet}?
      * Checks each option having a {@link #getClientFeature()}.
@@ -2012,5 +2067,45 @@ public class SOCGameOptionSet
      */
     @Override
     public String toString() { return options.toString(); }
+
+
+    /**
+     * Structure to report results of calling {@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map)}.
+     * @since 2.7.00
+     */
+    public static class RemoveOpportunisticResults
+    {
+        /**
+         * The options (opt.key -> option) removed by {@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map)}.
+         * Never {@code null}.
+         */
+        public final HashMap<String, SOCGameOption> optsRemoved;
+
+        /**
+         * Info on the older clients which caused {@link #optsRemoved} to be removed (client name -> client version).
+         * Never {@code null}.
+         */
+        public final HashMap<String, Integer> olderCliNamesVersions;
+
+        /**
+         * Create a new {@link RemoveOpportunisticResults}. Neither parameter can be null.
+         * @param optsRemoved  See {@link RemoveOpportunisticResults#optsRemoved} for details
+         * @param olderCliNamesVersions  See {@link RemoveOpportunisticResults#olderCliNamesVersions} for details
+         * @throws IllegalArgumentException  if either param is {@code null}
+         */
+        public RemoveOpportunisticResults
+            (final HashMap<String, SOCGameOption> optsRemoved, final HashMap<String, Integer> olderCliNamesVersions)
+            throws IllegalArgumentException
+        {
+            if (optsRemoved == null)
+                throw new IllegalArgumentException("optsRemoved");
+            if (olderCliNamesVersions == null)
+                throw new IllegalArgumentException("olderCliNamesVersions");
+
+            this.optsRemoved = optsRemoved;
+            this.olderCliNamesVersions = olderCliNamesVersions;
+        }
+
+    }
 
 }
