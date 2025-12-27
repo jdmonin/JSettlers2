@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015,2017,2019-2020,2022-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015,2017,2019-2020,2022-2023,2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file from SOCGameOption.java Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -392,9 +392,14 @@ public abstract class SOCVersionedItem implements Cloneable
      * Calls at the client to {@code itemsMinimumVersion} should keep this in mind, especially if
      * a client's game option's {@link #lastModVersion} is newer than the server.
      *<P>
-     * When {@code items} are {@link SOCGameOption}s, will check for {@link SOCGameOption#FLAG_DROP_IF_PARENT_UNUSED}:
-     * Items with that flag will be ignored unless their parent is part of {@code items}
-     * and parent's {@link SOCGameOption#isSet()} is true.
+     * When {@code items} are {@link SOCGameOption}s:
+     *<UL>
+     * <LI> Checks for {@link SOCGameOption#FLAG_DROP_IF_PARENT_UNUSED}:
+     *      Items with that flag will be ignored unless their parent is part of {@code items}
+     *      and parent's {@link SOCGameOption#isSet()} is true.
+     * <LI> Ignores items having {@link SOCGameOption#FLAG_OPPORTUNISTIC},
+     *      since a player client below their {@code minVers} can sit down and play in the game
+     *</UL>
      *<P>
      * <b>Backwards-compatibility support: {@code calcMinVersionForUnchanged} parameter:</b><br>
      * Occasionally, an older client version supports a new item, but only by changing
@@ -437,15 +442,20 @@ public abstract class SOCVersionedItem implements Cloneable
             if (itmMin == -1)
                 continue;
 
-            if ((itm instanceof SOCGameOption)
-                && ((SOCGameOption) itm).hasFlag(SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED))
+            if (itm instanceof SOCGameOption)
             {
-                final String parKey = SOCGameOption.getGroupParentKey(itm.key);
-                if (parKey != null)
+                if (((SOCGameOption) itm).hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC))
+                    continue;
+
+                if (((SOCGameOption) itm).hasFlag(SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED))
                 {
-                    SOCVersionedItem par = items.get(parKey);
-                    if (! ((par instanceof SOCGameOption) && ((SOCGameOption) par).isSet()))
-                        continue;
+                    final String parKey = SOCGameOption.getGroupParentKey(itm.key);
+                    if (parKey != null)
+                    {
+                        SOCVersionedItem par = items.get(parKey);
+                        if (! ((par instanceof SOCGameOption) && ((SOCGameOption) par).isSet()))
+                            continue;
+                    }
                 }
             }
 

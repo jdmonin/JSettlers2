@@ -317,8 +317,9 @@ public class SOCGameOption
     /**
      * {@link #optFlags} bitfield constant for an option to be opportunistically set by default for clients new enough to
      * use it, but not reject older clients from joining a game which has it, without the game creator needing to take action.
-     * If older clients are seated when game starts, server will set the option's {@link #getBoolValue()} false
-     * as a graceful fallback.
+     * If older clients are seated when game starts, server will remove the option from game's opts as a graceful fallback.
+     * So, this option must also have {@link #FLAG_DROP_IF_UNUSED} or {@link #FLAG_DROP_IF_PARENT_UNUSED}.
+     * (And if {@code FLAG_DROP_IF_PARENT_UNUSED}, its parent might also be Opportunistic for consistency.)
      *<P>
      * Client option negotation: When a client join a server and ask for info about available game options,
      * if client is older than the option's {@link #minVersion} it will be sent a copy of the option having the
@@ -560,6 +561,8 @@ public class SOCGameOption
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
      *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
+     *        or if {@link #FLAG_OPPORTUNISTIC} is set without also {@link #FLAG_DROP_IF_UNUSED}
+     *              or {@link #FLAG_DROP_IF_PARENT_UNUSED},
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
      */
@@ -602,6 +605,8 @@ public class SOCGameOption
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
      *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
+     *        or if {@link #FLAG_OPPORTUNISTIC} is set without also {@link #FLAG_DROP_IF_UNUSED}
+     *              or {@link #FLAG_DROP_IF_PARENT_UNUSED},
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
      */
@@ -641,6 +646,8 @@ public class SOCGameOption
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
      *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
+     *        or if {@link #FLAG_OPPORTUNISTIC} is set without also {@link #FLAG_DROP_IF_UNUSED}
+     *              or {@link #FLAG_DROP_IF_PARENT_UNUSED},
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
      */
@@ -686,6 +693,8 @@ public class SOCGameOption
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
      *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
+     *        or if {@link #FLAG_OPPORTUNISTIC} is set without also {@link #FLAG_DROP_IF_UNUSED}
+     *              or {@link #FLAG_DROP_IF_PARENT_UNUSED},
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
      */
@@ -726,6 +735,8 @@ public class SOCGameOption
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
      *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
+     *        or if {@link #FLAG_OPPORTUNISTIC} is set without also {@link #FLAG_DROP_IF_UNUSED}
+     *              or {@link #FLAG_DROP_IF_PARENT_UNUSED},
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
      */
@@ -766,6 +777,8 @@ public class SOCGameOption
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
      *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
+     *        or if {@link #FLAG_OPPORTUNISTIC} is set without also {@link #FLAG_DROP_IF_UNUSED}
+     *              or {@link #FLAG_DROP_IF_PARENT_UNUSED},
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
      */
@@ -821,6 +834,8 @@ public class SOCGameOption
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}
      *        or its optional "sort ranking" prefix has a bad format,
      *        or if minVers or lastModVers is under 1000 but not -1,
+     *        or if {@link #FLAG_OPPORTUNISTIC} is set without also {@link #FLAG_DROP_IF_UNUSED}
+     *              or {@link #FLAG_DROP_IF_PARENT_UNUSED},
      *        or if flags {@link #FLAG_INACTIVE_HIDDEN} and {@link #FLAG_ACTIVATED} are both set;
      *        {@link Throwable#getMessage()} will have details
      */
@@ -848,6 +863,8 @@ public class SOCGameOption
         }
         if ((minVers < VERSION_FOR_LONGER_OPTNAMES) && key.contains("_"))
             throw new IllegalArgumentException("Key with '_' needs minVers 2000 or newer: " + key);
+        if ((flags & (FLAG_OPPORTUNISTIC | FLAG_DROP_IF_UNUSED | FLAG_DROP_IF_PARENT_UNUSED)) == (FLAG_OPPORTUNISTIC))
+            throw new IllegalArgumentException("FLAG_OPPORTUNISTIC requires FLAG_DROP_IF_UNUSED or FLAG_DROP_IF_PARENT_UNUSED");
         if ((flags & (FLAG_ACTIVATED | FLAG_INACTIVE_HIDDEN)) == (FLAG_ACTIVATED | FLAG_INACTIVE_HIDDEN))
             throw new IllegalArgumentException("Can't set both FLAG_ACTIVATED and FLAG_INACTIVE_HIDDEN");
 

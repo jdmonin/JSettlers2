@@ -44,6 +44,7 @@ import soc.util.Version;
  * Tests for {@link SOCGameOption}, {@link SOCGameOptionSet}, and {@link ServerGametypeInfo}.
  *<P>
  * TODO add more basic-functionality tests
+ * parseOptionNameValue, parseOptionsToSet, parseOptionsToMap, getMaxIntValueForVersion, maybe packKnownOptionsToString, etc
  *
  * @since 2.0.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -1033,6 +1034,43 @@ public class TestGameOptions
     }
 
     /**
+     * Test that gameopt constructors require {@link SOCGameOption#FLAG_DROP_IF_UNUSED} or
+     * {@link SOCGameOption#FLAG_DROP_IF_PARENT_UNUSED} when {@link SOCGameOption#FLAG_OPPORTUNISTIC} is set.
+     * Also tests that constructor accepts {@link SOCGameOption#FLAG_DROP_IF_UNUSED} or
+     * {@link SOCGameOption#FLAG_DROP_IF_PARENT_UNUSED} without {@link SOCGameOption#FLAG_OPPORTUNISTIC}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testFlagOpportunisticVsDropUnused_constructor()
+    {
+        try
+        {
+            final SOCGameOption opt = new SOCGameOption
+                ("_TESTOPU", 2000, 2500, false, SOCGameOption.FLAG_OPPORTUNISTIC,
+                 "test opportunistic without unused");
+            // should throw IllegalArgumentException; next statement is here only to avoid compiler warnings
+            assertNotNull(opt);
+        } catch (IllegalArgumentException e) {}
+
+        SOCGameOption opt = new SOCGameOption
+            ("_TESTOPU", 2000, 2500, false, SOCGameOption.FLAG_OPPORTUNISTIC | SOCGameOption.FLAG_DROP_IF_UNUSED, "test");
+        assertTrue("opportunistic ok with DROP_IF_UNUSED", opt.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED));
+
+        opt = new SOCGameOption
+            ("_TESTOPU", 2000, 2500, false, SOCGameOption.FLAG_OPPORTUNISTIC | SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED, "test");
+        assertTrue("opportunistic ok with DROP_IF_UNUSED", opt.hasFlag(SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED));
+
+        opt = new SOCGameOption
+            ("_TESTOPU", 2000, 2500, false, SOCGameOption.FLAG_DROP_IF_UNUSED, "test");
+        assertTrue("DROP_IF_UNUSED ok without opportunistic", opt.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED));
+
+        opt = new SOCGameOption
+            ("_TESTOPU", 2000, 2500, false, SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED, "test");
+        assertTrue("_PARENT_UNUSED ok without opportunistic", opt.hasFlag(SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED));
+
+    }
+
+    /**
      * Test {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, Map)}.
      * @since 2.1.00
      */
@@ -1045,55 +1083,80 @@ public class TestGameOptions
 
         assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(new HashMap<String, SOCGameOption>(), false, null));
 
-        // Min vers is 2700 when gameopt UB is set:
+        // Min vers is 1108 when gameopt PLB is set:
 
         {
-            Map<String, SOCGameOption> optsUB = SOCGameOption.parseOptionsToMap("UB=t", knowns);
-            assertEquals(2700, SOCVersionedItem.itemsMinimumVersion(optsUB, false, null));
+            Map<String, SOCGameOption> optsPLB = SOCGameOption.parseOptionsToMap("PLB=t", knowns);
+            assertEquals(1108, SOCVersionedItem.itemsMinimumVersion(optsPLB, false, null));
 
             Map<String, Integer> optsMins = new HashMap<>();
-            assertEquals(2700, SOCVersionedItem.itemsMinimumVersion(optsUB, false, optsMins));
+            assertEquals(1108, SOCVersionedItem.itemsMinimumVersion(optsPLB, false, optsMins));
             assertEquals(1, optsMins.size());
-            Integer minUB = optsMins.get("UB");
-            assertNotNull(minUB);
-            assertEquals(2700, minUB.intValue());
+            Integer minPLB = optsMins.get("PLB");
+            assertNotNull(minPLB);
+            assertEquals(1108, minPLB.intValue());
+
+            // gameopt UB doesn't affect minVers, because it has FLAG_OPPORTUNISTIC:
+            SOCGameOption optUB = knowns.getKnownOption("UB", true);
+            optsPLB.put("UB", optUB);
+            assertEquals(2700, optUB.minVersion);
+            optUB.setBoolValue(true);
+
+            optsMins.clear();
+            assertEquals("uses PLB's minVersion, ignores UB", 1108, SOCVersionedItem.itemsMinimumVersion(optsPLB, false, optsMins));
+            assertEquals("contains PLB, ignores UB", 1, optsMins.size());
+            minPLB = optsMins.get("PLB");
+            assertNotNull(minPLB);
+            assertEquals(1108, minPLB.intValue());
 
             // now optsMins isn't empty, but itemsMinimumVersion requires its incoming itemsMins to be empty
             try
             {
-                SOCVersionedItem.itemsMinimumVersion(optsUB, false, optsMins);
+                SOCVersionedItem.itemsMinimumVersion(optsPLB, false, optsMins);
                 fail("should reject non-empty itemsMins arg");
             } catch (IllegalArgumentException e) {}
         }
 
-        // Min vers is 2700 when gameopt UBL and UB are both set,
-        // but not when only UBL is set (it has FLAG_DROP_IF_PARENT_UNUSED):
-
+        // Min vers is (for example) 1107 when a gameopt having FLAG_DROP_IF_PARENT_UNUSED and its parent are set,
+        // but -1 when only the opt with FLAG_DROP_IF_PARENT_UNUSED is set:
+        // Currently, the only gameopt with FLAG_DROP_IF_PARENT_UNUSED also has FLAG_OPPORTUNISTIC so we can't use it in minVers tests
+        // so create a new one here.
         {
-            Map<String, SOCGameOption> optsUBL = SOCGameOption.parseOptionsToMap("UBL=t3", knowns);
-            assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsUBL, false, null));
+            final SOCGameOption optNT = knowns.getKnownOption("NT", true);
+            assertNotNull(optNT);
+            assertEquals(1107, optNT.minVersion);
+
+            knowns.addKnownOption(new SOCGameOption
+                ("NTZ", 2700, 2700, true, 7, 1, 999, SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED,
+                 "Testing copy of UBL Limit undos to # per player without OPPORTUNISTIC"));
+
+            Map<String, SOCGameOption> optsNTZ = SOCGameOption.parseOptionsToMap("NTZ=t3", knowns);
+            assertEquals(1, optsNTZ.size());
+            assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsNTZ, false, null));
 
             Map<String, Integer> optsMins = new HashMap<>();
-            assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsUBL, false, optsMins));
+            assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsNTZ, false, optsMins));
             assertTrue(optsMins.isEmpty());
 
-            // now add UB=f to opts
-            SOCGameOption optUB = knowns.getKnownOption("UB", true);
-            optsUBL.put("UB", optUB);
-            optUB.setBoolValue(false);
-            assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsUBL, false, optsMins));
+            // now add NT=f to opts
+            optsNTZ.put("NT", optNT);
+            optNT.setBoolValue(false);
+            assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsNTZ, false, optsMins));
             assertTrue(optsMins.isEmpty());
 
-            // now set UB=t
-            optUB.setBoolValue(true);
-            assertEquals(2700, SOCVersionedItem.itemsMinimumVersion(optsUBL, false, optsMins));
+            // now set NT=t
+            optNT.setBoolValue(true);
+            assertEquals(2700, SOCVersionedItem.itemsMinimumVersion(optsNTZ, false, optsMins));
             assertEquals(2, optsMins.size());
-            Integer minVers = optsMins.get("UB");
+            Integer minVers = optsMins.get("NT");
+            assertNotNull(minVers);
+            assertEquals(1107, minVers.intValue());
+            minVers = optsMins.get("NTZ");
             assertNotNull(minVers);
             assertEquals(2700, minVers.intValue());
-            minVers = optsMins.get("UBL");
-            assertNotNull(minVers);
-            assertEquals(2700, minVers.intValue());
+
+            // Cleanup: remove the temp known option by adding an OTYPE_UNKNOWN
+            knowns.addKnownOption(new SOCGameOption("NTZ", "to remove"));
         }
 
         // TODO expand beyond those simple tests
@@ -1719,7 +1782,7 @@ public class TestGameOptions
 
         /** this test option is opportunistic, defaults true, and its key isn't compatible with v1.x */
         final SOCGameOption optTestLong = new SOCGameOption
-            ("TEST", 2700, 2700, true, 5, 0, 9, SOCGameOption.FLAG_OPPORTUNISTIC, "testIntBool with long key");
+            ("TEST", 2700, 2700, true, 5, 0, 9, SOCGameOption.FLAG_OPPORTUNISTIC | SOCGameOption.FLAG_DROP_IF_UNUSED, "testIntBool with long key");
         assertEquals(SOCGameOption.OTYPE_INTBOOL, optTestLong.optType);
         assertTrue(optTestLong.defaultBoolValue);
         assertTrue(optTestLong.getBoolValue());
@@ -1736,7 +1799,7 @@ public class TestGameOptions
 
         /** same, key isn't compatible with v1.x because underscore */
         final SOCGameOption optTest_ = new SOCGameOption
-            ("T_", 2700, 2700, true, SOCGameOption.FLAG_OPPORTUNISTIC, "testBool with underscore in key");
+            ("T_", 2700, 2700, true, SOCGameOption.FLAG_OPPORTUNISTIC | SOCGameOption.FLAG_DROP_IF_UNUSED, "testBool with underscore in key");
         assertEquals(SOCGameOption.OTYPE_BOOL, optTest_.optType);
         assertTrue(optTest_.defaultBoolValue);
         assertTrue(optTest_.getBoolValue());
