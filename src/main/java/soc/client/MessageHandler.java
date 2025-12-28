@@ -787,6 +787,15 @@ public class MessageHandler
                 break;
 
             /**
+             * Change the options of an already-created game.
+             * Added 2025-12-27 for v2.7.00.
+             */
+            case SOCMessage.CHANGEGAMEOPTIONS:
+                SOCDisplaylessPlayerClient.handleCHANGEGAMEOPTIONS
+                    ((SOCChangeGameOptions) mes,client.games.get(((SOCChangeGameOptions) mes).getGame()));
+                break;
+
+            /**
              * Reopen or close a shipping trade route.
              * Added 2022-12-18 for v2.7.00.
              */

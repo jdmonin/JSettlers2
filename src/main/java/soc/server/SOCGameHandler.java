@@ -50,6 +50,7 @@ import soc.message.SOCBotGameDataCheck;
 import soc.message.SOCBotJoinGameRequest;
 import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChangeFace;
+import soc.message.SOCChangeGameOptions;
 import soc.message.SOCChoosePlayerRequest;
 import soc.message.SOCClearOffer;
 import soc.message.SOCClearTradeMsg;
@@ -4181,7 +4182,12 @@ public class SOCGameHandler extends GameHandler
 
                 srv.messageToGameWithMon(gaName, true, new SOCGameServerText(gaName, sb.toString()));
 
-                // TODO develop & send game data messages to client to remove opt(s) from game there
+                // Tell new-enough clients to actually remove them from game options:
+                SOCChangeGameOptions optsRemovedMsg = new SOCChangeGameOptions
+                    (gaName, SOCChangeGameOptions.OP_REMOVE, removedOpts.optsRemoved, removedOpts.olderCliNamesVersions);
+                srv.messageToGameForVersions
+                    (ga, SOCChangeGameOptions.VERSION_FOR_REMOVE, Integer.MAX_VALUE, optsRemovedMsg, false);
+                srv.recordGameEvent(gaName, optsRemovedMsg);
             }
 
             /**

@@ -1030,6 +1030,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * Change the options of an already-created game.
+             * Added 2025-12-27 for v2.7.00.
+             */
+            case SOCMessage.CHANGEGAMEOPTIONS:
+                handleCHANGEGAMEOPTIONS
+                    ((SOCChangeGameOptions) mes, games.get(((SOCChangeGameOptions) mes).getGame()));
+                break;
+
+            /**
              * Reopen or close a shipping trade route.
              * Added 2022-12-18 for v2.7.00.
              */
@@ -2909,6 +2918,29 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             knownOpts.addKnownOption(opt);
         }
+    }
+
+    /**
+     * Update game data to change the options of an already-created game.
+     * Does nothing if {@link SOCChangeGameOptions#operation mes.operation} != {@link SOCChangeGameOptions#OP_REMOVE}.
+     * @param mes  The message
+     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     *     for method reuse by SOCPlayerClient; does nothing if {@code null}
+     * @since 2.7.00
+     */
+    public static void handleCHANGEGAMEOPTIONS(final SOCChangeGameOptions mes, SOCGame ga)
+        throws IllegalArgumentException
+    {
+        if (ga == null)
+            return;  // Not one of our games
+        if (mes.operation != SOCChangeGameOptions.OP_REMOVE)
+            return;  // Not implemented
+
+        SOCGameOptionSet opts = ga.getGameOptions();
+        if (opts == null)
+            return;  // early return: Not what server expected, but as requested they're not in opts
+        for (String optKey : mes.optsChanges)
+            opts.remove(optKey);
     }
 
     /**

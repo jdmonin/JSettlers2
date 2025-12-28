@@ -31,6 +31,8 @@ import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import soc.game.GameAction;
 import soc.game.SOCBoard;
@@ -370,6 +372,28 @@ public class TestToCmdToStringParse
     }
 
     /**
+     * For test value convenience, create a SortedMap with these keys and values.
+     * @param keys  Keys for the map
+     * @param vals  Values for the map
+     * @return  a SortedMap with those keys and values
+     * @throws NullPointerException if {@code keys} or {@code vals} is null
+     * @throws IllegalArgumentException if {@code keys} and {@code vals} don't have equal length
+     */
+    private static final SortedMap<String, Integer> sortedMapOf
+        (final String[] keys, final int[] vals)
+        throws NullPointerException, IllegalArgumentException
+    {
+        if (keys.length != vals.length)
+            throw new IllegalArgumentException("length");
+
+        TreeMap<String, Integer> ret = new TreeMap<>();
+        for (int i = 0; i < keys.length; ++i)
+            ret.put(keys[i], vals[i]);
+
+        return ret;
+    }
+
+    /**
      * {@link SOCDiceResultResources} has no server constructor, only {@code buildForGame(SOCGame)}, and
      * {@link SOCPlayerStats#SOCPlayerStats(SOCPlayer, int) SOCPlayerStats constructor} also needs a SOCGame object.
      * Player 1's {@link SOCPlayer#getRolledResources()} and {@link SOCPlayer#getResourceRollStats()}:
@@ -394,6 +418,18 @@ public class TestToCmdToStringParse
         SCENS_KEY_LIST = new ArrayList<>();
         SCENS_KEY_LIST.add("KEY1");
         SCENS_KEY_LIST.add("KEY2");
+    }
+
+    /**
+     * Test data: a {@link SortedMap} of {@link SOCGameOption}s {@code "UB"} and {@code "UBL"}.
+     * @since 2.7.00
+     */
+    private static final TreeMap<String, SOCGameOption> MAP_SGO_UB_UBL;
+    static
+    {
+        MAP_SGO_UB_UBL = new TreeMap<>();
+        MAP_SGO_UB_UBL.put("UB", knownOpts.getKnownOption("UB", false));
+        MAP_SGO_UB_UBL.put("UBL", knownOpts.getKnownOption("UBL", false));
     }
 
     /**
@@ -523,6 +559,14 @@ public class TestToCmdToStringParse
         {new SOCCancelBuildRequest("ga", SOCPlayingPiece.CITY), "1044|ga,2", "SOCCancelBuildRequest:game=ga|pieceType=2"},
         {new SOCCancelBuildRequest("ga", SOCCancelBuildRequest.CARD), "1044|ga,-2", "SOCCancelBuildRequest:game=ga|pieceType=-2"},
         {new SOCChangeFace("ga", 3, 7), "1058|ga,3,7", "SOCChangeFace:game=ga|playerNumber=3|faceId=7"},
+        {
+            new SOCChangeGameOptions
+                ("ga", SOCChangeGameOptions.OP_REMOVE,
+                 MAP_SGO_UB_UBL,
+                 sortedMapOf(new String[]{"oldc", "oldc2"}, new int[]{2600, 2100})),
+             "1108|ga|R|O 2|UB|UBL|C 4|oldc|2600|oldc2|2100",
+             "SOCChangeGameOptions:p=ga|p=R|p=O 2|p=UB|p=UBL|p=C 4|p=oldc|p=2600|p=oldc2|p=2100"
+        },
         {new SOCChannelMembers("cha", Arrays.asList("player0", "droid 1", "robot 2", "debug")), "1002|cha,player0,droid 1,robot 2,debug", "SOCChannelMembers:channel=cha|members=[player0, droid 1, robot 2, debug]"},
         {new SOCChannelMembers("cha", Arrays.asList("m")), "1002|cha,m", "SOCChannelMembers:channel=cha|members=[m]"},  // shortest list
             // v1.x was SOCMembers, slightly different list format:
