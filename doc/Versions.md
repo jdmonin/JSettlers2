@@ -22,8 +22,12 @@ JARs for recent JSettlers versions can be downloaded from
 	    - That player's client must be v2.7.00 or newer; other players can use older clients
 	- New optional house rule: Allow undo building and moving pieces (new game option `UB`; requires client v2.7.00 or newer)
 	    - For convenience, in Practice games this rule is on by default
-	    - Also is on by default when client and server both support the option (using new FLAG_SET_AT_CLIENT_ONCE)
-- I18N:
+	    - Also is on by default when client and server both support the option (using Opportunistic Game Options and FLAG_SET_AT_CLIENT_ONCE)
+	- Opportunistic Game Options
+	    - A way to automatically use new options like `UB` when possible, with graceful fallback when not
+	    - New clients can have these options on by default, but older clients can still join the game while it's forming
+	    - Once players are seated and the game is starting, if it uses Opportunistic Game Options and any player's client version is too old for those options, the options are removed from that game for backwards compatibility
+	    - If a game still has Opportunistic options after it starts, older clients can't sit as players because it could be unfair to change options during game play
 	- Added German translation (thank you Eudoxia and Quasigroup)
 	- Updated Polish translation (thank you KotCzarny)
 - Client:

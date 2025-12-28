@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 import soc.server.SOCServer;  // for javadocs only
@@ -1905,8 +1906,8 @@ public class SOCGameOptionSet
         if ((cliNamesVersions == null) || cliNamesVersions.isEmpty() || options.isEmpty())
             return null;
 
-        HashMap<String, SOCGameOption> optsRemoved = null;
-        HashMap<String, Integer> olderCliNamesVersions = null;
+        SortedMap<String, SOCGameOption> optsRemoved = null;
+        SortedMap<String, Integer> olderCliNamesVersions = null;
 
         // TODO locking
         for (Iterator<Map.Entry<String, SOCGameOption>> it = options.entrySet().iterator(); it.hasNext(); )
@@ -1927,7 +1928,7 @@ public class SOCGameOptionSet
                 remov = true;
                 final String cliName = cliEntry.getKey();
                 if (olderCliNamesVersions == null)
-                    olderCliNamesVersions = new HashMap<>();
+                    olderCliNamesVersions = new TreeMap<>();
 
                 if (! olderCliNamesVersions.containsKey(cliName))
                     olderCliNamesVersions.put(cliName, cliVers);
@@ -1937,7 +1938,7 @@ public class SOCGameOptionSet
             {
                 it.remove();
                 if (optsRemoved == null)
-                    optsRemoved = new HashMap<>();
+                    optsRemoved = new TreeMap<>();
                 optsRemoved.put(opt.key, opt);
             }
         }
@@ -2077,15 +2078,15 @@ public class SOCGameOptionSet
     {
         /**
          * The options (opt.key -> option) removed by {@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map)}.
-         * Never {@code null}.
+         * Never {@code null}. Sorted for convenience and consistency while announcing results.
          */
-        public final HashMap<String, SOCGameOption> optsRemoved;
+        public final SortedMap<String, SOCGameOption> optsRemoved;
 
         /**
          * Info on the older clients which caused {@link #optsRemoved} to be removed (client name -> client version).
-         * Never {@code null}.
+         * Never {@code null}. Sorted for convenience and consistency while announcing results.
          */
-        public final HashMap<String, Integer> olderCliNamesVersions;
+        public final SortedMap<String, Integer> olderCliNamesVersions;
 
         /**
          * Create a new {@link RemoveOpportunisticResults}. Neither parameter can be null.
@@ -2094,7 +2095,7 @@ public class SOCGameOptionSet
          * @throws IllegalArgumentException  if either param is {@code null}
          */
         public RemoveOpportunisticResults
-            (final HashMap<String, SOCGameOption> optsRemoved, final HashMap<String, Integer> olderCliNamesVersions)
+            (final SortedMap<String, SOCGameOption> optsRemoved, final SortedMap<String, Integer> olderCliNamesVersions)
             throws IllegalArgumentException
         {
             if (optsRemoved == null)

@@ -5359,7 +5359,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Initialize server-only game fields.
-     * Called from {@link #startGame()} and saved-game loader.
+     * Called from {@link #startGame()} and at beginning of saved-game loader.
      * Sets {@link #isAtServer} and {@link #allOriginalPlayers()} flags.
      * Updates {@link #lastActionTime}.
      * Adds all seated players to the Chat Allow List.
@@ -5404,6 +5404,9 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Called only at server, not client.  For a method called during game start
      * at server and clients, see {@link #updateAtBoardLayout()}.
+     *<P>
+     * After calling this method, server calls
+     * {@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map) game.getGameOptions().removeOpportunisticIfOlderClients(..)}.
      *<P>
      * Some scenarios require other methods to finish setting up the game;
      * call them in this order before any other board or game methods:

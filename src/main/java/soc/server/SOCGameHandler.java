@@ -3996,10 +3996,39 @@ public class SOCGameHandler extends GameHandler
         else
             legalSeaEdges = null;
 
+        SOCGameOptionSet.RemoveOpportunisticResults removedOpts = null;
+
         srv.gameList.takeMonitorForGame(gaName);
 
         try
         {
+            /**
+             * check for any opportunistic gameopts vs currently seated players
+             */
+            final SOCGameOptionSet opts = ga.getGameOptions();
+            if (opts != null)
+            {
+                Map<String, Integer> playersCliVers = new HashMap<>();
+                final SOCPlayer[] players = ga.getPlayers();
+                for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                {
+                    if (ga.isSeatVacant(pn))
+                        continue;
+                    String cliName = players[pn].getName();
+                    if (cliName == null)
+                        continue;  // unlikely
+                    Connection cliConn = srv.getConnection(cliName);
+                    if (cliConn == null)
+                        continue;  // unlikely
+                    int cliVers = cliConn.getVersion();
+                    if (cliVers < 0)
+                        cliVers = 0;
+                    playersCliVers.put(cliName, Integer.valueOf(cliVers));
+                }
+
+                removedOpts = opts.removeOpportunisticIfOlderClients(playersCliVers);
+                    // will send any messages about them near end of this method
+            }
 
             /**
              * send the board layout
@@ -4121,6 +4150,38 @@ public class SOCGameHandler extends GameHandler
                 if (srv.isRecordGameEventsActive())
                     srv.recordGameEvent
                         (gaName, new SOCGameElements(gaName, GEType.DEV_CARD_COUNT, ga.getNumDevCards()));
+            }
+
+            if (removedOpts != null)
+            {
+                // text to explain to older clients:
+                // TODO more user-friendly option names for it
+                // TODO i18n/localize
+                StringBuilder sb = new StringBuilder(">>> Removed game option(s) ");
+                boolean comma = false;
+                for (String optName : removedOpts.optsRemoved.keySet())
+                {
+                    if (comma)
+                        sb.append(", ");
+                    else
+                        comma = true;
+                    sb.append(optName);
+                }
+                sb.append(" for compatibility with earlier player client version(s): ");
+                comma = false;
+                for (Map.Entry<String, Integer> cliPl: removedOpts.olderCliNamesVersions.entrySet())
+                {
+                    if (comma)
+                        sb.append(", ");
+                    else
+                        comma = true;
+                    sb.append(cliPl.getKey() + " (" + Version.version(cliPl.getValue()) + ")");
+                }
+                sb.append('.');
+
+                srv.messageToGameWithMon(gaName, true, new SOCGameServerText(gaName, sb.toString()));
+
+                // TODO develop & send game data messages to client to remove opt(s) from game there
             }
 
             /**
