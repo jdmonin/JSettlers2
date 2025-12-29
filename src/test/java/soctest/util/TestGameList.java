@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2019 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2019,2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@
 
 package soctest.util;
 
+import soc.game.SOCGameOptionSet;
 import soc.util.SOCGameList;
 
 import org.junit.Test;
@@ -51,6 +52,42 @@ public class TestGameList
         assertTrue(SOCGameList.REGEX_ALL_DIGITS_OR_PUNCT.matcher("^~").matches());    // is only in \p{Punct}
         assertTrue(SOCGameList.REGEX_ALL_DIGITS_OR_PUNCT.matcher("«123»").matches());  // fr
         assertTrue(SOCGameList.REGEX_ALL_DIGITS_OR_PUNCT.matcher("。").matches());  // jp
+    }
+
+    /**
+     * Tests for {@link SOCGameList#updateGameOptions(String, soc.game.SOCGameOptionSet)}
+     * and {@code SOCGameList.GameInfo.updateGameOptions(..)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testUpdateGameOptions()
+    {
+        final SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
+        final SOCGameList gl = new SOCGameList(knownOpts);
+
+        gl.addGame("test", "UB=t,RD=t", false);
+        SOCGameOptionSet opts = gl.parseGameOptions("test");
+        assertNotNull(opts);
+        assertEquals(2, opts.size());
+        assertTrue(opts.containsKey("UB"));
+        assertTrue(opts.containsKey("RD"));
+        assertEquals("UB=t,RD=t", gl.getGameOptionsString("test"));
+
+        opts.remove("UB");
+        assertEquals(1, opts.size());
+        assertFalse(opts.containsKey("UB"));
+        opts.add(knownOpts.getKnownOption("NT", true));
+        assertTrue(opts.containsKey("NT"));
+        assertEquals(2, opts.size());
+        assertEquals("not changed yet in list", "UB=t,RD=t", gl.getGameOptionsString("test"));
+
+        gl.updateGameOptions("test", opts);
+        assertEquals("updated now", "NT=f,RD=t", gl.getGameOptionsString("test"));
+        assertEquals(opts, gl.getGameOptions("test"));
+
+        gl.updateGameOptions("test", null);
+        assertEquals("-", gl.getGameOptionsString("test"));
+        assertNull(gl.getGameOptions("test"));
     }
 
 }

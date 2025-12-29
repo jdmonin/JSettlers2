@@ -791,8 +791,21 @@ public class MessageHandler
              * Added 2025-12-27 for v2.7.00.
              */
             case SOCMessage.CHANGEGAMEOPTIONS:
-                SOCDisplaylessPlayerClient.handleCHANGEGAMEOPTIONS
-                    ((SOCChangeGameOptions) mes,client.games.get(((SOCChangeGameOptions) mes).getGame()));
+                {
+                    SOCGameOptionSet gaOpts = client.serverGames.parseGameOptions(gaName);
+                    if (gaOpts != null)
+                    {
+                        SOCDisplaylessPlayerClient.handleCHANGEGAMEOPTIONS
+                            ((SOCChangeGameOptions) mes, gaOpts);
+                        client.serverGames.updateGameOptions(gaName, gaOpts);
+                    }
+
+                    // If we're playing in this game, it might use a different SGOSet instance than in serverGames
+                    SOCGame cliGame = client.games.get(gaName);
+                    if (cliGame != null)
+                        SOCDisplaylessPlayerClient.handleCHANGEGAMEOPTIONS
+                            ((SOCChangeGameOptions) mes, cliGame.getGameOptions());
+                }
                 break;
 
             /**

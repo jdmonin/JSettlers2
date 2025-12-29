@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2014,2016-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2014,2016-2023,2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - getGameNames, parameterize types
  *
  * This program is free software; you can redistribute it and/or
@@ -266,6 +266,7 @@ public class SOCGameList
      * @return the game options (map of {@link SOCGameOption}), or null if none or if unparsed
      * @see #getGameOptionsString(String)
      * @see #parseGameOptions(String)
+     * @see #updateGameOptions(String, SOCGameOptionSet)
      * @since 1.1.07
      */
     public SOCGameOptionSet getGameOptions(String gaName)
@@ -309,6 +310,22 @@ public class SOCGameList
             return null;
         else
             return info.parseOptsStr();
+    }
+
+    /**
+     * Replace this game's options and update its {@link #getGameOptionsString(String)}.
+     * Calls {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}
+     * with {@code sortByKey=true} for predictability.
+     * @param gaName  game name
+     * @param newOpts  the new game options, or {@code null} if none
+     * @see #getGameOptions(String)
+     * @since 2.7.00
+     */
+    public void updateGameOptions(String gaName, SOCGameOptionSet newOpts)
+    {
+        GameInfo info = gameInfo.get(gaName);
+        if (info != null)
+            info.updateGameOptions(newOpts);
     }
 
     /**
@@ -575,6 +592,7 @@ public class SOCGameList
         /**
          * Parse optsStr to opts, unless it's already been parsed.
          * @return opts, after parsing if necessary, or null if opts==null and optsStr==null.
+         * @see #updateGameOptions(SOCGameOptionSet)
          */
         public SOCGameOptionSet parseOptsStr()
         {
@@ -587,6 +605,21 @@ public class SOCGameList
                 opts = SOCGameOption.parseOptionsToSet(optsStr, knownOpts);
                 return opts;
             }
+        }
+
+        /**
+         * Replace this game's options and update its {@link #optsStr}.
+         * Calls {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}
+         * with {@code sortByKey=true} for predictability.
+         * @param newOpts  new game options, or {@code null} if none.
+         * @see #parseOptsStr()
+         * @since 2.7.00
+         */
+        public void updateGameOptions(SOCGameOptionSet newOpts)
+        {
+            opts = newOpts;
+            optsStr = SOCGameOption.packOptionsToString
+                ((newOpts != null) ? newOpts.getAll() : null, false, true);
         }
 
         public void dispose()

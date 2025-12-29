@@ -4185,8 +4185,8 @@ public class SOCGameHandler extends GameHandler
                 // Tell new-enough clients to actually remove them from game options:
                 SOCChangeGameOptions optsRemovedMsg = new SOCChangeGameOptions
                     (gaName, SOCChangeGameOptions.OP_REMOVE, removedOpts.optsRemoved, removedOpts.olderCliNamesVersions);
-                srv.messageToGameForVersions
-                    (ga, SOCChangeGameOptions.VERSION_FOR_REMOVE, Integer.MAX_VALUE, optsRemovedMsg, false);
+                srv.broadcastToVers
+                    (optsRemovedMsg, SOCChangeGameOptions.VERSION_FOR_REMOVE, Integer.MAX_VALUE);
                 srv.recordGameEvent(gaName, optsRemovedMsg);
             }
 

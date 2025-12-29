@@ -1034,8 +1034,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * Added 2025-12-27 for v2.7.00.
              */
             case SOCMessage.CHANGEGAMEOPTIONS:
-                handleCHANGEGAMEOPTIONS
-                    ((SOCChangeGameOptions) mes, games.get(((SOCChangeGameOptions) mes).getGame()));
+                {
+                    SOCGame ga = games.get(((SOCChangeGameOptions) mes).getGame());
+                    if (ga != null)
+                        handleCHANGEGAMEOPTIONS
+                            ((SOCChangeGameOptions) mes, ga.getGameOptions());
+                }
                 break;
 
             /**
@@ -2928,19 +2932,16 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *     for method reuse by SOCPlayerClient; does nothing if {@code null}
      * @since 2.7.00
      */
-    public static void handleCHANGEGAMEOPTIONS(final SOCChangeGameOptions mes, SOCGame ga)
+    public static void handleCHANGEGAMEOPTIONS(final SOCChangeGameOptions mes, SOCGameOptionSet gaOpts)
         throws IllegalArgumentException
     {
-        if (ga == null)
-            return;  // Not one of our games
+        if (gaOpts == null)
+            return;  // Nothing to update
         if (mes.operation != SOCChangeGameOptions.OP_REMOVE)
             return;  // Not implemented
 
-        SOCGameOptionSet opts = ga.getGameOptions();
-        if (opts == null)
-            return;  // early return: Not what server expected, but as requested they're not in opts
         for (String optKey : mes.optsChanges)
-            opts.remove(optKey);
+            gaOpts.remove(optKey);
     }
 
     /**
