@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, type parameterization, GUI API updates, etc
  *
@@ -4277,11 +4277,11 @@ public class SOCPlayerInterface extends JFrame
 
         public void playerPiecePlacementUndoDeclined(int pieceType, boolean isMove)
         {
+            final String txt = strings.get
+                ((isMove) ? "board.undo.cannot.move" : "board.undo.cannot.build");  // "Cannot undo that move" : "Cannot undo that build"
             NotifyDialog.createAndShow
                 (pi.getMainDisplay(), pi,
-                 ((isMove) ? "Cannot undo that move" : "Cannot undo that build"), null, true);
-            // TODO i18n
-
+                 txt, null, true);
         }
 
         public void playerSVPAwarded(SOCPlayer player, int numSvp, String awardDescription)
