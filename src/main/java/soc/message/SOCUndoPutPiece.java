@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2022-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2022-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -52,7 +52,8 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  * If server has sent {@link SOCUndoNotAllowedReasonText} to announce that the player's most recent action can't be undone,
  * client shouldn't send {@code SOCUndoPutPiece}.
  *<P>
- * This message is used only with {@link soc.game.SOCGameOption} {@code "UB"}, which has a minimum version of 2.7.00.
+ * This message is used only with {@link soc.game.SOCGameOption#FLAG_OPPORTUNISTIC opportunistic}
+ * {@link soc.game.SOCGameOption} {@code "UB"}, which has a minimum version of 2.7.00.
  * If a game has that SGO, server doesn't need to check client versions before sending {@code SOCUndoPutPiece}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;

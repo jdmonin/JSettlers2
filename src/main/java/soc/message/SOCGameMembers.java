@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2012,2014,2016-2017,2019-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2012,2014,2016-2017,2019-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -53,6 +53,9 @@ import java.util.StringTokenizer;
  * to start the game. Server responds with the newly generated board layout and
  * other game and board details, any scenario-specific {@link SOCPutPiece}s, then
  * {@link SOCGameState}({@link soc.game.SOCGame#START1A START1A}), then finally {@link SOCStartGame}.
+ *<P>
+ * Games usually have an "owner" (typically its creator or a remaining player). This message does not specify
+ * who the owner is; {@link #getMembers()} would include the owner but not necessarily as its first element.
  *
  * @author Robert S Thomas
  * @see SOCChannelMembers

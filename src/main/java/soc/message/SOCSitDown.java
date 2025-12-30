@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2013-2014,2017,2019-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2013-2014,2017,2019-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,7 +43,7 @@ import java.util.StringTokenizer;
  * because robot clients authenticate before joining games.
  *<P>
  * Although it's a game-specific message, this game-lifecycle message
- * is handled by {@code SOCServer} instead of a {@code GameHandler}.
+ * is handled by {@code SOCServer.sitDown(..)} instead of a {@code GameHandler}.
  * Part of its response is sent by
  * {@link soc.server.GameHandler#sitDown_sendPrivateInfo(soc.game.SOCGame, soc.server.genericServer.Connection, int, boolean)}.
  *

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012,2014,2016-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +35,8 @@ import soc.util.DataUtils;
  *<P>
  * Sent to a client who is joining a game as an observer or player,
  * after {@link SOCSitDown} messages about current players.
+ * (Not sent by server v2 if game is still forming: Game state is {@link SOCGame#NEW},
+ * client already has data for the empty board; see details below.)
  * Also sent during start of the game when its board is generated.
  *<P>
  * This message sends the classic board layout for the original

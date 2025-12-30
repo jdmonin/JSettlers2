@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -195,6 +195,7 @@ public class SOCGameElements extends SOCMessageTemplateMi
 
         /**
          * Get a type's integer value ({@link #DEV_CARD_COUNT} == 2, etc).
+         * Usually same as {@link Enum#ordinal()}, but other non-contiguous values may be added later.
          * @see #valueOf(int)
          */
         public int getValue()

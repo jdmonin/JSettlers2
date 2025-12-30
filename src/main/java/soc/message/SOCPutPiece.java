@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ import java.util.StringTokenizer;
 
 import soc.game.SOCGame;  // for javadocs only
 import soc.game.SOCPlayingPiece;  // for javadocs only
+import soc.game.SOCScenario;  // for javadocs only
 
 /**
  * Client player is asking to place, or server is announcing placement of, a piece on the board.
@@ -57,10 +58,10 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  * See also {@link SOCMovePiece} and {@link SOCDebugFreePlace}. Messages similar but opposite to this one
  * are {@link SOCCancelBuildRequest}, and the very-limited {@link SOCRemovePiece}.
  *<P>
- * Some scenarios like {@link soc.game.SOCScenario#K_SC_PIRI SC_PIRI} include some pieces
+ * Some scenarios like {@link SOCScenario#K_SC_PIRI SC_PIRI} include some pieces
  * as part of the initial board layout while the game is starting. These will all be sent to
  * the clients while game state is &lt; {@link SOCGame#START1A START1A} and before
- * sending them {@link SOCStartGame}. Scenario {@link soc.game.SOCScenario#K_SC_CLVI SC_CLVI}
+ * sending them {@link SOCStartGame}. Scenario {@link SOCScenario#K_SC_CLVI SC_CLVI}
  * sends its neutral villages before {@code START1A} but as part {@code "CV"} of the board layout
  * message, not as {@code SOCPutPiece}s.
  *<P>
