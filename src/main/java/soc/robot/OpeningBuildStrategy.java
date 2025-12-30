@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
- * Portions of this file copyright (C) 2009-2013,2017-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2013,2017-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  *
@@ -580,7 +580,9 @@ public class OpeningBuildStrategy {
      */
     public int planInitRoad()
     {
-        // TODO handle ships here
+        // TODO handle ships here, especially in scenarios with fog
+        // or SVP for reaching other islands (_SC_SANY, _SC_SEAC).
+        // See also SOCRobotDM.planRoadBuildingTwoRoads
 
         final int settlementNode = ourPlayerData.getLastSettlementCoord();
 

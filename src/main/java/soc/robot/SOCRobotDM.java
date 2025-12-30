@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -1070,6 +1070,7 @@ public class SOCRobotDM
         //  and then score the new pos roads
         //
         //  TODO for now, coastal roads/ships are always built as roads not ships
+        //    See also OBS.planInitRoad
         //
         final SOCRoutePiece tmpRS;
         if ((favoriteRoad instanceof SOCPossibleShip)
