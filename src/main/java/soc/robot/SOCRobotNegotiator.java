@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2013,2015,2017-2018,2020-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -38,12 +38,19 @@ import java.util.Vector;
 /**
  * Make and consider resource trade offers ({@link SOCTradeOffer}) with other players.
  *<P>
+ * Main action methods:
+ *<UL>
+ * <LI> {@link #makeOffer(SOCBuildPlan)}
+ * <LI> {@link #makeCounterOffer(SOCTradeOffer)}
+ * <LI> {@link #getOfferToBank(SOCBuildPlan, SOCResourceSet)}
+ * <LI> {@link #considerOffer2(SOCTradeOffer, int)}
  * Chooses a response:
  *<UL>
  * <LI> {@link #IGNORE_OFFER}
  * <LI> {@link #REJECT_OFFER}
  * <LI> {@link #ACCEPT_OFFER}
  * <LI> {@link #COUNTER_OFFER}
+ *</UL>
  *</UL>
  *<P>
  * Moved the routines that make and

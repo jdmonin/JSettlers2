@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
- * Portions of this file copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,6 +43,7 @@ public interface SOCBuildPlan
     /**
      * Is this plan currently empty?
      * @return true if nothing is currently planned
+     * @see #getPlanDepth()
      */
     public boolean isEmpty();
 
@@ -86,6 +87,7 @@ public interface SOCBuildPlan
      * Return the depth of the plan: The number of pieces to be built. Non-linear plans to be discussed in future.
      * @return Number of pieces in this plan
      * @see #getPlannedPiece(int)
+     * @see #isEmpty()
      */
     public int getPlanDepth();
 
