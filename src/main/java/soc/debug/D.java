@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2009,2012,2014,2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2012,2014,2020-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
  * This program is free software; you can redistribute it and/or
@@ -159,9 +159,9 @@ public class D
     }
 
     /**
-     * Debug-println this info text;
+     * Debug-println this info text, if {@link #ebugIsEnabled()} and {@link #ebug_level()} is {@link #INFO} or higher.
      *
-     * @param text DOCUMENT ME!
+     * @param text Text to print
      * @since 2.5.00
      */
     public static final void ebugPrintlnINFO(String text)
@@ -173,9 +173,12 @@ public class D
     }
 
     /**
-     * Debug-println this info text;
+     * Debug-println this info text, if {@link #ebugIsEnabled()} and {@link #ebug_level()} is {@link #INFO} or higher:
+     *<BR>
+     * {@code prefix ":" text}
      *
-     * @param text DOCUMENT ME!
+     * @param prefix  Prefix to print before {@code text}
+     * @param text  Text to print
      * @since 2.5.00
      */
     public static final void ebugPrintlnINFO(String prefix, String text)
@@ -187,7 +190,7 @@ public class D
     }
 
     /**
-     * Debug-print this info text.
+     * Debug-print a blank line, if {@link #ebugIsEnabled()} and {@link #ebug_level()} is {@link #INFO} or higher.
      * @since 2.5.00
      */
     public static final void ebugPrintlnINFO()
@@ -199,9 +202,10 @@ public class D
     }
 
     /**
-     * Debug-print this info text;
+     * Debug-print this info text, if {@link #ebugIsEnabled()} and {@link #ebug_level()} is {@link #INFO} or higher,
+     * not followed by a newline.
      *
-     * @param text DOCUMENT ME!
+     * @param text  Text to print
      * @since 2.5.00
      */
     public static final void ebugPrintINFO(String text)
