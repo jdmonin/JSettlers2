@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019,2021-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019,2021-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -83,7 +83,8 @@ public abstract class DataUtils
      * Before v2.0.00 this method was {@code enumIntoStringBuf}.
      *
      * @param sc  Collection to append. 0 length is allowed, null is not allowed.
-     *     Each element's {@link Object#toString()} will be called.
+     *     Does nothing if {@link Collection#isEmpty()}.
+     *     Calls {@link StringBuilder#append(Object)} on each element.
      * @param sb  StringBuilder to which {@code sc} will be appended as "a,b,c,d,e"
      * @throws NullPointerException if {@code sc} or {@code sb} is null
      * @since 1.1.09

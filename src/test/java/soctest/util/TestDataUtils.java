@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.TreeMap;
 
 import soc.game.SOCResourceSet;
+import soc.message.SOCNewGame;
 import soc.util.DataUtils;
 
 import org.junit.Test;
@@ -38,8 +39,6 @@ import static org.junit.Assert.*;
  */
 public class TestDataUtils
 {
-    // TODO tests for listIntoStringBuilder
-
     /**
      * Test {@link DataUtils#arrayIntoStringBuilder(int[], StringBuilder, boolean)}.
      * @since 2.7.00
@@ -95,6 +94,80 @@ public class TestDataUtils
         DataUtils.arrayIntoStringBuilder(new int[]{0x111, -7, 0xa5, -0x12}, sb, true);
         assertEquals("hex array with 4 elems and negative values", "{ 111 -7 a5 -12 }", sb.toString());
         sb.setLength(0);
+    }
+
+    /**
+     * Test {@link DataUtils#listIntoStringBuilder(java.util.Collection, StringBuilder)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testListIntoStringBuilder()
+    {
+        StringBuilder sb = new StringBuilder();
+        assertEquals(0, sb.length());
+
+        try
+        {
+            DataUtils.listIntoStringBuilder(null, sb);
+            fail("null list should throw NPE");
+        } catch (NullPointerException e) {}
+
+        final ArrayList<String> li = new ArrayList<>();
+        assertTrue(li.isEmpty());
+
+        DataUtils.listIntoStringBuilder(li, null);  // null sb OK if empty
+
+        DataUtils.listIntoStringBuilder(li, sb);
+        assertEquals(0, sb.length());
+
+        /** list of strings */
+
+        li.add("a");
+        try
+        {
+            DataUtils.listIntoStringBuilder(li, null);
+            fail("null sb should throw NPE");
+        } catch (NullPointerException e) {}
+
+        DataUtils.listIntoStringBuilder(li, sb);
+        assertEquals("a", sb.toString());
+
+        sb.append(" (and then)");
+
+        DataUtils.listIntoStringBuilder(new ArrayList<String>(), sb);
+        assertEquals("empty list doesn't change sb", "a (and then)", sb.toString());
+
+        DataUtils.listIntoStringBuilder(li, sb);
+        assertEquals("keep existing contents of sb", "a (and then)a", sb.toString());
+
+        sb.setLength(0);
+        assertEquals(0, sb.length());
+        li.add("b");
+        DataUtils.listIntoStringBuilder(li, sb);
+        assertEquals("a,b", sb.toString());
+
+        sb.append(";");
+        li.add("CDEFG");
+        DataUtils.listIntoStringBuilder(li, sb);
+        assertEquals("a,b;a,b,CDEFG", sb.toString());
+
+        /** list of other objects; calls toString on them */
+        ArrayList<SOCNewGame> msgLi = new ArrayList<>();
+        sb.setLength(0);
+        assertEquals(0, sb.length());
+
+        msgLi.add(new SOCNewGame("gg"));
+        sb.append("...;");
+        DataUtils.listIntoStringBuilder(msgLi, sb);
+        assertEquals("...;SOCNewGame:game=gg", sb.toString());
+
+        msgLi.add(new SOCNewGame("bb"));
+        msgLi.add(new SOCNewGame("_315_"));
+        sb.setLength(0);
+        assertEquals(0, sb.length());
+        sb.append("..;");
+        DataUtils.listIntoStringBuilder(msgLi, sb);
+        assertEquals("..;SOCNewGame:game=gg,SOCNewGame:game=bb,SOCNewGame:game=_315_", sb.toString());
     }
 
     /**
