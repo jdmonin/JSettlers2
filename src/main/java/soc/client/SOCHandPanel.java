@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1668,7 +1668,8 @@ import javax.swing.UIManager;
      * such as a "gift" port being moved in {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}.
      * If one of these is chosen, this method calls {@link #clickPlayInventorySpecialItem(SOCInventoryItem)}.
      *<P>
-     * Called from actionPerformed()
+     * Called from {@link #actionPerformed(ActionEvent)}
+     *
      * @since 1.1.00
      */
     public void clickPlayCardButton()
@@ -3877,7 +3878,8 @@ import javax.swing.UIManager;
      * If {@link #VICTORYPOINTS} is updated, and game state is {@link SOCGame#OVER}, check for winner
      * and update (player name label, victory-points tooltip, disable bank/trade btn)
      *
-     * @param utype  the type of value update, such as {@link #VICTORYPOINTS}
+     * @param utype  the type of value update, such as {@link #VICTORYPOINTS},
+     *            {@link PlayerClientListener.UpdateType#ResourceTotalAndDetails},
      *            or {@link PlayerClientListener.UpdateType#Sheep}.
      */
     @SuppressWarnings("fallthrough")

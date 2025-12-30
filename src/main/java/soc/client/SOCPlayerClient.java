@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -646,7 +646,7 @@ public class SOCPlayerClient
     }
 
     /**
-     * @return the client listener of this SOCPlayerClient for a particular game
+     * @return the client listener of this SOCPlayerClient for a particular game, or {@code null} if none
      * @param gameName the game name to look for a listener
      * @see #getClientListeners()
      */
@@ -656,7 +656,7 @@ public class SOCPlayerClient
     }
 
     /**
-     * @return the client listeners of this SOCPlayerClient object.
+     * @return the client listeners of this SOCPlayerClient object; may be empty, never null
      * @see #getClientListener(String)
      */
     /*package*/ Map<String, PlayerClientListener> getClientListeners()

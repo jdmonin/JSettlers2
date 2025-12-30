@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2025 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -156,6 +156,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * {@link TradePanel}, {@link MessagePanel}, and {@link AskDialog}.
      * @see #getForegroundBackgroundColors(boolean)
      * @see #JSETTLERS_BG_GREEN
+     * @see #isOSColorHighContrast()
      * @since 2.0.00
      */
     public static final Color DIALOG_BG_GOLDENROD = new Color(255, 230, 162);
@@ -167,6 +168,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * Occasionally used with {@link #MISC_LABEL_FG_OFF_WHITE}.
      * @see #getForegroundBackgroundColors(boolean)
      * @see #DIALOG_BG_GOLDENROD
+     * @see #isOSColorHighContrast()
      * @since 2.0.00
      */
     public static final Color JSETTLERS_BG_GREEN = new Color(97, 175, 113);
@@ -175,6 +177,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
      * For miscellaneous labels, off-white foreground color #FCFBF3.
      * Typically used on {@link #JSETTLERS_BG_GREEN}.
      * @see #getForegroundBackgroundColors(boolean)
+     * @see #isOSColorHighContrast()
      * @since 2.0.00
      */
     public static final Color MISC_LABEL_FG_OFF_WHITE = new Color(252, 251, 243);
