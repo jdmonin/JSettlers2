@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
@@ -229,6 +229,8 @@ public abstract class SOCBoard implements Serializable, Cloneable
      *<P>
      * The v3 encoding has a higher {@link SOCBoardLarge#GOLD_HEX} and {@link SOCBoardLarge#FOG_HEX},
      * but they aren't encodable in this class (v1 or v2 encoding) because of {@link #MISC_PORT_HEX}.
+     * Layouts with those hex types must use {@link SOCBoardLarge}; there is no ambiguity as long as
+     * callers of {@link #getHexTypeFromCoord(int)} check the board encoding format.
      * @since 1.1.07
      * @see #isHexOnLand(int)
      * @see #isHexOnWater(int)

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -62,9 +62,8 @@ import soc.message.SOCMessage;
  * and there was a confirmation dialog before the action.
  *<P>
  * <B>Version negotiation:</B><br>
- * Game options were introduced in 1.1.07; check server, client versions against
- * {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
- * Scenarios were introduced in 2.0.00, and negotiate the same way.
+ * Scenarios were introduced in 2.0.00, and negotiate the same way as {@link SOCGameOption}s;
+ * check server, client versions against {@link #VERSION_FOR_SCENARIOS}.
  * Each scenario has version information, because scenarios can be added or changed
  * with new versions of JSettlers.  Since games run on the server, the server is
  * authoritative about game scenarios and options:  If the client is newer, it must defer to the
