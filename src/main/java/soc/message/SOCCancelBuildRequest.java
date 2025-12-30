@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007,2010-2013,2017-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007,2010-2013,2017-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -60,6 +60,13 @@ import soc.game.SOCDevCardConstants;
  *   Server will reply by returning the card to the player's inventory, with the same sequence
  *   of messages as above for Road Building.
  *   (This was added in 2.7.00 ({@link soc.game.SOCGame#VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD}.)
+ *
+ *<LI> After converting a ship to a Warship: <BR>
+ *   CANCELBUILDREQUEST means the player has changed their mind about that conversion,
+ *   sent with {@code pieceType} == {@link #CARD}.
+ *   Server will reply by returning the Warship card to the player's inventory, with the same sequence
+ *   of messages as above for Road Building, plus a {@link SOCPlayerElement}s for their updated warship count.
+ *   (Also added in 2.7.00 ({@link soc.game.SOCGame#VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD}.)
  *
  *<LI> Shouldn't be sent from client during other game states.
  *   Server will reply with {@link SOCDeclinePlayerRequest} or {@link SOCGameServerText}.
