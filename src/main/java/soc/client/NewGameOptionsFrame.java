@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2015,2017-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2015,2017-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -741,7 +741,9 @@ import soc.util.Version;
      * When the dialog is shown read-only during a game, these options are shown.
      *<P>
      * Options which have {@link SOCGameOption#FLAG_INTERNAL_GAME_PROPERTY} are always hidden.
-     * If not {@link #readOnly}, they're removed from opts. Unknown opts are removed unless read-only.
+     * If not {@link #readOnly}, they're removed from opts. Unknown opts
+     * and those with {@link SOCGameOption#FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY}
+     * are removed unless read-only.
      *<P>
      * This is called from constructor, so this is a new NGOF being shown.
      * If not read-only, clear {@link SOCGameOption#userChanged} flag for
@@ -795,7 +797,8 @@ import soc.util.Version;
             final String okey = opt.key;
             final int kL = okey.length();
             if ((kL <= 2) || ((opt.optType == SOCGameOption.OTYPE_UNKNOWN) && ! readOnly)
-                || opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN))
+                || opt.hasFlag(SOCGameOption.FLAG_INACTIVE_HIDDEN)
+                || (opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY) && ! readOnly))
                 continue;
 
             final String kf2 = SOCGameOption.getGroupParentKey(okey);
@@ -820,7 +823,9 @@ import soc.util.Version;
         {
             final SOCGameOption op = optArr[i];
 
-            if ((op.optType == SOCGameOption.OTYPE_UNKNOWN) && ! readOnly)
+            if ((! readOnly)
+                && ((op.optType == SOCGameOption.OTYPE_UNKNOWN)
+                    || op.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY)))
             {
                 opts.remove(op.key);
                 continue;  // <-- Removed, Go to next entry --
