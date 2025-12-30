@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2016-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2016-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -121,7 +121,7 @@ import soc.server.genericServer.Server;
      * {@inheritDoc}
      *
      * @throws IllegalStateException if not ready to dispatch because
-     *    {@link #setServer(SOCServer, SOCGameListAtServer)} hasn't been called.
+     *    {@link #setServer(SOCServer, SOCGameListAtServer)} hasn't been called yet
      */
     public void dispatch(final SOCMessage mes, final Connection con)
         throws IllegalStateException

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,7 +40,7 @@ import soc.server.SOCServerMessageHandler;
 import soc.server.genericServer.Connection;
 
 /**
- * SOCServer which records game events into {@link #records}
+ * SOCServer which records game events (network messages) into log {@link #records}
  * having a human-readable delimited format, suitable for comparisons in unit tests:
  * see {@link GameEventLog.EventEntry#toString()}.
  * For more info, search {@code /doc/Readme.developer.md} for {@code *SAVELOG*}.

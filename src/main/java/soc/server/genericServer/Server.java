@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2018,2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2018,2020-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - parameterize types, removeConnection bugfix
  * Portions of this file Copyright (C) 2016 Alessandro D'Ottavio
  *
@@ -76,6 +76,10 @@ import soc.server.SOCServer;
  *  its basic protocol has no standardized way to inform server/client of each other's
  *  version.  You must send this in an app-specific way, during the initial exchange
  *  when a client connects.
+ *<P>
+ *  Use the {@link Connection#getAppData()} field for app-specific data
+ *  like locale or game win/loss count which aren't tracked within this base generic Server:
+ *  {@link soc.server.SOCClientData}.
  *<P>
  *  @author Original author: <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A> <br>
  *  Lots of mods (version "1.7") by Robert S. Thomas and Jay Budzik <br>

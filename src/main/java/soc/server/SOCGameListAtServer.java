@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2014,2016-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2014,2016-2025 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -471,6 +471,9 @@ public class SOCGameListAtServer extends SOCGameList
      * create a new game, and add to the list; game will expire in {@link #GAME_TIME_EXPIRE_MINUTES} minutes.
      * If a game already exists (per {@link #isGame(String)}), tries to add suffix to {@code gaName} to get an unused name.
      * Uses {@code handler} to call {@link SOCGame#setClientFeaturesRequired(SOCFeatureSet)}.
+     *<P>
+     * Does not automatically add {@code gaOwner} to members list;
+     * you may call {@link #addMember(Connection, String)} afterwards to do so.
      *
      * @param gaName  the requested name of the game
      * @param gaOwner the game owner/creator's player name, or null (added in 1.1.10)

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2017,2020-2024 Jeremy D Monin <jeremy@nand.net>.
+ * Portions of this file Copyright (C) 2017,2020-2025 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,7 +44,9 @@ import soc.server.genericServer.Connection;
 
     /**
      * Make a new request
-     * @param arriv  the arriving connection; not null
+     * @param arriv  the arriving connection; not null.
+     *    To set {@link #isArrivingRobot()}, {@link Connection#getAppData() arriv.getAppData()} should be non-null
+     *    (otherwise will set false).
      * @param leave  the leaving connection; not null
      * @param sm the SITDOWN message from {@code arriv}, for its {@link SOCSitDown#getPlayerNumber()}; not null
      * @throws IllegalArgumentException if {@code arriv}, {@code leave}, or {@code sm} is {@code null}
