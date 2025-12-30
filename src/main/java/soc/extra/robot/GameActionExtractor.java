@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -840,6 +840,7 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @param startsWithBuildReq  True if first entry is {@link SOCBuildRequest} instead of {@link SOCPutPiece}
      * @return extracted action, or {@code null} if sequence incomplete
+     * @see #extract_UNDO_BUILD_PIECE_MOVE_PIECE(EventEntry)
      */
     private Action extract_BUILD_PIECE(GameEventLog.EventEntry e, final boolean startsWithBuildReq)
     {
@@ -1070,6 +1071,8 @@ public class GameActionExtractor
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
      * @since 2.7.00
+     * @see #extract_BUILD_PIECE(EventEntry, boolean)
+     * @see #extract_MOVE_PIECE(EventEntry)
      */
     private Action extract_UNDO_BUILD_PIECE_MOVE_PIECE(GameEventLog.EventEntry e)
     {
@@ -1162,6 +1165,7 @@ public class GameActionExtractor
      * Extract {@link ActionType#MOVE_PIECE} from the current message sequence.
      * @param e  First entry of current sequence, already validated and added to {@link #currentSequence}; not null
      * @return extracted action, or {@code null} if sequence incomplete
+     * @see #extract_UNDO_BUILD_PIECE_MOVE_PIECE(EventEntry)
      */
     private Action extract_MOVE_PIECE(GameEventLog.EventEntry e)
     {
