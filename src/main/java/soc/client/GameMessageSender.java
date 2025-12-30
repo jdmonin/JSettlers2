@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2025 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2019 Jeremy D Monin <jeremy@nand.net>
@@ -308,9 +308,10 @@ import soc.message.SOCUndoPutPiece;
      */
     public void leaveGame(SOCGame ga)
     {
-        clientListeners.remove(ga.getName());
-        client.games.remove(ga.getName());
-        put(SOCLeaveGame.toCmd("-", "-", ga.getName()), ga.isPractice);
+        final String gaName = ga.getName();
+        clientListeners.remove(gaName);
+        client.games.remove(gaName);
+        put(SOCLeaveGame.toCmd("-", "-", gaName), ga.isPractice);
     }
 
     /**
