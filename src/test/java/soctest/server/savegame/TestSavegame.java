@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,6 +31,8 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.*;
 
+import soc.game.GameAction;
+import soc.game.ResourceSet;
 import soc.game.SOCBoard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
@@ -39,8 +41,11 @@ import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
+import soc.game.SOCRoad;
 import soc.game.SOCScenario;
+import soc.game.SOCSettlement;
 import soc.game.SOCTradeOffer;
 import soc.message.SOCPlayerElement.PEType;
 import soc.server.SOCServer;
@@ -279,7 +284,7 @@ public class TestSavegame
     }
 
     /**
-     * Save a game, reload it, check various player statistics and misc other fields.
+     * Save a game, reload it, check {@link SOCGame#getLastAction()}, various player statistics, and misc other fields.
      * @see #testBasicSaveLoad()
      * @since 2.6.00
      */
@@ -371,6 +376,21 @@ public class TestSavegame
             assertArrayEquals(RES_ROLLED[0], pl.getResourceRollStats());
         }
 
+        // place 1 settlement and road, so player has pieces that'll be placed at load
+        final int SETTLEMENT_NODE_COORD = 0x54, ROAD_EDGE_COORD = 0x43;
+        final SOCBoard boardSave = gaSave.getBoard();
+        gaSave.setCurrentPlayerNumber(0);
+        gaSave.putPiece(new SOCSettlement(pl, SETTLEMENT_NODE_COORD, boardSave));
+        gaSave.putPiece(new SOCRoad(pl, ROAD_EDGE_COORD, boardSave));
+        assertEquals(2, pl.getTotalVP());
+        gaSave.setCurrentPlayerNumber(firstPN);
+
+        // a lastAction that isn't piece placement
+        final ResourceSet ACT_ROBBED_RSRC = new SOCResourceSet(0, 1, 0, 0, 0, 0);
+        final GameAction ACT_ROB_PLAYER = new GameAction
+            (GameAction.ActionType.ROB_PLAYER, 3, 0, 0, ACT_ROBBED_RSRC, null);
+        gaSave.setLastAction(ACT_ROB_PLAYER);
+
         // misc other fields
         gaSave.setPlacingRobberForKnightCard(true);
         pl.setUndosRemaining(2);
@@ -392,10 +412,10 @@ public class TestSavegame
         final String[] NAMES = {"p0", null, null, "third"};
         final SeatLockState[] LOCKS =
             {SeatLockState.LOCKED, SeatLockState.UNLOCKED, SeatLockState.UNLOCKED, SeatLockState.CLEAR_ON_RESET};
-        final int[] TOTAL_VP = {1, 0, 0, 1};
+        final int[] TOTAL_VP = {2, 0, 0, 1};
         final int[][] RESOURCES = {{1, 7, 0, 2, 0}, null, null, {0, 0, 1, 0, 1}};
         final int[] PIECES_ALL = {15, 5, 4, 0, 0};
-        final int[][] PIECE_COUNTS = {PIECES_ALL, PIECES_ALL, PIECES_ALL, PIECES_ALL};
+        final int[][] PIECE_COUNTS = {new int[]{14, 4, 4, 0, 0}, PIECES_ALL, PIECES_ALL, PIECES_ALL};
         TestLoadgame.checkPlayerData(sgm, NAMES, LOCKS, TOTAL_VP, RESOURCES, PIECE_COUNTS, null);
         // check player stats
         final SOCPlayer plLoaded = ga.getPlayer(0), plTradeLoaded = ga.getPlayer(3);
@@ -404,6 +424,28 @@ public class TestSavegame
         TestPlayer.assertTradeStatsEqual(plTradeExpectedStats, plTradeLoaded);
         assertArrayEquals(RES_ROLLED[0], plLoaded.getResourceRollStats());
         assertArrayEquals(RES_ROLLED[3], plTradeLoaded.getResourceRollStats());
+
+        // check pieces
+        final SOCBoard boardLoaded = ga.getBoard();
+        SOCPlayingPiece pp = boardLoaded.settlementAtNode(SETTLEMENT_NODE_COORD);
+        assertNotNull(pp);
+        assertTrue(pp instanceof SOCSettlement);
+        pp = plLoaded.getSettlementOrCityAtNode(SETTLEMENT_NODE_COORD);
+        assertNotNull(pp);
+        assertTrue(pp instanceof SOCSettlement);
+
+        pp = boardLoaded.roadOrShipAtEdge(ROAD_EDGE_COORD);
+        assertNotNull(pp);
+        assertTrue(pp instanceof SOCRoad);
+        assertEquals(0, pp.getPlayerNumber());
+        pp = plLoaded.getRoadOrShip(ROAD_EDGE_COORD);
+        assertNotNull(pp);
+        assertTrue(pp instanceof SOCRoad);
+
+        // check lastAction: the one we set before saving, not an incidental one based on piece placements during load
+        GameAction act = ga.getLastAction();
+        assertNotNull(act);
+        assertEquals(ACT_ROB_PLAYER, act);
 
         // check misc other fields
         assertTrue(ga.isPlacingRobberForKnightCard());
