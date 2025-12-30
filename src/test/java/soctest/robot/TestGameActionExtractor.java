@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1099,6 +1099,8 @@ public class TestGameActionExtractor
      *<P>
      * An uncommon roll dice sequence is tested in {@link #testRollGainCloth()}.
      * Some uncommon build piece sequences are also tested in {@link #testGoldHexFogHex()}.
+     * @see #testBuildUndo()
+     * @see #testMoveShipUndo()
      */
     @Test
     public void testTurnWithBuilding()

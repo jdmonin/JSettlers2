@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,7 +34,7 @@ import static org.junit.Assert.*;
  * A few tests for {@link SOCGame}.
  *<P>
  * Some SOCGame methods are tested elsewhere, like {@link TestPlayer#testTradeAndStats()}
- * and {@link TestLoadgame#testLoadSeaBoard()}.
+ * and {@link TestLoadgame#testLoadSeaBoard() and some edge cases in classes like {@link TestScenarioRules}.
  *
  * @see TestBoard
  * @see TestPlayer
