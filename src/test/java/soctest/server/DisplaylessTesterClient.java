@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -58,6 +58,14 @@ public class DisplaylessTesterClient
     protected String localeStr;
 
     /**
+     * Client version sent in {@link #init()}, defaulting to {@link Version#versionNumber()}.
+     * @since 2.7.00
+     */
+    protected int version = Version.versionNumber();
+
+    protected String buildnum = null;
+
+    /**
      * Track server's games and options like SOCPlayerClient does,
      * instead of ignoring them until joined like SOCRobotClient.
      *<P>
@@ -75,6 +83,7 @@ public class DisplaylessTesterClient
     /**
      * Constructor for a displayless client which will connect to a local server.
      * Does not actually connect here: Call {@link #init()} when ready.
+     * If calling {@link #setVersion(int)}, do so before {@code init()}.
      *
      * @param localeStr  Locale to test with, or {@code null} to use {@code "en_US"}
      * @param knownOpts  Known Options, or {@code null} to use defaults from {@link SOCDisplaylessPlayerClient}
@@ -91,6 +100,25 @@ public class DisplaylessTesterClient
 
         debugTraffic = true;
         ignorePlayerStats = false;
+    }
+
+    /**
+     * Set the client version to report at {@link #init()}.
+     * @param vers  Version number, in same form at as {@link Version#versionNumber()};
+     *   must be >= 1000, or 0 to use current version
+     * @throws IllegalArgumentException if {@code vers} out of range
+     * @since 2.7.00
+     */
+    public void setVersion(int vers)
+        throws IllegalArgumentException
+    {
+        if (vers == 0)
+            vers = Version.versionNumber();
+        if (vers < 1000)
+            throw new IllegalArgumentException("Must be >= 1000 or 0");
+
+        version = vers;
+        buildnum = (vers == Version.versionNumber()) ? null : ("OTHER-" + vers);
     }
 
     /**
@@ -122,7 +150,7 @@ public class DisplaylessTesterClient
             treaterThread.start();
 
             put(new SOCVersion
-                (Version.versionNumber(), Version.version(), Version.buildnum(),
+                (version, Version.version(version), (buildnum != null) ? buildnum : Version.buildnum(),
                  buildClientFeats().getEncodedList(),
                  (localeStr != null) ? localeStr : "en_US").toCmd());
             put(new SOCAuthRequest
