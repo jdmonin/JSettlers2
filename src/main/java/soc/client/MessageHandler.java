@@ -3056,7 +3056,7 @@ public class MessageHandler
             pcl.simpleAction(mes.getPlayerNumber(), atype, mes.getValue1(), mes.getValue2());
             break;
 
-        case SOCSimpleAction.SC_FTRI_VILLAGE_PLAYER_REMOVED:
+        case SOCSimpleAction.SC_CLVI_VILLAGE_PLAYER_REMOVED:
             // data update only, nothing displayed
             SOCDisplaylessPlayerClient.handleSIMPLEACTION(mes, client.games.get(gaName));
             break;

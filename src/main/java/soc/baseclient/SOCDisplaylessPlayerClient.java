@@ -3138,7 +3138,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             ga.setNumDevCards(mes.getValue1());
             break;
 
-        case SOCSimpleAction.SC_FTRI_VILLAGE_PLAYER_REMOVED:
+        case SOCSimpleAction.SC_CLVI_VILLAGE_PLAYER_REMOVED:
             {
                 final SOCBoard bd = ga.getBoard();
                 if (bd instanceof SOCBoardLarge)

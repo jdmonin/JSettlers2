@@ -1388,7 +1388,7 @@ public class SOCGameMessageHandler
                             if (e.params[2] != 0)
                                 msgsAfter.add
                                     (new SOCSimpleAction
-                                        (gaName, cpn, SOCSimpleAction.SC_FTRI_VILLAGE_PLAYER_REMOVED, villageNodeCoord));
+                                        (gaName, cpn, SOCSimpleAction.SC_CLVI_VILLAGE_PLAYER_REMOVED, villageNodeCoord));
                         }
                     } else {
                         msgsAfter.add
