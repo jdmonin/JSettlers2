@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -415,6 +415,76 @@ public class TestRecorder
             System.err.println(compares);
             fail(compares.toString());
         }
+    }
+
+    /**
+     * Join a {@link DisplaylessTesterClient} with default version and one a different custom version.
+     * @since 2.7.00
+     */
+    @Test
+    public void testBasics_ClientVersion()
+        throws IOException
+    {
+        // This setup code is based on testBasics_Loadgame;
+        // if you change one, consider changing all occurrences
+
+        // unique client nickname, in case tests run in parallel
+        final String CLIENT_NAME = "testCliVersion";
+
+        assertNotNull(srv);
+
+        /** with defaults */
+
+        DisplaylessTesterClient tcli = new DisplaylessTesterClient
+            (RecordingSOCServer.STRINGPORT_NAME, CLIENT_NAME, null, null);
+        tcli.init();
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
+
+        Connection cliConnAtSrv = srv.getConnection(CLIENT_NAME);
+        assertNotNull(cliConnAtSrv);
+        assertEquals(Version.versionNumber(), cliConnAtSrv.getVersion());
+
+        /** reporting other version*/
+        final int OTHER_VERSION_NUMBER = 1117;
+        DisplaylessTesterClient tcli2 = new DisplaylessTesterClient
+            (RecordingSOCServer.STRINGPORT_NAME, CLIENT_NAME + "2", null, null);
+
+        try
+        {
+            tcli2.setVersion(3);
+            fail("should reject <1000");
+        } catch (IllegalArgumentException e) {}
+
+        try
+        {
+            tcli2.setVersion(999);
+            fail("should reject <1000");
+        } catch (IllegalArgumentException e) {}
+
+        try
+        {
+            tcli2.setVersion(-1);
+            fail("should reject <0");
+        } catch (IllegalArgumentException e) {}
+
+        tcli2.setVersion(0);  // redundant, shouldn't fail
+        tcli2.setVersion(OTHER_VERSION_NUMBER);
+        tcli2.init();
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        assertEquals("get version from test SOCServer", Version.versionNumber(), tcli2.getServerVersion());
+
+        cliConnAtSrv = srv.getConnection(CLIENT_NAME + "2");
+        assertNotNull(cliConnAtSrv);
+        assertEquals(OTHER_VERSION_NUMBER, cliConnAtSrv.getVersion());
+
+        // cleanup
+        tcli.destroy();
+        tcli2.destroy();
     }
 
     /**
