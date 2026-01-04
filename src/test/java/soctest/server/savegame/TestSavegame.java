@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -390,6 +390,8 @@ public class TestSavegame
         final GameAction ACT_ROB_PLAYER = new GameAction
             (GameAction.ActionType.ROB_PLAYER, 3, 0, 0, ACT_ROBBED_RSRC, null);
         gaSave.setLastAction(ACT_ROB_PLAYER);
+        final String ACT_CANNOT_UNDO_REASON = "test reason";
+        gaSave.setLastActionCannotUndo(ACT_CANNOT_UNDO_REASON);
 
         // misc other fields
         gaSave.setPlacingRobberForKnightCard(true);
@@ -446,6 +448,7 @@ public class TestSavegame
         GameAction act = ga.getLastAction();
         assertNotNull(act);
         assertEquals(ACT_ROB_PLAYER, act);
+        assertEquals(ACT_CANNOT_UNDO_REASON, act.cannotUndoReason);
 
         // check misc other fields
         assertTrue(ga.isPlacingRobberForKnightCard());
