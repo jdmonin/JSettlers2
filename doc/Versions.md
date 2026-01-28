@@ -92,7 +92,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- To help unit tests, SOCGame.initAtServer now calls startGame_setupDevCards
 	- To help unit tests which create games:
 	    - TestRecorder:
-	        - New convenience method connectCreateJoinNewGame
+	        - New convenience methods createJoinNewGame, connectCreateJoinNewGame
 	        - compareRecordsToExpected: If expected != actual message count, output those extra messages
 	    - TestActionsMessages: New convenience methods startGame2pAwaitClientPlacementTurn, putPiece, movePiece, undoPutOrMovePiece
 	    - SOCServer.createOrJoinGame is now public, returning the created or joined SOCGame
