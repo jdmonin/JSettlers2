@@ -150,10 +150,10 @@ public class TestClientVersion
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
         assertTrue("announced to older client", tcliOld.isServerGame(gaName));
-        final String gaOptsAtCliOld = tcliOld.getServerGameOptions(gaName);
+        final SOCGameOptionSet gaOptsAtCliOld = tcliOld.getServerGameOptions(gaName);
         assertNotNull("announced to older client with opts", gaOptsAtCliOld);
-        assertTrue(gaOptsAtCliOld.contains("UB=t"));
-        // TODO parse and check opts (add DTC method to call gameinfo/gamelist method to parse & ret obj)
+        assertTrue(gaOptsAtCliOld.isOptionSet("UB"));
+        // TODO check opt flags?
 
         // can older cli join it?
         tcliOld.joinGame(gaName);
@@ -178,15 +178,14 @@ public class TestClientVersion
         assertEquals(tcliOld.getNickname(), gaAtCliOld.getPlayer(PN_SIT_CLI_OLD).getName());
 
         // check gameopt UB at this point
-        String optsStr = tcli.getServerGameOptions(gaName);
-        assertNotNull(optsStr);
-        assertTrue(optsStr.contains("UB=t"));
-        optsStr = tcliOld.getServerGameOptions(gaName);
-        assertNotNull(optsStr);
-        assertTrue(optsStr.contains("UB=t"));
-        // TODO can we check parsed game opts?
+        SOCGameOptionSet opts = tcli.getServerGameOptions(gaName);
+        assertNotNull(opts);
+        assertTrue("at tcli", opts.isOptionSet("UB"));
+        opts = tcliOld.getServerGameOptions(gaName);
+        assertNotNull(opts);
+        assertTrue("at tcliOld", opts.isOptionSet("UB"));
 
-        // TODO at other new cli, see if ub=f yet
+        // TODO at other new cli, see if UB changed yet
 
         // start game
         tcli.startGame(gaAtCli);
@@ -195,14 +194,13 @@ public class TestClientVersion
         assertEquals(SOCGame.START1A, gaAtSrv.getGameState());
         assertEquals(SOCGame.START1A, gaAtCli.getGameState());
         assertEquals(SOCGame.START1A, gaAtCliOld.getGameState());
-        // at all cli, see if ub=f now
-        optsStr = tcli.getServerGameOptions(gaName);
-        assertNotNull(optsStr);
-        assertFalse("gameopt UB removed now for compat with old client", optsStr.contains("UB="));
-        optsStr = tcliOld.getServerGameOptions(gaName);
-        assertNotNull(optsStr);
-        assertTrue("existing game's opts can't be changed/removed at old client", optsStr.contains("UB=t"));
-        // TODO can we check parsed game opts?
+        // at all cli, see if UB changed now
+        opts = tcli.getServerGameOptions(gaName);
+        assertNotNull(opts);
+        assertFalse("gameopt UB removed now for compat with old client", opts.containsKey("UB"));
+        opts = tcliOld.getServerGameOptions(gaName);
+        assertNotNull(opts);
+        assertTrue("existing game's opts can't be changed/removed at old client", opts.isOptionSet("UB"));
 
         // cleanup
         tcli.leaveGame(gaName);

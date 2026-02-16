@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2927,13 +2927,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * Update game data to change the options of an already-created game.
      * Does nothing if {@link SOCChangeGameOptions#operation mes.operation} != {@link SOCChangeGameOptions#OP_REMOVE}.
+     * Future versions may add more operations.
      * @param mes  The message
-     * @param ga  Game the client is playing, from {@link SOCMessageForGame#getGame() mes.getGame()},
+     * @param gaOpts  Game options to update, from {@link SOCMessageForGame#getGame() mes.getGame()},
      *     for method reuse by SOCPlayerClient; does nothing if {@code null}
      * @since 2.7.00
      */
     public static void handleCHANGEGAMEOPTIONS(final SOCChangeGameOptions mes, SOCGameOptionSet gaOpts)
-        throws IllegalArgumentException
     {
         if (gaOpts == null)
             return;  // Nothing to update

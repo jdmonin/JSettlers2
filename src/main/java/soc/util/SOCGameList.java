@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2014,2016-2023,2025 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2014,2016-2023,2025-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - getGameNames, parameterize types
  *
  * This program is free software; you can redistribute it and/or
@@ -283,6 +283,7 @@ public class SOCGameList
      * @param   gaName  game name
      * @return the game options string, or null if no packed version
      * @see #getGameOptions(String)
+     * @see #parseGameOptions(String)
      * @since 1.1.07
      */
     public String getGameOptionsString(String gaName)
@@ -298,7 +299,7 @@ public class SOCGameList
      * Parse this game's options from string to {@link SOCGameOption}s.
      * Should not be called at client before any updates to "known options" are received from server.
      * Calls {@link GameInfo#parseOptsStr()}.
-     * @param   gaName  game name
+     * @param   gaName  game name; does nothing if name unknown
      * @return the game options, or null if none
      * @see #getGameOptionsString(String)
      * @since 1.1.07
@@ -316,7 +317,7 @@ public class SOCGameList
      * Replace this game's options and update its {@link #getGameOptionsString(String)}.
      * Calls {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}
      * with {@code sortByKey=true} for predictability.
-     * @param gaName  game name
+     * @param gaName  game name; does nothing if name unknown
      * @param newOpts  the new game options, or {@code null} if none
      * @see #getGameOptions(String)
      * @since 2.7.00
@@ -546,6 +547,10 @@ public class SOCGameList
      * Holds most information on one game, except its SOCGame object, which is kept separately.
      * Includes mutexes to synchronize game state access.
      * Kept within the {@link #gameInfo} map.
+     *<P>
+     * Depending on the contructor used, either {@link #opts} or {@link #optsStr} may be null;
+     * see those fields' javadocs for methods to set one from the other.
+     *
      * @author Jeremy D Monin <jeremy@nand.net>
      * @since 1.1.07
      */
@@ -553,10 +558,18 @@ public class SOCGameList
     {
         public MutexFlag mutex;
 
-        /** Game options, or {@code null} if none. Rendered in {@link #optsStr}. */
+        /**
+         * Game options, or {@code null} if none or not yet parsed. Rendered in {@link #optsStr}.
+         * Can be parsed from {@link #optsStr} by {@link #parseOptsStr()}.
+         * To change contents, call {@link #updateGameOptions(SOCGameOptionSet)}.
+         */
         public SOCGameOptionSet opts;
 
-        /** Game options rendered from {@link #opts}, or {@code null}. */
+        /**
+         * Game options rendered from {@link #opts}, or {@code null} if not yet rendered.
+         * Can be {@code "-"} for a game with no options.
+         * To change contents, call {@link #updateGameOptions(SOCGameOptionSet)}.
+         */
         public String optsStr;
 
         public boolean canJoin;
@@ -580,7 +593,8 @@ public class SOCGameList
          * Constructor: gameOptsStr is null or unparsed game options
          * @param canJoinGame can we join this game?
          * @param gameOptsStr set of {@link SOCGameOption}s as packed by
-         *            {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}, or null
+         *     {@link SOCGameOption#packOptionsToString(Map, boolean, boolean)}, or null.
+         *     Can be {@code "-"} for a game with no options.
          */
         public GameInfo(boolean canJoinGame, String gameOptsStr)
         {
@@ -591,7 +605,8 @@ public class SOCGameList
 
         /**
          * Parse optsStr to opts, unless it's already been parsed.
-         * @return opts, after parsing if necessary, or null if opts==null and optsStr==null.
+         * @return opts, after parsing if necessary, or null if opts==null and optsStr==null
+         *     or if {@code optsStr} is {@code "-"}
          * @see #updateGameOptions(SOCGameOptionSet)
          */
         public SOCGameOptionSet parseOptsStr()

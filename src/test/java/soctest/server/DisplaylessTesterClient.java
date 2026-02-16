@@ -216,12 +216,12 @@ public class DisplaylessTesterClient
      * Get options for a server game announced to this client (see {@link #isServerGame(String)}).
      * To get a game this client has joined, call {@link SOCDisplaylessPlayerClient#getGame(String)} instead.
      * @param gaName  game name to look for
-     * @return Game options for {@code gaName} if we've seen it, or {@code null} if not found
+     * @return Game options for {@code gaName} if we've seen it, or {@code null} if not found or no options
      * @since 2.7.00
      */
-    public String getServerGameOptions(final String gaName)
+    public SOCGameOptionSet getServerGameOptions(final String gaName)
     {
-        return serverGames.getGameOptionsString(gaName);
+        return serverGames.parseGameOptions(gaName);
     }
 
     /**
