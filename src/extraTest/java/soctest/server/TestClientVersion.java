@@ -164,8 +164,8 @@ public class TestClientVersion
 
         // TODO now have another modern cli join srv, chk game opts ,see if UB=t
 
-        // what happens at sitdown/startgame?  At tcliOld, does gameopt gain flag CLI JOIN ONLY?
-        // TODO NEXT: verif empty seat # & sit down
+        // what happens at sitdown/startgame?  At tcliOld, does gameopt UB gain flag CLI JOIN ONLY?
+        // verify seat # is empty, sit down
         final int PN_SIT_CLI_OLD = 1;
         assertTrue(gaAtSrv.isSeatVacant(PN_SIT_CLI_OLD));
         assertTrue(gaAtCliOld.isSeatVacant(PN_SIT_CLI_OLD));
@@ -176,9 +176,17 @@ public class TestClientVersion
         assertFalse(gaAtCliOld.isSeatVacant(PN_SIT_CLI_OLD));
         assertEquals(tcliOld.getNickname(), gaAtSrv.getPlayer(PN_SIT_CLI_OLD).getName());
         assertEquals(tcliOld.getNickname(), gaAtCliOld.getPlayer(PN_SIT_CLI_OLD).getName());
-        // TODO chk game opt
 
-        // at other nww cli, see if ub=f now
+        // check gameopt UB at this point
+        String optsStr = tcli.getServerGameOptions(gaName);
+        assertNotNull(optsStr);
+        assertTrue(optsStr.contains("UB=t"));
+        optsStr = tcliOld.getServerGameOptions(gaName);
+        assertNotNull(optsStr);
+        assertTrue(optsStr.contains("UB=t"));
+        // TODO can we check parsed game opts?
+
+        // TODO at other new cli, see if ub=f yet
 
         // start game
         tcli.startGame(gaAtCli);
@@ -188,6 +196,13 @@ public class TestClientVersion
         assertEquals(SOCGame.START1A, gaAtCli.getGameState());
         assertEquals(SOCGame.START1A, gaAtCliOld.getGameState());
         // at all cli, see if ub=f now
+        optsStr = tcli.getServerGameOptions(gaName);
+        assertNotNull(optsStr);
+        assertFalse("gameopt UB removed now for compat with old client", optsStr.contains("UB="));
+        optsStr = tcliOld.getServerGameOptions(gaName);
+        assertNotNull(optsStr);
+        assertTrue("existing game's opts can't be changed/removed at old client", optsStr.contains("UB=t"));
+        // TODO can we check parsed game opts?
 
         // cleanup
         tcli.leaveGame(gaName);

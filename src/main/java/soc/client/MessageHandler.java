@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2019 Colin Werner
  * Extracted in 2019 from SOCPlayerClient.java, so:
- * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -801,6 +801,7 @@ public class MessageHandler
                     }
 
                     // If we're playing in this game, it might use a different SGOSet instance than in serverGames
+                    // so update that instance too
                     SOCGame cliGame = client.games.get(gaName);
                     if (cliGame != null)
                         SOCDisplaylessPlayerClient.handleCHANGEGAMEOPTIONS

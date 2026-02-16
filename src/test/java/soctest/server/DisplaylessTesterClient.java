@@ -224,6 +224,54 @@ public class DisplaylessTesterClient
         return serverGames.getGameOptionsString(gaName);
     }
 
+    /**
+     * Treat the incoming messages.
+     * Currently, only {@link SOCChangeGameOptions} needs to be handled specially here.
+     * Everything else is passed to parent {@link SOCDisplaylessPlayerClient#treat(SOCMessage)}.
+     * @since 2.7.00
+     */
+    @Override
+    public void treat(SOCMessage mes)
+    {
+        if (mes == null)
+            return;  // Message syntax error or unknown type
+
+        try
+        {
+            switch (mes.getType())
+            {
+            case SOCMessage.CHANGEGAMEOPTIONS:
+                {
+                    final String gaName = ((SOCMessageForGame) mes).getGame();
+                    SOCGameOptionSet gaOpts = serverGames.parseGameOptions(gaName);
+                    if (gaOpts != null)
+                    {
+                        SOCDisplaylessPlayerClient.handleCHANGEGAMEOPTIONS
+                            ((SOCChangeGameOptions) mes, gaOpts);
+                        serverGames.updateGameOptions(gaName, gaOpts);
+                    }
+
+                    // If we're playing in this game, it might use a different SGOSet instance than in serverGames
+                    // so update that instance too
+                    SOCGame ga = games.get(gaName);
+                    if (ga != null)
+                        handleCHANGEGAMEOPTIONS
+                            ((SOCChangeGameOptions) mes, ga.getGameOptions());
+                }
+                break;
+
+            default:
+                super.treat(mes, true);
+            }
+        }
+        catch (Exception e)
+        {
+            System.err.println("DisplaylessTesterClient treat ERROR - " + e.getMessage());
+            e.printStackTrace();
+            System.err.println("  For message: " + mes);
+        }
+    }
+
     // message handlers
 
     /** To avoid confusion during gameplay, set both "server" version fields */
