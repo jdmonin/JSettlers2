@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1418,8 +1418,15 @@ public class SOCServer extends Server
 
     /**
      * server robot pinger
+     * @see #clientPinger
      */
-    SOCServerRobotPinger serverRobotPinger;
+    SOCClientPinger serverRobotPinger;
+
+    /**
+     * Human client pinger, which runs at a different interval than {@link #serverRobotPinger}.
+     * @since 2.7.00
+     */
+    SOCClientPinger clientPinger;
 
     /**
      * Game timeout and and turn timeout checker. Forces end of turn if a robot is
@@ -2047,8 +2054,10 @@ public class SOCServer extends Server
          */
         if (! (test_mode_with_db || validate_config_mode))
         {
-            serverRobotPinger = new SOCServerRobotPinger(this, robots);
+            serverRobotPinger = new SOCClientPinger(this, robots);
             serverRobotPinger.start();
+            clientPinger = new SOCClientPinger(this, conns, 2 * 60 + 30);  // TODO property for interval
+            clientPinger.start();
             gameTimeoutChecker = new SOCGameTimeoutChecker(this);
             gameTimeoutChecker.start();
 

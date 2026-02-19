@@ -60,6 +60,7 @@ JARs for recent JSettlers versions can be downloaded from
 	        - Trade stats when server 2.5.00 or newer
 - Server:
 	- Bugfix: If player cancels Road Building with Cancel Ship button, server now clears player's hasPlayedDevCard() so another can be played
+	- Send a message to idle clients every few minutes, so their ISP or NAT doesn't disconnect them from games
 	- New `*MUTE*` and `*UNMUTE*` commands for a game's creator or admin to manage that game's chat with players and observers
 	- `*STATS*`: Sort the client version list
 - Network/Message traffic:

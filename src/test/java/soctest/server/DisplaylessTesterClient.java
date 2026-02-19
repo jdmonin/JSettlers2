@@ -145,7 +145,7 @@ public class DisplaylessTesterClient
             if (serverConnectInfo.stringSocketName == null)
             {
                 sock = new Socket(serverConnectInfo.hostname, serverConnectInfo.port);
-                sock.setSoTimeout(300000);  // should be a few minutes longer than SOCServerRobotPinger.sleepTime
+                sock.setSoTimeout(300000);  // should be a few minutes longer than SOCClientPinger.SLEEP_TIME_MILLIS_BOTS
                 in = new DataInputStream(sock.getInputStream());
                 out = new DataOutputStream(sock.getOutputStream());
             }
