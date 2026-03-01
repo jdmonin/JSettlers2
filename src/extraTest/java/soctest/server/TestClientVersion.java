@@ -25,6 +25,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;
 
 import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCGame;
@@ -209,6 +210,56 @@ public class TestClientVersion
         catch(InterruptedException e) {}
         tcli.destroy();
         tcliOld.destroy();
+    }
+
+    /**
+     * Test a recent client, which can understand {@link SOCGameOption#FLAG_OPPORTUNISTIC} options,
+     * joining a server which has such an option that's too new for it.
+     */
+    @Test
+    public void testClientVsTooNewOppoOption()
+    {
+        // This setup code is based on TestRecorder.testBasics_Loadgame;
+        // if you change one, consider changing all occurrences
+
+        // unique client nickname, in case tests run in parallel
+        final String CLIENT_NAME = "testCliVsNewOppo";
+
+        assertNotNull(srv);
+
+        final int CLI_VERSION_NUMBER = 2700;
+        final int NEWER_GAMEOPT_VERSION_NUMBER = 2701;
+        assertTrue(NEWER_GAMEOPT_VERSION_NUMBER > CLI_VERSION_NUMBER);
+
+        final SOCGameOption opt = new SOCGameOption
+            ("ZZ", NEWER_GAMEOPT_VERSION_NUMBER, NEWER_GAMEOPT_VERSION_NUMBER, false,
+             SOCGameOption.FLAG_DROP_IF_UNUSED | SOCGameOption.FLAG_SET_AT_CLIENT_ONCE | SOCGameOption.FLAG_OPPORTUNISTIC,
+             "based on UB Allow undo piece builds and moves");
+        srv.knownOpts.addKnownOption(opt);
+        assertEquals(srv.knownOpts.getKnownOption("ZZ", false), opt);
+
+        DisplaylessTesterClient tcli = new DisplaylessTesterClient
+            (RecordingSOCServer.STRINGPORT_NAME, CLIENT_NAME, null, null);
+        tcli.setVersion(CLI_VERSION_NUMBER);
+        assertEquals(CLI_VERSION_NUMBER, tcli.getVersion());
+        tcli.init();
+        try { Thread.sleep(120); }
+        catch(InterruptedException e) {}
+
+        assertEquals("get version from test SOCServer", Version.versionNumber(), tcli.getServerVersion());
+
+        Connection cliConnAtSrv = srv.getConnection(CLIENT_NAME);
+        assertNotNull(cliConnAtSrv);
+        assertEquals(CLI_VERSION_NUMBER, cliConnAtSrv.getVersion());
+
+        // TODO check option info received at cli
+
+        // cleanup
+        try { Thread.sleep(40); }
+        catch(InterruptedException e) {}
+        tcli.destroy();
+        srv.knownOpts.remove("ZZ");
+        assertNull(srv.knownOpts.getKnownOption("ZZ", false));
     }
 
 }
