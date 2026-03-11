@@ -33,7 +33,8 @@ import soc.server.genericServer.Connection;
 /**
  * Pings the robots so they know they're connected to an active server,
  * or the human clients so they don't get disconnected while idle if they're behind NAT or a firewall with low timeout.
- * Sends a {@link SOCServerPing} to each bot every 2 minutes or so, and to humans at an interval from server config.
+ * Sends a {@link SOCServerPing} to each bot every 2 minutes or so, or to humans at an interval from server config.
+ * When pinging only humans, checks each connection's {@link SOCClientData#isRobot}.
  *<P>
  * Before v2.7.00 this class was {@code SOCServerRobotPinger}.
  *
@@ -42,25 +43,25 @@ import soc.server.genericServer.Connection;
 /*package*/ class SOCClientPinger extends Thread
 {
     /**
-     * True if pinging all robot connections, false if pinging human clients.
+     * True if pinging all robot connections, false if pinging only human clients.
      * @since 2.7.00
      */
     public final boolean isRobotsMode;
 
     /**
-     * A list of robot {@link Connection}s to ping, shared with and modified by the server.
-     * Ignored unless {@link #isRobotsMode}.
-     * @see #humanConnections
+     * Client {@link Connection}s to ping, shared with and modified by the server (synchronized).
+     * Ignored if {@link #namedConnections} != {@code null}.
+     *<P>
+     * Before v2.7.00 this was {@code robotConnections}.
      */
-    private Vector<Connection> robotConnections;
+    private Vector<Connection> cliConnections;
 
     /**
-     * A map of huamn client {@link Connection}s to ping, shared with and modified by the server.
-     * Ignored if {@link #isRobotsMode}.
-     * @see #robotConnections
+     * Named client {@link Connection}s to ping, shared with and modified by the server,
+     * or {@code null} if using {@link #cliConnections}.
      * @since 2.7.00
      */
-    private Map<?, Connection> humanConnections;
+    private Map<?, Connection> namedConnections;
 
     /**
      * Sleep time (milliseconds) between pings to all robots: 150 seconds.
@@ -68,7 +69,7 @@ import soc.server.genericServer.Connection;
      * @see #sleepTime
      * @since 2.7.00
      */
-    private final int SLEEP_TIME_MILLIS_BOTS = 150 * 1000;
+    public final int SLEEP_TIME_MILLIS_BOTS = 150 * 1000;
 
     /**
      * Sleep time (milliseconds) between pings to all robots or human clients.
@@ -93,47 +94,59 @@ import soc.server.genericServer.Connection;
     private final SOCServer srv;
 
     /**
-     * Create a server robot pinger
+     * Create a robot or human client pinger.
      *
-     * @param robots  the connections to robots; a Vector of {@link Connection}s
+     * @param clients  the connections to ping; not {@code null}
+     * @param intervalSeconds  Ping interval if humans, or 0 if robots (uses {@link #SLEEP_TIME_MILLIS_BOTS} millis)
      * @see #SOCClientPinger(SOCServer, Map, int)
+     * @throws IllegalArgumentException  if {@code clients} is {@code null}
      */
-    public SOCClientPinger(SOCServer s, Vector<Connection> robots)
+    public SOCClientPinger(SOCServer s, Vector<Connection> clients, final int intervalSeconds)
+        throws IllegalArgumentException
     {
-        setDaemon(true);
-        isRobotsMode = true;
-
-        srv = s;
-        robotConnections = robots;
-        sleepTime = SLEEP_TIME_MILLIS_BOTS;
-        ping = new SOCServerPing(sleepTime);
-        alive = true;
-        setName ("robotPinger-srv");  // Thread name for debug
+        this(s, clients, null, intervalSeconds);
     }
 
     /**
-     * Create a human client pinger
+     * Create a robot or human client pinger.
      *
-     * @param humanClients  the connections to clients
-     * @see #SOCClientPinger(SOCServer, Vector)
+     * @param clients  the connections to ping; not {@code null}
+     * @param intervalSeconds  Ping interval if humans, or 0 if robots (uses {@link #SLEEP_TIME_MILLIS_BOTS} millis)
+     * @see #SOCClientPinger(SOCServer, Vector, int)
+     * @throws IllegalArgumentException  if {@code clients} is {@code null}
      * @since 2.7.00
      */
-    public SOCClientPinger(SOCServer s, Map<?, Connection> humanClients, final int intervalSeconds)
+    public SOCClientPinger(SOCServer s, Map<?, Connection> clients, final int intervalSeconds)
+        throws IllegalArgumentException
     {
+        this(s, null, clients, intervalSeconds);
+    }
+
+    /**
+     * Common constructor.
+     * @since 2.7.00
+     */
+    private SOCClientPinger(SOCServer s, Vector<Connection> clis, Map<?, Connection> namedClis, final int intervalSeconds)
+        throws IllegalArgumentException
+    {
+        if ((clis == null) && (namedClis == null))
+            throw new IllegalArgumentException("clients");
+
         setDaemon(true);
-        isRobotsMode = false;
+        isRobotsMode = (intervalSeconds == 0);
 
         srv = s;
-        humanConnections = humanClients;
-        sleepTime = (intervalSeconds + 60) * 1000;
-        ping = new SOCServerPing(intervalSeconds);
+        cliConnections = clis;
+        namedConnections = namedClis;
+        sleepTime = (intervalSeconds == 0) ? SLEEP_TIME_MILLIS_BOTS : (intervalSeconds + 60) * 1000;
+        ping = new SOCServerPing((intervalSeconds == 0) ? sleepTime : intervalSeconds);
         alive = true;
-        setName ("clientPinger-srv");  // Thread name for debug
+        setName (isRobotsMode ? "robotPinger-srv" : "clientPinger-srv");  // Thread name for debug
     }
 
     /**
      * Client ping loop thread:
-     * Send a {@link SOCServerPing} to each bot or human player connected to the server,
+     * Send a {@link SOCServerPing} to each bot or human player passed to us,
      * then sleep for {@link #sleepTime} minus 60 seconds.
      * Exits loop when {@link #stopPinger()} is called.
      */
@@ -146,28 +159,12 @@ import soc.server.genericServer.Connection;
 
             try
             {
-                if (isRobotsMode)
-                {
-                    if (! robotConnections.isEmpty())
-                        for (Connection robotConnection : robotConnections)
-                        {
-                            if (D.ebugIsEnabled())
-                                D.ebugPrintlnINFO("(*)(*)(*)(*) PINGING " + robotConnection.getData());
-                            robotConnection.put(ping);
-                        }
-                } else {
-                    if (! humanConnections.isEmpty())
-                        for (Connection conn : humanConnections.values())
-                        {
-                            if (! conn.isVersionKnown())
-                                continue;
-                            SOCClientData scd = (SOCClientData) conn.getAppData();
-                            if ((scd == null) || scd.isRobot)
-                                continue;
-
-                            conn.put(ping);
-                        }
-                }
+                if (cliConnections != null)
+                    for (Connection conn : cliConnections)
+                        pingOne(conn);
+                else
+                    for (Connection conn : namedConnections.values())
+                        pingOne(conn);
             } catch (ConcurrentModificationException e) {
                 retry = true;
             }
@@ -185,8 +182,31 @@ import soc.server.genericServer.Connection;
         //
         //  cleanup
         //
-        robotConnections = null;
-        humanConnections = null;
+        cliConnections = null;
+        namedConnections = null;
+    }
+
+    /**
+     * Ping one connection, checking its {@link SOCClientData} if not {@link #isRobotsMode}.
+     * @param conn  Connection to ping; not {@code null}
+     * @since 2.7.00
+     */
+    private void pingOne(final Connection conn)
+    {
+        if (isRobotsMode)
+        {
+            if (D.ebugIsEnabled())
+                D.ebugPrintlnINFO("(*)(*)(*)(*) PINGING " + conn.getData());
+        } else {
+            if (! conn.isVersionKnown())
+                return;
+
+            SOCClientData scd = (SOCClientData) conn.getAppData();
+            if ((scd == null) || scd.isRobot)
+                return;
+        }
+
+        conn.put(ping);
     }
 
     /**

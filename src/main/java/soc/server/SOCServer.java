@@ -1418,15 +1418,16 @@ public class SOCServer extends Server
 
     /**
      * server robot pinger
-     * @see #clientPinger
+     * @see #namedClientPinger
+     * @see #unnamedClientPinger
      */
     SOCClientPinger serverRobotPinger;
 
     /**
-     * Human client pinger, which runs at a different interval than {@link #serverRobotPinger}.
+     * Human client pingers, which runs at a different interval than {@link #serverRobotPinger}.
      * @since 2.7.00
      */
-    SOCClientPinger clientPinger;
+    SOCClientPinger namedClientPinger, unnamedClientPinger;
 
     /**
      * Game timeout and and turn timeout checker. Forces end of turn if a robot is
@@ -2054,10 +2055,12 @@ public class SOCServer extends Server
          */
         if (! (test_mode_with_db || validate_config_mode))
         {
-            serverRobotPinger = new SOCClientPinger(this, robots);
+            serverRobotPinger = new SOCClientPinger(this, robots, 0);
             serverRobotPinger.start();
-            clientPinger = new SOCClientPinger(this, conns, 2 * 60 + 30);  // TODO property for interval
-            clientPinger.start();
+            unnamedClientPinger = new SOCClientPinger(this, unnamedConns, 2 * 60 + 30);
+            unnamedClientPinger.start();
+            namedClientPinger = new SOCClientPinger(this, conns, 2 * 60 + 30);  // TODO property for interval
+            namedClientPinger.start();
             gameTimeoutChecker = new SOCGameTimeoutChecker(this);
             gameTimeoutChecker.start();
 
