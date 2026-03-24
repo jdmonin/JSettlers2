@@ -132,193 +132,74 @@ public class SOCGameMessageHandler
          * someone put a piece on the board
          */
         case SOCMessage.PUTPIECE:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handlePUTPIECE(game, connection, (SOCPutPiece) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCPutPiece)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCPutPiece)mes).getGame());
             break;
 
         /**
          * a player is moving the robber or pirate
          */
         case SOCMessage.MOVEROBBER:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleMOVEROBBER(game, connection, (SOCMoveRobber) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCMoveRobber)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCMoveRobber)mes).getGame());
             break;
 
         case SOCMessage.ROLLDICE:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleROLLDICE(game, connection, (SOCRollDice) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCRollDice)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCRollDice)mes).getGame());
             break;
 
         case SOCMessage.DISCARD:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleDISCARD(game, connection, (SOCDiscard) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCDiscard)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCDiscard)mes).getGame());
             break;
 
         case SOCMessage.ENDTURN:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleENDTURN(game, connection, (SOCEndTurn) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCEndTurn)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCEndTurn)mes).getGame());
             break;
 
         case SOCMessage.CHOOSEPLAYER:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleCHOOSEPLAYER(game, connection, (SOCChoosePlayer) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCChoosePlayer)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCChoosePlayer)mes).getGame());
             break;
 
         case SOCMessage.MAKEOFFER:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleMAKEOFFER(game, connection, (SOCMakeOffer) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCMakeOffer)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCMakeOffer)mes).getGame());
             break;
 
         case SOCMessage.CLEAROFFER:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleCLEAROFFER(game, connection, (SOCClearOffer) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCClearOffer)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCClearOffer)mes).getGame());
             break;
 
         case SOCMessage.REJECTOFFER:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleREJECTOFFER(game, connection, (SOCRejectOffer) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCRejectOffer)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCRejectOffer)mes).getGame());
             break;
 
         case SOCMessage.ACCEPTOFFER:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleACCEPTOFFER(game, connection, (SOCAcceptOffer) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCAcceptOffer)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCAcceptOffer)mes).getGame());
             break;
 
         case SOCMessage.BANKTRADE:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleBANKTRADE(game, connection, (SOCBankTrade) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCBankTrade)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCBankTrade)mes).getGame());
             break;
 
         case SOCMessage.BUILDREQUEST:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleBUILDREQUEST(game, connection, (SOCBuildRequest) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCBuildRequest)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCBuildRequest)mes).getGame());
             break;
 
         case SOCMessage.CANCELBUILDREQUEST:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleCANCELBUILDREQUEST(game, connection, (SOCCancelBuildRequest) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCCancelBuildRequest)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCCancelBuildRequest)mes).getGame());
             break;
 
         case SOCMessage.BUYDEVCARDREQUEST:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handleBUYDEVCARDREQUEST(game, connection, (SOCBuyDevCardRequest) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCBuyDevCardRequest)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCBuyDevCardRequest)mes).getGame());
             break;
 
         case SOCMessage.PLAYDEVCARDREQUEST:
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handlePLAYDEVCARDREQUEST(game, connection, (SOCPlayDevCardRequest) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCPlayDevCardRequest)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCPlayDevCardRequest)mes).getGame());
             break;
 
         case SOCMessage.PICKRESOURCES:  // Discovery / Year of Plenty / Gold Hex resource picks
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handlePICKRESOURCES(game, connection, (SOCPickResources) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCPickResources)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCPickResources)mes).getGame());
             break;
 
         case SOCMessage.PICKRESOURCETYPE:  // Resource Type / Monopoly pick
-
-            //createNewGameEventRecord();
-            //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
             handlePICKRESOURCETYPE(game, connection, (SOCPickResourceType) message);
-
-            //ga = (SOCGame)gamesData.get(((SOCPickResourceType)mes).getGame());
-            //currentGameEventRecord.setSnapshot(ga);
-            //saveCurrentGameEventRecord(((SOCPickResourceType)mes).getGame());
             break;
 
         /**
@@ -387,9 +268,7 @@ public class SOCGameMessageHandler
         return true;  // Message was handled in a non-default case above
     }
 
-
     /// Roll dice and pick resources ///
-
 
     /**
      * handle "roll dice" message.
@@ -1005,9 +884,7 @@ public class SOCGameMessageHandler
         }
     }
 
-
     /// Robber/pirate robbery ///
-
 
     /**
      * handle "move robber" message (move the robber or the pirate).
@@ -1246,9 +1123,7 @@ public class SOCGameMessageHandler
         }
     }
 
-
     /// Flow of Game ///
-
 
     /**
      * While undoing a game action for the current player,
@@ -1447,7 +1322,6 @@ public class SOCGameMessageHandler
         return (msgsAfter.isEmpty() ? null : msgsAfter);
     }
 
-
     /**
      * handle "end turn" message.
      * This normally ends a player's normal turn (phase {@link SOCGame#PLAY1}).
@@ -1622,9 +1496,7 @@ public class SOCGameMessageHandler
             srv.messageToPlayer(c, gaName, clientPN, new SOCSimpleRequest(gaName, -1, reqtype, 0, 0));
     }
 
-
     /// Player trades and bank trades ///
-
 
     /**
      * handle "make offer" message.
@@ -1932,9 +1804,7 @@ public class SOCGameMessageHandler
         }
     }
 
-
     /// Game piece building, placement, and moving ///
-
 
     /**
      * handle "build request" message.
@@ -3088,9 +2958,7 @@ public class SOCGameMessageHandler
         }
     }
 
-
     /// Development Cards ///
-
 
     /**
      * handle "buy dev card request" message.
@@ -3839,9 +3707,7 @@ public class SOCGameMessageHandler
         }
     }
 
-
     /// Inventory Items and Special Items ///
-
 
     /**
      * Special inventory item action (play request) from a player.
