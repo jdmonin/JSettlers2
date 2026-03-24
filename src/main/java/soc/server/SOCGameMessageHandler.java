@@ -2540,21 +2540,8 @@ public class SOCGameMessageHandler
                                }
                              */
 
-                            // TODO refactor common netcode here with other piece types
-
-                            srv.gameList.takeMonitorForGame(gaName);
-                            try
-                            {
-                                srv.messageToGameKeyed
-                                    (ga, true, false, "action.built.road", plName);  // "Joe built a road."
-                                srv.messageToGameWithMon
-                                    (gaName, true, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
-                                handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, true);
-                                if (! ga.pendingMessagesOut.isEmpty())
-                                    handler.sendGamePendingMessages(ga, false);
-                            } finally {
-                                srv.gameList.releaseMonitorForGame(gaName);
-                            }
+                            sendPiecePlacedMessages(ga, gaName, pn, SOCPlayingPiece.ROAD,
+                                coord, plName, longestRoutePlayer, true);
 
                             // If needed, call sendTurn or send SOCRollDicePrompt
                             handler.sendTurnStateAtInitialPlacement(ga, player, c, gameState);
@@ -2599,21 +2586,8 @@ public class SOCGameMessageHandler
                             final SOCSettlement se = new SOCSettlement(player, coord, null);
                             ga.putPiece(se);   // Changes game state and (if initial placement) player
 
-                            // TODO refactor common netcode here with other piece types
-
-                            srv.gameList.takeMonitorForGame(gaName);
-                            try
-                            {
-                                srv.messageToGameKeyed
-                                    (ga, true, false, "action.built.stlmt", plName);  // "Joe built a settlement."
-                                srv.messageToGameWithMon
-                                    (gaName, true, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
-                                handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, true);
-                                if (! ga.pendingMessagesOut.isEmpty())
-                                    handler.sendGamePendingMessages(ga, false);
-                            } finally {
-                                srv.gameList.releaseMonitorForGame(gaName);
-                            }
+                            sendPiecePlacedMessages(ga, gaName, pn, SOCPlayingPiece.SETTLEMENT,
+                                coord, plName, longestRoutePlayer, true);
 
                             // Check player and send new game state
                             if (! handler.checkTurn(c, ga))
@@ -2668,21 +2642,11 @@ public class SOCGameMessageHandler
                             final SOCCity ci = new SOCCity(player, coord, null);
                             ga.putPiece(ci);  // changes game state and maybe player
 
-                            srv.gameList.takeMonitorForGame(gaName);
-                            try
-                            {
-                                srv.messageToGameKeyed
-                                    (ga, true, false, "action.built.city", plName);  // "Joe built a city."
-                                srv.messageToGameWithMon
-                                    (gaName, true, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
-                                if (! ga.pendingMessagesOut.isEmpty())
-                                    handler.sendGamePendingMessages(ga, false);
-                                if (houseRuleFirstCity)
-                                    srv.messageToGameKeyed(ga, true, false, "action.built.nextturn.7.houserule");
-                                    // "Starting next turn, dice rolls of 7 may occur (house rule)."
-                            } finally {
-                                srv.gameList.releaseMonitorForGame(gaName);
-                            }
+                            sendPiecePlacedMessages(ga, gaName, pn, SOCPlayingPiece.CITY,
+                                coord, plName, null, false);
+                            if (houseRuleFirstCity)
+                                srv.messageToGameKeyed(ga, true, false, "action.built.nextturn.7.houserule");
+                                // "Starting next turn, dice rolls of 7 may occur (house rule)."
 
                             // Check player and send new game state
                             if (! handler.checkTurn(c, ga))
@@ -2724,19 +2688,8 @@ public class SOCGameMessageHandler
                             final SOCShip sh = new SOCShip(player, coord, null);
                             ga.putPiece(sh);  // Changes game state and (during initial placement) sometimes player
 
-                            srv.gameList.takeMonitorForGame(gaName);
-                            try
-                            {
-                                srv.messageToGameKeyed
-                                    (ga, true, false, "action.built.ship", plName);  // "Joe built a ship."
-                                srv.messageToGameWithMon
-                                    (gaName, true, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
-                                handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, true);
-                                if (! ga.pendingMessagesOut.isEmpty())
-                                    handler.sendGamePendingMessages(ga, false);
-                            } finally {
-                                srv.gameList.releaseMonitorForGame(gaName);
-                            }
+                            sendPiecePlacedMessages(ga, gaName, pn, SOCPlayingPiece.SHIP,
+                                coord, plName, longestRoutePlayer, true);
 
                             // If needed, call sendTurn or send SOCRollDicePrompt
                             handler.sendTurnStateAtInitialPlacement(ga, player, c, gameState);
@@ -2806,6 +2759,46 @@ public class SOCGameMessageHandler
         finally
         {
             ga.releaseMonitor();
+        }
+    }
+
+    /**
+     * After placing a piece, take the game-list monitor and send the "built" text,
+     * {@link SOCPutPiece} message, optional longest-road report, and any pending
+     * game messages. Called from {@link #handlePUTPIECE(SOCGame, Connection, SOCPutPiece)}.
+     *
+     * @param ga  Game
+     * @param gaName  {@code ga.getName()}
+     * @param pn  Player number who placed the piece
+     * @param pieceType  Piece type constant from {@link SOCPlayingPiece}
+     * @param coord  Board coordinate where placed
+     * @param plName  Placing player's name, for "built" message text
+     * @param longestRoutePlayer  Player with longest road before placement, or {@code null}
+     * @param reportLongestRoute  If true, call {@link SOCGameHandler#reportLongestRoadIfChanged}
+     */
+    private void sendPiecePlacedMessages
+        (final SOCGame ga, final String gaName, final int pn, final int pieceType,
+         final int coord, final String plName, final SOCPlayer longestRoutePlayer,
+         final boolean reportLongestRoute)
+    {
+        final String[] builtKeys = {
+            "action.built.road", "action.built.stlmt",
+            "action.built.city", "action.built.ship"
+        };
+
+        srv.gameList.takeMonitorForGame(gaName);
+        try
+        {
+            srv.messageToGameKeyed
+                (ga, true, false, builtKeys[pieceType], plName);
+            srv.messageToGameWithMon
+                (gaName, true, new SOCPutPiece(gaName, pn, pieceType, coord));
+            if (reportLongestRoute)
+                handler.reportLongestRoadIfChanged(ga, longestRoutePlayer, true);
+            if (! ga.pendingMessagesOut.isEmpty())
+                handler.sendGamePendingMessages(ga, false);
+        } finally {
+            srv.gameList.releaseMonitorForGame(gaName);
         }
     }
 
