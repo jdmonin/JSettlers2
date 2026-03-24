@@ -818,7 +818,7 @@ public abstract class AskDialog extends JDialog
         {
             setVisible(true);
         }
-        catch (Throwable e) {
+        catch (RuntimeException e) {
             e.printStackTrace();
         }
     }
