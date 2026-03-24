@@ -2010,9 +2010,8 @@ public class SOCGame implements Serializable, Cloneable
 
         final boolean wasVacant = (seats[pn] == VACANT);
             // but not VACANT_PENDING_REPLACE, so firstPlayer/lastPlayer won't be recalc'd while temporarily vacant
-        if (wasVacant)
+        if (wasVacant && 0 == getAvailableSeatCount())
         {
-            if (0 == getAvailableSeatCount())
                 throw new IllegalStateException("Game is full");
         }
         SOCPlayer already = getPlayer(plName);
