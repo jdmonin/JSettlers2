@@ -358,11 +358,10 @@ public class PropertiesTranslatorEditor
                 final Component ed = super.prepareEditor(editor, r, c);
                 ed.addMouseListener(cellListener);
 
-                switch (c)
-                {
-                case 1:  updateSaveButtonsForEditing(true, true);   break;  // src
-                case 2:  updateSaveButtonsForEditing(true, false);  break;  // dest
-                // default: do nothing extra
+                if (c == 1) {
+                    updateSaveButtonsForEditing(true, true);
+                } else if (c == 2) {
+                    updateSaveButtonsForEditing(true, false);
                 }
 
                 return ed;
