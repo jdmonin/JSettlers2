@@ -48,7 +48,7 @@ package soc.game;
  * @see SOCDevCard#getCardTypeName(int)
  * @see SOCDevCard#getCardTypeName(int, SOCGame, boolean, soc.util.SOCStringManager)
  */
-public interface SOCDevCardConstants
+public final class SOCDevCardConstants
 {
     /**
      * First version number (2.0.00) where card type constants
@@ -147,4 +147,5 @@ public interface SOCDevCardConstants
      */
     public static final int MAXPLUSONE = 10;
 
+    private SOCDevCardConstants() {}
 }

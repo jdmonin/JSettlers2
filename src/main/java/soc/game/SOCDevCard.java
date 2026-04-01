@@ -29,7 +29,7 @@ import soc.util.SOCStringManager;
  * @since 2.0.00
  */
 public class SOCDevCard
-    extends SOCInventoryItem implements SOCDevCardConstants  // SOCInventoryItem implies Cloneable, Serializable
+    extends SOCInventoryItem // SOCInventoryItem implies Cloneable, Serializable
 {
     /** Latest structural change: v2.0.00 */
     private static final long serialVersionUID = 2000L;

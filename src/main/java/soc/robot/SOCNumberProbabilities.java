@@ -25,7 +25,7 @@ package soc.robot;
  * This is a precalculated list of probabilities for how often
  * each dice number comes up as the total when rolling.
  */
-public interface SOCNumberProbabilities
+public final class SOCNumberProbabilities
 {
     /**
      * Float probabilities:
@@ -49,4 +49,6 @@ public interface SOCNumberProbabilities
     {
         0, 0, 3, 6, 8, 11, 14, 17, 14, 11, 8, 6, 3
     };
+
+    private SOCNumberProbabilities() {}
 }

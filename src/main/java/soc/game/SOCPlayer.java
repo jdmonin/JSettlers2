@@ -86,7 +86,7 @@ import java.util.Vector;
  *
  * @author Robert S Thomas
  */
-public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
+public class SOCPlayer implements Serializable, Cloneable
 {
     /** Last field change was v2.7.00 (2700) */
     private static final long serialVersionUID = 2700L;
