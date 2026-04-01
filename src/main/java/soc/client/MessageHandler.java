@@ -146,6 +146,17 @@ public class MessageHandler
                 ga = null;
             }
 
+            if (handleTradeMessages(mes, isPractice))
+                return;
+            if (handleTurnMessages(mes, isPractice, ga))
+                return;
+            if (handleBuildMessages(mes, isPractice, ga))
+                return;
+            if (handleResourceMessages(mes, isPractice, ga))
+                return;
+            if (handlePlayerInfoMessages(mes, ga))
+                return;
+
             switch (mes.getType())
             {
 
@@ -321,251 +332,10 @@ public class MessageHandler
                 break;
 
             /**
-             * message that the game is starting
-             */
-            case SOCMessage.STARTGAME:
-                handleSTARTGAME((SOCStartGame) mes);
-                break;
-
-            /**
-             * update the state of the game
-             */
-            case SOCMessage.GAMESTATE:
-                handleGAMESTATE((SOCGameState) mes);
-                break;
-
-            /**
-             * set the current turn
-             */
-            case SOCMessage.SETTURN:
-                handleGAMEELEMENT(ga, GEType.CURRENT_PLAYER, ((SOCSetTurn) mes).getPlayerNumber());
-                break;
-
-            /**
-             * set who the first player is
-             */
-            case SOCMessage.FIRSTPLAYER:
-                handleGAMEELEMENT(ga, GEType.FIRST_PLAYER, ((SOCFirstPlayer) mes).getPlayerNumber());
-                break;
-
-            /**
-             * update who's turn it is
-             */
-            case SOCMessage.TURN:
-                handleTURN((SOCTurn) mes);
-                break;
-
-            /**
-             * receive player information
-             */
-            case SOCMessage.PLAYERELEMENT:
-                handlePLAYERELEMENT((SOCPlayerElement) mes);
-                break;
-
-            /**
-             * receive player information.
-             * Added 2017-12-10 for v2.0.00.
-             */
-            case SOCMessage.PLAYERELEMENTS:
-                handlePLAYERELEMENTS((SOCPlayerElements) mes);
-                break;
-
-            /**
-             * update game element information.
-             * Added 2017-12-24 for v2.0.00.
-             */
-            case SOCMessage.GAMEELEMENTS:
-                handleGAMEELEMENTS((SOCGameElements) mes);
-                break;
-
-            /**
-             * receive resource count
-             */
-            case SOCMessage.RESOURCECOUNT:
-                handleRESOURCECOUNT((SOCResourceCount) mes);
-                break;
-
-            /**
-             * receive player's last settlement location.
-             * Added 2017-12-23 for v2.0.00.
-             */
-            case SOCMessage.LASTSETTLEMENT:
-                SOCDisplaylessPlayerClient.handleLASTSETTLEMENT
-                    ((SOCLastSettlement) mes, client.games.get(((SOCLastSettlement) mes).getGame()));
-                break;
-
-            /**
-             * the latest dice result
-             */
-            case SOCMessage.DICERESULT:
-                handleDICERESULT((SOCDiceResult) mes);
-                break;
-
-            /**
-             * a player built something
-             */
-            case SOCMessage.PUTPIECE:
-                handlePUTPIECE((SOCPutPiece) mes);
-                break;
-
-            /**
-             * the current player has cancelled an initial settlement,
-             * or has tried to place a piece illegally.
-             */
-            case SOCMessage.CANCELBUILDREQUEST:
-                handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
-                break;
-
-            /**
-             * the robber or pirate moved
-             */
-            case SOCMessage.MOVEROBBER:
-                handleMOVEROBBER((SOCMoveRobber) mes);
-                break;
-
-            /**
-             * prompt this player to discard
-             */
-            case SOCMessage.DISCARDREQUEST:
-                handleDISCARDREQUEST((SOCDiscardRequest) mes);
-                break;
-
-            /**
-             * prompt this player to choose a player to rob
-             */
-            case SOCMessage.CHOOSEPLAYERREQUEST:
-                handleCHOOSEPLAYERREQUEST((SOCChoosePlayerRequest) mes);
-                break;
-
-            /**
-             * Prompt this player to choose to rob cloth or rob resources.
-             * Added 2012-11-17 for v2.0.00.
-             */
-            case SOCMessage.CHOOSEPLAYER:
-                handleCHOOSEPLAYER((SOCChoosePlayer) mes);
-                break;
-
-            /**
-             * A player has discarded resources.
-             * Added 2021-11-26 for v2.5.00.
-             */
-            case SOCMessage.DISCARD:
-                handleDISCARD((SOCDiscard) mes);
-                break;
-
-            /**
-             * a player has made a bank/port trade
-             */
-            case SOCMessage.BANKTRADE:
-                handleBANKTRADE((SOCBankTrade) mes, isPractice);
-                break;
-
-            /**
-             * a player has made an offer
-             */
-            case SOCMessage.MAKEOFFER:
-                handleMAKEOFFER((SOCMakeOffer) mes);
-                break;
-
-            /**
-             * a player has cleared her offer
-             */
-            case SOCMessage.CLEAROFFER:
-                handleCLEAROFFER((SOCClearOffer) mes);
-                break;
-
-            /**
-             * a player has rejected an offer,
-             * or server has disallowed our trade-related request.
-             */
-            case SOCMessage.REJECTOFFER:
-                handleREJECTOFFER((SOCRejectOffer) mes);
-                break;
-
-            /**
-             * a player has accepted a trade offer
-             */
-            case SOCMessage.ACCEPTOFFER:
-                handleACCEPTOFFER((SOCAcceptOffer) mes);
-                break;
-
-            /**
-             * the trade message needs to be cleared
-             */
-            case SOCMessage.CLEARTRADEMSG:
-                handleCLEARTRADEMSG((SOCClearTradeMsg) mes);
-                break;
-
-            /**
-             * update game data, like the current number of development cards
-             */
-            case SOCMessage.DEVCARDCOUNT:
-                handleGAMEELEMENT(ga, GEType.DEV_CARD_COUNT, ((SOCDevCardCount) mes).getNumDevCards());
-                break;
-
-            /**
-             * a dev card action, either draw, play, or add to hand
-             */
-            case SOCMessage.DEVCARDACTION:
-                handleDEVCARDACTION(isPractice, (SOCDevCardAction) mes);
-                break;
-
-            /**
-             * set the flag that tells if a player has played a
-             * development card this turn
-             */
-            case SOCMessage.SETPLAYEDDEVCARD:
-                handleSETPLAYEDDEVCARD((SOCSetPlayedDevCard) mes);
-                break;
-
-            /**
-             * receive a list of all the potential settlements for a player
-             */
-            case SOCMessage.POTENTIALSETTLEMENTS:
-                handlePOTENTIALSETTLEMENTS((SOCPotentialSettlements) mes);
-                break;
-
-            /**
-             * handle the change face message
-             */
-            case SOCMessage.CHANGEFACE:
-                handleCHANGEFACE((SOCChangeFace) mes);
-                break;
-
-            /**
              * handle the reject connection message
              */
             case SOCMessage.REJECTCONNECTION:
                 handleREJECTCONNECTION((SOCRejectConnection) mes);
-                break;
-
-            /**
-             * handle the longest road message
-             */
-            case SOCMessage.LONGESTROAD:
-                handleGAMEELEMENT(ga, GEType.LONGEST_ROAD_PLAYER, ((SOCLongestRoad) mes).getPlayerNumber());
-                break;
-
-            /**
-             * handle the largest army message
-             */
-            case SOCMessage.LARGESTARMY:
-                handleGAMEELEMENT(ga, GEType.LARGEST_ARMY_PLAYER, ((SOCLargestArmy) mes).getPlayerNumber());
-                break;
-
-            /**
-             * handle the seat lock state message
-             */
-            case SOCMessage.SETSEATLOCK:
-                handleSETSEATLOCK((SOCSetSeatLock) mes);
-                break;
-
-            /**
-             * handle the roll dice prompt message
-             * (it is now x's turn to roll the dice)
-             */
-            case SOCMessage.ROLLDICEPROMPT:
-                handleROLLDICEPROMPT((SOCRollDicePrompt) mes);
                 break;
 
             /**
@@ -616,20 +386,6 @@ public class MessageHandler
                 break;
 
             /**
-             * player stats (as of 20100312 (v 1.1.09))
-             */
-            case SOCMessage.PLAYERSTATS:
-                handlePLAYERSTATS((SOCPlayerStats) mes);
-                break;
-
-            /**
-             * debug piece Free Placement (as of 20110104 (v 1.1.12))
-             */
-            case SOCMessage.DEBUGFREEPLACE:
-                handleDEBUGFREEPLACE((SOCDebugFreePlace) mes);
-                break;
-
-            /**
              * generic 'simple request' response from the server.
              * Added 2013-02-19 for v1.1.18.
              */
@@ -654,71 +410,6 @@ public class MessageHandler
                 break;
 
             /**
-             * All players' dice roll result resources.
-             * Added 2013-09-20 for v2.0.00.
-             */
-            case SOCMessage.DICERESULTRESOURCES:
-                handleDICERESULTRESOURCES((SOCDiceResultResources) mes);
-                break;
-
-            /**
-             * move a previous piece (a ship) somewhere else on the board.
-             * Added 2011-12-05 for v2.0.00.
-             */
-            case SOCMessage.MOVEPIECE:
-                handleMOVEPIECE((SOCMovePiece) mes);
-                break;
-
-            /**
-             * remove a piece (a ship) from the board in certain scenarios.
-             * Added 2013-02-19 for v2.0.00.
-             */
-            case SOCMessage.REMOVEPIECE:
-                handleREMOVEPIECE((SOCRemovePiece) mes);
-                break;
-
-            /**
-             * reveal a hidden hex on the board.
-             * Added 2012-11-08 for v2.0.00.
-             */
-            case SOCMessage.REVEALFOGHEX:
-                handleREVEALFOGHEX((SOCRevealFogHex) mes);
-                break;
-
-            /**
-             * update a village piece's value on the board (cloth remaining).
-             * Added 2012-11-16 for v2.0.00.
-             */
-            case SOCMessage.PIECEVALUE:
-                handlePIECEVALUE((SOCPieceValue) mes);
-                break;
-
-            /**
-             * Text that a player has been awarded Special Victory Point(s).
-             * Added 2012-12-21 for v2.0.00.
-             */
-            case SOCMessage.SVPTEXTMSG:
-                handleSVPTEXTMSG((SOCSVPTextMessage) mes);
-                break;
-
-            /**
-             * a special inventory item action: either add or remove,
-             * or we cannot play our requested item.
-             * Added 2013-11-26 for v2.0.00.
-             */
-            case SOCMessage.INVENTORYITEMACTION:
-                handleINVENTORYITEMACTION((SOCInventoryItemAction) mes);
-                break;
-
-            /**
-             * Special Item change announcements.
-             * Added 2014-04-16 for v2.0.00.
-             */
-            case SOCMessage.SETSPECIALITEM:
-                handleSETSPECIALITEM(client.games, (SOCSetSpecialItem) mes);
-                break;
-
-            /**
              * Localized i18n strings for game items.
              * Added 2015-01-11 for v2.0.00.
              */
@@ -735,55 +426,11 @@ public class MessageHandler
                 break;
 
             /**
-             * Report robbery result.
-             * Added 2020-09-15 for v2.5.00.
-             */
-            case SOCMessage.ROBBERYRESULT:
-                handleROBBERYRESULT
-                    ((SOCRobberyResult) mes, client.games.get(((SOCMessageForGame) mes).getGame()));
-                break;
-
-            /**
-             * Player has Picked Resources.
-             * Added 2020-12-14 for v2.5.00.
-             */
-            case SOCMessage.PICKRESOURCES:
-                handlePICKRESOURCES
-                    ((SOCPickResources) mes, client.games.get(((SOCMessageForGame) mes).getGame()));
-                break;
-
-            /**
              * Server has declined player's request.
              * Added 2021-12-08 for v2.5.00.
              */
             case SOCMessage.DECLINEPLAYERREQUEST:
                 handleDECLINEPLAYERREQUEST((SOCDeclinePlayerRequest) mes);
-                break;
-
-            /**
-             * Undo moving or placing a piece.
-             * Added 2022-11-14 for v2.7.00.
-             */
-            case SOCMessage.UNDOPUTPIECE:
-                handleUNDOPUTPIECE((SOCUndoPutPiece) mes);
-                break;
-
-            /**
-             * Update last-action data.
-             * Added 2022-12-20 for v2.7.00.
-             */
-            case SOCMessage.SETLASTACTION:
-                SOCDisplaylessPlayerClient.handleSETLASTACTION
-                    ((SOCSetLastAction) mes, client.games.get(((SOCSetLastAction) mes).getGame()));
-                break;
-
-            /**
-             * Can't undo the most recent action.
-             * Added 2025-01-07 for v2.7.00.
-             */
-            case SOCMessage.UNDONOTALLOWEDREASONTEXT:
-                SOCDisplaylessPlayerClient.handleUNDONOTALLOWEDREASONTEXT
-                    ((SOCUndoNotAllowedReasonText) mes, client.games.get(((SOCUndoNotAllowedReasonText) mes).getGame()));
                 break;
 
             /**
@@ -827,6 +474,284 @@ public class MessageHandler
         }
 
     }  // treat
+
+    /**
+     * Handle trade-related messages: bank trades, player offers, accept/reject/clear.
+     * @param mes  the message
+     * @param isPractice  from practice server?
+     * @return true if this method handled the message
+     */
+    private boolean handleTradeMessages(SOCMessage mes, final boolean isPractice)
+    {
+        switch (mes.getType())
+        {
+        case SOCMessage.BANKTRADE:
+            handleBANKTRADE((SOCBankTrade) mes, isPractice);
+            return true;
+
+        case SOCMessage.MAKEOFFER:
+            handleMAKEOFFER((SOCMakeOffer) mes);
+            return true;
+
+        case SOCMessage.CLEAROFFER:
+            handleCLEAROFFER((SOCClearOffer) mes);
+            return true;
+
+        case SOCMessage.REJECTOFFER:
+            handleREJECTOFFER((SOCRejectOffer) mes);
+            return true;
+
+        case SOCMessage.ACCEPTOFFER:
+            handleACCEPTOFFER((SOCAcceptOffer) mes);
+            return true;
+
+        case SOCMessage.CLEARTRADEMSG:
+            handleCLEARTRADEMSG((SOCClearTradeMsg) mes);
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
+    /**
+     * Handle turn and dice-related messages: game state, turn changes, dice results.
+     * @param mes  the message
+     * @param isPractice  from practice server?
+     * @param ga   the game object (may be null for non-game messages)
+     * @return true if this method handled the message
+     */
+    private boolean handleTurnMessages(SOCMessage mes, final boolean isPractice, final SOCGame ga)
+    {
+        switch (mes.getType())
+        {
+        case SOCMessage.STARTGAME:
+            handleSTARTGAME((SOCStartGame) mes);
+            return true;
+
+        case SOCMessage.GAMESTATE:
+            handleGAMESTATE((SOCGameState) mes);
+            return true;
+
+        case SOCMessage.SETTURN:
+            handleGAMEELEMENT(ga, GEType.CURRENT_PLAYER, ((SOCSetTurn) mes).getPlayerNumber());
+            return true;
+
+        case SOCMessage.FIRSTPLAYER:
+            handleGAMEELEMENT(ga, GEType.FIRST_PLAYER, ((SOCFirstPlayer) mes).getPlayerNumber());
+            return true;
+
+        case SOCMessage.TURN:
+            handleTURN((SOCTurn) mes);
+            return true;
+
+        case SOCMessage.DICERESULT:
+            handleDICERESULT((SOCDiceResult) mes);
+            return true;
+
+        case SOCMessage.ROLLDICEPROMPT:
+            handleROLLDICEPROMPT((SOCRollDicePrompt) mes);
+            return true;
+
+        case SOCMessage.DICERESULTRESOURCES:
+            handleDICERESULTRESOURCES((SOCDiceResultResources) mes);
+            return true;
+
+        case SOCMessage.SETLASTACTION:
+            SOCDisplaylessPlayerClient.handleSETLASTACTION
+                ((SOCSetLastAction) mes, client.games.get(((SOCSetLastAction) mes).getGame()));
+            return true;
+
+        case SOCMessage.UNDONOTALLOWEDREASONTEXT:
+            SOCDisplaylessPlayerClient.handleUNDONOTALLOWEDREASONTEXT
+                ((SOCUndoNotAllowedReasonText) mes, client.games.get(((SOCUndoNotAllowedReasonText) mes).getGame()));
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
+    /**
+     * Handle building and piece-related messages: put/move/remove/undo pieces,
+     * dev cards, potential settlements.
+     * @param mes  the message
+     * @param isPractice  from practice server?
+     * @param ga   the game object (may be null for non-game messages)
+     * @return true if this method handled the message
+     */
+    private boolean handleBuildMessages(SOCMessage mes, final boolean isPractice, final SOCGame ga)
+    {
+        switch (mes.getType())
+        {
+        case SOCMessage.PUTPIECE:
+            handlePUTPIECE((SOCPutPiece) mes);
+            return true;
+
+        case SOCMessage.CANCELBUILDREQUEST:
+            handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
+            return true;
+
+        case SOCMessage.LASTSETTLEMENT:
+            SOCDisplaylessPlayerClient.handleLASTSETTLEMENT
+                ((SOCLastSettlement) mes, client.games.get(((SOCLastSettlement) mes).getGame()));
+            return true;
+
+        case SOCMessage.DEVCARDCOUNT:
+            handleGAMEELEMENT(ga, GEType.DEV_CARD_COUNT, ((SOCDevCardCount) mes).getNumDevCards());
+            return true;
+
+        case SOCMessage.DEVCARDACTION:
+            handleDEVCARDACTION(isPractice, (SOCDevCardAction) mes);
+            return true;
+
+        case SOCMessage.SETPLAYEDDEVCARD:
+            handleSETPLAYEDDEVCARD((SOCSetPlayedDevCard) mes);
+            return true;
+
+        case SOCMessage.POTENTIALSETTLEMENTS:
+            handlePOTENTIALSETTLEMENTS((SOCPotentialSettlements) mes);
+            return true;
+
+        case SOCMessage.DEBUGFREEPLACE:
+            handleDEBUGFREEPLACE((SOCDebugFreePlace) mes);
+            return true;
+
+        case SOCMessage.MOVEPIECE:
+            handleMOVEPIECE((SOCMovePiece) mes);
+            return true;
+
+        case SOCMessage.REMOVEPIECE:
+            handleREMOVEPIECE((SOCRemovePiece) mes);
+            return true;
+
+        case SOCMessage.INVENTORYITEMACTION:
+            handleINVENTORYITEMACTION((SOCInventoryItemAction) mes);
+            return true;
+
+        case SOCMessage.SETSPECIALITEM:
+            handleSETSPECIALITEM(client.games, (SOCSetSpecialItem) mes);
+            return true;
+
+        case SOCMessage.UNDOPUTPIECE:
+            handleUNDOPUTPIECE((SOCUndoPutPiece) mes);
+            return true;
+
+        case SOCMessage.REVEALFOGHEX:
+            handleREVEALFOGHEX((SOCRevealFogHex) mes);
+            return true;
+
+        case SOCMessage.PIECEVALUE:
+            handlePIECEVALUE((SOCPieceValue) mes);
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
+    /**
+     * Handle resource and robbery-related messages: resource counts, discards,
+     * robber movement, pick resources, robbery results.
+     * @param mes  the message
+     * @param isPractice  from practice server?
+     * @param ga   the game object (may be null for non-game messages)
+     * @return true if this method handled the message
+     */
+    private boolean handleResourceMessages(SOCMessage mes, final boolean isPractice, final SOCGame ga)
+    {
+        switch (mes.getType())
+        {
+        case SOCMessage.RESOURCECOUNT:
+            handleRESOURCECOUNT((SOCResourceCount) mes);
+            return true;
+
+        case SOCMessage.MOVEROBBER:
+            handleMOVEROBBER((SOCMoveRobber) mes);
+            return true;
+
+        case SOCMessage.DISCARDREQUEST:
+            handleDISCARDREQUEST((SOCDiscardRequest) mes);
+            return true;
+
+        case SOCMessage.CHOOSEPLAYERREQUEST:
+            handleCHOOSEPLAYERREQUEST((SOCChoosePlayerRequest) mes);
+            return true;
+
+        case SOCMessage.CHOOSEPLAYER:
+            handleCHOOSEPLAYER((SOCChoosePlayer) mes);
+            return true;
+
+        case SOCMessage.DISCARD:
+            handleDISCARD((SOCDiscard) mes);
+            return true;
+
+        case SOCMessage.ROBBERYRESULT:
+            handleROBBERYRESULT
+                ((SOCRobberyResult) mes, client.games.get(((SOCMessageForGame) mes).getGame()));
+            return true;
+
+        case SOCMessage.PICKRESOURCES:
+            handlePICKRESOURCES
+                ((SOCPickResources) mes, client.games.get(((SOCMessageForGame) mes).getGame()));
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
+    /**
+     * Handle player information and status messages: player/game elements,
+     * face icon, longest road, largest army, seat lock, stats, SVP text.
+     * @param mes  the message
+     * @param ga   the game object (may be null for non-game messages)
+     * @return true if this method handled the message
+     */
+    private boolean handlePlayerInfoMessages(SOCMessage mes, final SOCGame ga)
+    {
+        switch (mes.getType())
+        {
+        case SOCMessage.PLAYERELEMENT:
+            handlePLAYERELEMENT((SOCPlayerElement) mes);
+            return true;
+
+        case SOCMessage.PLAYERELEMENTS:
+            handlePLAYERELEMENTS((SOCPlayerElements) mes);
+            return true;
+
+        case SOCMessage.GAMEELEMENTS:
+            handleGAMEELEMENTS((SOCGameElements) mes);
+            return true;
+
+        case SOCMessage.CHANGEFACE:
+            handleCHANGEFACE((SOCChangeFace) mes);
+            return true;
+
+        case SOCMessage.LONGESTROAD:
+            handleGAMEELEMENT(ga, GEType.LONGEST_ROAD_PLAYER, ((SOCLongestRoad) mes).getPlayerNumber());
+            return true;
+
+        case SOCMessage.LARGESTARMY:
+            handleGAMEELEMENT(ga, GEType.LARGEST_ARMY_PLAYER, ((SOCLargestArmy) mes).getPlayerNumber());
+            return true;
+
+        case SOCMessage.SETSEATLOCK:
+            handleSETSEATLOCK((SOCSetSeatLock) mes);
+            return true;
+
+        case SOCMessage.PLAYERSTATS:
+            handlePLAYERSTATS((SOCPlayerStats) mes);
+            return true;
+
+        case SOCMessage.SVPTEXTMSG:
+            handleSVPTEXTMSG((SOCSVPTextMessage) mes);
+            return true;
+
+        default:
+            return false;
+        }
+    }
 
     /**
      * Handle the "version" message, server's version report.
