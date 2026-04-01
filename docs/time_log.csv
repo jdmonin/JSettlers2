@@ -1,0 +1,39 @@
+date,issue_id,issue_title,person,activity,minutes,notes,pr_link
+2026-03-10,37,630:P2 Duplicated message-send blocks in handlePUTPIECE,Ricky,triage,15,Read four piece-type branches to identify duplicated pattern,
+2026-03-10,37,630:P2 Duplicated message-send blocks in handlePUTPIECE,Ricky,plan,15,Designed helper method signature and builtKeys array approach,
+2026-03-10,37,630:P2 Duplicated message-send blocks in handlePUTPIECE,Ricky,implement,45,Created sendPiecePlacedMessages helper and replaced 4 blocks; fixed off-by-one in piece type array,
+2026-03-10,37,630:P2 Duplicated message-send blocks in handlePUTPIECE,Ricky,verify,15,Ran gradle test — 316/317 pass (same baseline),
+2026-03-10,37,630:P2 Duplicated message-send blocks in handlePUTPIECE,Ricky,pr_overhead,15,Wrote PR description with summary/verification/evidence,https://github.com/evanalba/JSettlers2/pull/44
+2026-03-10,39,630:P2 Complex conditionals and dead code in dispatch(),Ricky,triage,15,Counted 85 commented-out event-recording lines across dispatch switch,
+2026-03-10,39,630:P2 Complex conditionals and dead code in dispatch(),Ricky,plan,15,Confirmed event-recording system is fully dead — safe to remove,
+2026-03-10,39,630:P2 Complex conditionals and dead code in dispatch(),Ricky,implement,30,Scripted removal of all commented-out lines and cleaned up blank lines,
+2026-03-10,39,630:P2 Complex conditionals and dead code in dispatch(),Ricky,verify,15,Ran gradle test — 316/317 pass,
+2026-03-10,39,630:P2 Complex conditionals and dead code in dispatch(),Ricky,pr_overhead,15,Wrote PR description,https://github.com/evanalba/JSettlers2/pull/45
+2026-03-10,34,630:P2 Long Method — handlePUTPIECE in SOCGameMessageHandler,Ricky,triage,30,Read full 350-line method and mapped game state checks per piece type,
+2026-03-10,34,630:P2 Long Method — handlePUTPIECE in SOCGameMessageHandler,Ricky,plan,30,Designed PutPieceDecline inner class and per-piece helper signatures,
+2026-03-10,34,630:P2 Long Method — handlePUTPIECE in SOCGameMessageHandler,Ricky,implement,75,Extracted 4 helpers and updated switch to use PutPieceDecline return values,
+2026-03-10,34,630:P2 Long Method — handlePUTPIECE in SOCGameMessageHandler,Ricky,verify,15,Ran gradle test — 316/317 pass,
+2026-03-10,34,630:P2 Long Method — handlePUTPIECE in SOCGameMessageHandler,Ricky,pr_overhead,15,Wrote PR description,https://github.com/evanalba/JSettlers2/pull/46
+2026-03-11,38,630:P2 Long Method — putPieceCommon in SOCGame,Ricky,triage,30,Read 285-line method and identified 5 responsibility phases,
+2026-03-11,38,630:P2 Long Method — putPieceCommon in SOCGame,Ricky,plan,30,Mapped shared variables between phases; decided on parameter-passing approach,
+2026-03-11,38,630:P2 Long Method — putPieceCommon in SOCGame,Ricky,implement,60,Extracted 4 helpers for fog hex / longest road / winner / turn state,
+2026-03-11,38,630:P2 Long Method — putPieceCommon in SOCGame,Ricky,verify,30,Ran gradle test and manually checked fog hex and longest road paths,
+2026-03-11,38,630:P2 Long Method — putPieceCommon in SOCGame,Ricky,pr_overhead,15,Wrote PR description,https://github.com/evanalba/JSettlers2/pull/47
+2026-03-11,35,630:P2 Giant switch in MessageHandler.handle,Ricky,triage,45,Read 3200-line switch and categorized all ~90 cases into groups,
+2026-03-11,35,630:P2 Giant switch in MessageHandler.handle,Ricky,plan,30,Decided on 5 groups: trade / turn / build / resource / player info,
+2026-03-11,35,630:P2 Giant switch in MessageHandler.handle,Ricky,implement,90,Extracted 48 cases into 5 group methods,
+2026-03-11,35,630:P2 Giant switch in MessageHandler.handle,Ricky,verify,30,Ran gradle test — 316/317 pass,
+2026-03-11,35,630:P2 Giant switch in MessageHandler.handle,Ricky,pr_overhead,15,Wrote PR description,https://github.com/evanalba/JSettlers2/pull/48
+2026-03-11,35,630:P2 Giant switch in MessageHandler.handle,Ricky,rework,15,Fixed missing case that fell through to default after regrouping,
+2026-03-11,36,630:P2 God Class — SOCGame.java,Ricky,triage,45,Read SOCGame and identified dice/resource logic as most extractable,
+2026-03-11,36,630:P2 God Class — SOCGame.java,Ricky,plan,30,Planned SOCGameDiceHandler class and listed 7 needed accessors,
+2026-03-11,36,630:P2 God Class — SOCGame.java,Ricky,implement,90,Created handler class and moved 5 methods; added package-private accessors,
+2026-03-11,36,630:P2 God Class — SOCGame.java,Ricky,verify,30,Ran gradle test; found pickGoldHexResources also calls rollDice_update7gameState,
+2026-03-11,36,630:P2 God Class — SOCGame.java,Ricky,pr_overhead,15,Wrote PR description,https://github.com/evanalba/JSettlers2/pull/49
+2026-03-11,36,630:P2 God Class — SOCGame.java,Ricky,rework,15,Updated pickGoldHexResources to call through diceHandler,
+2026-03-23,34,630:P2 Long Method — handlePUTPIECE in SOCGameMessageHandler,Ricky,rework,15,Added braces to two single-line if blocks per Evan's code review,https://github.com/evanalba/JSettlers2/pull/46
+2026-03-24,26,630:P2 Replace switch with if statements,Ricky,review,15,Reviewed PR #51 — straightforward switch-to-if refactor; approved,https://github.com/evanalba/JSettlers2/pull/51
+2026-03-24,27,630:P2 Catch Exception instead of Throwable,Ricky,review,15,Reviewed PR #52 — narrowing catch type looks correct; approved,https://github.com/evanalba/JSettlers2/pull/52
+2026-03-24,28,630:P2 Merge if statement with enclosing one,Ricky,review,15,Reviewed PR #53 — combined condition is equivalent; approved,https://github.com/evanalba/JSettlers2/pull/53
+2026-03-24,29,630:P2 Reduce cognitive complexity in updateLongestRoad,Ricky,review,30,Reviewed PR #54 — caught flipped comparison operator in extracted method; requested changes,https://github.com/evanalba/JSettlers2/pull/54
+2026-04-01,38,630:P2 Long Method — putPieceCommon in SOCGame,Ricky,rework,15,Restored fog-hex context in helper comment after Luke's PR feedback,https://github.com/evanalba/JSettlers2/pull/47
