@@ -3965,36 +3965,7 @@ public class SOCGame implements Serializable, Cloneable
         lastAction = null;
             // clear previous, in case a side effect like putPieceCommon_checkFogHexes will call setLastActionCannotUndo
 
-        /**
-         * FOG_HEX: On large board, look for fog and reveal its hex if we're
-         * placing a road or ship touching the fog hex's corner.
-         * During initial placement, a settlement could reveal up to 3 hexes.
-         * Current player gets a resource from each revealed hex.
-         */
-        if (hasSeaBoard && isAtServer && ! (pp instanceof SOCVillage) && (gameState != UNDOING_ACTION))
-        {
-            if (pp instanceof SOCRoutePiece)
-            {
-                // roads, ships
-                final int[] endHexes = ((SOCBoardLarge) board).getAdjacentHexesToEdgeEnds(coord);
-                putPieceCommon_checkFogHexes(endHexes, false);
-            }
-            else if ((pp instanceof SOCSettlement) && isInitialPlacement())
-            {
-                // settlements
-                final List<Integer> adjacHexes = board.getAdjacentHexesToNode(coord);
-                final int L = adjacHexes.size();
-                int[] seHexes = new int[L];
-                for (int i = 0; i < L; ++i)
-                    seHexes[i] = adjacHexes.get(i);
-                putPieceCommon_checkFogHexes(seHexes, true);
-
-                // Any settlement might reveal 1-3 fog hexes.
-                // So, the player's revealed getNeedToPickGoldHexResources might be 0 to 3.
-                // For the final initial settlement, this is recalculated below
-                // to also include adjacent gold hexes that weren't hidden by fog.
-            }
-        }
+        putPieceCommon_revealFogHexes(pp, coord);
 
         /** Side effects at server, including any from owningPlayer.putPiece */
         List<GameAction.Effect> effects = null;
@@ -4117,10 +4088,71 @@ public class SOCGame implements Serializable, Cloneable
 
         final int placingPN = ppPlayer.getPlayerNumber();
 
-        /**
-         * update which player has longest road or trade route
-         */
         final int longestRoadPN = playerWithLongestRoad;
+        putPieceCommon_updateLongestRoad(pp, coord, pieceType, placingPN);
+
+        /**
+         * If temporary piece, don't update gamestate-related info.
+         */
+        if (isTempPiece || (gameState == UNDOING_ACTION))
+        {
+            return;   // <--- Early return: Temporary piece ---
+        }
+
+        int[] oldNewGS = putPieceCommon_checkForWinner(pieceType, coord, placingPN, longestRoadPN, effects);
+        putPieceCommon_advanceTurnState(oldNewGS);
+    }
+
+    /**
+     * Reveal any fog hexes on the large sea board adjacent to a road, ship,
+     * or initial settlement being placed. An initial settlement can reveal
+     * 1 to 3 fog hexes, and the placing player can gain a resource from
+     * each revealed hex. Called at start of
+     * {@link #putPieceCommon(SOCPlayingPiece, boolean)} before piece is placed on the board.
+     *
+     * @param pp  The piece being placed
+     * @param coord  Piece coordinate from {@link SOCPlayingPiece#getCoordinates()}
+     * @since 2.7.00
+     */
+    private void putPieceCommon_revealFogHexes(final SOCPlayingPiece pp, final int coord)
+    {
+        if (hasSeaBoard && isAtServer && ! (pp instanceof SOCVillage) && (gameState != UNDOING_ACTION))
+        {
+            if (pp instanceof SOCRoutePiece)
+            {
+                // roads, ships
+                final int[] endHexes = ((SOCBoardLarge) board).getAdjacentHexesToEdgeEnds(coord);
+                putPieceCommon_checkFogHexes(endHexes, false);
+            }
+            else if ((pp instanceof SOCSettlement) && isInitialPlacement())
+            {
+                // settlements
+                final List<Integer> adjacHexes = board.getAdjacentHexesToNode(coord);
+                final int L = adjacHexes.size();
+                int[] seHexes = new int[L];
+                for (int i = 0; i < L; ++i)
+                    seHexes[i] = adjacHexes.get(i);
+                putPieceCommon_checkFogHexes(seHexes, true);
+            }
+        }
+    }
+
+    /**
+     * Update which player has the longest road or trade route after placing a piece.
+     * Called from {@link #putPieceCommon(SOCPlayingPiece, boolean)}.
+     * For a road or ship, recalculates the placing player's longest road.
+     * For a settlement, checks if it cut another player's route or connected
+     * the placing player's own roads and ships at a new coastal settlement.
+     *
+     * @param pp  The piece placed
+     * @param coord  Piece coordinate from {@link SOCPlayingPiece#getCoordinates()}
+     * @param pieceType  Piece type from {@link SOCPlayingPiece#getType()}
+     * @param placingPN  Player number who placed the piece
+     * @since 2.7.00
+     */
+    private void putPieceCommon_updateLongestRoad
+        (final SOCPlayingPiece pp, final int coord, final int pieceType, final int placingPN)
+    {
         if (pieceType != SOCPlayingPiece.CITY)
         {
             if (pp instanceof SOCRoutePiece)
@@ -4188,15 +4220,27 @@ public class SOCGame implements Serializable, Cloneable
                     updateLongestRoad(placingPN);
             }
         }
+    }
 
-        /**
-         * If temporary piece, don't update gamestate-related info.
-         */
-        if (isTempPiece || (gameState == UNDOING_ACTION))
-        {
-            return;   // <--- Early return: Temporary piece ---
-        }
-
+    /**
+     * Record side-effect info, remember ships placed this turn,
+     * and check if any player has won the game.
+     * Called from {@link #putPieceCommon(SOCPlayingPiece, boolean)} after longest road is updated
+     * and only when this is not a temporary piece or undo action.
+     *
+     * @param pieceType  Piece type from {@link SOCPlayingPiece#getType()}
+     * @param coord  Piece coordinate from {@link SOCPlayingPiece#getCoordinates()}
+     * @param placingPN  Player number who placed the piece
+     * @param longestRoadPN  Value of {@link #playerWithLongestRoad} before longest road was updated
+     * @param effects  Side effects list from player putPiece calls, or {@code null}
+     * @return  The old/new gameState array if free road placement, or {@code null};
+     *     if non-null, caller should pass to {@link #putPieceCommon_advanceTurnState(int[])}
+     * @since 2.7.00
+     */
+    private int[] putPieceCommon_checkForWinner
+        (final int pieceType, final int coord, final int placingPN,
+         final int longestRoadPN, List<GameAction.Effect> effects)
+    {
         int[] oldNewGS = null;
         if ((gameState == PLACING_ROAD) || (gameState == PLACING_SETTLEMENT)
             || (gameState == PLACING_CITY) || (gameState == PLACING_SHIP)
@@ -4234,21 +4278,25 @@ public class SOCGame implements Serializable, Cloneable
         if (cannotUndoReason != null)
             lastAction.cannotUndoReason = cannotUndoReason;
 
-        /**
-         * Remember ships placed this turn
-         */
-        if ((pp.getType() == SOCPlayingPiece.SHIP) && (gameState != 0) && (gameState != LOADING))
+        if ((pieceType == SOCPlayingPiece.SHIP) && (gameState != 0) && (gameState != LOADING))
             shipsPlacedThisTurn.add(Integer.valueOf(coord));
 
-        /**
-         * check if the game is over
-         */
         if ((gameState > READY) && (oldGameState != SPECIAL_BUILDING))
             checkForWinner();
 
-        /**
-         * update the state of the game, and possibly current player
-         */
+        return oldNewGS;
+    }
+
+    /**
+     * Update the state of the game, and possibly current player, after placing a piece.
+     * Called from {@link #putPieceCommon(SOCPlayingPiece, boolean)} as the final step.
+     *
+     * @param oldNewGS  If non-null, array to store new gameState into {@code oldNewGS[1]}
+     *     after advancing turn state; from {@link #putPieceCommon_checkForWinner(int, int, int, int, List)}
+     * @since 2.7.00
+     */
+    private void putPieceCommon_advanceTurnState(final int[] oldNewGS)
+    {
         if (active)
             advanceTurnStateAfterPutPiece();
 
