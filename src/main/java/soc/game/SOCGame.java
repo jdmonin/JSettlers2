@@ -1136,6 +1136,13 @@ public class SOCGame implements Serializable, Cloneable
     private boolean hasRolledSeven;
 
     /**
+     * Handler for dice-rolling and resource-distribution logic,
+     * extracted from this class to improve cohesion.
+     * @since 2.8.00
+     */
+    private SOCGameDiceHandler diceHandler;
+
+    /**
      * The most recent {@link #moveRobber(int, int)} or {@link #movePirate(int, int)} result.
      * Used at server only.
      * @since 2.0.00
@@ -1177,7 +1184,7 @@ public class SOCGame implements Serializable, Cloneable
      *        After picking gold from a dice roll, this will usually be {@link #PLAY1}.
      *        Sometimes will be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
      *        Can be {@link #ROLL_OR_CARD} in scenario {@link SOCGameOptionSet#K_SC_PIRI SC_PIRI}:
-     *        See {@link #pickGoldHexResources(int, SOCResourceSet)} and {@link #rollDice_update7gameState()}.
+     *        See {@link #pickGoldHexResources(int, SOCResourceSet)} and {@link SOCGameDiceHandler#rollDice_update7gameState()}.
      *<LI> {@link #LOADING}, {@link #LOADING_RESUMING}:
      *        Holds the actual game state, to be resumed once optional constraints are met and all bots have joined.
      *</UL>
@@ -1589,6 +1596,7 @@ public class SOCGame implements Serializable, Cloneable
         firstPlayerNumber = -1;
         currentDice = -1;
         currentRoll = new RollResult();
+        diceHandler = new SOCGameDiceHandler(this);
         playerWithLargestArmy = -1;
         playerWithLongestRoad = -1;
         boardResetVoteRequester = -1;
@@ -2766,6 +2774,81 @@ public class SOCGame implements Serializable, Cloneable
     {
         return hasRolledSeven;
     }
+
+    // ----- Package-private accessors for SOCGameDiceHandler -----
+
+    /**
+     * Set {@link #currentDice} without the {@link #hasRolledSeven} side effect
+     * that {@link #setCurrentDice(int)} applies.  Used by {@link SOCGameDiceHandler}
+     * during the dice-roll loop where intermediate values shouldn't trigger that flag.
+     * @param v  the dice total
+     * @since 2.8.00
+     */
+    void setCurrentDiceValue(final int v)
+    {
+        currentDice = v;
+    }
+
+    /**
+     * @return the current {@link RollResult} object reused each turn
+     * @since 2.8.00
+     */
+    RollResult getCurrentRollResult()
+    {
+        return currentRoll;
+    }
+
+    /**
+     * @return the {@link Random} used for dice rolls
+     * @since 2.8.00
+     */
+    Random getRandForDice()
+    {
+        return rand;
+    }
+
+    /**
+     * Directly set {@link #gameState} without the side effects of {@link #setGameState(int)}
+     * (no {@code oldGameState} update, no winner check, no {@code updateAtGameFirstTurn}).
+     * @param gs  the new game state
+     * @since 2.8.00
+     */
+    void setGameStateDirect(final int gs)
+    {
+        gameState = gs;
+    }
+
+    /**
+     * Directly set {@link #oldGameState}.
+     * @param gs  the old game state to store
+     * @since 2.8.00
+     */
+    void setOldGameStateDirect(final int gs)
+    {
+        oldGameState = gs;
+    }
+
+    /**
+     * Set the {@link #hasRolledSeven} flag.
+     * @param v  true if a 7 has been rolled
+     * @since 2.8.00
+     */
+    void setHasRolledSeven(final boolean v)
+    {
+        hasRolledSeven = v;
+    }
+
+    /**
+     * Set {@link #robberyWithPirateNotRobber}.
+     * @param v  the new value
+     * @since 2.8.00
+     */
+    void setRobberyWithPirateNotRobber(final boolean v)
+    {
+        robberyWithPirateNotRobber = v;
+    }
+
+    // ----- End package-private accessors for SOCGameDiceHandler -----
 
     /**
      * Current game state.  For general information about
@@ -6533,18 +6616,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canRollDice(int pn)
     {
-        if (currentPlayerNumber != pn)
-        {
-            return false;
-        }
-        else if (gameState != ROLL_OR_CARD)
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        return diceHandler.canRollDice(pn);
     }
 
     /**
@@ -6584,196 +6656,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public RollResult rollDice()
     {
-        // N7C: Roll no 7s until a city is built.
-        // N7: Roll no 7s during first # rounds.
-        //     Use > not >= because roundCount includes current round
-        final boolean okToRoll7
-            = ((isGameOptionSet("N7C")) ? hasBuiltCity : true)
-              && (( ! isGameOptionSet("N7")) || (roundCount > getGameOptionIntValue("N7")));
-
-        int die1, die2;
-        do
-        {
-//            if (rand.nextBoolean())  // JM TEMP - try trigger bot discard-no-move-robber bug
-//            {
-//                die1 = 0; die2 = 7;
-//            } else {
-            die1 = Math.abs(rand.nextInt() % 6) + 1;
-            die2 = Math.abs(rand.nextInt() % 6) + 1;
-//            }
-
-            currentDice = die1 + die2;
-        } while ((currentDice == 7) && ! okToRoll7);
-
-        currentRoll.update(die1, die2);  // also clears currentRoll.cloth (SC_CLVI)
-
-        boolean sc_piri_plGainsGold = false;  // Has a player won against pirate fleet attack? (SC_PIRI)
-        if (isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
-        {
-            /**
-             * Move the pirate fleet along their path.
-             * Copy pirate fleet attack results to currentRoll.
-             * If the pirate fleet is already defeated, do nothing.
-             */
-            final int numSteps = (die1 < die2) ? die1 : die2;
-            final int newPirateHex = ((SOCBoardLarge) board).movePirateHexAlongPath(numSteps);
-            oldGameState = gameState;
-            if (newPirateHex != 0)
-                movePirate(currentPlayerNumber, newPirateHex, numSteps);
-            else
-                robberResult.victims = null;
-
-            final List<SOCPlayer> victims = robberResult.victims;
-            if ((victims != null) && (victims.size() == 1))
-            {
-                currentRoll.sc_piri_fleetAttackVictim = victims.get(0);
-
-                currentRoll.sc_piri_fleetAttackRsrcs = robberResult.sc_piri_loot;
-                if (currentRoll.sc_piri_fleetAttackRsrcs.contains(SOCResourceConstants.GOLD_LOCAL))
-                {
-                    final SOCPlayer plGold = currentRoll.sc_piri_fleetAttackVictim;  // won't be null
-                    plGold.setNeedToPickGoldHexResources(1 + plGold.getNeedToPickGoldHexResources());
-
-                    if (currentDice == 7)
-                    {
-                        hasRolledSeven = true;
-
-                        // Need to set this state only on 7, to pick _before_ discards.  On any other
-                        // dice roll, the free pick here will be combined with the usual roll-result gold picks.
-                        oldGameState = ROLL_OR_CARD;
-                        gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
-
-                        return currentRoll;  // <--- Early return: Wait to pick, then come back & discard ---
-
-                    } else {
-                        sc_piri_plGainsGold = true;
-                    }
-                }
-            } else {
-                currentRoll.sc_piri_fleetAttackVictim = null;
-                currentRoll.sc_piri_fleetAttackRsrcs = null;
-            }
-        }
-
-        /**
-         * handle the seven case
-         */
-        if (currentDice == 7)
-        {
-            rollDice_update7gameState();
-        }
-        else
-        {
-            boolean anyGoldHex = false;
-
-            /**
-             * distribute resources
-             */
-            for (int i = 0; i < maxPlayers; i++)
-            {
-                if (! isSeatVacant(i))
-                {
-                    SOCPlayer pl = players[i];
-                    pl.addRolledResources(getResourcesGainedFromRoll(pl, currentDice));
-                    if (hasSeaBoard && pl.getNeedToPickGoldHexResources() > 0)
-                        anyGoldHex = true;
-                }
-            }
-
-            if (sc_piri_plGainsGold)
-            {
-                anyGoldHex = true;
-                // this 1 gold was already added to that player's getNeedToPickGoldHexResources
-            }
-
-            /**
-             * distribute cloth from villages
-             */
-            if (hasSeaBoard && isGameOptionSet(SOCGameOptionSet.K_SC_CLVI))
-            {
-                // distribute will usually return false; most rolls don't hit dice#s which distribute cloth
-                if (((SOCBoardAtServer) board).distributeClothFromRoll(this, currentRoll, currentDice))
-                    checkForWinner();
-            }
-
-            /**
-             * done, next game state
-             */
-            if (gameState != OVER)
-            {
-                if (! anyGoldHex)
-                {
-                    gameState = PLAY1;
-                } else {
-                    oldGameState = PLAY1;
-                    gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
-                }
-            }
-        }
-
-        return currentRoll;
-    }
-
-    /**
-     * When a 7 is rolled, update the {@link #gameState}:
-     * Always {@link #WAITING_FOR_DISCARDS} if any {@link SOCPlayer#getResources()} total &gt; 7.
-     * Otherwise {@link #PLACING_ROBBER}, {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or (for
-     * scenario option {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI})
-     * {@link #WAITING_FOR_ROB_CHOOSE_PLAYER} or {@link #PLAY1}.
-     *<P>
-     * For state {@link #WAITING_FOR_DISCARDS}, also sets {@link SOCPlayer#setNeedToDiscard(boolean)}.
-     * For state {@link #PLACING_ROBBER}, also clears {@link #robberyWithPirateNotRobber}.
-     * For <tt>_SC_PIRI</tt>, sets <tt>currentRoll.sc_robPossibleVictims</tt>.
-     *<P>
-     * This is a separate method from {@link #rollDice()} because for <tt>_SC_PIRI</tt>, if a player wins against
-     * the pirate fleet, this "7 update" happens only after they pick and gain their free resource.
-     * @since 2.0.00
-     */
-    private final void rollDice_update7gameState()
-    {
-        hasRolledSeven = true;
-
-        /**
-         * if there are players with too many cards, wait for
-         * them to discard
-         */
-        for (int i = 0; i < maxPlayers; i++)
-        {
-            if (players[i].getResources().getTotal() > 7)
-            {
-                players[i].setNeedToDiscard(true);
-                gameState = WAITING_FOR_DISCARDS;
-            }
-        }
-
-        /**
-         * if no one needs to discard, then wait for
-         * the robber to move
-         */
-        if (gameState != WAITING_FOR_DISCARDS)
-        {
-            // next-state logic is similar to playKnight and discard;
-            // if you update this method, check those ones
-
-            placingRobberForKnightCard = false;
-            oldGameState = PLAY1;
-            if (isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
-            {
-                robberyWithPirateNotRobber = false;
-                currentRoll.sc_robPossibleVictims = getPossibleVictims();
-                if (currentRoll.sc_robPossibleVictims.isEmpty())
-                    gameState = PLAY1;  // no victims
-                else
-                    gameState = WAITING_FOR_ROB_CHOOSE_PLAYER;  // 1 or more victims; could choose to not steal anything
-            }
-            else if (canChooseMovePirate())
-            {
-                gameState = WAITING_FOR_ROBBER_OR_PIRATE;
-            } else {
-                robberyWithPirateNotRobber = false;
-                gameState = PLACING_ROBBER;
-            }
-        }
+        return diceHandler.rollDice();
     }
 
     /**
@@ -6792,80 +6675,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public SOCResourceSet getResourcesGainedFromRoll(SOCPlayer player, final int roll)
     {
-        SOCResourceSet resources = new SOCResourceSet();
-        final int robberHex = board.getRobberHex();
-
-        /**
-         * check the hexes touching settlements
-         */
-        getResourcesGainedFromRollPieces(roll, resources, robberHex, player.getSettlements(), 1);
-
-        /**
-         * check the hexes touching cities
-         */
-        getResourcesGainedFromRollPieces(roll, resources, robberHex, player.getCities(), 2);
-
-        return resources;
-    }
-
-    /**
-     * Figure out what resources these piece positions would get on a given roll,
-     * based on the hexes adjacent to the pieces' node coordinates.
-     * Used in {@link #getResourcesGainedFromRoll(SOCPlayer, int)}.
-     *<P>
-     * If {@link #hasSeaBoard}, and the player's adjacent to a
-     * {@link SOCBoardLarge#GOLD_HEX}, the gold-hex resources they must pick
-     * are returned as {@link SOCResourceConstants#GOLD_LOCAL}.
-     *
-     * @param roll     the total number rolled on the dice
-     * @param resources  Add new resources to this set
-     * @param robberHex  Robber's position, from {@link SOCBoard#getRobberHex()}
-     * @param pieces  Collection of a type of the player's {@link SOCPlayingPiece}s at nodes on the board;
-     *             should be either {@link SOCSettlement}s or {@link SOCCity}s
-     * @param incr   Add this many resources (1 or 2) per playing piece
-     * @since 1.1.17
-     */
-    private final void getResourcesGainedFromRollPieces
-        (final int roll, SOCResourceSet resources,
-         final int robberHex, Collection<? extends SOCPlayingPiece> pieces, final int incr)
-    {
-        for (final SOCPlayingPiece p : pieces)
-        {
-            for (final int hexCoord : board.getAdjacentHexesToNode(p.getCoordinates()))
-            {
-                if ((hexCoord == robberHex) || (board.getNumberOnHexFromCoord(hexCoord) != roll))
-                    continue;
-
-                switch (board.getHexTypeFromCoord(hexCoord))
-                {
-                case SOCBoard.CLAY_HEX:
-                    resources.add(incr, SOCResourceConstants.CLAY);
-                    break;
-
-                case SOCBoard.ORE_HEX:
-                    resources.add(incr, SOCResourceConstants.ORE);
-                    break;
-
-                case SOCBoard.SHEEP_HEX:
-                    resources.add(incr, SOCResourceConstants.SHEEP);
-                    break;
-
-                case SOCBoard.WHEAT_HEX:
-                    resources.add(incr, SOCResourceConstants.WHEAT);
-                    break;
-
-                case SOCBoard.WOOD_HEX:
-                    resources.add(incr, SOCResourceConstants.WOOD);
-                    break;
-
-                case SOCBoardLarge.GOLD_HEX:
-                    if (hasSeaBoard)
-                        resources.add(incr, SOCResourceConstants.GOLD_LOCAL);
-                        // if not hasSeaBoard, GOLD_HEX == SOCBoard.MISC_PORT_HEX
-                    break;
-                }
-            }
-        }
+        return diceHandler.getResourcesGainedFromRoll(player, roll);
     }
 
     /**
@@ -7072,7 +6882,7 @@ public class SOCGame implements Serializable, Cloneable
 
         if ((gameState == ROLL_OR_CARD) && (currentDice == 7))
         {
-            rollDice_update7gameState();  // from win vs pirate fleet at dice roll (SC_PIRI)
+            diceHandler.rollDice_update7gameState();  // from win vs pirate fleet at dice roll (SC_PIRI)
                 // -- may set gameState to WAITING_FOR_DISCARDS, etc; see javadoc.
         } else {
             for (int i = 0; i < maxPlayers; i++)
