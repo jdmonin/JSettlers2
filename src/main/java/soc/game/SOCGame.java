@@ -9586,6 +9586,13 @@ public class SOCGame implements Serializable, Cloneable
         if (oldPlayerWithLargestArmy >= -1)
             playerWithLargestArmy = oldPlayerWithLargestArmy;
     }
+    
+    
+    public boolean shouldSkipLongestRoadOwnerRecalculation()
+    {
+        return !isAtServer && serverVersion >= VERSION_FOR_LONGEST_LARGEST_FROM_SERVER;
+    }
+    
 
     /**
      * update which player has longest road longer
@@ -9612,26 +9619,24 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void updateLongestRoad(final int pn)
     {
-        if (isGameOptionSet(SOCGameOptionSet.K_SC_0RVP))
+        if (isGameOptionSet(SOCGameOptionSet.K_SC_0RVP)) {
             return;  // <--- No longest road ---
-
-        //D.ebugPrintln("## updateLongestRoad("+pn+")");
-        int longestLength;
-        int playerLength;
-        int tmpPlayerWithLR = -1;
+        }
 
         players[pn].calcLongestRoad2();
 
-        if (! (isAtServer || (serverVersion < VERSION_FOR_LONGEST_LARGEST_FROM_SERVER)))
-            return;  // <--- for consistency, client shouldn't calc this independently of server ---
+        // CRIT: For consistency, client should not calc longest road independently of server
+        if (shouldSkipLongestRoadOwnerRecalculation()) {
+            return;
+        }
+        
 
-        longestLength = 0;
+        int longestLength = 0;
+        int tmpPlayerWithLR = -1;
 
         for (int i = 0; i < maxPlayers; i++)
         {
-            playerLength = players[i].getLongestRoadLength();
-
-            //D.ebugPrintln("----- LR length for player "+i+" is "+playerLength);
+            final int playerLength = players[i].getLongestRoadLength();
             if (playerLength > longestLength)
             {
                 longestLength = playerLength;
@@ -9639,34 +9644,35 @@ public class SOCGame implements Serializable, Cloneable
             }
         }
 
+
         if (longestLength < 5)  // Minimum length is 5 for the bonus
         {
             playerWithLongestRoad = -1;
+            return;
         }
-        else
+      
+        // NOTE: if there is a tie, the last player to have LR keeps it.
+        // if two or more players are tied for LR and none of them
+        // of them used to have LR, then no one has LR.
+        
+        int playersWithLR = 0;
+
+        for (int i = 0; i < maxPlayers; i++)
         {
-            ///
-            /// if there is a tie, the last player to have LR keeps it.
-            /// if two or more players are tied for LR and none of them
-            /// of them used to have LR, then no one has LR.
-            ///
-            int playersWithLR = 0;
-
-            for (int i = 0; i < maxPlayers; i++)
-                if (players[i].getLongestRoadLength() == longestLength)
-                    playersWithLR++;
-
-            if (playersWithLR == 1)
-            {
-                playerWithLongestRoad = tmpPlayerWithLR;
-            }
-            else if ((playerWithLongestRoad == -1) || (players[playerWithLongestRoad].getLongestRoadLength() != longestLength))
-            {
-                playerWithLongestRoad = -1;
+            if (players[i].getLongestRoadLength() == longestLength) {
+                playersWithLR++;
             }
         }
 
-        //D.ebugPrintln("----- player "+playerWithLongestRoad+" has LR");
+        final boolean noCurrentLRHolder = (playerWithLongestRoad == -1);
+        
+        if (playersWithLR == 1) {
+            playerWithLongestRoad = tmpPlayerWithLR;
+        } else if (noCurrentLRHolder || (players[playerWithLongestRoad].getLongestRoadLength() != longestLength)) {
+            playerWithLongestRoad = -1;
+        }
+            
+
     }
 
     /**
