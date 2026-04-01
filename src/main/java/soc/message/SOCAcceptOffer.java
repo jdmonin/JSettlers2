@@ -285,7 +285,7 @@ public class SOCAcceptOffer extends SOCMessage
     {
         // Strip any resource set labels and unknown=0 from the message, then do the normal strip
 
-        message = message.replace("toAccepting=", "").replace("toOffering=", "").replaceAll("\\|unknown=0", "");
+        message = message.replace("toAccepting=", "").replace("toOffering=", "").replace("|unknown=0", "");
         return SOCMessage.stripAttribNames(message);
     }
 

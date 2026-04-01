@@ -75,8 +75,8 @@ public abstract class DataOutputUtils
     {
         if (htmlText.isEmpty())
             return;
-        sb.append(htmlText.replaceAll("&", "&amp;").replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;").replaceAll("\"", "&quot;").replaceAll("'", "&#39;"));
+        sb.append(htmlText.replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;"));
     }
 
 }

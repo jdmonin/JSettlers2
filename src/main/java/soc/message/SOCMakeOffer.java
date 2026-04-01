@@ -213,7 +213,7 @@ public class SOCMakeOffer extends SOCMessage
         message = message.replace("give=", "");
         message = message.replace("get=", "");
         // strip with leading delim (hardcode here for now)
-        message = message.replaceAll("\\|unknown=0", "");
+        message = message.replace("|unknown=0", "");
 
         return SOCMessage.stripAttribNames(message);
     }
