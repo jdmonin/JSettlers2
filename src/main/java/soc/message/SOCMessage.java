@@ -705,6 +705,133 @@ public abstract class SOCMessage implements Serializable, Cloneable
     }
 
     /**
+     * Map for calling correcting parsing method based on msgId in {@link #toMsg()}
+     * Replacement for a large switch statement that was previously used,
+     * params are created in {@link #toMsg()} and passed via lambdas to their
+     * associated class's DataStr parsing method
+     */
+    @FunctionalInterface
+    private interface MessageProcessor {
+        SOCMessage parse(String data, List<String> multiData);
+    }
+
+    private static final Map<Integer, MessageProcessor> MSG_PROCESSOR = new HashMap<>();
+    
+    static {
+        MSG_PROCESSOR.put(AUTHREQUEST, (d, m) -> SOCAuthRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(NULLMESSAGE, (d, m) -> null);
+        MSG_PROCESSOR.put(NEWCHANNEL, (d, m) -> SOCNewChannel.parseDataStr(d));
+        MSG_PROCESSOR.put(CHANNELMEMBERS, (d, m) -> SOCChannelMembers.parseDataStr(d));
+        MSG_PROCESSOR.put(CHANNELS, (d, m) -> SOCChannels.parseDataStr(d));
+        MSG_PROCESSOR.put(JOINCHANNEL, (d, m) -> SOCJoinChannel.parseDataStr(d));
+        MSG_PROCESSOR.put(CHANNELTEXTMSG, (d, m) -> SOCChannelTextMsg.parseDataStr(d));
+        MSG_PROCESSOR.put(LEAVECHANNEL, (d, m) -> SOCLeaveChannel.parseDataStr(d));
+        MSG_PROCESSOR.put(DELETECHANNEL, (d, m) -> SOCDeleteChannel.parseDataStr(d));
+        MSG_PROCESSOR.put(LEAVEALL, (d, m) -> SOCLeaveAll.parseDataStr(d));
+        MSG_PROCESSOR.put(PUTPIECE, (d, m) -> SOCPutPiece.parseDataStr(d));
+        MSG_PROCESSOR.put(GAMETEXTMSG, (d, m) -> SOCGameTextMsg.parseDataStr(d));
+        MSG_PROCESSOR.put(LEAVEGAME, (d, m) -> SOCLeaveGame.parseDataStr(d));
+        MSG_PROCESSOR.put(SITDOWN, (d, m) -> SOCSitDown.parseDataStr(d));
+        MSG_PROCESSOR.put(JOINGAME, (d, m) -> SOCJoinGame.parseDataStr(d));
+        MSG_PROCESSOR.put(BOARDLAYOUT, (d, m) -> SOCBoardLayout.parseDataStr(d));
+        MSG_PROCESSOR.put(GAMES, (d, m) -> SOCGames.parseDataStr(d));
+        MSG_PROCESSOR.put(DELETEGAME, (d, m) -> SOCDeleteGame.parseDataStr(d));
+        MSG_PROCESSOR.put(NEWGAME, (d, m) -> SOCNewGame.parseDataStr(d));
+        MSG_PROCESSOR.put(GAMEMEMBERS, (d, m) -> SOCGameMembers.parseDataStr(d));
+        MSG_PROCESSOR.put(STARTGAME, (d, m) -> SOCStartGame.parseDataStr(d));
+        MSG_PROCESSOR.put(JOINCHANNELAUTH, (d, m) -> SOCJoinChannelAuth.parseDataStr(d));
+        MSG_PROCESSOR.put(JOINGAMEAUTH, (d, m) -> SOCJoinGameAuth.parseDataStr(d));
+        MSG_PROCESSOR.put(IMAROBOT, (d, m) -> SOCImARobot.parseDataStr(d));
+        MSG_PROCESSOR.put(BOTJOINGAMEREQUEST, (d, m) -> SOCBotJoinGameRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(PLAYERELEMENT, (d, m) -> SOCPlayerElement.parseDataStr(d));
+        MSG_PROCESSOR.put(GAMESTATE, (d, m) -> SOCGameState.parseDataStr(d));
+        MSG_PROCESSOR.put(TURN, (d, m) -> SOCTurn.parseDataStr(d));
+        MSG_PROCESSOR.put(DICERESULT, (d, m) -> SOCDiceResult.parseDataStr(d));
+        MSG_PROCESSOR.put(DISCARDREQUEST, (d, m) -> SOCDiscardRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(ROLLDICEREQUEST, (d, m) -> SOCRollDiceRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(ROLLDICE, (d, m) -> SOCRollDice.parseDataStr(d));
+        MSG_PROCESSOR.put(ENDTURN, (d, m) -> SOCEndTurn.parseDataStr(d));
+        MSG_PROCESSOR.put(DISCARD, (d, m) -> SOCDiscard.parseDataStr(d));
+        MSG_PROCESSOR.put(MOVEROBBER, (d, m) -> SOCMoveRobber.parseDataStr(d));
+        MSG_PROCESSOR.put(CHOOSEPLAYER, (d, m) -> SOCChoosePlayer.parseDataStr(d));
+        MSG_PROCESSOR.put(CHOOSEPLAYERREQUEST, (d, m) -> SOCChoosePlayerRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(REJECTOFFER, (d, m) -> SOCRejectOffer.parseDataStr(d));
+        MSG_PROCESSOR.put(CLEAROFFER, (d, m) -> SOCClearOffer.parseDataStr(d));
+        MSG_PROCESSOR.put(ACCEPTOFFER, (d, m) -> SOCAcceptOffer.parseDataStr(d));
+        MSG_PROCESSOR.put(BANKTRADE, (d, m) -> SOCBankTrade.parseDataStr(d));
+        MSG_PROCESSOR.put(MAKEOFFER, (d, m) -> SOCMakeOffer.parseDataStr(d));
+        MSG_PROCESSOR.put(CLEARTRADEMSG, (d, m) -> SOCClearTradeMsg.parseDataStr(d));
+        MSG_PROCESSOR.put(BUILDREQUEST, (d, m) -> SOCBuildRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(CANCELBUILDREQUEST, (d, m) -> SOCCancelBuildRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(BUYDEVCARDREQUEST, (d, m) -> SOCBuyDevCardRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(DEVCARDACTION, (d, m) -> SOCDevCardAction.parseDataStr(d));
+        MSG_PROCESSOR.put(DEVCARDCOUNT, (d, m) -> SOCDevCardCount.parseDataStr(d));
+        MSG_PROCESSOR.put(SETPLAYEDDEVCARD, (d, m) -> SOCSetPlayedDevCard.parseDataStr(d));
+        MSG_PROCESSOR.put(PLAYDEVCARDREQUEST, (d, m) -> SOCPlayDevCardRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(PICKRESOURCES, (d, m) -> SOCPickResources.parseDataStr(d));
+        MSG_PROCESSOR.put(PICKRESOURCETYPE, (d, m) -> SOCPickResourceType.parseDataStr(d));
+        MSG_PROCESSOR.put(FIRSTPLAYER, (d, m) -> SOCFirstPlayer.parseDataStr(d));
+        MSG_PROCESSOR.put(SETTURN, (d, m) -> SOCSetTurn.parseDataStr(d));
+        MSG_PROCESSOR.put(ROBOTDISMISS, (d, m) -> SOCRobotDismiss.parseDataStr(d));
+        MSG_PROCESSOR.put(POTENTIALSETTLEMENTS, (d, m) -> SOCPotentialSettlements.parseDataStr(d));
+        MSG_PROCESSOR.put(CHANGEFACE, (d, m) -> SOCChangeFace.parseDataStr(d));
+        MSG_PROCESSOR.put(REJECTCONNECTION, (d, m) -> SOCRejectConnection.parseDataStr(d));
+        MSG_PROCESSOR.put(LASTSETTLEMENT, (d, m) -> SOCLastSettlement.parseDataStr(d));
+        MSG_PROCESSOR.put(GAMESTATS, (d, m) -> SOCGameStats.parseDataStr(d));
+        MSG_PROCESSOR.put(BCASTTEXTMSG, (d, m) -> SOCBCastTextMsg.parseDataStr(d));
+        MSG_PROCESSOR.put(RESOURCECOUNT, (d, m) -> SOCResourceCount.parseDataStr(d));
+        MSG_PROCESSOR.put(ADMINPING, (d, m) -> SOCAdminPing.parseDataStr(d));
+        MSG_PROCESSOR.put(ADMINRESET, (d, m) -> SOCAdminReset.parseDataStr(d));
+        MSG_PROCESSOR.put(LONGESTROAD, (d, m) -> SOCLongestRoad.parseDataStr(d));
+        MSG_PROCESSOR.put(LARGESTARMY, (d, m) -> SOCLargestArmy.parseDataStr(d));
+        MSG_PROCESSOR.put(SETSEATLOCK, (d, m) -> SOCSetSeatLock.parseDataStr(d));
+        MSG_PROCESSOR.put(STATUSMESSAGE, (d, m) -> SOCStatusMessage.parseDataStr(d));
+        MSG_PROCESSOR.put(CREATEACCOUNT, (d, m) -> SOCCreateAccount.parseDataStr(d));
+        MSG_PROCESSOR.put(UPDATEROBOTPARAMS, (d, m) -> SOCUpdateRobotParams.parseDataStr(d));
+        MSG_PROCESSOR.put(SERVERPING, (d, m) -> SOCServerPing.parseDataStr(d));
+        MSG_PROCESSOR.put(ROLLDICEPROMPT, (d, m) -> SOCRollDicePrompt.parseDataStr(d));
+        MSG_PROCESSOR.put(RESETBOARDREQUEST, (d, m) -> SOCResetBoardRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(RESETBOARDAUTH, (d, m) -> SOCResetBoardAuth.parseDataStr(d));
+        MSG_PROCESSOR.put(RESETBOARDVOTEREQUEST, (d, m) -> SOCResetBoardVoteRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(RESETBOARDVOTE, (d, m) -> SOCResetBoardVote.parseDataStr(d));
+        MSG_PROCESSOR.put(RESETBOARDREJECT, (d, m) -> SOCResetBoardReject.parseDataStr(d));
+        MSG_PROCESSOR.put(VERSION, (d, m) -> SOCVersion.parseDataStr(d));
+        MSG_PROCESSOR.put(NEWGAMEWITHOPTIONS, (d, m) -> SOCNewGameWithOptions.parseDataStr(d));
+        MSG_PROCESSOR.put(NEWGAMEWITHOPTIONSREQUEST, (d, m) -> SOCNewGameWithOptionsRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(GAMEOPTIONGETDEFAULTS, (d, m) -> SOCGameOptionGetDefaults.parseDataStr(d));
+        MSG_PROCESSOR.put(GAMEOPTIONGETINFOS, (d, m) -> SOCGameOptionGetInfos.parseDataStr(d));
+        MSG_PROCESSOR.put(GAMEOPTIONINFO, (d, m) -> SOCGameOptionInfo.parseDataStr(m));
+        MSG_PROCESSOR.put(GAMESWITHOPTIONS, (d, m) -> SOCGamesWithOptions.parseDataStr(m));
+        MSG_PROCESSOR.put(PLAYERSTATS, (d, m) -> SOCPlayerStats.parseDataStr(m));
+        MSG_PROCESSOR.put(PLAYERELEMENTS, (d, m) -> SOCPlayerElements.parseDataStr(m));
+        MSG_PROCESSOR.put(BOARDLAYOUT2, (d, m) -> SOCBoardLayout2.parseDataStr(d));
+        MSG_PROCESSOR.put(DEBUGFREEPLACE, (d, m) -> SOCDebugFreePlace.parseDataStr(d));
+        MSG_PROCESSOR.put(TIMINGPING, (d, m) -> SOCTimingPing.parseDataStr(d));
+        MSG_PROCESSOR.put(SIMPLEREQUEST, (d, m) -> SOCSimpleRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(SIMPLEACTION, (d, m) -> SOCSimpleAction.parseDataStr(d));
+        MSG_PROCESSOR.put(GAMESERVERTEXT, (d, m) -> SOCGameServerText.parseDataStr(d));
+        MSG_PROCESSOR.put(DICERESULTRESOURCES, (d, m) -> SOCDiceResultResources.parseDataStr(m));
+        MSG_PROCESSOR.put(MOVEPIECE, (d, m) -> SOCMovePiece.parseDataStr(d));
+        MSG_PROCESSOR.put(REMOVEPIECE, (d, m) -> SOCRemovePiece.parseDataStr(d));
+        MSG_PROCESSOR.put(PIECEVALUE, (d, m) -> SOCPieceValue.parseDataStr(d));
+        MSG_PROCESSOR.put(GAMEELEMENTS, (d, m) -> SOCGameElements.parseDataStr(m));
+        MSG_PROCESSOR.put(SVPTEXTMSG, (d, m) -> SOCSVPTextMessage.parseDataStr(d));
+        MSG_PROCESSOR.put(INVENTORYITEMACTION, (d, m) -> SOCInventoryItemAction.parseDataStr(d));
+        MSG_PROCESSOR.put(SETSPECIALITEM, (d, m) -> SOCSetSpecialItem.parseDataStr(d));
+        MSG_PROCESSOR.put(LOCALIZEDSTRINGS, (d, m) -> SOCLocalizedStrings.parseDataStr(m));
+        MSG_PROCESSOR.put(SCENARIOINFO, (d, m) -> SOCScenarioInfo.parseDataStr(m, d));
+        MSG_PROCESSOR.put(ROBBERYRESULT, (d, m) -> SOCRobberyResult.parseDataStr(d));
+        MSG_PROCESSOR.put(BOTGAMEDATACHECK, (d, m) -> SOCBotGameDataCheck.parseDataStr(m));
+        MSG_PROCESSOR.put(DECLINEPLAYERREQUEST, (d, m) -> SOCDeclinePlayerRequest.parseDataStr(d));
+        MSG_PROCESSOR.put(UNDOPUTPIECE, (d, m) -> SOCUndoPutPiece.parseDataStr(d));
+        MSG_PROCESSOR.put(SETLASTACTION, (d, m) -> SOCSetLastAction.parseDataStr(d));
+        MSG_PROCESSOR.put(UNDONOTALLOWEDREASONTEXT, (d, m) -> SOCUndoNotAllowedReasonText.parseDataStr(d));
+        MSG_PROCESSOR.put(CHANGEGAMEOPTIONS, (d, m) -> SOCChangeGameOptions.parseDataStr(m));
+        MSG_PROCESSOR.put(REVEALFOGHEX, (d, m) -> SOCRevealFogHex.parseDataStr(d));
+        MSG_PROCESSOR.put(SETSHIPROUTECLOSED, (d, m) -> SOCSetShipRouteClosed.parseDataStr(m));
+    }
+
+    /**
      * Convert a string from {@link #toCmd()} into a SOCMessage.
      * The string is in the form of "id SEP messagename { SEP2 messagedata }*".
      * If the message type id is unknown, that is printed to System.err.
@@ -780,350 +907,13 @@ public abstract class SOCMessage implements Serializable, Cloneable
                 data = "";
             }
 
-            /**
-             * convert the data part and create the message
-             */
-            switch (msgId)
-            {
-            case AUTHREQUEST:        // authentication request, 20141106, v1.1.19
-                return SOCAuthRequest.parseDataStr(data);
-
-            case NULLMESSAGE:
-                return null;
-
-            case NEWCHANNEL:
-                return SOCNewChannel.parseDataStr(data);
-
-            case CHANNELMEMBERS:
-                return SOCChannelMembers.parseDataStr(data);
-
-            case CHANNELS:
-                return SOCChannels.parseDataStr(data);
-
-            case JOINCHANNEL:
-                return SOCJoinChannel.parseDataStr(data);
-
-            case CHANNELTEXTMSG:
-                return SOCChannelTextMsg.parseDataStr(data);
-
-            case LEAVECHANNEL:
-                return SOCLeaveChannel.parseDataStr(data);
-
-            case DELETECHANNEL:
-                return SOCDeleteChannel.parseDataStr(data);
-
-            case LEAVEALL:
-                return SOCLeaveAll.parseDataStr(data);
-
-            case PUTPIECE:
-                return SOCPutPiece.parseDataStr(data);
-
-            case GAMETEXTMSG:
-                return SOCGameTextMsg.parseDataStr(data);
-
-            case LEAVEGAME:
-                return SOCLeaveGame.parseDataStr(data);
-
-            case SITDOWN:
-                return SOCSitDown.parseDataStr(data);
-
-            case JOINGAME:
-                return SOCJoinGame.parseDataStr(data);
-
-            case BOARDLAYOUT:
-                return SOCBoardLayout.parseDataStr(data);
-
-            case GAMES:
-                return SOCGames.parseDataStr(data);
-
-            case DELETEGAME:
-                return SOCDeleteGame.parseDataStr(data);
-
-            case NEWGAME:
-                return SOCNewGame.parseDataStr(data);
-
-            case GAMEMEMBERS:
-                return SOCGameMembers.parseDataStr(data);
-
-            case STARTGAME:
-                return SOCStartGame.parseDataStr(data);
-
-            case JOINCHANNELAUTH:
-                return SOCJoinChannelAuth.parseDataStr(data);
-
-            case JOINGAMEAUTH:
-                return SOCJoinGameAuth.parseDataStr(data);
-
-            case IMAROBOT:
-                return SOCImARobot.parseDataStr(data);
-
-            case BOTJOINGAMEREQUEST:
-                return SOCBotJoinGameRequest.parseDataStr(data);
-
-            case PLAYERELEMENT:
-                return SOCPlayerElement.parseDataStr(data);
-
-            case GAMESTATE:
-                return SOCGameState.parseDataStr(data);
-
-            case TURN:
-                return SOCTurn.parseDataStr(data);
-
-            case DICERESULT:
-                return SOCDiceResult.parseDataStr(data);
-
-            case DISCARDREQUEST:
-                return SOCDiscardRequest.parseDataStr(data);
-
-            case ROLLDICEREQUEST:
-                return SOCRollDiceRequest.parseDataStr(data);
-
-            case ROLLDICE:
-                return SOCRollDice.parseDataStr(data);
-
-            case ENDTURN:
-                return SOCEndTurn.parseDataStr(data);
-
-            case DISCARD:
-                return SOCDiscard.parseDataStr(data);
-
-            case MOVEROBBER:
-                return SOCMoveRobber.parseDataStr(data);
-
-            case CHOOSEPLAYER:
-                return SOCChoosePlayer.parseDataStr(data);
-
-            case CHOOSEPLAYERREQUEST:
-                return SOCChoosePlayerRequest.parseDataStr(data);
-
-            case REJECTOFFER:
-                return SOCRejectOffer.parseDataStr(data);
-
-            case CLEAROFFER:
-                return SOCClearOffer.parseDataStr(data);
-
-            case ACCEPTOFFER:
-                return SOCAcceptOffer.parseDataStr(data);
-
-            case BANKTRADE:
-                return SOCBankTrade.parseDataStr(data);
-
-            case MAKEOFFER:
-                return SOCMakeOffer.parseDataStr(data);
-
-            case CLEARTRADEMSG:
-                return SOCClearTradeMsg.parseDataStr(data);
-
-            case BUILDREQUEST:
-                return SOCBuildRequest.parseDataStr(data);
-
-            case CANCELBUILDREQUEST:
-                return SOCCancelBuildRequest.parseDataStr(data);
-
-            case BUYDEVCARDREQUEST:
-                return SOCBuyDevCardRequest.parseDataStr(data);
-
-            case DEVCARDACTION:
-                return SOCDevCardAction.parseDataStr(data);
-
-            case DEVCARDCOUNT:
-                return SOCDevCardCount.parseDataStr(data);
-
-            case SETPLAYEDDEVCARD:
-                return SOCSetPlayedDevCard.parseDataStr(data);
-
-            case PLAYDEVCARDREQUEST:
-                return SOCPlayDevCardRequest.parseDataStr(data);
-
-            case PICKRESOURCES:  // Discovery/Year of Plenty, or v2.0.00 gold hex resources
-                return SOCPickResources.parseDataStr(data);
-
-            case PICKRESOURCETYPE:  // Monopoly
-                return SOCPickResourceType.parseDataStr(data);
-
-            case FIRSTPLAYER:
-                return SOCFirstPlayer.parseDataStr(data);
-
-            case SETTURN:
-                return SOCSetTurn.parseDataStr(data);
-
-            case ROBOTDISMISS:
-                return SOCRobotDismiss.parseDataStr(data);
-
-            case POTENTIALSETTLEMENTS:
-                return SOCPotentialSettlements.parseDataStr(data);
-
-            case CHANGEFACE:
-                return SOCChangeFace.parseDataStr(data);
-
-            case REJECTCONNECTION:
-                return SOCRejectConnection.parseDataStr(data);
-
-            case LASTSETTLEMENT:
-                return SOCLastSettlement.parseDataStr(data);
-
-            case GAMESTATS:
-                return SOCGameStats.parseDataStr(data);
-
-            case BCASTTEXTMSG:
-                return SOCBCastTextMsg.parseDataStr(data);
-
-            case RESOURCECOUNT:
-                return SOCResourceCount.parseDataStr(data);
-
-            case ADMINPING:
-                return SOCAdminPing.parseDataStr(data);
-
-            case ADMINRESET:
-                return SOCAdminReset.parseDataStr(data);
-
-            case LONGESTROAD:
-                return SOCLongestRoad.parseDataStr(data);
-
-            case LARGESTARMY:
-                return SOCLargestArmy.parseDataStr(data);
-
-            case SETSEATLOCK:
-                return SOCSetSeatLock.parseDataStr(data);
-
-            case STATUSMESSAGE:
-                return SOCStatusMessage.parseDataStr(data);
-
-            case CREATEACCOUNT:
-                return SOCCreateAccount.parseDataStr(data);
-
-            case UPDATEROBOTPARAMS:
-                return SOCUpdateRobotParams.parseDataStr(data);
-
-            case SERVERPING:
-                return SOCServerPing.parseDataStr(data);
-
-            case ROLLDICEPROMPT:     // autoroll, 20071003, sf patch #1812254
-                return SOCRollDicePrompt.parseDataStr(data);
-
-            case RESETBOARDREQUEST:  // resetboard, 20080217, v1.1.00
-                return SOCResetBoardRequest.parseDataStr(data);
-
-            case RESETBOARDAUTH:     // resetboard, 20080217, v1.1.00
-                return SOCResetBoardAuth.parseDataStr(data);
-
-            case RESETBOARDVOTEREQUEST:  // resetboard, 20080223, v1.1.00
-                return SOCResetBoardVoteRequest.parseDataStr(data);
-
-            case RESETBOARDVOTE:     // resetboard, 20080223, v1.1.00
-                return SOCResetBoardVote.parseDataStr(data);
-
-            case RESETBOARDREJECT:   // resetboard, 20080223, v1.1.00
-                return SOCResetBoardReject.parseDataStr(data);
-
-            case VERSION:            // cli-serv versioning, 20080807, v1.1.00
-                return SOCVersion.parseDataStr(data);
-
-            case NEWGAMEWITHOPTIONS:     // per-game options, 20090601, v1.1.07
-                return SOCNewGameWithOptions.parseDataStr(data);
-
-            case NEWGAMEWITHOPTIONSREQUEST:  // per-game options, 20090601, v1.1.07
-                return SOCNewGameWithOptionsRequest.parseDataStr(data);
-
-            case GAMEOPTIONGETDEFAULTS:  // per-game options, 20090601, v1.1.07
-                return SOCGameOptionGetDefaults.parseDataStr(data);
-
-            case GAMEOPTIONGETINFOS:     // per-game options, 20090601, v1.1.07
-                return SOCGameOptionGetInfos.parseDataStr(data);
-
-            case GAMEOPTIONINFO:         // per-game options, 20090601, v1.1.07
-                return SOCGameOptionInfo.parseDataStr(multiData);
-
-            case GAMESWITHOPTIONS:       // per-game options, 20090601, v1.1.07
-                return SOCGamesWithOptions.parseDataStr(multiData);
-
-            case BOARDLAYOUT2:      // 6-player board, 20091104, v1.1.08
-                return SOCBoardLayout2.parseDataStr(data);
-
-            case PLAYERSTATS:       // per-player statistics, 20100312, v1.1.09
-                return SOCPlayerStats.parseDataStr(multiData);
-
-            case PLAYERELEMENTS:    // multiple PLAYERELEMENT, 20100313, v1.1.09
-                return SOCPlayerElements.parseDataStr(multiData);
-
-            case DEBUGFREEPLACE:    // debug piece Free Placement, 20110104, v1.1.12
-                return SOCDebugFreePlace.parseDataStr(data);
-
-            case TIMINGPING:        // robot timing ping, 20111011, v1.1.13
-                return SOCTimingPing.parseDataStr(data);
-
-            case SIMPLEREQUEST:     // simple player requests, 20130217, v1.1.18
-                return SOCSimpleRequest.parseDataStr(data);
-
-            case SIMPLEACTION:     // simple actions for players, 20130904, v1.1.19
-                return SOCSimpleAction.parseDataStr(data);
-
-            case GAMESERVERTEXT:    // game server text, 20130905; v2.0.00
-                return SOCGameServerText.parseDataStr(data);
-
-            case DICERESULTRESOURCES:  // dice roll result resources, 20130920; v2.0.00
-                return SOCDiceResultResources.parseDataStr(multiData);
-
-            case MOVEPIECE:         // move piece announcement, 20111203, v2.0.00
-                return SOCMovePiece.parseDataStr(data);
-
-            case REMOVEPIECE:       // pirate islands scenario, 20130218, v2.0.00
-                return SOCRemovePiece.parseDataStr(data);
-
-            case PIECEVALUE:        // cloth villages scenario, 20121115, v2.0.00
-                return SOCPieceValue.parseDataStr(data);
-
-            case GAMEELEMENTS:      // game status fields, 20171223, v2.0.00
-                return SOCGameElements.parseDataStr(multiData);
-
-            case SVPTEXTMSG:        // SVP text messages, 20121221, v2.0.00
-                return SOCSVPTextMessage.parseDataStr(data);
-
-            case INVENTORYITEMACTION:         // player inventory items, 20131126, v2.0.00
-                return SOCInventoryItemAction.parseDataStr(data);
-
-            case SETSPECIALITEM:       // Special Items, 20140416, v2.0.00
-                return SOCSetSpecialItem.parseDataStr(data);
-
-            case LOCALIZEDSTRINGS:     // Localized strings, 20150111, v2.0.00
-                return SOCLocalizedStrings.parseDataStr(multiData);
-
-            case SCENARIOINFO:         // Scenario info, 20150920, v2.0.00
-                return SOCScenarioInfo.parseDataStr(multiData, data);
-
-            case ROBBERYRESULT:        // Report robbery result, 20200915, v2.5.00
-                return SOCRobberyResult.parseDataStr(data);
-
-            case BOTGAMEDATACHECK:      // Bot game data consistency check, 20210930, v2.5.00
-                return SOCBotGameDataCheck.parseDataStr(multiData);
-
-            case DECLINEPLAYERREQUEST:  // Decline player's request, 20211208, v2.5.00
-                return SOCDeclinePlayerRequest.parseDataStr(data);
-
-            case UNDOPUTPIECE:          // Undo put piece/move piece, 20221109, v2.7.00
-                return SOCUndoPutPiece.parseDataStr(data);
-
-            case SETLASTACTION:         // for Undo put piece/move piece, 20221220, v2.7.00
-                return SOCSetLastAction.parseDataStr(data);
-
-            case UNDONOTALLOWEDREASONTEXT:  // for Undo put piece/move piece, 20241231, v2.7.00
-                return SOCUndoNotAllowedReasonText.parseDataStr(data);
-
-            case CHANGEGAMEOPTIONS:     // for Opportunistic Game Options, 20251227, v2.7.00
-                return SOCChangeGameOptions.parseDataStr(multiData);
-
-            // gametype-specific messages:
-
-            case REVEALFOGHEX:      // fog hexes, 20121108, v2.0.00
-                return SOCRevealFogHex.parseDataStr(data);
-
-            case SETSHIPROUTECLOSED:    // for Undo put piece/move piece, 20221218, v2.7.00
-                return SOCSetShipRouteClosed.parseDataStr(multiData);
-
-            default:
-                System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
+            MessageProcessor processor = MSG_PROCESSOR.get(msgId);
+            if (processor == null) {
+                System.err.println("Message processor failed to resolve msgId type " + msgId);
                 return null;
             }
+            return processor.parse(data, multiData);
+
         }
         catch (Exception e)
         {
