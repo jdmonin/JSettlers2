@@ -155,6 +155,64 @@ public class SOCGameBoardReset
         }
     }
 
+    
+    private static int sortPlayerConnection
+    (SOCGame newGame, SOCGame oldGame, Connection pCon,
+     Connection[] humanConns, Connection[] robotConns)
+    {
+        final String plName = pCon.getData();
+        SOCPlayer p = newGame.getPlayer(plName);
+    
+        if (p != null)
+        {
+            int pn = p.getPlayerNumber();
+            if (p.isRobot())
+                robotConns[pn] = pCon;
+            else
+            {
+                humanConns[pn] = pCon;
+                return 1;
+            }
+        }
+        else if (oldGame != null)
+        {
+            // No such player in new game.
+            // Assume is robot player in old game.
+            p = oldGame.getPlayer(plName);
+            if (p != null)
+            {
+                int pn = p.getPlayerNumber();
+                if (p.isRobot())
+                    robotConns[pn] = pCon;
+                else
+                    // should not happen
+                    D.ebugPrintlnINFO("findPlayerConnections assert failed: human player not copied: " + pn);
+            }
+        }
+    
+        return 0;
+    }
+
+    private static void validatePlayerConnections
+        (SOCGame newGame, SOCGame oldGame,
+         Connection[] humanConns, Connection[] robotConns)
+    {
+        for (int pn = 0; pn < newGame.maxPlayers; ++pn)
+        {
+            if (! newGame.isSeatVacant(pn))
+            {
+                if ((humanConns[pn] == null) && (robotConns[pn] == null))
+                    D.ebugPrintlnINFO("findPlayerConnections assert failed: did not find player " + pn);
+            }
+            else
+            {
+                if ((humanConns[pn] != null) ||
+                    ((robotConns[pn] != null) && ((oldGame == null) || oldGame.isSeatVacant(pn))))
+                    D.ebugPrintlnINFO("findPlayerConnections assert failed: memberlist had vacant player " + pn);
+            }
+        }
+    }
+    
     /**
      * Grab connection information for this game's humans and robots.
      * memberConns is from _old_ game, so robots are included.
@@ -180,64 +238,19 @@ public class SOCGameBoardReset
      * @return The number of human players in newGame
      */
     public static int sortPlayerConnections
-        (SOCGame newGame, SOCGame oldGame, Vector<Connection> memberConns,
-         Connection[] humanConns, Connection[] robotConns)
+    (SOCGame newGame, SOCGame oldGame, Vector<Connection> memberConns,
+     Connection[] humanConns, Connection[] robotConns)
     {
-        // This enum is easier than enumerating all connected clients;
-        // there is no server-wide mapping of clientname -> connection.
-
         int numHuman = 0;
         Enumeration<Connection> playersEnum = memberConns.elements();
         while (playersEnum.hasMoreElements())
         {
             final Connection pCon = playersEnum.nextElement();
-            final String plName = pCon.getData();
-            SOCPlayer p = newGame.getPlayer(plName);
-
-            if (p != null)
-            {
-                int pn = p.getPlayerNumber();
-                if (p.isRobot())
-                    robotConns[pn] = pCon;
-                else
-                {
-                    humanConns[pn] = pCon;
-                    ++numHuman;
-                }
-            }
-            else if (oldGame != null)
-            {
-                // No such player in new game.
-                // Assume is robot player in old game.
-                p = oldGame.getPlayer(plName);
-                if (p != null)
-                {
-                    int pn = p.getPlayerNumber();
-                    if (p.isRobot())
-                        robotConns[pn] = pCon;
-                    else
-                        // should not happen
-                        D.ebugPrintlnINFO("findPlayerConnections assert failed: human player not copied: " + pn);
-                }
-            }
+            numHuman += sortPlayerConnection(newGame, oldGame, pCon, humanConns, robotConns);
         }
-
-        // Check all player positions after enum
-        for (int pn = 0; pn < newGame.maxPlayers; ++pn)
-        {
-            if (! newGame.isSeatVacant(pn))
-            {
-                if ((humanConns[pn] == null) && (robotConns[pn] == null))
-                    D.ebugPrintlnINFO("findPlayerConnections assert failed: did not find player " + pn);
-            }
-            else
-            {
-                if ((humanConns[pn] != null) ||
-                    ((robotConns[pn] != null) && ((oldGame == null) || oldGame.isSeatVacant(pn))))
-                    D.ebugPrintlnINFO("findPlayerConnections assert failed: memberlist had vacant player " + pn);
-            }
-        }
-
+    
+        validatePlayerConnections(newGame, oldGame, humanConns, robotConns);
+    
         return numHuman;
     }
 
