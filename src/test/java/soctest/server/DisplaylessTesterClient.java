@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -69,10 +69,8 @@ public class DisplaylessTesterClient
      * Track server's games and options like SOCPlayerClient does,
      * instead of ignoring them until joined like SOCRobotClient.
      *<P>
-     * This field is null until {@link MessageHandler#handleGAMES(SOCGames, boolean) handleGAMES},
-     *   {@link MessageHandler#handleGAMESWITHOPTIONS(SOCGamesWithOptions, boolean) handleGAMESWITHOPTIONS},
-     *   {@link MessageHandler#handleNEWGAME(SOCNewGame, boolean) handleNEWGAME}
-     *   or {@link MessageHandler#handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions, boolean) handleNEWGAMEWITHOPTIONS}
+     * This field is null until {@link #handleGAMES(SOCGames)}, {@link #handleGAMESWITHOPTIONS(SOCGamesWithOptions)},
+     *   {@link #handleNEWGAME(SOCNewGame)}, or {@link #handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions)}
      *   is called.
      */
     protected SOCGameList serverGames = new SOCGameList(knownOpts);
@@ -107,6 +105,7 @@ public class DisplaylessTesterClient
      * @param vers  Version number, in same form at as {@link Version#versionNumber()};
      *   must be >= 1000, or 0 to use current version
      * @throws IllegalArgumentException if {@code vers} out of range
+     * @see #getVersion()
      * @since 2.7.00
      */
     public void setVersion(int vers)
@@ -119,6 +118,16 @@ public class DisplaylessTesterClient
 
         version = vers;
         buildnum = (vers == Version.versionNumber()) ? null : ("OTHER-" + vers);
+    }
+
+    /**
+     * Get the reported client version used at {@link #init()}.
+     * @return  Version provided if {@link #setVersion(int)} was called, otherwise from {@link Version#versionNumber()}
+     * @since 2.7.00
+     */
+    public int getVersion()
+    {
+        return version;
     }
 
     /**
@@ -188,6 +197,79 @@ public class DisplaylessTesterClient
     public void askJoinGame(String gaName)
     {
         put(new SOCJoinGame(nickname, "", SOCMessage.EMPTYSTR, gaName).toCmd());
+    }
+
+    /**
+     * Is {@code gaName} a game announced by the server?
+     * To get options for such a game, call {@link #getServerGameOptions(String)}.
+     * To check only for games this client has joined, call {@link SOCDisplaylessPlayerClient#getGame(String)} instead.
+     * @param gaName
+     * @return  True if our list of server games contains {@code gaName}
+     * @since 2.7.00
+     */
+    public boolean isServerGame(final String gaName)
+    {
+        return serverGames.isGame(gaName);
+    }
+
+    /**
+     * Get options for a server game announced to this client (see {@link #isServerGame(String)}).
+     * To get a game this client has joined, call {@link SOCDisplaylessPlayerClient#getGame(String)} instead.
+     * @param gaName  game name to look for
+     * @return Game options for {@code gaName} if we've seen it, or {@code null} if not found or no options
+     * @since 2.7.00
+     */
+    public SOCGameOptionSet getServerGameOptions(final String gaName)
+    {
+        return serverGames.parseGameOptions(gaName);
+    }
+
+    /**
+     * Treat the incoming messages.
+     * Currently, only {@link SOCChangeGameOptions} needs to be handled specially here.
+     * Everything else is passed to parent {@link SOCDisplaylessPlayerClient#treat(SOCMessage)}.
+     * @since 2.7.00
+     */
+    @Override
+    public void treat(SOCMessage mes)
+    {
+        if (mes == null)
+            return;  // Message syntax error or unknown type
+
+        try
+        {
+            switch (mes.getType())
+            {
+            case SOCMessage.CHANGEGAMEOPTIONS:
+                {
+                    final String gaName = ((SOCMessageForGame) mes).getGame();
+                    SOCGameOptionSet gaOpts = serverGames.parseGameOptions(gaName);
+                    if (gaOpts != null)
+                    {
+                        SOCDisplaylessPlayerClient.handleCHANGEGAMEOPTIONS
+                            ((SOCChangeGameOptions) mes, gaOpts);
+                        serverGames.updateGameOptions(gaName, gaOpts);
+                    }
+
+                    // If we're playing in this game, it might use a different SGOSet instance than in serverGames
+                    // so update that instance too
+                    SOCGame ga = games.get(gaName);
+                    if (ga != null)
+                        handleCHANGEGAMEOPTIONS
+                            ((SOCChangeGameOptions) mes, ga.getGameOptions());
+                }
+                break;
+
+            default:
+                super.treat(mes, true);
+            }
+        }
+        catch (Exception e)
+        {
+            System.err.println("DisplaylessTesterClient treat ERROR - " + e.getMessage());
+            e.printStackTrace();
+            System.err.println("  For message: " + mes);
+        }
     }
 
     // message handlers

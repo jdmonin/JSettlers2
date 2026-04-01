@@ -418,7 +418,10 @@ public class TestRecorder
     }
 
     /**
-     * Join a {@link DisplaylessTesterClient} with default version and one a different custom version.
+     * Join a {@link DisplaylessTesterClient} with default version and one with a different version.
+     * Tests {@link DisplaylessTesterClient#setVersion(int)}, {@link DisplaylessTesterClient#getVersion()}.
+     * See also {@code extraTest soctest.server.TestClientVersion.testGameOpportunistic()}
+     * for {@link SOCGameOption#FLAG_OPPORTUNISTIC}.
      * @since 2.7.00
      */
     @Test
@@ -437,6 +440,7 @@ public class TestRecorder
 
         DisplaylessTesterClient tcli = new DisplaylessTesterClient
             (RecordingSOCServer.STRINGPORT_NAME, CLIENT_NAME, null, null);
+        assertEquals(Version.versionNumber(), tcli.getVersion());
         tcli.init();
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
@@ -449,42 +453,46 @@ public class TestRecorder
 
         /** reporting other version*/
         final int OTHER_VERSION_NUMBER = 1117;
-        DisplaylessTesterClient tcli2 = new DisplaylessTesterClient
-            (RecordingSOCServer.STRINGPORT_NAME, CLIENT_NAME + "2", null, null);
+        DisplaylessTesterClient tcliOld = new DisplaylessTesterClient
+            (RecordingSOCServer.STRINGPORT_NAME, CLIENT_NAME + "O", null, null);
 
         try
         {
-            tcli2.setVersion(3);
+            tcliOld.setVersion(3);
             fail("should reject <1000");
         } catch (IllegalArgumentException e) {}
 
         try
         {
-            tcli2.setVersion(999);
+            tcliOld.setVersion(999);
             fail("should reject <1000");
         } catch (IllegalArgumentException e) {}
 
         try
         {
-            tcli2.setVersion(-1);
+            tcliOld.setVersion(-1);
             fail("should reject <0");
         } catch (IllegalArgumentException e) {}
 
-        tcli2.setVersion(0);  // redundant, shouldn't fail
-        tcli2.setVersion(OTHER_VERSION_NUMBER);
-        tcli2.init();
+        assertEquals("version hasn't changed yet", Version.versionNumber(), tcli.getVersion());
+
+        tcliOld.setVersion(0);  // redundant, shouldn't fail
+        assertEquals(Version.versionNumber(), tcliOld.getVersion());
+        tcliOld.setVersion(OTHER_VERSION_NUMBER);
+        assertEquals(OTHER_VERSION_NUMBER, tcliOld.getVersion());
+        tcliOld.init();
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
 
-        assertEquals("get version from test SOCServer", Version.versionNumber(), tcli2.getServerVersion());
+        assertEquals("get version from test SOCServer", Version.versionNumber(), tcliOld.getServerVersion());
 
-        cliConnAtSrv = srv.getConnection(CLIENT_NAME + "2");
+        cliConnAtSrv = srv.getConnection(CLIENT_NAME + "O");
         assertNotNull(cliConnAtSrv);
         assertEquals(OTHER_VERSION_NUMBER, cliConnAtSrv.getVersion());
 
         // cleanup
         tcli.destroy();
-        tcli2.destroy();
+        tcliOld.destroy();
     }
 
     /**
@@ -892,6 +900,7 @@ public class TestRecorder
      * Create a new game and connect a test client to it on the RecordingServer, with related asserts.
      * Can be used to set up a test instead of loading an artifact with
      * {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}.
+     * Calls {@link #createJoinNewGame(RecordingSOCServer, DisplaylessTesterClient, SOCGameOptionSet)}.
      *<P>
      * Game name will be {@code clientName}, possibly with a unique suffix if somehow there's a name collision at the server.
      * Game state will be {@link SOCGame#NEW} just as if a person had created the game from client.
@@ -974,7 +983,46 @@ public class TestRecorder
         }
 
         final DisplaylessTesterClient tcli = connectNewTesterClient(clientName, clientKnownOpts);
+        return createJoinNewGame(server, tcli, gameOptsSet);
+    }
 
+    /**
+     * Create a new game and connect an existing test client to it on the RecordingServer, with related asserts.
+     * Can be used to set up a test instead of calling {@link #connectCreateJoinNewGame(RecordingSOCServer, String, String, int)}
+     * or loading an artifact with
+     * {@link #connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}.
+     *<P>
+     * Game name will be {@code tcli}.{@link SOCDisplaylessPlayerClient#getNickname() getNickname()},
+     * possibly with a unique suffix if somehow there's a name collision at the server.
+     * Game state will be {@link SOCGame#NEW} just as if a person had created the game from client.
+     * So caller should set up as needed, then have client call {@link SOCDisplaylessPlayerClient#startGame(SOCGame)}.
+     *<P>
+     * This method will:
+     *<UL>
+     * <LI> Assert {@code server} not null
+     * <LI> Assert {@code tcli} not null and is connected at {@code server}
+     * <LI> Calls {@link SOCServer#createOrJoinGame(Connection, int, String, SOCGameOptionSet, SOCGame, int)}
+     *      to create and announce the new game.
+     * <LI> server will connect client and robots to it
+     * <LI> Sit down at game's highest player number (3 or 5): {@link SOCGame#maxPlayers} - 1
+     * <LI> Confirm and retrieve {@link SOCGame} and client {@link SOCPlayer} info
+     *</UL>
+     * To connect an observer to the new game, call {@link #connectObserver(RecordingSOCServer, SOCGame, String, int)}
+     * afterwards.
+     *
+     * @param server  Server at which to create the new game; not {@code null}
+     * @param tcli  Testing client already connected to {@code server}; not {@code null}
+     * @param gameOptsSet  Options to use for new game, or {@code null}. To parse these from a string, call
+     *     {@link SOCGameOption#parseOptionsToSet(String, SOCGameOptionSet) SOCGameOption.parseOptionsToSet(gameOptsStr, server.knownOpts)}.
+     * @return  Useful objects related to the new game
+     * @since 2.7.00
+     */
+    public static StartedTestGameObjects createJoinNewGame
+        (final RecordingSOCServer server, final DisplaylessTesterClient tcli, final SOCGameOptionSet gameOptsSet)
+    {
+        assertNotNull(server);
+        assertNotNull(tcli);
+        final String clientName = tcli.getNickname();
         final Connection tcliConn = server.getConnection(clientName);
         assertNotNull("server has tcliConn(" + clientName + ")", tcliConn);
         assertEquals("conn.getData==" + clientName, clientName, tcliConn.getData());
@@ -984,7 +1032,7 @@ public class TestRecorder
         assertNotNull("Internal error, please re-run test: Couldn't create new game for client " + clientName, ga);
         final String gameName = ga.getName();  // in case server added suffix to requested name
 
-        // have server ask client to join; have this thread wait until client's thread joins
+        // have server ask client to join; have this thread wait, should be enough time for client's thread to join
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
 
@@ -1907,7 +1955,9 @@ public class TestRecorder
 
     /**
      * Data class for useful objects returned from
-     * {@link TestRecorder#connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)}
+     * {@link TestRecorder#connectLoadJoinResumeGame(RecordingSOCServer, String, String, int, SavedGameModel, boolean, int, boolean, boolean)},
+     * {@link TestRecorder#connectCreateJoinNewGame(RecordingSOCServer, String, String, int)},
+     * or {@link TestRecorder#createJoinNewGame(RecordingSOCServer, DisplaylessTesterClient, SOCGameOptionSet)}.
      */
     public static final class StartedTestGameObjects
     {

@@ -5691,7 +5691,77 @@ import javax.swing.JComponent;
         g.drawLine(tx+superTextTop_w, 0, tx+superTextTop_w, 20);
         */
     }
+    
+    private int[] nodeToXYStandard(final int nodeNum)
+    {
+        int hx, hy;
+        final int hexNum;
 
+        if (((nodeNum >> 4) % 2) == 0)
+        { // If first digit is even,
+          // then it is a 'Y' node
+          // in the northwest corner of a hex.
+            if ((nodeNum >= 0x81) && (0 == ((nodeNum - 0x81) % 0x22)))
+            {
+                // this node's hex would be off the southern edge of the board.
+                // shift 1 hex north, then add to y.
+                hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 + 0x10];
+                hx = hexX[hexNum];
+                hy = hexY[hexNum] + 17 + (2 * deltaY);
+            } else {
+                hexNum = hexIDtoNum[nodeNum + 0x10];
+                hx = hexX[hexNum];
+                hy = hexY[hexNum] + 17;
+            }
+        }
+        else
+        { // otherwise it is an 'A' node
+          // in the northern corner of a hex.
+            if ((nodeNum >= 0x70) && (0 == ((nodeNum - 0x70) % 0x22)))
+            {
+                // this node's hex would be off the southern edge of the board.
+                // shift 1 hex north, then add to y.
+                hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 - 0x01];
+                hx = hexX[hexNum] + halfdeltaX;
+                hy = hexY[hexNum] + 2 + (2 * deltaY);
+            }
+            else if ((nodeNum & 0x0F) > 0)
+            {
+                hexNum = hexIDtoNum[nodeNum - 0x01];
+                hx = hexX[hexNum] + halfdeltaX;
+                hy = hexY[hexNum] + 2;
+            } else {
+                // this node's hex would be off the southwest edge of the board.
+                // shift 1 hex to the east, then subtract from x.
+                hexNum = hexIDtoNum[nodeNum + 0x22 - 0x01];
+                hx = hexX[hexNum] - halfdeltaX;
+                hy = hexY[hexNum] + 2;
+            }
+        }
+
+        return new int[] { hx, hy };
+    }
+    
+    private int[] nodeToXYLarge(final int nodeNum)
+    {
+        int hx, hy;
+        
+        final int r = (nodeNum >> 8),
+        c = (nodeNum & 0xFF);
+        hx = halfdeltaX * c;
+        hy = halfdeltaY * (r+1);
+        
+        // If the node isn't at the top center of a hex,
+        // it will need to move up or down a bit vertically.
+        //
+        // 'Y' nodes vertical offset: move down
+        final int s = r / 2;
+        if ((s % 2) != (c % 2))
+            hy += HEXY_OFF_SLOPE_HEIGHT;
+
+        return new int[] { hx, hy };
+    }
+    
     /**
      * Calculate the on-screen coordinates of a node.
      * @param nodeNum  Node coordinate
@@ -5702,72 +5772,18 @@ import javax.swing.JComponent;
     {
         int hx, hy;
 
-        if (! isLargeBoard)
-        {
-            final int hexNum;
-
-            if (((nodeNum >> 4) % 2) == 0)
-            { // If first digit is even,
-              // then it is a 'Y' node
-              // in the northwest corner of a hex.
-                if ((nodeNum >= 0x81) && (0 == ((nodeNum - 0x81) % 0x22)))
-                {
-                    // this node's hex would be off the southern edge of the board.
-                    // shift 1 hex north, then add to y.
-                    hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 + 0x10];
-                    hx = hexX[hexNum];
-                    hy = hexY[hexNum] + 17 + (2 * deltaY);
-                } else {
-                    hexNum = hexIDtoNum[nodeNum + 0x10];
-                    hx = hexX[hexNum];
-                    hy = hexY[hexNum] + 17;
-                }
-            }
-            else
-            { // otherwise it is an 'A' node
-              // in the northern corner of a hex.
-                if ((nodeNum >= 0x70) && (0 == ((nodeNum - 0x70) % 0x22)))
-                {
-                    // this node's hex would be off the southern edge of the board.
-                    // shift 1 hex north, then add to y.
-                    hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 - 0x01];
-                    hx = hexX[hexNum] + halfdeltaX;
-                    hy = hexY[hexNum] + 2 + (2 * deltaY);
-                }
-                else if ((nodeNum & 0x0F) > 0)
-                {
-                    hexNum = hexIDtoNum[nodeNum - 0x01];
-                    hx = hexX[hexNum] + halfdeltaX;
-                    hy = hexY[hexNum] + 2;
-                } else {
-                    // this node's hex would be off the southwest edge of the board.
-                    // shift 1 hex to the east, then subtract from x.
-                    hexNum = hexIDtoNum[nodeNum + 0x22 - 0x01];
-                    hx = hexX[hexNum] - halfdeltaX;
-                    hy = hexY[hexNum] + 2;
-                }
-            }
-
+        if (!isLargeBoard) {
+            int[] xy = nodeToXYStandard(nodeNum);
+            hx = xy[0];
+            hy = xy[1];
         } else {
-            // isLargeBoard
-
-            final int r = (nodeNum >> 8),
-                      c = (nodeNum & 0xFF);
-            hx = halfdeltaX * c;
-            hy = halfdeltaY * (r+1);
-
-            // If the node isn't at the top center of a hex,
-            // it will need to move up or down a bit vertically.
-            //
-            // 'Y' nodes vertical offset: move down
-            final int s = r / 2;
-            if ((s % 2) != (c % 2))
-                hy += HEXY_OFF_SLOPE_HEIGHT;
+            int[] xy = nodeToXYLarge(nodeNum);
+            hx = xy[0];
+            hy = xy[1];
         }
 
         if (isRotated)
         {
-            // (cw):  P'=(panelMinBH-y, x)
             int hy1 = hx;
             hx = panelMinBH - hy;
             hy = hy1;
@@ -5778,8 +5794,7 @@ import javax.swing.JComponent;
             hy = scaleToActual(hy);
         }
 
-        final int[] xy = { hx, hy };
-        return xy;
+        return new int[] { hx, hy };
     }
 
     /**
