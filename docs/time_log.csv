@@ -75,3 +75,36 @@ date,issue_id,issue_title,person,activity,minutes,notes,pr_link
 2026-04-01,29,630:P2 Reduce cognitive complexity in updateLongestRoad,Ricky,review,30,Re-reviewed PR #54 after main merge and guard fix; approved and squash-merged,https://github.com/evanalba/JSettlers2/pull/54
 2026-04-01,29,630:P2 Reduce cognitive complexity in updateLongestRoad,Ricky,pr_overhead,15,Squash merge and Closes #29 bookkeeping,https://github.com/evanalba/JSettlers2/pull/54
 2026-04-01,38,630:P2 Long Method — putPieceCommon in SOCGame,Ricky,rework,15,Restored fog-hex context in helper comment after Luke's PR feedback,https://github.com/evanalba/JSettlers2/pull/47
+2026-03-31,55,630:P2 [SonarQube] - Replace replaceAll() usage with replace() in DataOutputUtils.java,Luke,triage,15,Identified additional instances to add to issue scope; reviewd SonarQube suggested fix,https://github.com/evanalba/JSettlers2/pull/55
+2026-03-31,55,630:P2 [SonarQube] - Replace replaceAll() usage with replace() in DataOutputUtils.java,Luke,plan,15,Checked all instances to determine possible changes to match string,https://github.com/evanalba/JSettlers2/pull/55
+2026-03-31,55,630:P2 [SonarQube] - Replace replaceAll() usage with replace() in DataOutputUtils.java,Luke,implement,15,Changed all flagged instances to use replace instead,https://github.com/evanalba/JSettlers2/pull/55
+2026-03-31,55,630:P2 [SonarQube] - Replace replaceAll() usage with replace() in DataOutputUtils.java,Luke,verify,15,Ran tests,https://github.com/evanalba/JSettlers2/pull/55
+2026-03-31,55,630:P2 [SonarQube] - Replace replaceAll() usage with replace() in DataOutputUtils.java,Luke,pr_overhead,15,Wrote PR description,https://github.com/evanalba/JSettlers2/pull/55
+2026-03-31,33,630:P2 [Both] - Massive switch statement in SOCMessage.java,Luke,triage,15,Reviewed issue in SonarQube,https://github.com/evanalba/JSettlers2/pull/56
+2026-03-31,33,630:P2 [Both] - Massive switch statement in SOCMessage.java,Luke,plan,60,Researched switch statement refactor patterns,https://github.com/evanalba/JSettlers2/pull/56
+2026-03-31,33,630:P2 [Both] - Massive switch statement in SOCMessage.java,Luke,implement,60,Replaced each switch case with an equivalent map entry,https://github.com/evanalba/JSettlers2/pull/56
+2026-03-31,33,630:P2 [Both] - Massive switch statement in SOCMessage.java,Luke,verify,15,Ran gradle tests multiple times,https://github.com/evanalba/JSettlers2/pull/56
+2026-03-31,33,630:P2 [Both] - Massive switch statement in SOCMessage.java,Luke,pr_overhead,15,Wrote PR description,https://github.com/evanalba/JSettlers2/pull/56
+2026-03-31,43,630:P2 [Both] - SOCDevCardConstants using interface purely for serving const info,Luke,triage,15,Reviewed issue in SonarQube,https://github.com/evanalba/JSettlers2/pull/57
+2026-03-31,43,630:P2 [Both] - SOCDevCardConstants using interface purely for serving const info,Luke,plan,15,Decided between enum and public class; noted location with use of implements keyword,https://github.com/evanalba/JSettlers2/pull/57
+2026-03-31,43,630:P2 [Both] - SOCDevCardConstants using interface purely for serving const info,Luke,implement,15,Changed flagged interfaces into public final classes,https://github.com/evanalba/JSettlers2/pull/57
+2026-03-31,43,630:P2 [Both] - SOCDevCardConstants using interface purely for serving const info,Luke,verify,15,Ran gradle tests,https://github.com/evanalba/JSettlers2/pull/57
+2026-03-31,43,630:P2 [Both] - SOCDevCardConstants using interface purely for serving const info,Luke,pr_overhead,15,Wrote PR description,https://github.com/evanalba/JSettlers2/pull/57
+2026-04-01,41,630:P2 [Both] - High complexity in initInterface_Options; 69 rather than 15,Luke,triage,30,Understanding existing function and noting sensible separation points,https://github.com/evanalba/JSettlers2/pull/58
+2026-04-01,41,630:P2 [Both] - High complexity in initInterface_Options; 69 rather than 15,Luke,plan,15,Decide which separate functionalities to extract from core function,https://github.com/evanalba/JSettlers2/pull/58
+2026-04-01,41,630:P2 [Both] - High complexity in initInterface_Options; 69 rather than 15,Luke,implement,75,Extract into helpers,https://github.com/evanalba/JSettlers2/pull/58
+2026-04-01,41,630:P2 [Both] - High complexity in initInterface_Options; 69 rather than 15,Luke,verify,15,Ran gradle tests and compared new game options in GUI from before and after change,https://github.com/evanalba/JSettlers2/pull/58
+2026-04-01,41,630:P2 [Both] - High complexity in initInterface_Options; 69 rather than 15,Luke,pr_overhead,15,Wrote PR description,https://github.com/evanalba/JSettlers2/pull/58
+2026-04-02,40,"630:P2 [SonarQube] - String ""owner"" duplicated 6 times",Luke,triage,15,Reviewed issue in SonarQube and added additional string duplication instances to issue scope,https://github.com/evanalba/JSettlers2/pull/64
+2026-04-02,40,"630:P2 [SonarQube] - String ""owner"" duplicated 6 times",Luke,plan,15,Noted scope of string use,https://github.com/evanalba/JSettlers2/pull/64
+2026-04-02,40,"630:P2 [SonarQube] - String ""owner"" duplicated 6 times",Luke,implement,15,Replaced duplicate strings with constant variables,https://github.com/evanalba/JSettlers2/pull/64
+2026-04-02,40,"630:P2 [SonarQube] - String ""owner"" duplicated 6 times",Luke,verify,15,Ran gradle tests,https://github.com/evanalba/JSettlers2/pull/64
+2026-04-02,40,"630:P2 [SonarQube] - String ""owner"" duplicated 6 times",Luke,pr_overhead,15,Wrote PR description,https://github.com/evanalba/JSettlers2/pull/64
+2026-04-02,65,630:P2 [SonarQube] - High complexity in recaleBoard,Luke,triage,30,"Review issue in SonarQube, understand existing function",https://github.com/evanalba/JSettlers2/pull/66
+2026-04-02,65,630:P2 [SonarQube] - High complexity in recaleBoard,Luke,plan,15,Decide which separate functionalities to extract from core function,https://github.com/evanalba/JSettlers2/pull/66
+2026-04-02,65,630:P2 [SonarQube] - High complexity in recaleBoard,Luke,implement,60,Extract into helpers,https://github.com/evanalba/JSettlers2/pull/66
+2026-04-02,65,630:P2 [SonarQube] - High complexity in recaleBoard,Luke,verify,15,Run gradle tests; run test game with different board scales,https://github.com/evanalba/JSettlers2/pull/66
+2026-04-02,65,630:P2 [SonarQube] - High complexity in recaleBoard,Luke,pr_overhead,15,Wrote PR description,https://github.com/evanalba/JSettlers2/pull/66
+2026-03-26,36,"630:P2 [Both] God Class smell in SOCGame.java (10,739 lines)",Luke,review,30,Tested locally and reviewed code changes,https://github.com/evanalba/JSettlers2/pull/49
+2026-03-26,35,630:P2 Giant switch in MessageHandler.handle,Luke,review,15,Tested locally and reviewed code changes,https://github.com/evanalba/JSettlers2/pull/48
+2026-03-26,38,630:P2 [ChatGPT] Long Method smell in SOCGame.putPieceCommon (~285 lines),Luke,review,15,"Tested locally, reviewed code changes, requested changes, re-reviewed",https://github.com/evanalba/JSettlers2/pull/47
