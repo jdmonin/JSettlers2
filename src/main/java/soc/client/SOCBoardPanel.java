@@ -172,6 +172,9 @@ import javax.swing.JComponent;
     /** i18n text strings */
     private static final SOCStringManager strings = SOCStringManager.getClientManager();
 
+    /** Constant string for Dialog font */
+    private static final String DIALOG_FONT_NAME = "Dialog"; 
+
     /**
      * Hex and port graphics sets are in subdirectories of this directory
      * (see {@link #HEX_GRAPHICS_SET_SUBDIRS}). Within each set,
@@ -3499,7 +3502,7 @@ import javax.swing.JComponent;
             int fsize = DICE_NUMBER_FONTPOINTS;
             if (isScaled)
                 fsize = scaleToActual(fsize);
-            diceNumberCircleFont = new Font("Dialog", Font.BOLD, fsize);
+            diceNumberCircleFont = new Font(DIALOG_FONT_NAME, Font.BOLD, fsize);
         }
         if ((diceNumberCircleFM == null) && (diceNumberCircleFont != null))
         {
@@ -4467,7 +4470,7 @@ import javax.swing.JComponent;
             boolean needHeight = false;
             if ((arrowDiceFont == null) || (arrowDiceFont.getSize() != fontSize))
             {
-                arrowDiceFont = new Font("Dialog", Font.BOLD, fontSize);
+                arrowDiceFont = new Font(DIALOG_FONT_NAME, Font.BOLD, fontSize);
                 needHeight = true;
             }
             final Font prevFont = g.getFont();
@@ -5558,7 +5561,7 @@ import javax.swing.JComponent;
     {
         // Specify the font, so we know its metrics.
         // This avoids a timing bug where the wrong font's metrics are used.
-        final Font bpf = new Font("Dialog", Font.PLAIN, 10 * playerInterface.displayScale);
+        final Font bpf = new Font(DIALOG_FONT_NAME, Font.PLAIN, 10 * playerInterface.displayScale);
 
         // Do we need to calculate the metrics?
 
@@ -5634,7 +5637,7 @@ import javax.swing.JComponent;
     {
         // Specify the font, so we know its metrics.
         // This avoids a timing bug where the wrong font's metrics are used.
-        final Font bpf = new Font("Dialog", Font.PLAIN, 10 * playerInterface.displayScale);
+        final Font bpf = new Font(DIALOG_FONT_NAME, Font.PLAIN, 10 * playerInterface.displayScale);
 
         // Do we need to calculate the metrics?
         if (superTextTop_w == 0)
@@ -9150,17 +9153,22 @@ import javax.swing.JComponent;
        */
       protected boolean isInitialPlacement;
 
+      /** Strings for board build actions */
+      private final String BOARD_BUILD_ROAD = "board.build.road";
+      private final String BOARD_BUILD_SETTLEMENT = "board.build.stlmt";
+      private final String BOARD_BUILD_SHIP = "board.build.ship";
+
       /** create a new BoardPopupMenu on this board */
       public BoardPopupMenu(SOCBoardPanel bpanel)
       {
         super ("JSettlers");
         bp = bpanel;
 
-        buildRoadItem = new MenuItem(strings.get("board.build.road"));  // "Build Road"
-        buildSettleItem = new MenuItem(strings.get("board.build.stlmt"));  // "Build Settlement"
+        buildRoadItem = new MenuItem(strings.get(BOARD_BUILD_ROAD));  // "Build Road"
+        buildSettleItem = new MenuItem(strings.get(BOARD_BUILD_SETTLEMENT));  // "Build Settlement"
         upgradeCityItem = new MenuItem(strings.get("board.build.upgrade.city"));  // "Upgrade to City"
         if (game.hasSeaBoard)
-            buildShipItem = new MenuItem(strings.get("board.build.ship"));  // "Build Ship"
+            buildShipItem = new MenuItem(strings.get(BOARD_BUILD_SHIP));  // "Build Ship"
         else
             buildShipItem = null;
         cancelBuildItem = new MenuItem(strings.get("board.cancel.build"));  // "Cancel build"
@@ -9200,7 +9208,7 @@ import javax.swing.JComponent;
           if (hoverSettlementID == -1)
           {
               // restore label after previous popup's "Attack Fortress" label for _SC_PIRI
-              buildSettleItem.setLabel(strings.get("board.build.stlmt"));  // "Build Settlement"
+              buildSettleItem.setLabel(strings.get(BOARD_BUILD_SETTLEMENT));  // "Build Settlement"
           }
           hoverSettlementID = 0;
           hoverCityID = 0;
@@ -9220,7 +9228,7 @@ import javax.swing.JComponent;
                       moveShip_toEdge = hilightAt;
               } else {
                   buildShipItem.setEnabled(false);
-                  buildShipItem.setLabel(strings.get("board.build.ship"));  // "Build Ship"
+                  buildShipItem.setLabel(strings.get(BOARD_BUILD_SHIP));  // "Build Ship"
               }
           }
           boolean enableCancel = menuPlayerIsCurrent && game.canCancelBuildPiece(buildType);
@@ -9306,7 +9314,7 @@ import javax.swing.JComponent;
           if (hoverSettlementID == -1)
           {
               // Restore label after previous popup's "Attack Fortress" label for _SC_PIRI
-              buildSettleItem.setLabel(strings.get("board.build.stlmt"));  // "Build Settlement"
+              buildSettleItem.setLabel(strings.get(BOARD_BUILD_SETTLEMENT));  // "Build Settlement"
           }
 
           boolean didEnableDisable = true;  // don't go through both sets of menu item enable/disable statements
@@ -9490,13 +9498,13 @@ import javax.swing.JComponent;
               if (buildShipItem != null)
               {
                   buildShipItem.setEnabled(false);
-                  buildShipItem.setLabel(strings.get("board.build.ship"));
+                  buildShipItem.setLabel(strings.get(BOARD_BUILD_SHIP));
               }
               hoverRoadID = 0;
               if (hoverSettlementID == -1)
               {
                   // restore label after previous popup's "Attack Fortress" label for _SC_PIRI
-                  buildSettleItem.setLabel(strings.get("board.build.stlmt"));
+                  buildSettleItem.setLabel(strings.get(BOARD_BUILD_SETTLEMENT));
               }
               hoverSettlementID = 0;
               hoverCityID = 0;
@@ -9533,7 +9541,7 @@ import javax.swing.JComponent;
                             buildShipItem.setLabel(strings.get("board.build.move.ship"));
                             buildShipItem.setEnabled(true);  // trust the caller's game checks
                         } else {
-                            buildShipItem.setLabel(strings.get("board.build.ship"));
+                            buildShipItem.setLabel(strings.get(BOARD_BUILD_SHIP));
                             buildShipItem.setEnabled
                                 ( game.canPlaceShip(player, hSh) &&
                                   (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
@@ -9609,7 +9617,7 @@ import javax.swing.JComponent;
           else if (settleItemWasFortress)
           {
               // Restore label after previous popup's "Attack Fortress" label for _SC_PIRI
-              buildSettleItem.setLabel(strings.get("board.build.stlmt"));  // "Build Settlement"
+              buildSettleItem.setLabel(strings.get(BOARD_BUILD_SETTLEMENT));  // "Build Settlement"
               buildSettleItem.setEnabled(false);
           }
           upgradeCityItem.setEnabled(false);

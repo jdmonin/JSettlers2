@@ -137,6 +137,12 @@ import soc.util.Version;
     public static final int INTFIELD_POPUP_MAXRANGE = 21;
 
     /**
+     * Key for the "owner" document property
+     * to be called when using Document.putProperty() 
+     */
+    private static String OWNER_DOC_PROPERTY = "owner";
+
+    /**
      * Game's interface if known, or {@code null} for a new game.
      * Used for updating settings like {@link SOCPlayerInterface#isSoundMuted()}.
      * Can use {@link SOCPlayerInterface#getGame()} to get info about the game.
@@ -538,7 +544,7 @@ import soc.util.Version;
         } else {
             gameName.addKeyListener(this);     // for ESC/ENTER
             Document tfDoc = gameName.getDocument();
-            tfDoc.putProperty("owner", gameName);
+            tfDoc.putProperty(OWNER_DOC_PROPERTY, gameName);
             tfDoc.addDocumentListener(this);    // Will enable buttons when field is not empty
         }
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -1119,7 +1125,7 @@ import soc.util.Version;
                 {
                     txtc.addKeyListener(this);  // for ESC/ENTER
                     Document tfDoc = txtc.getDocument();
-                    tfDoc.putProperty("owner", txtc);
+                    tfDoc.putProperty(OWNER_DOC_PROPERTY, txtc);
                     tfDoc.addDocumentListener(this);  // for gameopt.ChangeListener and userChanged
                 }
                 initInterface_Opt1(op, txtc, false, false, false, bp, gbl, gbc);
@@ -1235,7 +1241,7 @@ import soc.util.Version;
                 {
                     ((JTextField) oc).addKeyListener(this);   // for ESC/ENTER
                     Document tfDoc = ((JTextField) oc).getDocument();
-                    tfDoc.putProperty("owner", oc);
+                    tfDoc.putProperty(OWNER_DOC_PROPERTY, oc);
                     tfDoc.addDocumentListener(this);  // for enable/disable
                 }
                 else if (oc instanceof JComboBox)
@@ -1301,7 +1307,7 @@ import soc.util.Version;
             c.addKeyListener(this);   // for ESC/ENTER
 
             Document tfDoc = ((IntTextField) c).getDocument();
-            tfDoc.putProperty("owner", c);
+            tfDoc.putProperty(OWNER_DOC_PROPERTY, c);
             tfDoc.addDocumentListener(this);  // for op.ChangeListener and userChanged
         } else {
             JComboBox<String> combo = new JComboBox<String>();
@@ -1572,7 +1578,7 @@ import soc.util.Version;
             if ((cb != null) || (key != null))
             {
                 Document tfDoc = itf.getDocument();
-                tfDoc.putProperty("owner", itf);
+                tfDoc.putProperty(OWNER_DOC_PROPERTY, itf);
                 tfDoc.addDocumentListener(new DocumentListener()  // for value store or enable/disable
                 {
                     public void removeUpdate(DocumentEvent e)  { textChanged(); }
@@ -2187,7 +2193,7 @@ import soc.util.Version;
     {
         if (readOnly)
             return;
-        Object srcObj = e.getDocument().getProperty("owner");
+        Object srcObj = e.getDocument().getProperty(OWNER_DOC_PROPERTY);
         if ((srcObj == null) || ! (srcObj instanceof JTextField))
             return;
         final String newText = ((JTextField) srcObj).getText().trim();

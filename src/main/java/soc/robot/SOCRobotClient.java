@@ -1063,6 +1063,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         }
         final String gaName = mes.getGame();
         final String dcmd = mes.getText().substring(nL);
+        
+        final String KEY_STR_DEVCARD = "DEVCARD";
+        final String KEY_STR_ROAD = "ROAD";
+        final String KEY_STR_SETTLEMENT = "SETTLEMENT";
+        final String KEY_STR_CITY = "CITY";
+        final String KEY_STR_SHIP = "SHIP";
+        final String MISSING = "(missing)";
 
         if (dcmd.startsWith(":debug-off"))
         {
@@ -1123,23 +1130,23 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                     switch (lastMove.getType())
                     {
                     case SOCPossiblePiece.CARD:
-                        key = "DEVCARD";
+                        key = KEY_STR_DEVCARD;
                         break;
 
                     case SOCPossiblePiece.ROAD:
-                        key = "ROAD" + lastMove.getCoordinates();
+                        key = KEY_STR_ROAD + lastMove.getCoordinates();
                         break;
 
                     case SOCPossiblePiece.SETTLEMENT:
-                        key = "SETTLEMENT" + lastMove.getCoordinates();
+                        key = KEY_STR_SETTLEMENT + lastMove.getCoordinates();
                         break;
 
                     case SOCPossiblePiece.CITY:
-                        key = "CITY" + lastMove.getCoordinates();
+                        key = KEY_STR_CITY + lastMove.getCoordinates();
                         break;
 
                     case SOCPossiblePiece.SHIP:
-                        key = "SHIP" + lastMove.getCoordinates();
+                        key = KEY_STR_SHIP + lastMove.getCoordinates();
                         break;
                     }
 
@@ -1154,20 +1161,20 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         {
             String[] tokens = dcmd.split(" ");  // ":consider-move road 154"
             final int L = tokens.length;
-            String keytoken = (L > 2) ? tokens[L-2].trim() : "(missing)",
-                   lasttoken = (L > 1) ? tokens[L-1].trim() : "(missing)",
+            String keytoken = (L > 2) ? tokens[L-2].trim() : MISSING,
+                   lasttoken = (L > 1) ? tokens[L-1].trim() : MISSING,
                    key = null;
 
             if (lasttoken.equals("card"))
-                key = "DEVCARD";
+                key = KEY_STR_DEVCARD;
             else if (keytoken.equals("road"))
-                key = "ROAD" + lasttoken;
+                key = KEY_STR_ROAD + lasttoken;
             else if (keytoken.equals("ship"))
-                key = "SHIP" + lasttoken;
+                key = KEY_STR_SHIP + lasttoken;
             else if (keytoken.equals("settlement"))
-                key = "SETTLEMENT" + lasttoken;
+                key = KEY_STR_SETTLEMENT + lasttoken;
             else if (keytoken.equals("city"))
-                key = "CITY" + lasttoken;
+                key = KEY_STR_CITY + lasttoken;
 
             final SOCGame ga = games.get(gaName);
             if (key == null)
@@ -1194,23 +1201,23 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                     switch (lastTarget.getType())
                     {
                     case SOCPossiblePiece.CARD:
-                        key = "DEVCARD";
+                        key = KEY_STR_DEVCARD;
                         break;
 
                     case SOCPossiblePiece.ROAD:
-                        key = "ROAD" + lastTarget.getCoordinates();
+                        key = KEY_STR_ROAD + lastTarget.getCoordinates();
                         break;
 
                     case SOCPossiblePiece.SETTLEMENT:
-                        key = "SETTLEMENT" + lastTarget.getCoordinates();
+                        key = KEY_STR_SETTLEMENT + lastTarget.getCoordinates();
                         break;
 
                     case SOCPossiblePiece.CITY:
-                        key = "CITY" + lastTarget.getCoordinates();
+                        key = KEY_STR_CITY + lastTarget.getCoordinates();
                         break;
 
                     case SOCPossiblePiece.SHIP:
-                        key = "SHIP" + lastTarget.getCoordinates();
+                        key = KEY_STR_SHIP + lastTarget.getCoordinates();
                         break;
                     }
 
@@ -1225,20 +1232,20 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         {
             String[] tokens = dcmd.split(" ");  // ":consider-target road 154"
             final int L = tokens.length;
-            String keytoken = (L > 2) ? tokens[L-2].trim() : "(missing)",
-                   lasttoken = (L > 1) ? tokens[L-1].trim() : "(missing)",
+            String keytoken = (L > 2) ? tokens[L-2].trim() : MISSING,
+                   lasttoken = (L > 1) ? tokens[L-1].trim() : MISSING,
                    key = null;
 
             if (lasttoken.equals("card"))
-                key = "DEVCARD";
+                key = KEY_STR_DEVCARD;
             else if (keytoken.equals("road"))
-                key = "ROAD" + lasttoken;
+                key = KEY_STR_ROAD + lasttoken;
             else if (keytoken.equals("ship"))
-                key = "SHIP" + lasttoken;
+                key = KEY_STR_SHIP + lasttoken;
             else if (keytoken.equals("settlement"))
-                key = "SETTLEMENT" + lasttoken;
+                key = KEY_STR_SETTLEMENT + lasttoken;
             else if (keytoken.equals("city"))
-                key = "CITY" + lasttoken;
+                key = KEY_STR_CITY + lasttoken;
 
             final SOCGame ga = games.get(gaName);
             if (key == null)

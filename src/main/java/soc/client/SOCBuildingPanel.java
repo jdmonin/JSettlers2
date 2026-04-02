@@ -1031,6 +1031,9 @@ import javax.swing.SwingConstants;
     {
         SOCGame game = pi.getGame();
 
+        final String BASE_CANCEL = "base.cancel";
+        final String BUILD_BUY = "build.buy";
+
         pieceButtonsState = 0;  // If placing a piece, if-statements here will set the right state
 
         if (player != null)
@@ -1059,7 +1062,7 @@ import javax.swing.SwingConstants;
                     || pcli.sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))
             {
                 roadBut.setEnabled(true);
-                roadBut.setText(strings.get("base.cancel"));  // "Cancel"
+                roadBut.setText(strings.get(BASE_CANCEL));  // "Cancel"
                 pieceButtonsState = SOCGame.PLACING_FREE_ROAD1;
             }
             else if (isCurrent && ((gstate == SOCGame.PLACING_ROAD)
@@ -1068,13 +1071,13 @@ import javax.swing.SwingConstants;
                             || pcli.sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))))
             {
                 roadBut.setEnabled(true);
-                roadBut.setText(strings.get("base.cancel"));  // "Cancel"
+                roadBut.setText(strings.get(BASE_CANCEL));  // "Cancel"
                 pieceButtonsState = (gstate == SOCGame.PLACING_FREE_ROAD2) ? gstate : SOCGame.PLACING_ROAD;
             }
             else if (game.couldBuildRoad(pnum))
             {
                 roadBut.setEnabled(currentCanBuy);
-                roadBut.setText(strings.get("build.buy"));  // "Buy"
+                roadBut.setText(strings.get(BUILD_BUY));  // "Buy"
             }
             else
             {
@@ -1087,13 +1090,13 @@ import javax.swing.SwingConstants;
                  || (gstate == SOCGame.START2B) || (gstate == SOCGame.START3B)) )
             {
                 settlementBut.setEnabled(true);
-                settlementBut.setText(strings.get("base.cancel"));
+                settlementBut.setText(strings.get(BASE_CANCEL));
                 pieceButtonsState = SOCGame.PLACING_SETTLEMENT;
             }
             else if (game.couldBuildSettlement(pnum))
             {
                 settlementBut.setEnabled(currentCanBuy);
-                settlementBut.setText(strings.get("build.buy"));
+                settlementBut.setText(strings.get(BUILD_BUY));
             }
             else
             {
@@ -1104,13 +1107,13 @@ import javax.swing.SwingConstants;
             if (isCurrent && (gstate == SOCGame.PLACING_CITY))
             {
                 cityBut.setEnabled(true);
-                cityBut.setText(strings.get("base.cancel"));
+                cityBut.setText(strings.get(BASE_CANCEL));
                 pieceButtonsState = SOCGame.PLACING_CITY;
             }
             else if (game.couldBuildCity(pnum))
             {
                 cityBut.setEnabled(currentCanBuy);
-                cityBut.setText(strings.get("build.buy"));
+                cityBut.setText(strings.get(BUILD_BUY));
             }
             else
             {
@@ -1123,7 +1126,7 @@ import javax.swing.SwingConstants;
             if (game.couldBuyDevCard(pnum))
             {
                 cardBut.setEnabled(currentCanBuy);
-                cardBut.setText(strings.get("build.buy"));
+                cardBut.setText(strings.get(BUILD_BUY));
             }
             else if (isCurrent
                 && ((gstate == SOCGame.PLACING_ROBBER) || (gstate == SOCGame.PLACING_PIRATE))
@@ -1131,12 +1134,12 @@ import javax.swing.SwingConstants;
                 && (pcli.getServerVersion(game) >= SOCGame.VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD))
             {
                 cardBut.setEnabled(true);
-                cardBut.setText(strings.get("base.cancel"));
+                cardBut.setText(strings.get(BASE_CANCEL));
             }
             else if (currentCanCancelConvertToWarship)
             {
                 cardBut.setEnabled(true);
-                cardBut.setText(strings.get("base.cancel"));
+                cardBut.setText(strings.get(BASE_CANCEL));
                 cardBut.setToolTipText("Cancel conversion of ship to warship");  // TODO i18n
                 cardButIsCancelConvertToWarship = true;
             }
@@ -1155,13 +1158,13 @@ import javax.swing.SwingConstants;
                          && (game.isPractice || pcli.sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))))
                 {
                     shipBut.setEnabled(true);
-                    shipBut.setText(strings.get("base.cancel"));
+                    shipBut.setText(strings.get(BASE_CANCEL));
                     pieceButtonsState = gstate;  // PLACING_SHIP or PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2
                 }
                 else if (game.couldBuildShip(pnum))
                 {
                     shipBut.setEnabled(currentCanBuy);
-                    shipBut.setText(strings.get("build.buy"));
+                    shipBut.setText(strings.get(BUILD_BUY));
                 }
                 else
                 {
