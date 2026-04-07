@@ -61,6 +61,7 @@ JARs for recent JSettlers versions can be downloaded from
 - Server:
 	- Bugfix: If player cancels Road Building with Cancel Ship button, server now clears player's hasPlayedDevCard() so another can be played
 	- Send a message to idle clients every few minutes, so their ISP or NAT doesn't disconnect them from games
+	    - Interval can be changed or disabled (default 2.5 minutes) with server property `jsettlers.client.idle.ping.seconds`
 	- New `*MUTE*` and `*UNMUTE*` commands for a game's creator or admin to manage that game's chat with players and observers
 	- `*STATS*`: Sort the client version list
 - Network/Message traffic:

@@ -34,6 +34,10 @@
 # other 70% will be "fast" robots. Each robot can play in many games at once.
 # jsettlers.startrobots=7
 
+# Interval to send a ping message to idle clients, so their ISP or NAT won't disconnect them from games.
+# To disable, use 0.
+# jsettlers.client.idle.ping.seconds=150
+
 # Per-client limits:
 
 # Maximum simultaneous games that a client can create.
@@ -328,7 +332,7 @@
 #
 # This file is part of the JSettlers project.
 #
-# This file Copyright (C) 2016-2020,2022 Jeremy D Monin (jeremy@nand.net)
+# This file Copyright (C) 2016-2020,2022,2026 Jeremy D Monin (jeremy@nand.net)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

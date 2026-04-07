@@ -506,6 +506,27 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_ALLOW_DEBUG = "jsettlers.allow.debug";
 
     /**
+     * Property <tt>jsettlers.client.idle.ping.seconds</tt>: Interval to send a ping message to idle clients,
+     * so their ISP or NAT won't disconnect them from games, or 0 to disable. Uses {@link SOCClientPinger}.
+     * Default {@link #PROP_JSETTLERS_CLI_IDLE_PING_SECONDS_DEFAULT}.
+     * If not 0, minimum is {@link #PROP_JSETTLERS_CLI_IDLE_PING_SECONDS_MINVALUE}.
+     * @since 2.7.00
+     */
+    public static final String PROP_JSETTLERS_CLI_IDLE_PING_SECONDS = "jsettlers.client.idle.ping.seconds";
+
+    /**
+     * Default value for {@link #PROP_JSETTLERS_CLI_IDLE_PING_SECONDS}: 2.5 minutes.
+     * @since 2.7.00
+     */
+    public static final int PROP_JSETTLERS_CLI_IDLE_PING_SECONDS_DEFAULT = 2 * 60 + 30;
+
+    /**
+     * Minimum nonzero value for {@link #PROP_JSETTLERS_CLI_IDLE_PING_SECONDS}: 60 seconds.
+     * @since 2.7.00
+     */
+    public static final int PROP_JSETTLERS_CLI_IDLE_PING_SECONDS_MINVALUE = 60;
+
+    /**
      * Property <tt>jsettlers.client.maxcreategames</tt> to limit the amount of
      * games that a client can create at once. (The default is 5.)
      * Once a game is completed and deleted (all players leave), they can create another.
@@ -635,6 +656,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_ACCOUNTS_ADMINS, "Permit only these usernames to create accounts (comma-separated)",
         PROP_JSETTLERS_ADMIN_WELCOME, "If set, welcome message text to send when clients connect",
         PROP_JSETTLERS_ALLOW_DEBUG,   "Allow remote debug commands? (if Y)",
+        PROP_JSETTLERS_CLI_IDLE_PING_SECONDS,   "Interval to send a ping message to idle clients (0 to disable)",
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
         PROP_JSETTLERS_GAMEOPT_PREFIX + "*",    "Game option defaults, case-insensitive: jsettlers.gameopt.RD=y",
@@ -1424,7 +1446,8 @@ public class SOCServer extends Server
     SOCClientPinger serverRobotPinger;
 
     /**
-     * Human client pingers, which runs at a different interval than {@link #serverRobotPinger}.
+     * Human client pingers, which run at a different interval than {@link #serverRobotPinger}.
+     * {@code null} if {@link #PROP_JSETTLERS_CLI_IDLE_PING_SECONDS} is 0.
      * @since 2.7.00
      */
     SOCClientPinger namedClientPinger, unnamedClientPinger;
@@ -2057,10 +2080,32 @@ public class SOCServer extends Server
         {
             serverRobotPinger = new SOCClientPinger(this, robots, 0);
             serverRobotPinger.start();
-            unnamedClientPinger = new SOCClientPinger(this, unnamedConns, 2 * 60 + 30);
-            unnamedClientPinger.start();
-            namedClientPinger = new SOCClientPinger(this, conns, 2 * 60 + 30);  // TODO property for interval
-            namedClientPinger.start();
+            {
+                int cliPingIntervalSeconds = PROP_JSETTLERS_CLI_IDLE_PING_SECONDS_DEFAULT;
+                if (props.containsKey(PROP_JSETTLERS_CLI_IDLE_PING_SECONDS))
+                {
+                    String val = props.getProperty(PROP_JSETTLERS_CLI_IDLE_PING_SECONDS);
+                    try {
+                        cliPingIntervalSeconds = Integer.parseInt(val);
+                        if ((cliPingIntervalSeconds != 0)
+                            && (cliPingIntervalSeconds < PROP_JSETTLERS_CLI_IDLE_PING_SECONDS_MINVALUE))
+                            throw new IllegalArgumentException
+                                ("Config: " + PROP_JSETTLERS_CLI_IDLE_PING_SECONDS
+                                 + " must be 0 or at least " + PROP_JSETTLERS_CLI_IDLE_PING_SECONDS_MINVALUE);
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException
+                            ("Config: " + PROP_JSETTLERS_CLI_IDLE_PING_SECONDS + ": could not be parsed");
+                    }
+                }
+
+                if (cliPingIntervalSeconds > 0)
+                {
+                    unnamedClientPinger = new SOCClientPinger(this, unnamedConns, cliPingIntervalSeconds);
+                    unnamedClientPinger.start();
+                    namedClientPinger = new SOCClientPinger(this, conns, cliPingIntervalSeconds);
+                    namedClientPinger.start();
+                }
+            }
             gameTimeoutChecker = new SOCGameTimeoutChecker(this);
             gameTimeoutChecker.start();
 
