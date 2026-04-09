@@ -25,7 +25,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import static soc.game.SOCGameOption.FLAG_DROP_IF_UNUSED;
 
 import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCGame;
@@ -230,6 +229,8 @@ public class TestClientVersion
         final int CLI_VERSION_NUMBER = 2700;
         final int NEWER_GAMEOPT_VERSION_NUMBER = 2701;
         assertTrue(NEWER_GAMEOPT_VERSION_NUMBER > CLI_VERSION_NUMBER);
+        assertTrue(Version.versionNumber() > CLI_VERSION_NUMBER);
+        assertTrue(Version.versionNumber() > soc.message.SOCChangeGameOptions.VERSION_FOR_REMOVE);
 
         final SOCGameOption opt = new SOCGameOption
             ("ZZ", NEWER_GAMEOPT_VERSION_NUMBER, NEWER_GAMEOPT_VERSION_NUMBER, false,
@@ -243,6 +244,8 @@ public class TestClientVersion
         tcli.setVersion(CLI_VERSION_NUMBER);
         assertEquals(CLI_VERSION_NUMBER, tcli.getVersion());
         tcli.init();
+        assertNull(tcli.knownOpts.getKnownOption("ZZ", false));
+        tcli.allOptsReceived = false;  // because version differs, gameopts will sync, which will set this flag true.
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
 
@@ -252,7 +255,16 @@ public class TestClientVersion
         assertNotNull(cliConnAtSrv);
         assertEquals(CLI_VERSION_NUMBER, cliConnAtSrv.getVersion());
 
-        // TODO check option info received at cli
+        // check option info received at cli
+        assertTrue(tcli.allOptsReceived);
+        final SOCGameOption optAtCli = tcli.knownOpts.getKnownOption("ZZ", false);
+        assertNotNull(optAtCli);
+        assertTrue("same flags as defined at server",
+            optAtCli.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED | SOCGameOption.FLAG_SET_AT_CLIENT_ONCE | SOCGameOption.FLAG_OPPORTUNISTIC));
+        assertFalse("flag set by server only when sending to too-old client",
+            opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY));
+        assertTrue("flag set by server only when sending to too-old client",
+            optAtCli.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY));
 
         // cleanup
         try { Thread.sleep(40); }

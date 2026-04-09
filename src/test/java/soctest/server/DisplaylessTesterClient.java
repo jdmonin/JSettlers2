@@ -284,6 +284,18 @@ public class DisplaylessTesterClient
             sVersion = sLocalVersion;
         else
             sLocalVersion = sVersion;
+
+        // This code is temporarily copied here from SOCPlayerClient to finish implementing a unit test.
+        // TODO refactor common w/ pcli (move to static in displess)
+        if (sVersion > version)
+        {
+            // Newer server: Ask it to list any options we don't know about yet.
+            // Same version: Ask for all localized option descs if available.
+            allOptsReceived = false;
+            final SOCGameOptionGetInfos ogiMsg;
+            ogiMsg = new SOCGameOptionGetInfos(null, false, false);
+            put(ogiMsg.toCmd());
+        }
     }
 
     // TODO refactor common with SOCPlayerClient vs this and its displayless parent,
