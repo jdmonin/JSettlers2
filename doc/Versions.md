@@ -99,6 +99,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - TestActionsMessages: New convenience methods startGame2pAwaitClientPlacementTurn, putPiece, movePiece, undoPutOrMovePiece
 	    - SOCServer.createOrJoinGame is now public, returning the created or joined SOCGame
 	    - SOCRobotBrain: New `ALWAYS_PAUSE_FASTER` static flag
+	    - SOCNewGameWithOptions(SOCGameOptionSet): Sort options alphabetically
 	- Gradle 7 compatibility
 	- Gradle build auto-selects `python3` or `python` command to run tests
 	- Removed obsolete `SOCApplet`; you can run `SOCPlayerClient` instead

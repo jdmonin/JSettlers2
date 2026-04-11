@@ -1873,6 +1873,7 @@ public class SOCGameOption
             ? SOCGameOption.VERSION_FOR_LONGER_OPTNAMES
             : -1;
         int flags = (optFlags | FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY) & ~FLAG_SET_AT_CLIENT_ONCE;
+
         return new SOCGameOption
             (optType, key, reportMinVers, lastModVersion,
              false, defaultIntValue, minIntValue, maxIntValue, enumVals,
