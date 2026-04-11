@@ -125,6 +125,9 @@ public class TestClientVersion
         cliConnAtSrv = srv.getConnection(CLIENT_NAME + "O");
         assertNotNull(cliConnAtSrv);
         assertEquals(OTHER_VERSION_NUMBER, cliConnAtSrv.getVersion());
+        final SOCGameOption optAtOld = tcliOld.knownOpts.getKnownOption("UB", true);
+        assertNotNull(optAtOld);
+        assertTrue(optAtOld.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
 
         // Have tcli make and join a game with an option with FLAG_OPPORTUNISTIC
         final int VERS_OPT_UB = 2700;
