@@ -1,6 +1,6 @@
 /*
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2022,2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,6 +34,81 @@ import soc.game.SOCVersionedItem;
  */
 public class TestVersionedItem
 {
+    /**
+     * Test various arguments passed into constructors.
+     * @see TestGameOptions#testConstructorArgs()
+     * @since 2.7.00
+     */
+    @Test
+    public void testConstructorArgs()
+    {
+        // TODO test more situations in this method, such as:
+        // - desc vs SOCMessage.isSingleLineAndSafe
+        // - See constructor for more
+
+        SOCGameOption opt;  // since SOCVersionedItem is abstract
+
+        /**
+         * minVersion
+         */
+        try
+        {
+            opt = new SOCGameOption
+                ("ZZ", 0, 1107, false, 7, 1, 999, 0, "desc");
+            fail("should have rejected minVers: " + opt);
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("minVers 0 for key ZZ"));
+        }
+        try
+        {
+            opt = new SOCGameOption
+                ("ZZ", 999, 1107, false, 7, 1, 999, 0, "desc");
+            fail("should have rejected minVers: " + opt);
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("minVers 999 for key ZZ"));
+        }
+        opt = new SOCGameOption
+            ("ZZ", -1, 1107, false, 7, 1, 999, 0, "desc");
+        assertNotNull("minVers -1 is OK", opt);
+        assertEquals(-1, opt.minVersion);
+        assertEquals(1107, opt.lastModVersion);
+        opt = new SOCGameOption
+            ("ZZ", 1000, 1107, false, 7, 1, 999, 0, "desc");
+        assertNotNull("minVers 1000 is OK", opt);
+        assertEquals(1000, opt.minVersion);
+        assertEquals(1107, opt.lastModVersion);
+
+        /**
+         * lastModVersion
+         */
+        try
+        {
+            opt = new SOCGameOption
+                ("ZZ", -1, 0, false, 7, 1, 999, 0, "desc");
+            fail("should have rejected lastModVersion: " + opt);
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("lastModVers 0 for key ZZ"));
+        }
+        try
+        {
+            opt = new SOCGameOption
+                ("ZZ", -1, 999, false, 7, 1, 999, 0, "desc");
+            fail("should have rejected lastModVersion: " + opt);
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("lastModVers 999 for key ZZ"));
+        }
+        opt = new SOCGameOption
+            ("ZZ", 1107, -1, false, 7, 1, 999, 0, "desc");
+        assertNotNull("lastModVers -1 is OK", opt);
+        assertEquals(1107, opt.minVersion);
+        assertEquals(-1, opt.lastModVersion);
+        opt = new SOCGameOption
+            ("ZZ", 1107, 1000, false, 7, 1, 999, 0, "desc");
+        assertNotNull("lastModVers 1000 is OK", opt);
+        assertEquals(1107, opt.minVersion);
+        assertEquals(1000, opt.lastModVersion);
+    }
+
     /**
      * Test {@link SOCVersionedItem#setDesc(String)}.
      */
