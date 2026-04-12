@@ -30,6 +30,7 @@ import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
+import soc.message.SOCChangeGameOptions;
 import soc.robot.SOCRobotBrain;
 import soc.server.SOCGameHandler;
 import soc.server.genericServer.Connection;
@@ -111,11 +112,13 @@ public class TestClientVersion
         assertEquals(Version.versionNumber(), cliConnAtSrv.getVersion());
 
         /** reporting other version */
-        final int OTHER_VERSION_NUMBER = 1117;
+        final int OTHER_VERSION_NUMBER = 2000;
+        assertTrue(OTHER_VERSION_NUMBER < SOCChangeGameOptions.VERSION_FOR_REMOVE);
         DisplaylessTesterClient tcliOld = new DisplaylessTesterClient
             (RecordingSOCServer.STRINGPORT_NAME, CLIENT_NAME + "O", null, null);
         tcliOld.setVersion(OTHER_VERSION_NUMBER);
         assertEquals(OTHER_VERSION_NUMBER, tcliOld.getVersion());
+        tcliOld.allOptsReceived = false;
         tcliOld.init();
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
@@ -125,9 +128,16 @@ public class TestClientVersion
         cliConnAtSrv = srv.getConnection(CLIENT_NAME + "O");
         assertNotNull(cliConnAtSrv);
         assertEquals(OTHER_VERSION_NUMBER, cliConnAtSrv.getVersion());
+        assertTrue("gameopt sync has completed", tcliOld.allOptsReceived);
         final SOCGameOption optAtOld = tcliOld.knownOpts.getKnownOption("UB", true);
         assertNotNull(optAtOld);
-        assertTrue(optAtOld.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
+        assertTrue("same flags as defined at server",
+            optAtOld.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED | SOCGameOption.FLAG_OPPORTUNISTIC));
+        assertTrue("flag set by server only when sending to too-old client",
+            optAtOld.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY));
+        assertFalse("flag cleared by server when sending to too-old client",
+            optAtOld.hasFlag(SOCGameOption.FLAG_SET_AT_CLIENT_ONCE));
+        assertTrue(-1 != optAtOld.getDesc().indexOf(" (Cannot create)"));
 
         // Have tcli make and join a game with an option with FLAG_OPPORTUNISTIC
         final int VERS_OPT_UB = 2700;

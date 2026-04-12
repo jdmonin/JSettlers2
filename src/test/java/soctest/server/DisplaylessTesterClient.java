@@ -102,6 +102,9 @@ public class DisplaylessTesterClient
 
     /**
      * Set the client version to report at {@link #init()}.
+     * If server version is newer during {@code init()}, {@link #handleVERSION(boolean, SOCVersion)} will
+     * clear {@link SOCDisplaylessPlayerClient#allOptsReceived} and
+     * begin {@link SOCGameOption} sync like {@link soc.client.SOCPlayerClient}.
      * @param vers  Version number, in same form at as {@link Version#versionNumber()};
      *   must be >= 1000, or 0 to use current version
      * @throws IllegalArgumentException if {@code vers} out of range
@@ -274,7 +277,12 @@ public class DisplaylessTesterClient
 
     // message handlers
 
-    /** To avoid confusion during gameplay, set both "server" version fields */
+    /**
+     * To avoid confusion during gameplay, sets both "server" version fields.
+     * If we've previously called {@link #setVersion(int)} and server version is newer,
+     * clears {@link SOCDisplaylessPlayerClient#allOptsReceived} and
+     * begins {@link SOCGameOption} sync like {@link soc.client.SOCPlayerClient}.
+     */
     @Override
     protected void handleVERSION(boolean isLocal, SOCVersion mes)
     {
@@ -284,6 +292,18 @@ public class DisplaylessTesterClient
             sVersion = sLocalVersion;
         else
             sLocalVersion = sVersion;
+
+        // This code is temporarily copied here from SOCPlayerClient to finish implementing a unit test.
+        // TODO refactor common w/ pcli (move to static in displess)
+        if (sVersion > version)
+        {
+            // Newer server: Ask it to list any options we don't know about yet.
+            // Same version: Ask for all localized option descs if available.
+            allOptsReceived = false;
+            final SOCGameOptionGetInfos ogiMsg;
+            ogiMsg = new SOCGameOptionGetInfos(null, false, false);
+            put(ogiMsg.toCmd());
+        }
     }
 
     // TODO refactor common with SOCPlayerClient vs this and its displayless parent,

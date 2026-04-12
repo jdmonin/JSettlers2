@@ -165,7 +165,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @see #handleGAMEOPTIONINFO(SOCGameOptionInfo)
      * @since 2.5.00
      */
-    protected boolean allOptsReceived = true;
+    public boolean allOptsReceived = true;
 
     /**
      * Network socket. Initialized in subclasses.
