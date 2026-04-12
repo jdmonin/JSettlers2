@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1855,6 +1855,7 @@ public class SOCGameOption
      * returns the option unmodified. Otherwise makes a copy which:
      *<UL>
      * <LI> Adds {@link #FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY} to {@link #optFlags}
+     * <LI> Clears {@code optFlag} {@link #FLAG_SET_AT_CLIENT_ONCE} if set
      * <LI> Reduces {@link #minVersion} to -1 if possible; if its {@link SOCVersionedItem#key key} isn't compatible
      *      with v1.x, to {@link #VERSION_FOR_LONGER_OPTNAMES}
      *</UL>
@@ -1871,11 +1872,12 @@ public class SOCGameOption
             ((key.length() > 3) || (key.indexOf('_') != -1))
             ? SOCGameOption.VERSION_FOR_LONGER_OPTNAMES
             : -1;
+        int flags = (optFlags | FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY) & ~FLAG_SET_AT_CLIENT_ONCE;
 
         return new SOCGameOption
             (optType, key, reportMinVers, lastModVersion,
              false, defaultIntValue, minIntValue, maxIntValue, enumVals,
-             optFlags | FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY, desc);
+             flags, desc);
     }
 
     /**

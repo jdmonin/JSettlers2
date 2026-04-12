@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2021,2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * A few tests for miscellaneous {@link SOCServer} methods.
+ * A few tests for miscellaneous {@link SOCServer} methods and properties.
  * @since 2.5.00
  */
 public class TestSOCServerMisc
@@ -44,6 +44,17 @@ public class TestSOCServerMisc
         if (gap < 3300)
             fail("SOCServer.CLI_VERSION_MAX_REPORT should be at least 3.3 versions newer than current: "
                 + SOCServer.CLI_VERSION_MAX_REPORT + " - " + currVersion + " = " + gap);
+    }
+
+    /**
+     * Test some server properties values and relationships.
+     * @since 2.7.00
+     */
+    @Test
+    public void testServerPropertiesMisc()
+    {
+        assertTrue("PROP_JSETTLERS_CLI_IDLE_PING_SECONDS_MINVALUE <= _DEFAULT",
+            SOCServer.PROP_JSETTLERS_CLI_IDLE_PING_SECONDS_MINVALUE <= SOCServer.PROP_JSETTLERS_CLI_IDLE_PING_SECONDS_DEFAULT);
     }
 
     /**

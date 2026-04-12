@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011,2013-2014,2018-2023 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2013-2014,2018-2023,2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -111,7 +111,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * Create a SOCNewGameWithOptions message, optionally for a specific client version, at server.
      * This constructor may adjust encoded option values for backwards compatibility with the client version.
      * If so, contents of the referenced {@code opts} map aren't changed: Calls
-     * {@link SOCGameOption#packOptionsToString(Map, boolean, boolean, int) SOCGameOption.packOptionsToString(opts, false, false, cliVers)}.
+     * {@link SOCGameOption#packOptionsToString(Map, boolean, boolean, int) SOCGameOption.packOptionsToString(opts, false, true, cliVers)}.
      *<P>
      * Clients v2.7.00 or newer ({@link SOCGameOption#VERSION_FOR_UNKNOWN_WITH_DESCRIPTION})
      * are sent {@link SOCGameOption#OTYPE_UNKNOWN OTYPE_UNKNOWN} options too,
@@ -129,7 +129,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
         (final String ga, final SOCGameOptionSet opts, final int minVers, final int cliVers)
     {
         this(ga, SOCGameOption.packOptionsToString
-                ((opts != null) ? opts.getAll() : null, false, false, cliVers), minVers);
+                ((opts != null) ? opts.getAll() : null, false, true, cliVers), minVers);
     }
 
     /**

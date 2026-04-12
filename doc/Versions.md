@@ -60,6 +60,8 @@ JARs for recent JSettlers versions can be downloaded from
 	        - Trade stats when server 2.5.00 or newer
 - Server:
 	- Bugfix: If player cancels Road Building with Cancel Ship button, server now clears player's hasPlayedDevCard() so another can be played
+	- Send a message to idle clients every few minutes, so their ISP or NAT doesn't disconnect them from games
+	    - Interval can be changed or disabled (default 2.5 minutes) with server property `jsettlers.client.idle.ping.seconds`
 	- New `*MUTE*` and `*UNMUTE*` commands for a game's creator or admin to manage that game's chat with players and observers
 	- `*STATS*`: Sort the client version list
 - Network/Message traffic:
@@ -97,6 +99,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - TestActionsMessages: New convenience methods startGame2pAwaitClientPlacementTurn, putPiece, movePiece, undoPutOrMovePiece
 	    - SOCServer.createOrJoinGame is now public, returning the created or joined SOCGame
 	    - SOCRobotBrain: New `ALWAYS_PAUSE_FASTER` static flag
+	    - SOCNewGameWithOptions(SOCGameOptionSet): Sort options alphabetically
 	- Gradle 7 compatibility
 	- Gradle build auto-selects `python3` or `python` command to run tests
 	- Removed obsolete `SOCApplet`; you can run `SOCPlayerClient` instead

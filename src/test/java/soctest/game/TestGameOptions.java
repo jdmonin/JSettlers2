@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2018-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2018-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,7 +45,9 @@ import soc.util.Version;
  *<P>
  * TODO add more basic-functionality tests
  * parseOptionNameValue, parseOptionsToSet, parseOptionsToMap, getMaxIntValueForVersion, maybe packKnownOptionsToString, etc
+ * (including packKnownOptionsToString w/ hideLongNameOpts based on client version)
  *
+ * @see TestVersionedItem
  * @since 2.0.00
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
@@ -186,6 +188,86 @@ public class TestGameOptions
         assertEquals(SOCGameOption.OTYPE_STR, opt.optType);
         assertEquals("xyz", opt.getStringValue());
         // OTYPE_*: check new type from that set
+    }
+
+    /**
+     * Test various arguments passed into constructors,
+     * including {@code key} and {@code minVers} vs {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES}.
+     * @see TestVersionedItem#testConstructorArgs()
+     * @since 2.7.00
+     */
+    @Test
+    public void testConstructorArgs()
+    {
+        // TODO test more situations in this method, such as:
+        // - desc vs SOCMessage.isSingleLineAndSafe
+        // - value range vs default int value
+        // - See constructor for more
+
+        SOCGameOption opt;
+
+        /**
+         * Key, minVersion
+         */
+        try
+        {
+            opt = new SOCGameOption
+                ("ZZ3456789", -1, 1107, false, 7, 1, 999, 0, "desc");
+            fail("should have rejected key too long: " + opt);
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Key length > 8: ZZ3456789"));
+        }
+
+        opt = new SOCGameOption
+            ("ZZ", -1, 1107, false, 7, 1, 999, 0, "desc");
+        assertNotNull(opt);
+        assertEquals("ZZ", opt.key);
+
+        try
+        {
+            opt = new SOCGameOption
+                ("A;B", -1, 1107, false, 7, 1, 999, 0, "desc");
+            fail("should have rejected key format: " + opt);
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Key not alphanumeric: A;B"));
+        }
+
+        opt = new SOCGameOption
+            ("-", -1, 1107, false, 7, 1, 999, 0, "desc");
+        assertNotNull(opt);
+        assertEquals("-", opt.key);
+
+        assertEquals(2000, SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
+
+        try
+        {
+            opt = new SOCGameOption
+                ("Z_Z", -1, 1107, false, 7, 1, 999, 0, "based on N7 but has underscore");
+            fail("should have rejected key fmt vs minVers: " + opt);
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Key with '_' needs minVers 2000 or newer: Z_Z"));
+        }
+        opt = new SOCGameOption
+            ("Z_Z", 2000, 2700, false, 7, 1, 999, 0, "based on N7 but has underscore");
+        assertNotNull(opt);
+        assertEquals(opt.minVersion, 2000);
+
+        try
+        {
+            opt = new SOCGameOption
+                ("ZZLONG", -1, 2700, false,
+                 SOCGameOption.FLAG_DROP_IF_UNUSED | SOCGameOption.FLAG_SET_AT_CLIENT_ONCE | SOCGameOption.FLAG_OPPORTUNISTIC,
+                 "based on UB Allow undo piece builds and moves");
+            fail("should have rejected key fmt vs minVers: " + opt);
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Key length > 3 needs minVers 2000 or newer: ZZLONG"));
+        }
+        opt = new SOCGameOption
+            ("ZZLONG", 2000, 2700, false,
+             SOCGameOption.FLAG_DROP_IF_UNUSED | SOCGameOption.FLAG_SET_AT_CLIENT_ONCE | SOCGameOption.FLAG_OPPORTUNISTIC,
+             "based on UB Allow undo piece builds and moves");
+        assertNotNull(opt);
+        assertEquals(opt.minVersion, 2000);
     }
 
     /**
