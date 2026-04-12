@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2017,2019-2020,2022 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2017,2019-2020,2022,2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -116,6 +116,10 @@ public class TestI18NGameoptScenStrings
         }
 
         assertTrue("SOCGameOption i18n strings; see standard output for details", allOK);
+
+        // other misc gameopt-related strings to test for:
+        String smText = sm.get("gameopt.desc.cannot_create");
+        assertEquals("(Cannot create)", smText);  // If wording changes, update here; mostly testing that the key is defined
     }
 
     /**
