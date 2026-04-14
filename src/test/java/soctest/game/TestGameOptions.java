@@ -1258,7 +1258,8 @@ public class TestGameOptions
     }
 
     /**
-     * Test {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, Map)}.
+     * Test {@link SOCVersionedItem#itemsMinimumVersion(Map)}
+     * and {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, Map)}.
      * @since 2.1.00
      */
     @Test
@@ -1266,14 +1267,17 @@ public class TestGameOptions
     {
         final SOCGameOptionSet knowns = SOCGameOptionSet.getAllKnownOptions();
 
+        assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(null));
         assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(null, false, null));
 
+        assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(new HashMap<String, SOCGameOption>()));
         assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(new HashMap<String, SOCGameOption>(), false, null));
 
         // Min vers is 1108 when gameopt PLB is set:
 
         {
             Map<String, SOCGameOption> optsPLB = SOCGameOption.parseOptionsToMap("PLB=t", knowns);
+            assertEquals(1108, SOCVersionedItem.itemsMinimumVersion(optsPLB));
             assertEquals(1108, SOCVersionedItem.itemsMinimumVersion(optsPLB, false, null));
 
             Map<String, Integer> optsMins = new HashMap<>();
@@ -1290,6 +1294,7 @@ public class TestGameOptions
             optUB.setBoolValue(true);
 
             optsMins.clear();
+            assertEquals("uses PLB's minVersion, ignores UB", 1108, SOCVersionedItem.itemsMinimumVersion(optsPLB));
             assertEquals("uses PLB's minVersion, ignores UB", 1108, SOCVersionedItem.itemsMinimumVersion(optsPLB, false, optsMins));
             assertEquals("contains PLB, ignores UB", 1, optsMins.size());
             minPLB = optsMins.get("PLB");
@@ -1319,6 +1324,7 @@ public class TestGameOptions
 
             Map<String, SOCGameOption> optsNTZ = SOCGameOption.parseOptionsToMap("NTZ=t3", knowns);
             assertEquals(1, optsNTZ.size());
+            assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsNTZ));
             assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsNTZ, false, null));
 
             Map<String, Integer> optsMins = new HashMap<>();
@@ -1328,11 +1334,13 @@ public class TestGameOptions
             // now add NT=f to opts
             optsNTZ.put("NT", optNT);
             optNT.setBoolValue(false);
+            assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsNTZ));
             assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(optsNTZ, false, optsMins));
             assertTrue(optsMins.isEmpty());
 
             // now set NT=t
             optNT.setBoolValue(true);
+            assertEquals(2700, SOCVersionedItem.itemsMinimumVersion(optsNTZ));
             assertEquals(2700, SOCVersionedItem.itemsMinimumVersion(optsNTZ, false, optsMins));
             assertEquals(2, optsMins.size());
             Integer minVers = optsMins.get("NT");
