@@ -3059,7 +3059,7 @@ public class SOCServer extends Server
             {
                 gVers = -1;
             } else {
-                gVers = SOCVersionedItem.itemsMinimumVersion(gaOpts.getAll());
+                gVers = SOCVersionedItem.itemsMinimumVersion(gaOpts.getAll(), false, true, null);
                 if ((gVers > cliVers) && (gVers < Integer.MAX_VALUE))
                 {
                     // Which requested option(s) are too new for client?
@@ -3271,7 +3271,7 @@ public class SOCServer extends Server
             final int gVersMinGameOptsNoChange;
             if (cversMin < Version.versionNumber())
                 gVersMinGameOptsNoChange = SOCVersionedItem.itemsMinimumVersion
-                    (gaOpts != null ? gaOpts.getAll() : null, true, null);
+                    (gaOpts != null ? gaOpts.getAll() : null, true, false, null);
             else
                 gVersMinGameOptsNoChange = -1;  // all clients are our current version or higher
 

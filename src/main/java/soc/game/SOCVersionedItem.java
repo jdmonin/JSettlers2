@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013,2015,2017,2019-2020,2022-2023,2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013,2015,2017,2019-2020,2022-2023,2025-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file from SOCGameOption.java Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -365,16 +365,17 @@ public abstract class SOCVersionedItem implements Cloneable
      * Calls at the client to {@code itemsMinimumVersion} should keep this in mind, especially if
      * a client's game option's {@link #lastModVersion} is newer than the server.
      *<P>
-     * Calls {@link #itemsMinimumVersion(Map, boolean, Map) itemsMinimumVersion(items, false, null)}.
+     * Calls {@link #itemsMinimumVersion(Map, boolean, boolean, Map) itemsMinimumVersion(items, false, false, null)}.
+     * See that method's javadoc for details of how various {@link SOCGameOption} flags are treated.
      *
      * @param items  a set of items; may be empty or {@code null}
      * @return the highest 'minimum version' among these items, or -1
-     * @see #itemsMinimumVersion(Map, boolean, Map)
+     * @see #itemsMinimumVersion(Map, boolean, boolean, Map)
      * @see #getMinVersion(Map)
      */
     public static int itemsMinimumVersion(final Map<String, ? extends SOCVersionedItem> items)
     {
-        return itemsMinimumVersion(items, false, null);
+        return itemsMinimumVersion(items, false, false, null);
     }
 
     /**
@@ -398,7 +399,8 @@ public abstract class SOCVersionedItem implements Cloneable
      *      Items with that flag will be ignored unless their parent is part of {@code items}
      *      and parent's {@link SOCGameOption#isSet()} is true.
      * <LI> Ignores items having {@link SOCGameOption#FLAG_OPPORTUNISTIC},
-     *      since a player client below their {@code minVers} can sit down and play in the game
+     *      since a player client below their {@code minVers} can sit down and play in the game,
+     *      unless {@code includeOpportunistic} is true
      *</UL>
      *<P>
      * <b>Backwards-compatibility support: {@code calcMinVersionForUnchanged} parameter:</b><br>
@@ -414,6 +416,7 @@ public abstract class SOCVersionedItem implements Cloneable
      * @param items  a set of items; may be empty or {@code null}
      * @param calcMinVersionForUnchanged  If true, return the minimum version at which these
      *         options' values aren't changed (for compatibility) by the presence of new options.
+     * @param includeOpportunistic  If true, don't ignore game options having {@link SOCGameOption#FLAG_OPPORTUNISTIC}
      * @param itemsMins  If not {@code null}, an empty map to which to add any item keys which have a minimum version
      *         in order to return that info
      * @return the highest 'minimum version' among these options, or -1.
@@ -425,6 +428,7 @@ public abstract class SOCVersionedItem implements Cloneable
      */
     public static int itemsMinimumVersion
         (final Map<String, ? extends SOCVersionedItem> items, final boolean calcMinVersionForUnchanged,
+         final boolean includeOpportunistic,
          final Map<String, Integer> itemsMins)
         throws IllegalArgumentException
     {
@@ -444,7 +448,7 @@ public abstract class SOCVersionedItem implements Cloneable
 
             if (itm instanceof SOCGameOption)
             {
-                if (((SOCGameOption) itm).hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC))
+                if ((! includeOpportunistic) && ((SOCGameOption) itm).hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC))
                     continue;
 
                 if (((SOCGameOption) itm).hasFlag(SOCGameOption.FLAG_DROP_IF_PARENT_UNUSED))

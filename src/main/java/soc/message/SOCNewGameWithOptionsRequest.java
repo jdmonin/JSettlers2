@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2013-2014,2016-2017,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013-2014,2016-2017,2019-2020,2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,10 @@ import soc.game.SOCGameOptionSet;
  *<P>
  * If the new game can't be created (name too long, unknown options specified, etc),
  * server will reply with {@link SOCStatusMessage} with a status value explaining the reason:
- * {@link SOCStatusMessage#SV_NEWGAME_TOO_MANY_CREATED}, {@link SOCStatusMessage#SV_NEWGAME_NAME_REJECTED}, etc.
+ * {@link SOCStatusMessage#SV_NEWGAME_TOO_MANY_CREATED}, {@link SOCStatusMessage#SV_NEWGAME_NAME_REJECTED},
+ * {@link SOCStatusMessage#SV_NEWGAME_OPTION_VALUE_TOONEW}, etc. See
+ * {@link soc.server.SOCServer#createOrJoinGame(soc.server.genericServer.Connection, int, String, SOCGameOptionSet, soc.game.SOCGame, int)}
+ * for details.
  *<P>
  * Introduced in 1.1.07; check server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
  * before sending this message.  Older servers should be sent {@link SOCJoinGame} instead.

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1335,6 +1335,9 @@ public class SOCGameOptionSet
      *</UL>
      * See <tt>checkValues</tt> for method's behavior in each mode.
      *<P>
+     * Unlike {@link SOCVersionedItem#itemsMinimumVersion(Map)}, does not ignore options
+     * having {@link SOCGameOption#FLAG_OPPORTUNISTIC}.
+     *<P>
      * <B>Game option names:</B><br>
      * When running this at the client (<tt>vers</tt> is the older remote server's version),
      * some of the returned too-new options have long names that can't be sent to a v1.x.xx
@@ -1395,6 +1398,8 @@ public class SOCGameOptionSet
      * adjust, or reject.
      *<P>
      * Will omit any option that has {@link SOCGameOption#FLAG_INACTIVE_HIDDEN}.
+     * Unlike {@link SOCVersionedItem#itemsMinimumVersion(Map)}, does not ignore options
+     * having {@link SOCGameOption#FLAG_OPPORTUNISTIC}.
      *
      * @param vers  Version to compare options against
      * @return  List of all {@link SOCGameOption}s valid at version {@code vers}, or {@code null} if none.
@@ -1411,6 +1416,9 @@ public class SOCGameOptionSet
      * In a set of Known Options, get all options added or changed since version {@code vers}, or all options valid
      * at {@code vers}, to implement {@link #optionsNewerThanVersion(int, boolean, boolean)}
      * and {@link #optionsForVersion(int)}.
+     * Unlike {@link SOCVersionedItem#itemsMinimumVersion(Map)}, does not ignore options
+     * having {@link SOCGameOption#FLAG_OPPORTUNISTIC}.
+     *
      * @param vers  Version to compare options against
      * @param getAllForVersion  True to get all valid options ({@code optionsForVersion} mode),
      *     false for newer added or changed options only ({@code optionsNewerThanVersion} modes).
