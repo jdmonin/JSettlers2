@@ -140,13 +140,12 @@ public class TestClientVersion
         assertTrue(-1 != optAtOld.getDesc().indexOf(" (Cannot create)"));
 
         // Have tcli make and join a game with an option with FLAG_OPPORTUNISTIC
-        final int VERS_OPT_UB = 2700;
         SOCGameOption optUB =  SOCGameOptionSet.getAllKnownOptions().get("UB");
         assertNotNull(optUB);
-        assertEquals(VERS_OPT_UB, optUB.minVersion);
+        assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, optUB.minVersion);
         assertTrue(optUB.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
-        assertTrue("tcli new enough for gameopt UB", tcli.getVersion() >= VERS_OPT_UB);
-        assertTrue("tcliOld older than gameopt UB", tcliOld.getVersion() < VERS_OPT_UB);
+        assertTrue("tcli new enough for gameopt UB", tcli.getVersion() >= SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC);
+        assertTrue("tcliOld older than gameopt UB", tcliOld.getVersion() < SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC);
         final StartedTestGameObjects objs =
             TestRecorder.createJoinNewGame
                 (srv, tcli, SOCGameOption.parseOptionsToSet("PL=2,UB=t,N7=t7", srv.knownOpts));

@@ -238,6 +238,7 @@ public class TestGameOptions
         assertEquals("-", opt.key);
 
         assertEquals(2000, SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
+        assertEquals(2700, SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC);
 
         try
         {
@@ -1183,11 +1184,11 @@ public class TestGameOptions
         // now with some actual FLAG_OPPORTUNISTIC gameopts
         final SOCGameOption optUB = knowns.getKnownOption("UB", true);
         assertTrue(optUB.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
-        assertEquals(2700, optUB.minVersion);
+        assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, optUB.minVersion);
         opts.add(optUB);
         final SOCGameOption optUBL = knowns.getKnownOption("UBL", true);
         assertTrue(optUBL.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
-        assertEquals(2700, optUBL.minVersion);
+        assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, optUBL.minVersion);
         opts.add(optUBL);
         assertEquals(4, opts.size());
         assertNull(opts.removeOpportunisticIfOlderClients(null));
@@ -1195,6 +1196,7 @@ public class TestGameOptions
         assertEquals(4, opts.size());
 
         // with some clients but they're new enough
+        assertEquals(2700, SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC);
         HashMap<String, Integer> clis = new HashMap<>();
         clis.put("v2700", Integer.valueOf(2700));
         clis.put("v2702", Integer.valueOf(2702));
@@ -1268,7 +1270,7 @@ public class TestGameOptions
     public void testItemsMinimumVersion()
     {
         final SOCGameOptionSet knowns = SOCGameOptionSet.getAllKnownOptions();
-        final int VERSION_FOR_OPPO_OPT_UB = 2700;
+        assertEquals(2700, SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC);
 
         assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(null));
         assertEquals(-1, SOCVersionedItem.itemsMinimumVersion(null, false, false, null));
@@ -1300,7 +1302,7 @@ public class TestGameOptions
             // gameopt UB doesn't affect minVers, because it has FLAG_OPPORTUNISTIC:
             SOCGameOption optUB = knowns.getKnownOption("UB", true);
             optsPLB.put("UB", optUB);
-            assertEquals(VERSION_FOR_OPPO_OPT_UB, optUB.minVersion);
+            assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, optUB.minVersion);
             assertTrue(optUB.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
             optUB.setBoolValue(true);
 
@@ -1314,7 +1316,7 @@ public class TestGameOptions
 
             // Retest and don't ignore FLAG_OPPORTUNISTIC gameopt UB:
             optsMins.clear();
-            assertEquals("uses UB's minVersion", VERSION_FOR_OPPO_OPT_UB, SOCVersionedItem.itemsMinimumVersion(optsPLB, false, true, optsMins));
+            assertEquals("uses UB's minVersion", SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, SOCVersionedItem.itemsMinimumVersion(optsPLB, false, true, optsMins));
             assertEquals("contains PLB and UB", 2, optsMins.size());
             {
                 minPLB = optsMins.get("PLB");
@@ -1322,7 +1324,7 @@ public class TestGameOptions
                 assertEquals(1108, minPLB.intValue());
                 Integer minUB = optsMins.get("UB");
                 assertNotNull(minUB);
-                assertEquals(VERSION_FOR_OPPO_OPT_UB, minUB.intValue());
+                assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, minUB.intValue());
             }
 
             // now optsMins isn't empty, but itemsMinimumVersion requires its incoming itemsMins to be empty
@@ -1333,7 +1335,7 @@ public class TestGameOptions
             } catch (IllegalArgumentException e) {}
 
             // Related: SGOSet.optionsForVersion shouldn't ignore FLAG_OPPORTUNISTIC
-            List<SOCGameOption> opts = knowns.optionsForVersion(VERSION_FOR_OPPO_OPT_UB);
+            List<SOCGameOption> opts = knowns.optionsForVersion(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC);
             assertNotNull(opts);
             boolean found = false;
             for (SOCGameOption opt : opts)
@@ -2003,22 +2005,22 @@ public class TestGameOptions
         assertNotNull(optUB);
         assertTrue(optUB.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
         assertFalse(optUB.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY));
-        assertEquals(2700, optUB.minVersion);
+        assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, optUB.minVersion);
 
         SOCGameOption opt;
 
         // If version new enough, returns unmodified opt:
-        opt = optPL.forClientVersion(2700);  // not opportunistic
+        opt = optPL.forClientVersion(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC);  // new enough -> not opportunistic
         assertEquals(optPL, opt);
-        opt = optUB.forClientVersion(2700);
+        opt = optUB.forClientVersion(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC);
         assertEquals(optUB, opt);
-        opt = optUB.forClientVersion(2701);
+        opt = optUB.forClientVersion(1 + SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC);
         assertEquals(optUB, opt);
 
         // If version older than opt's minVers, modifies it:
         opt = optPL.forClientVersion(1000);  // not opportunistic
         assertEquals(optPL, opt);
-        opt = optUB.forClientVersion(2699);
+        opt = optUB.forClientVersion(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC - 1);
         assertNotEquals(optUB, opt);
         assertEquals("reduces minVersion", -1, opt.minVersion);
         assertTrue("keeps opportunistic flag", opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
@@ -2247,7 +2249,7 @@ public class TestGameOptions
         assertNotNull(knownOptUB);
         assertEquals(SOCGameOption.OTYPE_BOOL, knownOptUB.optType);
         assertTrue(knownOptUB.hasFlag(SOCGameOption.FLAG_SET_AT_CLIENT_ONCE));
-        assertEquals(2700, knownOptUB.minVersion);
+        assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, knownOptUB.minVersion);
         assertFalse(knownOptUB.getBoolValue());
 
         for (int loopForPrac = 0; loopForPrac <= 1; ++loopForPrac)
@@ -2272,7 +2274,7 @@ public class TestGameOptions
                 assertNotNull(testDesc, opt);
                 assertEquals(testDesc, SOCGameOption.OTYPE_BOOL, opt.optType);
                 assertTrue(testDesc, opt.hasFlag(SOCGameOption.FLAG_SET_AT_CLIENT_ONCE));
-                assertEquals(2700, opt.minVersion);
+                assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, opt.minVersion);
                 assertFalse(testDesc, opt.defaultBoolValue);
                 assertFalse(testDesc, opt.getBoolValue());
                 assertEquals(testDesc, -1, opt.getMinVersion(null));  // because boolValue == false
@@ -2280,7 +2282,7 @@ public class TestGameOptions
                 final SOCGameOption servOptsOptUB = servOpts.getNewGameOpts().get("UB");
                 assertNotNull(testDesc, servOptsOptUB);
                 assertEquals(testDesc, knownOptUB, servOptsOptUB);
-                assertEquals(testDesc, 2700, servOptsOptUB.minVersion);
+                assertEquals(testDesc, SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, servOptsOptUB.minVersion);
                 assertFalse(testDesc, servOptsOptUB.defaultBoolValue);
                 assertFalse(testDesc, servOptsOptUB.getBoolValue());
 
