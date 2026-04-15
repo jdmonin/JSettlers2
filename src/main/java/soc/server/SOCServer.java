@@ -4874,11 +4874,13 @@ public class SOCServer extends Server
      *     True unless caller already holds that monitor.
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
      * @see #messageToGameKeyed(SOCGame, boolean, boolean, String, Object...)
+     * @see #messageToGameForVersionsKeyedStatus(SOCGame, boolean, int, int, boolean, int, String, String, Object...)
      * @since 2.0.00
      */
     public void messageToGameKeyedType(SOCGame ga, final boolean isEvent, SOCKeyedMessage msg, final boolean takeMon)
     {
-        // Very similar code to impl_messageToGameKeyedSpecial, messageToGameForVersionsKeyedExcept:
+        // Very similar code to impl_messageToGameKeyedSpecial, messageToGameForVersionsKeyedExcept,
+        // or messageToGameForVersionsKeyedStatus:
         // if you change code here, consider changing it there too
         // Indentation within try/catch matches impl_messageToGameKeyedSpecial's.
 
@@ -5033,6 +5035,7 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
+     * @see #messageToGameForVersionsKeyedStatus(SOCGame, boolean, int, int, boolean, int, String, String, Object...)
      * @since 2.5.00
      */
     public void messageToGameKeyed(SOCGame ga, final boolean isEvent, final boolean takeMon, final String key)
@@ -5112,6 +5115,7 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameKeyedSpecialExcept(SOCGame, int, boolean, Connection, String, Object...)
      * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
+     * @see #messageToGameForVersionsKeyedStatus(SOCGame, boolean, int, int, boolean, int, String, String, Object...)
      * @see #messageToGameForVersionsKeyed(SOCGame, int, int, boolean, String, Object...)
      * @since 2.5.00
      */
@@ -5316,7 +5320,8 @@ public class SOCServer extends Server
             throw new NullPointerException("key");  // check now, instead of a misleading throw from a method called from here
         // null ga will throw soon at getName, no need to check here too
 
-        // Very similar code to messageToGameKeyedType, messageToGameForVersionsKeyedExcept:
+        // Very similar code to messageToGameKeyedType, messageToGameForVersionsKeyedExcept,
+        // or messageToGameForVersionsKeyedStatus:
         // If you change code here, change it there too.
         // Indentation within try/catch matches messageToGameKeyedType's.
 
@@ -5705,7 +5710,8 @@ public class SOCServer extends Server
         if ((ga.clientVersionLowest > vmax) || (ga.clientVersionHighest < vmin))
             return;  // <--- All clients too old or too new ---
 
-        // Some code here is similar to messageToGameForVersionsKeyed, messageToGameForVersionsKeyedExcept:
+        // Some code here is similar to messageToGameForVersionsKeyed, messageToGameForVersionsKeyedExcept,
+        // or messageToGameForVersionsKeyedStatus:
         // If you change code here, consider changing it there too
 
         final String gaName = ga.getName();
@@ -5788,6 +5794,7 @@ public class SOCServer extends Server
      * @see #messageToGameKeyedSpecial(SOCGame, boolean, boolean, String, Object...)
      * @see #messageToGameForVersions(SOCGame, int, int, SOCMessage, boolean)
      * @see #messageToGameForVersionsKeyedExcept(SOCGame, int, int, boolean, List, boolean, String, Object...)
+     * @see #messageToGameForVersionsKeyedStatus(SOCGame, boolean, int, int, boolean, int, String, String, Object...)
      * @since 2.5.00
      */
     public final void messageToGameForVersionsKeyed
@@ -5853,7 +5860,8 @@ public class SOCServer extends Server
             return;  // <--- All clients too old or too new ---
 
         // Some code here is similar to messageToGameKeyedType, impl_messageToGameKeyedSpecial,
-        // or messageToGameForVersionsExcept: If you change code here, consider changing it there too
+        // messageToGameForVersionsExcept, or messageToGameForVersionsKeyedStatus:
+        // If you change code here, consider changing it there too
 
         final boolean hasMultiLocales = ga.hasMultiLocales;
         final String gaName = ga.getName();
@@ -5912,6 +5920,165 @@ public class SOCServer extends Server
         {
             if (takeMon)
                 gameList.releaseMonitorForGame(gaName);
+        }
+    }
+
+    /**
+     * Send a game a {@link SOCStatusMessage} with a status value and also text to be localized,
+     * optionally to certain client versions.
+     * Same as {@link #messageToGame(String, boolean, SOCMessage)} but calls each member connection's
+     * {@link Connection#getLocalized(String) c.getLocalized(key)} for the localized text to send,
+     * then {@link SOCStatusMessage#buildForVersion(int, int, String)} for that client's version.
+     * Optionally calls {@link #recordGameEvent(String, SOCMessage)}.
+     *<P>
+     * When sending to bots (which have {@link Connection#getI18NLocale()} == {@code null}), does not localize:
+     * Sends {@code fixedPrefix} + unlocalized {@code key} since bots should only use data fields and ignore text fields.
+     *<P>
+     * <B>Locks:</B> If {@code takeMon} is true, takes and releases
+     * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}.
+     * Otherwise call {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}
+     * before calling this method.
+     *
+     * @param ga  The game
+     * @param isEvent  if true, calls {@link #recordGameEvent(String, SOCMessage)};
+     *     see that method for its message version requirements
+     * @param vmin  Minimum version to send to, or -1. Same format as
+     *     {@link Version#versionNumber()} and {@link Connection#getVersion()}.
+     * @param vmax  Maximum version to send to, or {@link Integer#MAX_VALUE}
+     * @param takeMon Should this method take and release game's monitor via
+     *     {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(gameName)}?
+     *     True unless caller already holds that monitor.
+     * @param statusValue  status value from {@link SOCStatusMessage} {@code SV_} constants, such as {@link #SV_OK}
+     * @param fixedPrefix  Optional text to place in front of localized text if required by {@code statusValue}'s
+     *     message format, such as a game name, or {@code null}
+     * @param key the message localization key, from {@link SOCStringManager#get(String)}, to look up and send text of.
+     *     If its localized text begins with ">>>", the client should consider this
+     *     an urgent message, and draw the user's attention in some way.
+     *     (See {@link #messageToGameUrgent(String, boolean, String)})
+     * @param params  Objects to use with <tt>{0}</tt>, <tt>{1}</tt>, etc in the localized string
+     *     by calling {@link MessageFormat#format(String, Object...)}, if any
+     * @throws IllegalArgumentException if {@code isEvent} but {@code vmax <} {@link Integer#MAX_VALUE}
+     *     since events use the current version's message sequences
+     * @see #messageToGameKeyed(SOCGame, boolean, boolean, String)
+     * @see #messageToGameKeyedType(SOCGame, boolean, SOCKeyedMessage, boolean)
+     * @see #messageToGameForVersionsKeyed(SOCGame, int, int, boolean, boolean, String, Object...)
+     * @since 2.7.00
+     */
+    public final void messageToGameForVersionsKeyedStatus
+        (final SOCGame ga, boolean isEvent, final int vmin, final int vmax, final boolean takeMon,
+         final int statusValue, final String fixedPrefix, final String key, final Object ... params)
+        throws IllegalArgumentException
+    {
+        if (isEvent && (vmax < Integer.MAX_VALUE))
+            throw new IllegalArgumentException("isEvent requires current version");
+
+        if (isEvent && ! isRecordGameEventsActive())
+            isEvent = false;
+        if (((ga.clientVersionLowest > vmax) || (ga.clientVersionHighest < vmin))
+            && ! isEvent)
+            return;  // <--- All clients too old or too new ---
+
+        // Some code here is similar to messageToGameKeyedType, impl_messageToGameKeyedSpecial,
+        // messageToGameForVersionsKeyedExcept, or messageToGameForVersionsExcept:
+        // If you change code here, consider changing it there too
+
+        final boolean hasMultiLocales = ga.hasMultiLocales;
+        final String gaName = ga.getName();
+        final int currVersion = Version.versionNumber();
+        boolean rsrcMissing = false;
+        String rsrcIllegalArgLocale = null;
+        SOCStatusMessage msgForRecord = null;  // needed only if isEvent && isRecordGameEventsActive()
+
+        if (takeMon)
+            gameList.takeMonitorForGame(gaName);
+
+        try
+        {
+            Vector<Connection> v = gameList.getMembers(gaName);
+            if (v == null)
+                return;
+
+            // for reuse as rendered for previous client during loop:
+            String localText = null, msgLocale = null;
+            int localizedToVersion = -1;
+            SOCStatusMessage localizedMsg = null;
+
+            final Enumeration<Connection> menum = v.elements();
+            while (menum.hasMoreElements())
+            {
+                final Connection c = menum.nextElement();
+                if (c == null)
+                    continue;
+
+                final int cv = c.getVersion();
+                if ((cv < vmin) || (cv > vmax))
+                    continue;
+
+                final String cliLocale = c.getI18NLocale();
+
+                if ((localizedMsg == null)
+                    || (cv != localizedToVersion)
+                    || (hasMultiLocales
+                        && ( (cliLocale == null)
+                             ? (msgLocale != null)
+                             : ! cliLocale.equals(msgLocale) )))
+                {
+                    try
+                    {
+                        localText = (cliLocale == null)
+                            ? key
+                            : ((params != null) ? c.getLocalized(key, params) : c.getLocalized(key));
+                    } catch (MissingResourceException e) {
+                        localText = key;  // fallback so data fields will still be sent
+                        rsrcMissing = true;
+                    } catch (IllegalArgumentException e) {
+                        localText = key;  // fallback so data fields will still be sent
+                        rsrcIllegalArgLocale = cliLocale;
+                    }
+                    if (fixedPrefix != null)
+                        localText = fixedPrefix + localText;
+
+                    localizedMsg = SOCStatusMessage.buildForVersion(statusValue, cv, localText);
+                    msgLocale = cliLocale;
+                    localizedToVersion = cv;
+
+                    if (isEvent && (msgForRecord == null) && (cv == currVersion) && "en_US".equals(cliLocale))
+                        msgForRecord = localizedMsg;
+                }
+
+                c.put(localizedMsg);
+            }
+
+            if (rsrcMissing)
+                D.ebugWARNING("Missing string key in messageToGameForVersionsKeyedStatus: " + key);
+            if (rsrcIllegalArgLocale != null)
+                D.ebugWARNING
+                    ("Malformed i18n value in messageToGameForVersionsKeyedStatus: key=" + key
+                     + ", locale=" + rsrcIllegalArgLocale);
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in messageToGameForVersionsKeyedStatus");
+        }
+        finally
+        {
+            if (takeMon)
+                gameList.releaseMonitorForGame(gaName);
+        }
+
+        if (isEvent)
+        {
+            if (msgForRecord == null)
+            {
+                // make sure event is recorded in en_US for consistency
+                final SOCStringManager mgr = SOCStringManager.getFallbackServerManagerForClient();
+                String localText = ((params != null) ? mgr.get(key, params) : mgr.get(key));
+                if (fixedPrefix != null)
+                    localText = fixedPrefix + localText;
+                msgForRecord = SOCStatusMessage.buildForVersion(statusValue, currVersion, localText);
+            }
+
+            recordGameEvent(gaName, msgForRecord);
         }
     }
 

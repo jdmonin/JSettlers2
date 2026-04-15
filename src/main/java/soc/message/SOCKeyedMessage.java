@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2014,2017,2020-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2014,2017,2020-2021,2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,9 +29,10 @@ package soc.message;
 public interface SOCKeyedMessage
 {
     /**
-     * Get the message localization key, from {@link soc.util.SOCStringManager#get(String)},
-     * to look up and send the text of as part of this message.
-     * @return  The text key to be localized from the message's key field, or (rarely) {@code null}
+     * Get the message's localization key, to pass to {@link soc.util.SOCStringManager#get(String)}
+     * to look up and localize text as part of this message.
+     * Caller will then call {@link #localize(String)} and send the resulting localized message.
+     * @return  The text key to be localized, or (rarely) {@code null}
      */
     public abstract String getKey();
 

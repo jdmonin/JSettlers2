@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012-2014,2016-2023,2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -344,9 +344,36 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final int SV_MUST_AUTH_FIRST = 24;
 
+    /**
+     * A game with Opportunistic Game Options ({@link soc.game.SOCGameOption#FLAG_OPPORTUNISTIC}) is starting,
+     * but option(s) are too new for some player client(s) to handle, so those options have been removed = 25.
+     * Client should prominently display this news (with a popup, toast, or similar) in the game window.
+     *<P>
+     * {@link #isWithinGame(int)} is true for this status value.
+     *<P>
+     * Format of this status text is:
+     *<UL>
+     *<LI> game name
+     *<LI> {@link SOCMessage#sep2_char SEP2}
+     *<LI> Localized status string with details on:
+     *<LI> opportunistic game option keyname(s) requested for game but not available for
+     *     some player clients, as a comma-separated list
+     *<LI> preformatted list of older client nicknames and their versions,
+     *     in a format something like: {@code cli prev (2.6.10), othercli (2.0.00)}
+     *</UL>
+     * Clients older than {@link soc.game.SOCGameOption#VERSION_FOR_FLAG_OPPORTUNISTIC} are instead sent
+     * a {@link SOCGameServerText}.
+     *<P>
+     * {@link SOCChangeGameOptions} is sent before this message.
+     * @see #SV_NEWGAME_OPTION_VALUE_TOONEW
+     * @see #SV_GAME_CLIENT_FEATURES_NEEDED
+     * @since 2.7.00
+     */
+    public static final int SV_GAME_STARTING_OPPORTUNISTIC_REMOVED = 25;
+
     // IF YOU ADD A STATUS VALUE:
     // Do not change or remove the numeric values of earlier ones.
-    // Be sure to update statusValidAtVersion() and statusFallbackForVersion().
+    // Be sure to update statusValidAtVersion(), statusFallbackForVersion(), isWithinGame() if applicable, and unit tests.
     // If the message text is structured or delimited, explain its format in the new value's javadoc.
 
     /**
@@ -519,6 +546,19 @@ public class SOCStatusMessage extends SOCMessage
     }
 
     /**
+     * Is this status about a specific current game, not an overall server or client situation?
+     * If true, client should show the status in that game's window
+     * instead of the main window or bot's console output.
+     * @param statusValue  status value (from constants defined here, such as {@link #SV_OK})
+     * @return  true if {@code statusValue} is about a current game
+     * @since 2.7.00
+     */
+    public static boolean isWithinGame(final int statusValue)
+    {
+        return (statusValue == SV_GAME_STARTING_OPPORTUNISTIC_REMOVED);
+    }
+
+    /**
      * Is this status value defined in this version?  If not, {@link #SV_NOT_OK_GENERIC} should be sent instead.
      * A different fallback value can be sent instead if the client is new enough to understand it; for
      * example instead of {@link #SV_ACCT_CREATED_OK_FIRST_ONE}, send {@link #SV_ACCT_CREATED_OK}.
@@ -566,10 +606,12 @@ public class SOCStatusMessage extends SOCMessage
                 return (statusValue < SV_SERVER_SHUTDOWN);
             else if (cliVersion < 2400)  // 2100 - 2399
                 return (statusValue < SV_MUST_AUTH_FIRST);
+            else if (cliVersion < 2700)  // 2400 - 2699
+                return (statusValue < SV_GAME_STARTING_OPPORTUNISTIC_REMOVED);
             else
-                // 2400 or newer; check vs highest constant that we know
-                // (since none has been added yet after 2400)
-                return (statusValue <= SV_MUST_AUTH_FIRST);
+                // 2700 or newer; check vs highest constant that we know
+                // (since none has been added yet after 2700)
+                return (statusValue <= SV_GAME_STARTING_OPPORTUNISTIC_REMOVED);
             }
             // TODO perf: check for newest versions (more common) before earlier ones
         }
@@ -588,6 +630,7 @@ public class SOCStatusMessage extends SOCMessage
      * <LI> {@link #SV_GAME_CLIENT_FEATURES_NEEDED} falls back to {@link #SV_NEWGAME_OPTION_VALUE_TOONEW}
      * <LI> {@link #SV_OK_SET_NICKNAME} has no successful fallback, the client must be
      *      sent {@link #SV_NAME_NOT_FOUND} and must reauthenticate; throws {@link IllegalArgumentException}
+     * <LI> {@link #SV_GAME_STARTING_OPPORTUNISTIC_REMOVED} falls back to {@link #SV_OK} since it's informational
      * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
      * <LI> Clients before v1.1.06 will be sent the status text {@code st} only,
      *      without the {@code sv} parameter which was added in 1.1.06
@@ -625,6 +668,9 @@ public class SOCStatusMessage extends SOCMessage
                 break;
             case SV_OK_SET_NICKNAME:
                 reject = true;
+                break;
+            case SV_GAME_STARTING_OPPORTUNISTIC_REMOVED:
+                sv = SV_OK;
                 break;
             case SV_GAME_CLIENT_FEATURES_NEEDED:
                 if (cliVersion >= 1107)

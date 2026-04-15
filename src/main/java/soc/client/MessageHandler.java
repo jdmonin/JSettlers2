@@ -1017,7 +1017,9 @@ public class MessageHandler
             srvDebugMode = statusText.toLowerCase().contains("debug");
         }
 
-        client.getMainDisplay().showStatus(statusText, (sv == SOCStatusMessage.SV_OK), srvDebugMode);
+        if (! SOCStatusMessage.isWithinGame(sv))
+            client.getMainDisplay().showStatus(statusText, (sv == SOCStatusMessage.SV_OK), srvDebugMode);
+            // For handling when isWithinGame, see SV_GAME_STARTING_OPPORTUNISTIC_REMOVED below
 
         // Are we waiting for auth response in order to show NGOF?
         if ((! isPractice) && client.isNGOFWaitingForAuthStatus)
@@ -1115,6 +1117,32 @@ public class MessageHandler
             handleBCASTTEXTMSG(statusText);
             client.getNet().ex = new RuntimeException(statusText);
             client.shutdownFromNetwork();
+        }
+        break;
+
+        case SOCStatusMessage.SV_GAME_STARTING_OPPORTUNISTIC_REMOVED:
+        {
+            String msg, gameName;
+            StringTokenizer st = new StringTokenizer(statusText, SOCMessage.sep2);
+            try
+            {
+                gameName = st.nextToken();
+                // get all of the rest of text, by choosing an unlikely delimiter character
+                msg = st.nextToken(Character.toString( (char) 1 ));
+                if (msg.charAt(0) == SOCMessage.sep2_char)
+                    msg = msg.substring(1);
+            }
+            catch (Throwable t)
+            {
+                return;  // ignore if not parsable
+            }
+
+            PlayerClientListener pcl = client.getClientListener(gameName);
+            if (pcl != null)
+            {
+                pcl.messageReceived(null, ">>> " + msg);
+                pcl.showNotifyDialog(msg, null);
+            }
         }
         break;
 

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2025 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2026 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -4155,10 +4155,18 @@ public class SOCGameHandler extends GameHandler
 
             if (removedOpts != null)
             {
-                // text to explain to older clients:
+                // Announce game option removal to clients:
                 // TODO more user-friendly option names for it
-                // TODO i18n/localize
-                StringBuilder sb = new StringBuilder(">>> Removed game option(s) ");
+
+                // First, tell new-enough clients to actually remove them from game options
+                SOCChangeGameOptions optsRemovedMsg = new SOCChangeGameOptions
+                    (gaName, SOCChangeGameOptions.OP_REMOVE, removedOpts.optsRemoved, removedOpts.olderCliNamesVersions);
+                srv.broadcastToVers
+                    (optsRemovedMsg, SOCChangeGameOptions.VERSION_FOR_REMOVE, Integer.MAX_VALUE);
+                srv.recordGameEvent(gaName, optsRemovedMsg);
+
+                // Now announce as status text
+                StringBuilder sb = new StringBuilder();
                 boolean comma = false;
                 for (String optName : removedOpts.optsRemoved.keySet())
                 {
@@ -4168,7 +4176,9 @@ public class SOCGameHandler extends GameHandler
                         comma = true;
                     sb.append(optName);
                 }
-                sb.append(" for compatibility with earlier player client version(s): ");
+                final String optsList = sb.toString();
+
+                sb.delete(0, sb.length());
                 comma = false;
                 for (Map.Entry<String, Integer> cliPl: removedOpts.olderCliNamesVersions.entrySet())
                 {
@@ -4178,16 +4188,19 @@ public class SOCGameHandler extends GameHandler
                         comma = true;
                     sb.append(cliPl.getKey() + " (" + Version.version(cliPl.getValue()) + ")");
                 }
-                sb.append('.');
+                final String clisList = sb.toString();
 
-                srv.messageToGameWithMon(gaName, true, new SOCGameServerText(gaName, sb.toString()));
-
-                // Tell new-enough clients to actually remove them from game options:
-                SOCChangeGameOptions optsRemovedMsg = new SOCChangeGameOptions
-                    (gaName, SOCChangeGameOptions.OP_REMOVE, removedOpts.optsRemoved, removedOpts.olderCliNamesVersions);
-                srv.broadcastToVers
-                    (optsRemovedMsg, SOCChangeGameOptions.VERSION_FOR_REMOVE, Integer.MAX_VALUE);
-                srv.recordGameEvent(gaName, optsRemovedMsg);
+                srv.messageToGameForVersionsKeyedStatus
+                    (ga, true, SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, Integer.MAX_VALUE, false,
+                     SOCStatusMessage.SV_GAME_STARTING_OPPORTUNISTIC_REMOVED,
+                     gaName + SOCMessage.sep2_char,
+                     "game.options.compat_removed", optsList, clisList);
+                         // "Removed game option(s) {0} for compatibility with earlier player client version(s): {1}."
+                if (ga.clientVersionLowest < SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC)
+                    srv.messageToGameForVersionsKeyed
+                        (ga, 0, SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC - 1, false, false,
+                         "game.options.compat_removed.urgent", optsList, clisList);
+                            // ">>> Removed game option(s) {0} for compatibility with earlier player client version(s): {1}."
             }
 
             /**

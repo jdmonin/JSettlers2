@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2021,2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,6 +38,7 @@ public class TestSOCStatusMessage
      * <LI> {@link SOCStatusMessage#buildForVersion(int, int, String)}
      * <LI> {@link SOCStatusMessage#statusFallbackForVersion(int, int)}
      * <LI> {@link SOCStatusMessage#statusValidAtVersion(int, int)}
+     * <LI> {@link SOCStatusMessage#isWithinGame(int)}
      *</UL>
      */
     @Test
@@ -45,20 +46,22 @@ public class TestSOCStatusMessage
     {
         final int[][] TEST_SV_VERSION_FALLBACKS =
             {
-                // {status value, min version recognizing it, fallback status value}
+                // {status value, min version recognizing it, fallback status value, 1 if isWithinGame()}
 
-                {SOCStatusMessage.SV_OK_DEBUG_MODE_ON, 2000, SOCStatusMessage.SV_OK},
-                {SOCStatusMessage.SV_PW_REQUIRED,      1119, SOCStatusMessage.SV_PW_WRONG},
-                {SOCStatusMessage.SV_ACCT_CREATED_OK_FIRST_ONE,   1120, SOCStatusMessage.SV_ACCT_CREATED_OK},
-                {SOCStatusMessage.SV_GAME_CLIENT_FEATURES_NEEDED, 2000, SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW},
-                {SOCStatusMessage.SV_OK_SET_NICKNAME,  1200, -1},  // throws IllegalArgumentException
+                {SOCStatusMessage.SV_OK_DEBUG_MODE_ON, 2000, SOCStatusMessage.SV_OK, 0},
+                {SOCStatusMessage.SV_PW_REQUIRED,      1119, SOCStatusMessage.SV_PW_WRONG, 0},
+                {SOCStatusMessage.SV_ACCT_CREATED_OK_FIRST_ONE,   1120, SOCStatusMessage.SV_ACCT_CREATED_OK, 0},
+                {SOCStatusMessage.SV_GAME_CLIENT_FEATURES_NEEDED, 2000, SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, 0},
+                {SOCStatusMessage.SV_OK_SET_NICKNAME,  1200, -1, 0},  // throws IllegalArgumentException
+                {SOCStatusMessage.SV_GAME_STARTING_OPPORTUNISTIC_REMOVED, 2700, SOCStatusMessage.SV_OK, 1},
                 // explicitly test generic fallback to NOT_OK:
-                {SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED,    1110, SOCStatusMessage.SV_NOT_OK_GENERIC},
+                {SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED,    1110, SOCStatusMessage.SV_NOT_OK_GENERIC, 0},
             };
 
         for (final int[] TEST : TEST_SV_VERSION_FALLBACKS)
         {
             final int sv_newcli = TEST[0], old_vers = TEST[1] - 1, sv_oldcli = TEST[2];
+            final boolean isSvWithinGame = (1 == TEST[3]);
 
             assertTrue(sv_oldcli < sv_newcli);  // consistency of test case; no message needed, shouldn't fail except while updating test class
 
@@ -84,6 +87,10 @@ public class TestSOCStatusMessage
             assertEquals
                 ("statusFallbackForVersion(" + sv_newcli + ", " + old_vers + ')',
                  sv_oldcli, SOCStatusMessage.statusFallbackForVersion(sv_newcli, old_vers));
+
+            assertEquals
+                ("SOCStatusMessage.isWithinGame(" + sv_newcli + ")",
+                 isSvWithinGame, SOCStatusMessage.isWithinGame(sv_newcli));
 
             // generic test for generic fallback to NOT_OK
             if ((old_vers > 1106) && (sv_oldcli >= SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN))
