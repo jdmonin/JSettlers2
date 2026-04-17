@@ -4155,37 +4155,48 @@ public class SOCGameHandler extends GameHandler
 
             if (removedOpts != null)
             {
-                // Announce game option removal to clients:
-                // TODO more user-friendly option names for it
+                // Announce game option removal to clients
 
-                // First, tell new-enough clients to actually remove them from game options
+                // First, tell new-enough clients to actually remove them from game options:
                 SOCChangeGameOptions optsRemovedMsg = new SOCChangeGameOptions
                     (gaName, SOCChangeGameOptions.OP_REMOVE, removedOpts.optsRemoved, removedOpts.olderCliNamesVersions);
                 srv.broadcastToVers
                     (optsRemovedMsg, SOCChangeGameOptions.VERSION_FOR_REMOVE, Integer.MAX_VALUE);
                 srv.recordGameEvent(gaName, optsRemovedMsg);
 
-                // Now announce as status text
-                StringBuilder sb = new StringBuilder();
-                boolean comma = false;
+                // Now announce as status text:
+
+                StringBuilder sb = new StringBuilder(),
+                    sbCommas = (ga.clientVersionLowest < SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC)
+                        ? new StringBuilder()
+                        : null;
+
+                boolean prev = false;
                 for (String optName : removedOpts.optsRemoved.keySet())
                 {
-                    if (comma)
-                        sb.append(", ");
+                    if (prev)
+                    {
+                        sb.append(' ');
+                        if (sbCommas != null)
+                            sbCommas.append(", ");
+                    }
                     else
-                        comma = true;
+                        prev = true;
                     sb.append(optName);
+                    if (sbCommas != null)
+                        sbCommas.append(optName);
                 }
-                final String optsList = sb.toString();
+                final String optsList = sb.toString(),
+                    optsListCommas = (sbCommas != null) ? sbCommas.toString() : null;
 
                 sb.delete(0, sb.length());
-                comma = false;
+                prev = false;
                 for (Map.Entry<String, Integer> cliPl: removedOpts.olderCliNamesVersions.entrySet())
                 {
-                    if (comma)
+                    if (prev)
                         sb.append(", ");
                     else
-                        comma = true;
+                        prev = true;
                     sb.append(cliPl.getKey() + " (" + Version.version(cliPl.getValue()) + ")");
                 }
                 final String clisList = sb.toString();
@@ -4193,13 +4204,13 @@ public class SOCGameHandler extends GameHandler
                 srv.messageToGameForVersionsKeyedStatus
                     (ga, true, SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, Integer.MAX_VALUE, false,
                      SOCStatusMessage.SV_GAME_STARTING_OPPORTUNISTIC_REMOVED,
-                     gaName + SOCMessage.sep2_char,
-                     "game.options.compat_removed", optsList, clisList);
-                         // "Removed game option(s) {0} for compatibility with earlier player client version(s): {1}."
-                if (ga.clientVersionLowest < SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC)
+                     gaName + SOCMessage.sep2_char + optsList + SOCMessage.sep2_char,
+                     "game.options.compat_removed.status", clisList);
+                         // "Removed game option(s) for compatibility with earlier player client version(s): {0}."
+                if (optsListCommas != null)
                     srv.messageToGameForVersionsKeyed
                         (ga, 0, SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC - 1, false, false,
-                         "game.options.compat_removed.urgent", optsList, clisList);
+                         "game.options.compat_removed.text", optsListCommas, clisList);
                             // ">>> Removed game option(s) {0} for compatibility with earlier player client version(s): {1}."
             }
 

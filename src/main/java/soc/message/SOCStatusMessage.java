@@ -179,6 +179,7 @@ public class SOCStatusMessage extends SOCMessage
      *   ...
      * @see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
      * @see #SV_GAME_CLIENT_FEATURES_NEEDED
+     * @see #SV_GAME_STARTING_OPPORTUNISTIC_REMOVED
      * @since 1.1.07
      */
     public static final int SV_NEWGAME_OPTION_VALUE_TOONEW = 10;
@@ -355,14 +356,14 @@ public class SOCStatusMessage extends SOCMessage
      *<UL>
      *<LI> game name
      *<LI> {@link SOCMessage#sep2_char SEP2}
-     *<LI> Localized status string with details on:
-     *<LI> opportunistic game option keyname(s) requested for game but not available for
-     *     some player clients, as a comma-separated list
-     *<LI> preformatted list of older client nicknames and their versions,
+     *<LI> game option keyname(s) being removed, separated by space
+     *<LI> {@link SOCMessage#sep2_char SEP2}
+     *<LI> Localized status string explaining some options requested are being removed (but not naming them),
+     *     including preformatted list of older client nicknames and their versions
      *     in a format something like: {@code cli prev (2.6.10), othercli (2.0.00)}
      *</UL>
      * Clients older than {@link soc.game.SOCGameOption#VERSION_FOR_FLAG_OPPORTUNISTIC} are instead sent
-     * a {@link SOCGameServerText}.
+     * a {@link SOCGameServerText} which lists the gameopts being removed.
      *<P>
      * {@link SOCChangeGameOptions} is sent before this message.
      * @see #SV_NEWGAME_OPTION_VALUE_TOONEW

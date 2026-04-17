@@ -1122,11 +1122,12 @@ public class MessageHandler
 
         case SOCStatusMessage.SV_GAME_STARTING_OPPORTUNISTIC_REMOVED:
         {
-            String msg, gameName;
+            String msg, gameName, optNames;
             StringTokenizer st = new StringTokenizer(statusText, SOCMessage.sep2);
             try
             {
                 gameName = st.nextToken();
+                optNames = st.nextToken();
                 // get all of the rest of text, by choosing an unlikely delimiter character
                 msg = st.nextToken(Character.toString( (char) 1 ));
                 if (msg.charAt(0) == SOCMessage.sep2_char)
@@ -1141,7 +1142,23 @@ public class MessageHandler
             if (pcl != null)
             {
                 pcl.messageReceived(null, ">>> " + msg);
-                pcl.showNotifyDialog(msg, null);
+
+                StringBuilder sb = new StringBuilder(msg);
+                sb.append('\n');
+                final SOCGameOptionSet knowns =
+                    (isPractice) ? client.practiceServGameOpts.knownOpts : client.tcpServGameOpts.knownOpts;
+                for (String oname : optNames.split(" "))
+                {
+                    sb.append('\n');
+                    SOCGameOption oinfo = null;
+                    if (knowns != null)
+                        oinfo = knowns.get(oname);
+                    if (oinfo != null)
+                        oname = oinfo.getDesc();
+                    sb.append(oname);
+                }
+
+                pcl.showNotifyDialog(sb.toString(), null);
             }
         }
         break;
