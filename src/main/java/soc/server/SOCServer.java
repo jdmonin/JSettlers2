@@ -3059,18 +3059,23 @@ public class SOCServer extends Server
             {
                 gVers = -1;
             } else {
-                gVers = SOCVersionedItem.itemsMinimumVersion(gaOpts.getAll(), false, true, null);
-                if ((gVers > cliVers) && (gVers < Integer.MAX_VALUE))
+                // Check version including any requested Opportunistic game options, to give a decline reason to a client
+                // if they asked to create a game having options they can't use
+                int gVersKeepingOpts = SOCVersionedItem.itemsMinimumVersion(gaOpts.getAll(), false, true, null);
+                if ((gVersKeepingOpts > cliVers) && (gVersKeepingOpts < Integer.MAX_VALUE))
                 {
                     // Which requested option(s) are too new for client?
                     // (Ignored if gVers was MAX_VALUE, which is used
                     //  only by test-gameopt DEBUGNOJOIN.)
                     List<SOCGameOption> optsValuesTooNew =
                         gaOpts.optionsNewerThanVersion(cliVers, true, false);
-                    throw new SOCGameOptionVersionException(gVers, cliVers, optsValuesTooNew);
+                    throw new SOCGameOptionVersionException(gVersKeepingOpts, cliVers, optsValuesTooNew);
 
                     // <---- Exception: Early return ----
                 }
+
+                // Minimum version of other clients to join; ignores opportunistic gameopts
+                gVers = SOCVersionedItem.itemsMinimumVersion(gaOpts.getAll(), false, false, null);
             }
 
             // Create new game or add reloaded game to gameList, and announce it;
