@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -288,12 +288,14 @@ public class TestGame
         assertFalse("isMemberChatAllowed always false before initAtServer called", ga.isMemberChatAllowed("anotherName"));
         try
         {
+            assertNull("getMemberChatAllowList should be null before initAtServer", ga.getMemberChatAllowList());
             ga.setMemberChatAllowed("anotherName", true);
-            fail("setMemberChatAllowed before initAtServer should throw exception");
+            fail("setMemberChatAllowed(name, true) before initAtServer should throw exception");
         } catch (IllegalStateException e) {
             assertFalse("isMemberChatAllowed always false before initAtServer called", ga.isMemberChatAllowed("anotherName"));
         }
-        assertNull("getMemberChatAllowList should be null before initAtServer", ga.getMemberChatAllowList());
+        ga.setMemberChatAllowed("someOtherName", false);  // Even when null, can call with false without throwing exception
+        assertNull("getMemberChatAllowList still null after calls before initAtServer", ga.getMemberChatAllowList());
 
         // set up game fields as if at server, but don't create a board that won't be used
         ga.initAtServer();

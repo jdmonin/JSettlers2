@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
@@ -2280,7 +2280,7 @@ public class SOCGame implements Serializable, Cloneable
      * List is internally synchronized.
      * @param memberName  Player or observer name; does nothing if null
      * @param allow  true to add, false to remove
-     * @throws IllegalStateException if {@link #initAtServer()} hasn't been called yet
+     * @throws IllegalStateException if {@link #initAtServer()} hasn't been called yet and {@code allow} true
      * @see #isMemberChatAllowed(String)
      * @see #getMemberChatAllowList()
      * @since 2.7.00
@@ -2289,7 +2289,12 @@ public class SOCGame implements Serializable, Cloneable
         throws IllegalStateException
     {
         if (chatAllowList == null)
-            throw new IllegalStateException("chatAllowList");
+        {
+            if (allow)
+                throw new IllegalStateException("chatAllowList");
+            else
+                return;  // prevent occasional IllegalStateException during leaveConnection cleanup
+        }
         if (memberName == null)
             return;
 
