@@ -814,7 +814,8 @@ public class SOCServerMessageHandler
                     opt = new SOCGameOption(okey, localDesc);  // OTYPE_UNKNOWN
                     localDesc = null;
                 }
-                else if (opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY))
+                else if ((cliVers < SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC)
+                    && opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY))
                 {
                     final String cannotCreate = c.getLocalized("gameopt.desc.cannot_create");  // "(Cannot create)"
                     if (localDesc == null)
