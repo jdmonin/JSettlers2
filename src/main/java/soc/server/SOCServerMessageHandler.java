@@ -1665,6 +1665,14 @@ public class SOCServerMessageHandler
 
             if (gameList.isMember(restOfCmd, gaName))
             {
+                if (null == gameData.getMemberChatAllowList())
+                {
+                    srv.messageToPlayerKeyed
+                        (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                         "admin.mute.resp.cannot_before_start");  // "Can't mute or unmute before start of game."
+                    return;
+                }
+
                 if (wantMute == ! gameData.isMemberChatAllowed(restOfCmd))
                     srv.messageToPlayerKeyed
                         (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,

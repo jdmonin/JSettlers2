@@ -1360,6 +1360,11 @@ Start with a recently-created database with latest schema/setup scripts.
         - A: Chat any text; B should see it
         - B: Chat any text; shouldn't send, should see "Observers can't chat during the game"
         - B: Sit to take over a bot, chat; A should see it
+        - B: Close game window to exit the game again
+        - B: Rejoin game as observer (don't sit)
+        - B: Chat any text; shouldn't send, should see "Can't chat at this time", client A should see nothing new
+        - A: `*unmute* B`; should see "Unmuted game member B"
+        - B: Chat any text; A should see it
     - Test sitting after initial placement started
         - A: Create a game, sit down, start game (initial placement begins)
         - When it's A's turn to place 1st settlement:
