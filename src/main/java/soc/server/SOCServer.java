@@ -9636,6 +9636,7 @@ public class SOCServer extends Server
      * This player is sitting down at the game.
      * The server has already validated that the game isn't full and their seat is empty,
      * or has removed a bot to make room at that seat.
+     * Server has also validated client's version against {@link SOCGame#getClientVersionMinSitDown()}.
      *<P>
      * Also called while handling LOADGAME admin command, if game has a player with same name as the debug/admin user
      * who requested loadgame.

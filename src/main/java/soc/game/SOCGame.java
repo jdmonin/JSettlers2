@@ -932,13 +932,27 @@ public class SOCGame implements Serializable, Cloneable
      * this game (based on game options/features added in a given version),
      * or -1 if unknown.
      *<P>
-     * Calculated by {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
+     * Calculated in constructor by {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
-     * Value may sometimes be too low at client, see {@link #getClientVersionMinRequired()} for details.
+     * Value may sometimes be too low when calculated at an older client.
+     *<P>
+     * See {@link #getClientVersionMinRequired()} for details.
+     * @see #clientVersionMinSitDown
      * @see #clientFeaturesRequired
      * @since 1.1.06
      */
     private int clientVersionMinRequired;
+
+    /**
+     * For use at server; lowest version of client which can sit down to play in
+     * this game once it's started (replacing a robot when ({@link #getGameState()} &gt; {@link #START1A}),
+     * which may be higher than the {@link #clientVersionMinRequired} to join,
+     * or 0 if {@link #clientVersionMinRequired} should be used or game hasn't started yet.
+     *<P>
+     * See {@link #getClientVersionMinSitDown()} for details.
+     * @since 2.7.00
+     */
+    private int clientVersionMinSitDown;
 
     /**
      * For use at server; optional client features needed to connect to this game,
@@ -1990,6 +2004,9 @@ public class SOCGame implements Serializable, Cloneable
      * a robot has just left the game to vacate the seat. So this restriction must be
      * enforced earlier, when the player requests sitting down at a vacant seat or at
      * a robot's position.
+     *<P>
+     * At server, once game has started, check client version against {@link #getClientVersionMinSitDown()}
+     * before calling this method; this method doesn't have client info and can't check.
      *
      * @param plName  the player's name; must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param pn    the player's requested player number; the seat number at which they would sit
@@ -2490,12 +2507,39 @@ public class SOCGame implements Serializable, Cloneable
      * to options.
      *
      * @return game version, in same format as {@link soc.util.Version#versionNumber()}.
+     * @see #getClientVersionMinSitDown()
      * @see #getClientFeaturesRequired()
      * @since 1.1.06
      */
     public int getClientVersionMinRequired()
     {
         return clientVersionMinRequired;
+    }
+
+    /**
+     * For use at server; lowest version of client which can sit down to play in
+     * this game once it's started (replacing a robot when ({@link #getGameState()} &gt; {@link #START1A}),
+     * which may be higher than the {@link #getClientVersionMinRequired()} to join.
+     *<P>
+     * Before the game starts, the version to join may be lower because
+     * {@link SOCGameOption#FLAG_OPPORTUNISTIC Opportunistic Game Options} can still be removed at game start
+     * to accommodate older clients.
+     *<P>
+     * {@link #startGame(Map)} calculates this, including any remaining opportunistic options, by calling
+     * {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, boolean, Map) SOCVersionedItem.itemsMinimumVersion(Map, false, true, null)}.
+     *<P>
+     * If game hasn't yet started, returns {@link #getClientVersionMinRequired()}.
+     *
+     * @return game version, in same format as {@link soc.util.Version#versionNumber()},
+     *     or -1 if no requirement or game has no options
+     * @see #addPlayer(String, int)
+     * @since 2.7.00
+     */
+    public int getClientVersionMinSitDown()
+    {
+        return (clientVersionMinSitDown != 0)
+            ? clientVersionMinSitDown
+            : clientVersionMinRequired;
     }
 
     /**
@@ -5425,6 +5469,7 @@ public class SOCGame implements Serializable, Cloneable
      * {@link #getGameOptions()}.{@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map) removeOpportunisticIfOlderClients(playerCliNamesVersions)}
      * to check any {@link SOCGameOption#FLAG_OPPORTUNISTIC Opportunistic Game Options}
      * against player client versions and drop options if needed.
+     * Calculates {@link #getClientVersionMinSitDown()} including any remaining opportunistic options.
      *<P>
      * Some scenarios require other methods to finish setting up the game;
      * call them in this order before any other board or game methods:
@@ -5478,10 +5523,18 @@ public class SOCGame implements Serializable, Cloneable
 
         setFirstPlayer(currentPlayerNumber);
 
+        /**
+         * check and remove any Opportunistic Game Options that player clients are too old for,
+         * then calculate required version to sit down now that game has started
+         */
         SOCGameOptionSet.RemoveOpportunisticResults removedOpts
             = ((opts != null) && (playerCliNamesVersions != null))
             ? opts.removeOpportunisticIfOlderClients(playerCliNamesVersions)
             : null;
+        clientVersionMinSitDown
+            = (opts != null)
+            ? SOCVersionedItem.itemsMinimumVersion(opts.getAll(), false, true, null)
+            : -1;
 
         return removedOpts;
     }

@@ -2703,6 +2703,20 @@ public class SOCServerMessageHandler
 
         try
         {
+            if (gameState >= SOCGame.START1A)
+            {
+                final int sitVers = ga.getClientVersionMinSitDown();
+                if (c.getVersion() < sitVers)
+                {
+                    srv.messageToPlayer
+                        (c, gaName, SOCServer.PN_OBSERVER,
+                         "Cannot sit down after game started: Requires minimum version " + sitVers);
+                    // TODO use SOCStatusMsg instead, so they'll get a popup
+
+                    return;  // <--- Early return: Client version cannot sit down ---
+                }
+            }
+
             if (ga.isSeatVacant(pn))
             {
                 gameAlreadyStarted = (gameState >= SOCGame.START2A);

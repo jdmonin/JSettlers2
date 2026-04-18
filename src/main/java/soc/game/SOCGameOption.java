@@ -324,6 +324,9 @@ public class SOCGameOption
      * Server should call {@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map)} at start of game to do so,
      * ideally by calling {@link SOCGame#startGame(Map)}.
      *<P>
+     * Once game has started, server will check client against game's {@link SOCGame#getClientVersionMinSitDown()}
+     * before letting them sitting down to take over a bot.
+     *<P>
      * Client option negotiation: When a client joins a server and asks for info about available game options,
      * if client is older than the option's {@link #minVersion} they will be sent a copy of the option having the
      * {@link #FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY} flag set, and the lowest possible {@code minVersion}:

@@ -153,6 +153,9 @@ public class TestClientVersion
         final String gaName = gaAtSrv.getName();
         final SOCGame gaAtCli = tcli.getGame(gaName);
 
+        assertEquals(-1, gaAtSrv.getClientVersionMinRequired());
+        assertEquals(-1, gaAtSrv.getClientVersionMinSitDown());
+
         // What game opts and details does first cli see?
         assertNotNull("announced to creating client", gaAtCli);
         assertEquals(-1, gaAtCli.getClientVersionMinRequired());
@@ -177,6 +180,7 @@ public class TestClientVersion
         // TODO now have another modern cli join srv, chk game opts ,see if UB=t
 
         // what happens at sitdown/startgame?  At tcliOld, does gameopt UB gain flag CLI JOIN ONLY?
+
         // verify seat # is empty, sit down
         final int PN_SIT_CLI_OLD = 1;
         assertTrue(gaAtSrv.isSeatVacant(PN_SIT_CLI_OLD));
@@ -206,6 +210,13 @@ public class TestClientVersion
         assertEquals(SOCGame.START1A, gaAtSrv.getGameState());
         assertEquals(SOCGame.START1A, gaAtCli.getGameState());
         assertEquals(SOCGame.START1A, gaAtCliOld.getGameState());
+
+        assertEquals(-1, gaAtSrv.getClientVersionMinRequired());
+        assertEquals(-1, gaAtSrv.getClientVersionMinSitDown());
+        opts = tcli.getServerGameOptions(gaName);
+        assertNotNull(opts);
+        assertFalse("gameopt UB removed at server for compat with old client", opts.containsKey("UB"));
+
         // at all cli, see if UB changed now
         opts = tcli.getServerGameOptions(gaName);
         assertNotNull(opts);
