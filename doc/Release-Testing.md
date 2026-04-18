@@ -216,8 +216,9 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
 - Take Longest Route by building a coastal settlement to connect roads to ships, then undo that
     - Copy src/test/resources/resources/savegame/reletest-longest-joinships.game.json to your server's configured savegame directory
     - Run `*LOADGAME* reletest-longest-joinships` debug command in any other game window
-    - Optional: Use client 2.4.00 or older as players or observers
+    - Optional: Use client 2.4.00 or older as observers
         - Those versions don't recalculate longest route in this situation, but server 2.5.00 and newer should tell them it's changed
+        - Players must be 2.7.00 or newer because we're testing Undo Build
     - Build a coastal settlement
     - Should take Longest Route from other player
     - Right-click that settlement, Undo build

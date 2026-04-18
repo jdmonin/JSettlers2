@@ -587,6 +587,10 @@ public class TestLoadgame
         final SOCGame ga = sgm.getGame();
 
         assertEquals("game name", "testgame-sea-closedships", sgm.gameName);
+        assertEquals(2000, sgm.gameMinVersion);
+        assertEquals(2000, ga.getClientVersionMinRequired());
+        assertEquals(2700, sgm.gameSitMinVersion);
+        assertEquals(2700, ga.getClientVersionMinSitDown());
         assertEquals(CURRENT_PLAYER_NUMBER, ga.getCurrentPlayerNumber());
         assertEquals("gamestate", SOCGame.PLAY1, sgm.gameState);
         assertEquals("oldgamestate", SOCGame.PLAY1, sgm.oldGameState);

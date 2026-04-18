@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -51,6 +51,7 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
 import soc.game.SOCInventory;
 import soc.game.SOCMoveRobberResult;
@@ -630,6 +631,8 @@ public class TestActionsMessages
         assertEquals(4, ga.getGameOptionIntValue("UBL"));  // Undo Build limit per player
         assertEquals(8, cliPl.getUndosRemaining());  // for this test, changed in file to be higher than limit
         assertEquals(2, ga.getPlayer(2).getUndosRemaining());  // differs from default (limit)
+        assertEquals(SOCBoardLarge.MIN_VERSION, ga.getClientVersionMinRequired());  // since UB is opportunistic and sea board is used
+        assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, ga.getClientVersionMinSitDown());  // since UB is set
 
         /* settlement to join roads + ships for longest route */
         final int SETTLEMENT_NODE = 0x80b;
@@ -1371,6 +1374,8 @@ public class TestActionsMessages
 
         assertTrue
             ("has scenario game opt", ga.isGameOptionSet(isSanyNotSeac ? SOCGameOptionSet.K_SC_SANY : SOCGameOptionSet.K_SC_SEAC));
+        assertEquals(SOCBoardLarge.MIN_VERSION, ga.getClientVersionMinRequired());
+        assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, ga.getClientVersionMinSitDown());
 
         assertEquals(isSanyNotSeac ? 2 : 5, cliPl.getPublicVP());
         assertEquals(isSanyNotSeac ? 2 : 5, cliPlAtCli.getPublicVP());
