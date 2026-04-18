@@ -79,7 +79,8 @@ public class TestGame
     }
 
     /**
-     * Test {@link SOCGame#setNextDevCard(int)}, lightly test {@link SOCGame#buyDevCard()}.
+     * Test {@link SOCGame#setNextDevCard(int)}, lightly test {@link SOCGame#buyDevCard()}
+     * and {@link SOCGame#setFieldsForLoad(java.util.List, int, int, java.util.List, boolean, boolean, boolean, boolean, boolean)}.
      * @since 2.5.00
      */
     @Test
@@ -94,7 +95,9 @@ public class TestGame
         for (int ctype : ORIG_CARDS)
             cardList.add(ctype);
         ga.initAtServer();
-        ga.setFieldsForLoad(cardList, SOCGame.ROLL_OR_CARD, null, false, false, false, false, false);
+        ga.setFieldsForLoad(cardList, 1107, SOCGame.ROLL_OR_CARD, null, false, false, false, false, false);
+        assertEquals(1107, ga.getClientVersionMinSitDown());
+        assertEquals(SOCGame.ROLL_OR_CARD, ga.getOldGameState());
 
         // verify cardList before any moves
         assertArrayEquals(ORIG_CARDS, ga.getDevCardDeck());

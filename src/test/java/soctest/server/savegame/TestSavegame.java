@@ -68,12 +68,19 @@ public class TestSavegame
 {
     private static SOCServer srv;
 
+    /**
+     * Known Options, from {@link SOCGameOptionSet#getAllKnownOptions()}.
+     * @since 2.7.00
+     */
+    private static SOCGameOptionSet knownOpts;
+
     /** dummy server setup, to avoid IllegalStateException etc from {@link GameLoaderJSON} or {@link GameSaverJSON} */
     @BeforeClass
     public static void setup()
         throws Exception
     {
         srv = new SOCServer("dummy", 0, null, null);
+        knownOpts = SOCGameOptionSet.getAllKnownOptions();
     }
 
     /** This folder and all contents are created at start of each test method, deleted at end of it */
@@ -284,7 +291,8 @@ public class TestSavegame
     }
 
     /**
-     * Save a game, reload it, check {@link SOCGame#getLastAction()}, various player statistics, and misc other fields.
+     * Save a game, reload it, check {@link SOCGame#getLastAction()}, various player statistics,
+     * {@link SOCGame#getGameOptions()}, and misc other fields.
      * @see #testBasicSaveLoad()
      * @since 2.6.00
      */
@@ -292,7 +300,25 @@ public class TestSavegame
     public void testSaveLoadPlayerMiscFields()
         throws IOException
     {
-        final SOCGame gaSave = new SOCGame("stats", null, null);
+        final int GAMEOPT_N7_VAL = 5;
+        final SOCGameOptionSet opts = new SOCGameOptionSet();
+        {
+            final SOCGameOption optUB = knownOpts.getKnownOption("UB", true);
+            assertNotNull(optUB);
+            assertEquals(SOCGameOption.OTYPE_BOOL, optUB.optType);
+            optUB.setBoolValue(true);
+            assertTrue(optUB.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED | SOCGameOption.FLAG_OPPORTUNISTIC));
+            assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, optUB.minVersion);
+            opts.add(optUB);
+
+            final SOCGameOption optN7 = knownOpts.getKnownOption("N7", true);
+            assertNotNull(optN7);
+            assertEquals(SOCGameOption.OTYPE_INTBOOL, optN7.optType);
+            optN7.setBoolValue(true);
+            optN7.setIntValue(GAMEOPT_N7_VAL);
+            opts.add(optN7);
+        }
+        final SOCGame gaSave = new SOCGame("stats", opts, knownOpts);
         gaSave.addPlayer("p0", 0);
         gaSave.addPlayer("third", 3);
         assertFalse(gaSave.isSeatVacant(0));
@@ -307,7 +333,14 @@ public class TestSavegame
         final int firstPN = gaSave.getCurrentPlayerNumber();
         assertEquals(firstPN, gaSave.getFirstPlayer());
 
-        // no pieces placed, but can't save during initial placement
+        assertEquals
+            ("minVers still -1 since UB is opportunistic",
+             -1, gaSave.getClientVersionMinRequired());
+        assertEquals
+            ("now 2700 since startGame has been called and UB wasn't removed",
+             SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, gaSave.getClientVersionMinSitDown());
+
+        // no pieces placed, but can't save during initial placement, so move past that state
         gaSave.setGameState(SOCGame.ROLL_OR_CARD);
         gaSave.getPlayer(0).addRolledResources(new SOCResourceSet(1, 3, 0, 2, 0, 0));
 
@@ -404,12 +437,30 @@ public class TestSavegame
         assertNotNull(sgm);
         assertEquals(SavedGameModel.MODEL_VERSION, sgm.modelVersion);
         assertEquals(Version.versionNumber(), sgm.savedByVersion);
+        assertEquals(-1, sgm.gameMinVersion);
+        assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, sgm.gameSitMinVersion);
+
         final SOCGame ga = sgm.getGame();
+
+        assertEquals(-1, ga.getClientVersionMinRequired());
+        assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, ga.getClientVersionMinSitDown());
 
         assertEquals("stats", ga.getName());
         assertEquals(4, ga.maxPlayers);
         assertEquals(firstPN, ga.getCurrentPlayerNumber());
         assertEquals(firstPN, ga.getFirstPlayer());
+
+        final SOCGameOptionSet gaOpts = ga.getGameOptions();
+        assertNotNull(gaOpts);
+        SOCGameOption opt = gaOpts.get("UB");
+        assertNotNull(opt);
+        assertTrue(opt.getBoolValue());
+        assertTrue(ga.isGameOptionSet("UB"));
+        opt = gaOpts.get("N7");
+        assertNotNull(opt);
+        assertTrue(opt.getBoolValue());
+        assertEquals(GAMEOPT_N7_VAL, opt.getIntValue());
+        assertTrue(ga.isGameOptionSet("N7"));
 
         final String[] NAMES = {"p0", null, null, "third"};
         final SeatLockState[] LOCKS =

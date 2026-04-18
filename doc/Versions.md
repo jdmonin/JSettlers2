@@ -86,10 +86,10 @@ JARs for recent JSettlers versions can be downloaded from
 	    - TestRecorder.connectLoadJoinResumeGame: Resume any loaded game file
 	    - Bugfix: When resuming game, set GameEventListener so scenario events will fire
 	    - SavedGameModel:
-	        - Game: add optional field lastAction
+	        - Game: add optional fields lastAction, gameSitMinVersion
 	        - PlayerInfo: When saving, omit resTradeStats if all tradeTypes are empty
 	        - BoardInfo: add optional field fogHiddenHexes
-	        - MODEL_VERSION still 2400; earlier server versions will ignore lastAction while loading a savegame
+	        - MODEL_VERSION still 2400; earlier server versions will ignore new fields while loading a savegame
 	- Robots: If SOCGame.restoreLargestArmyState called before saveLargestArmyState, do nothing
 	- To help unit tests, SOCGame.initAtServer now calls startGame_setupDevCards
 	- To help unit tests which create games:

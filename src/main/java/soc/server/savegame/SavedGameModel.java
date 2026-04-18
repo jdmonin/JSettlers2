@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -134,8 +134,8 @@ public class SavedGameModel
      *<H4>2.7.00</H4>
      *<UL>
      * <LI> Model version is still 2400
-     * <LI> Adds game field {@link #lastAction}
-     * <LI> Earlier server versions will ignore this added field while loading a savegame
+     * <LI> Adds game fields {@link #lastAction} and {@link #gameSitMinVersion}
+     * <LI> Earlier server versions will ignore these added fields while loading a savegame
      * <LI> Adds {@link SOCPlayerElement.PEType#NUM_UNDOS_REMAINING} to {@link PlayerInfo#elements}
      *      if {@link SOCPlayer#getUndosRemaining()} &gt; 0
      * <LI> {@link BoardInfo} adds {@code fogHiddenHexes} for {@link SOCScenario#K_SC_FOG SC_FOG} scenario
@@ -254,8 +254,18 @@ public class SavedGameModel
     /**
      * Game minimum version, from {@link SOCGame#getClientVersionMinRequired()}.
      * Server won't load a game if its {@code gameMinVersion} is newer than server version.
+     * @see #gameSitMinVersion
      */
     public int gameMinVersion;
+
+    /**
+     * Minimum client version to sit and play, from {@link SOCGame#getClientVersionMinSitDown()}.
+     * Server won't load a game if its {@code sitMinVersion} is newer than requesting client's version.
+     * Usually same value as {@link #gameMinVersion}, but can be higher depending on game options;
+     * see {@link SOCGame#getClientVersionMinSitDown()} for details.
+     * @since 2.7.00
+     */
+    public int gameSitMinVersion;
 
     public String gameName;
 
@@ -485,6 +495,7 @@ public class SavedGameModel
         oldGameState = ga.getOldGameState();
         currentDice = ga.getCurrentDice();
         gameMinVersion = ga.getClientVersionMinRequired();
+        gameSitMinVersion = ga.getClientVersionMinSitDown();
         devCardDeck = new ArrayList<>();
         for (final int card : ga.getDevCardDeck())
             devCardDeck.add(Integer.valueOf(card));
@@ -739,7 +750,7 @@ public class SavedGameModel
                 }
             }
             ga.setFieldsForLoad
-                (devCardDeck, oldGameState, shipsPlacedThisTurn,
+                (devCardDeck, gameSitMinVersion, oldGameState, shipsPlacedThisTurn,
                  placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn,
                  playingRoadBuildingCardForLastRoad);
             if (elements != null)

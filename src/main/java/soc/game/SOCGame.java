@@ -1673,7 +1673,7 @@ public class SOCGame implements Serializable, Cloneable
      *      related to {@link #doesCancelRoadBuildingReturnCard()})
      *</UL>
      * For some other fields to save, see
-     * {@link #setFieldsForLoad(List, int, List, boolean, boolean, boolean, boolean, boolean)}.
+     * {@link #setFieldsForLoad(List, int, int, List, boolean, boolean, boolean, boolean, boolean)}.
      *
      * @return an array with the current values of those fields, in the order listed here
      * @since 2.3.00
@@ -1695,6 +1695,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param cards  Deck, same format as {@link #getDevCardDeck()} but as {@link List} instead of {@code int[]}.
      *     Contents will be copied. Can be empty, but not null.
+     * @param minSitDownVersion  New value for {@link #getClientVersionMinSitDown()}; 0 if omitted in snapshot
      * @param oldGameState  State from {@link #getOldGameState()}
      * @param shipsPlacedThisTurn  Ships from {@link #getShipsPlacedThisTurn()}. May be null or empty.
      * @param placingRobberForKnightCard
@@ -1705,7 +1706,8 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.3.00
      */
     public void setFieldsForLoad
-        (final List<Integer> cards, final int oldGameState, final List<Integer> shipsPlacedThisTurn,
+        (final List<Integer> cards, final int minSitDownVersion, final int oldGameState,
+         final List<Integer> shipsPlacedThisTurn,
          final boolean placingRobberForKnightCard, final boolean robberyWithPirateNotRobber,
          final boolean askedSpecialBuildPhase, final boolean movedShipThisTurn,
          final boolean playingRoadBuildingCardForLastRoad)
@@ -1721,6 +1723,7 @@ public class SOCGame implements Serializable, Cloneable
         for (int i = 0; i < L; ++i)
             devCardDeck[i] = cards.get(i);
 
+        clientVersionMinSitDown = minSitDownVersion;
         this.oldGameState = oldGameState;
 
         if (shipsPlacedThisTurn == null)

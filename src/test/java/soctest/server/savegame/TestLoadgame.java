@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -824,6 +824,10 @@ public class TestLoadgame
 
     /**
      * Test loading a game with Dev Card stats elements for {@link SOCPlayer#numRBCards} etc.
+     *<P>
+     * Also tests when a savegame snapshot doesn't have field {@link SavedGameModel#gameSitMinVersion}
+     * added in v2.7.00.
+     *
      * @since 2.5.00
      */
     @Test
@@ -838,6 +842,11 @@ public class TestLoadgame
         assertEquals(4, ga.maxPlayers);
         final int dur = ga.getDurationSeconds(), secondsFromExpected = Math.abs(dur - 163);
         assertTrue("ga.getDurationSeconds() is ~ 163 (actual " + dur + ')', secondsFromExpected < 3);
+
+        assertEquals(-1, sgm.gameMinVersion);
+        assertEquals(-1, ga.getClientVersionMinRequired());
+        assertEquals("gameSitMinVersion field not present in this older artifact", 0, sgm.gameSitMinVersion);
+        assertEquals("game falls back to using clientVersionMinRequired", -1, ga.getClientVersionMinSitDown());
 
         final String[] NAMES = {null, "robot 4", "robot 3", "debug"};
         final int[] TOTAL_VP = {0, 3, 3, 3};
@@ -1011,6 +1020,10 @@ public class TestLoadgame
     /**
      * Test loading a game whose players have {@link SavedGameModel.PlayerInfo#resTradeStats}:
      * {@code tradestats.game.json}.
+     *<P>
+     * Also lightly test {@link SOCGame#getClientVersionMinSitDown()} / {@link SavedGameModel#gameSitMinVersion}
+     * added in v2.7.00.
+     *
      * @since 2.6.00
      */
     @Test
@@ -1022,6 +1035,11 @@ public class TestLoadgame
 
         assertEquals("game name", "ts", sgm.gameName);
         assertEquals(4, sgm.playerSeats.length);
+
+        assertEquals(-1, sgm.gameMinVersion);
+        assertEquals(-1, ga.getClientVersionMinRequired());
+        assertEquals(1100, sgm.gameSitMinVersion);
+        assertEquals(1100, ga.getClientVersionMinSitDown());
 
         final int[] PLAYER_VP = {0, 2, 3, 4};
         final int[][][][] PLAYER_TRADE_STATS =
