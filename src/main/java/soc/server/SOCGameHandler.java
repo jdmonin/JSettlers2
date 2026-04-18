@@ -3983,33 +3983,15 @@ public class SOCGameHandler extends GameHandler
         srv.numberOfGamesStarted++;  // TODO once multiple handler threads, encapsulate this
 
         /**
-         * start the game, place any initial pieces.
-         * If anything is added to this game object setup code,
-         * update soctest.TestBoardLayouts.testSingleLayout(..).
+         * gather client version info for currently seated players
+         * for ga.startGame to check against any opportunistic gameopts
          */
-
-        ga.setGameEventListener(this);  // for playerEvent, gameEvent callbacks (since 2.0.00)
-        ga.startGame();
-
-        final int[][] legalSeaEdges;  // used on sea board; if null, all are legal
-        if (ga.hasSeaBoard)
-            legalSeaEdges = SOCBoardAtServer.startGame_scenarioSetup(ga);
-        else
-            legalSeaEdges = null;
-
-        SOCGameOptionSet.RemoveOpportunisticResults removedOpts = null;
-
-        srv.gameList.takeMonitorForGame(gaName);
-
-        try
+        final Map<String, Integer> playersCliVers;
         {
-            /**
-             * check for any opportunistic gameopts vs currently seated players
-             */
             final SOCGameOptionSet opts = ga.getGameOptions();
             if (opts != null)
             {
-                Map<String, Integer> playersCliVers = new HashMap<>();
+                playersCliVers = new HashMap<>();
                 final SOCPlayer[] players = ga.getPlayers();
                 for (int pn = 0; pn < ga.maxPlayers; ++pn)
                 {
@@ -4021,16 +4003,39 @@ public class SOCGameHandler extends GameHandler
                     Connection cliConn = srv.getConnection(cliName);
                     if (cliConn == null)
                         continue;  // unlikely
+
                     int cliVers = cliConn.getVersion();
                     if (cliVers < 0)
                         cliVers = 0;
                     playersCliVers.put(cliName, Integer.valueOf(cliVers));
                 }
-
-                removedOpts = opts.removeOpportunisticIfOlderClients(playersCliVers);
-                    // will send any messages about them near end of this method
+            } else {
+                playersCliVers = null;
             }
+        }
 
+        /**
+         * start the game, place any initial pieces.
+         * If anything is added to this game object setup code,
+         * update soctest.TestBoardLayouts.testSingleLayout(..).
+         */
+
+        ga.setGameEventListener(this);  // for playerEvent, gameEvent callbacks (since 2.0.00)
+
+        final SOCGameOptionSet.RemoveOpportunisticResults removedOpts
+            = ga.startGame(playersCliVers);
+                // will send any messages about removedOpts near end of this method
+
+        final int[][] legalSeaEdges;  // used on sea board; if null, all are legal
+        if (ga.hasSeaBoard)
+            legalSeaEdges = SOCBoardAtServer.startGame_scenarioSetup(ga);
+        else
+            legalSeaEdges = null;
+
+        srv.gameList.takeMonitorForGame(gaName);
+
+        try
+        {
             /**
              * send the board layout
              */

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012-2021,2024 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2021,2024,2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2789,7 +2789,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      * Given max players and scenario from {@code gameOpts},
      * get this board's Visual Shift and Trim amount if any (layout part "VS").
      * Determined at board creation, does not vary based on the specific layout details
-     * randomly generated later at {@link SOCGame#startGame()}.
+     * randomly generated later at {@link SOCGame#startGame(java.util.Map)}.
      *<P>
      * See {@link SOCBoardLarge#getAddedLayoutPart(String)} javadoc for details on "VS".
      * @param gameOpts  Game options, or null.
@@ -2927,7 +2927,7 @@ public class SOCBoardAtServer extends SOCBoardLarge
      *      Used in {@link SOCGameOptionSet#K_SC_PIRI _SC_PIRI} and {@link SOCGameOptionSet#K_SC_FTRI _SC_FTRI}.
      *</UL>
      *
-     * @param ga  Game to set up; assumes {@link SOCGame#startGame()} has just been called
+     * @param ga  Game to set up; assumes {@link SOCGame#startGame(java.util.Map)} has just been called
      * @return  this board layout's {@link #getLegalSeaEdges(SOCGame)}
      *     if placement is restricted, or {@code null}
      */
