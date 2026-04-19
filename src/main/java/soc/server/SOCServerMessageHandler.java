@@ -1883,10 +1883,13 @@ public class SOCServerMessageHandler
         try
         {
             sgm = GameLoaderJSON.loadGame
-                (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION), srv);
+                (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION), srv, c.getVersion());
         } catch (SOCGameOptionVersionException e) {
             errText = c.getLocalized("admin.loadgame.err.too_new.vers", argsStr, e.gameOptsVersion);
                 // "Problem loading {0}: Too new: gameMinVersion is {1}"
+        } catch (ArrayIndexOutOfBoundsException e) {
+            errText = c.getLocalized("admin.loadgame.err.too_new.cli_vers", argsStr, e.getMessage());
+                // "Problem loading {0}: Requires newer client version {1}"
         } catch (NoSuchElementException e) {
             errText = c.getLocalized("admin.loadgame.err.too_new", argsStr, e.getMessage());
                 // "Problem loading {0}: Too new: {1}"
@@ -2710,7 +2713,7 @@ public class SOCServerMessageHandler
                 {
                     srv.messageToPlayer
                         (c, gaName, SOCServer.PN_OBSERVER,
-                         "Cannot sit down after game started: Requires minimum version " + sitVers);
+                         "Cannot sit down because this game has started: Requires newer client version " + Version.version(sitVers));
                     // TODO use SOCStatusMsg instead, so they'll get a popup
 
                     return;  // <--- Early return: Client version cannot sit down ---

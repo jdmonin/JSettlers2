@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020,2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020,2025-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -69,7 +69,7 @@ public class GameLoaderJSON
 
     /**
      * Load a game from a JSON file.
-     * Loads into a Model and calls {@link SavedGameModel#createLoadedGame(SOCServer)}.
+     * Loads into a Model and calls {@link SavedGameModel#createLoadedGame(SOCServer, int)}.
      *<P>
      * Assumes caller has checked that gson jar is on classpath
      * by calling {@code Class.forName("com.google.gson.Gson")} or similar.
@@ -78,16 +78,21 @@ public class GameLoaderJSON
      * @param srv  Server reference to check for bot name collisions; not {@code null}.
      *     Any bot players in the loaded game data with same names as those logged into the server
      *     will be renamed to avoid problems during random bot assignment while joining the game.
+     * @param requestingCliVers  Version of the client which requested the load and which will be told to join the game,
+     *     or 0 to not check client version
      * @return  loaded game model
      * @throws NoSuchElementException if file's model schema version is newer than the
-     *     current {@link SavedGameModel#MODEL_VERSION}; see {@link SavedGameModel#checkCanLoad(SOCGameOptionSet)}
+     *     current {@link SavedGameModel#MODEL_VERSION}; see {@link SavedGameModel#checkCanLoad(SOCGameOptionSet, int)}
      *     for details
      * @throws SOCGameOptionVersionException if loaded data's {@link #gameMinVersion} field
      *     is newer than the server's {@link soc.util.Version#versionNumber()};
-     *     see {@link SavedGameModel#checkCanLoad(SOCGameOptionSet)} for details
+     *     see {@link SavedGameModel#checkCanLoad(SOCGameOptionSet, int)} for details
+     * @throws ArrayIndexOutOfBoundsException if loaded data's {@link #gameSitMinVersion} field
+     *     is newer than a nonzero {@code requestingCliVers};
+     *     see {@link SavedGameModel#checkCanLoad(SOCGameOptionSet, int)} for details
      * @throws SavedGameModel.UnsupportedSGMOperationException if loaded game model has an option or feature
-     *     not yet supported by {@link SavedGameModel#createLoadedGame(SOCServer)};
-     *     see {@link SavedGameModel#checkCanLoad(SOCGameOptionSet)} for details
+     *     not yet supported by {@link SavedGameModel#createLoadedGame(SOCServer, int)};
+     *     see {@link SavedGameModel#checkCanLoad(SOCGameOptionSet, int)} for details
      * @throws StringIndexOutOfBoundsException  if a {@link JsonSyntaxException} occurs while loading, this wraps it
      *     so the caller doesn't need to know GSON-specific exception types
      * @throws IOException  if a problem occurs while loading, including a {@link JsonIOException}
@@ -96,8 +101,9 @@ public class GameLoaderJSON
      *     Catch subclass {@code SOCGameOptionVersionException} before this one.
      *     Also thrown if {@code srv} is null.
      */
-    public static SavedGameModel loadGame(final File loadFrom, final SOCServer srv)
-        throws NoSuchElementException, SOCGameOptionVersionException,
+    public static SavedGameModel loadGame
+        (final File loadFrom, final SOCServer srv, final int requestingCliVers)
+        throws NoSuchElementException, SOCGameOptionVersionException, ArrayIndexOutOfBoundsException,
             SavedGameModel.UnsupportedSGMOperationException, StringIndexOutOfBoundsException,
             IOException, IllegalArgumentException
     {
@@ -120,7 +126,7 @@ public class GameLoaderJSON
             throw wrap;
         }
 
-        sgm.createLoadedGame(srv);
+        sgm.createLoadedGame(srv, requestingCliVers);
 
         return sgm;
     }

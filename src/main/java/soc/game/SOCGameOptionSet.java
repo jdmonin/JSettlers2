@@ -418,7 +418,7 @@ public class SOCGameOptionSet
      *   <UL>
      *   <LI> Either add the fields there, and test to make sure SAVEGAME/LOADGAME handles their data properly
      *   <LI> Or, check for and reject the new option in {@link SavedGameModel#checkCanSave(SOCGame)}
-     *       and {@link SavedGameModel#checkCanLoad(SOCGameOptionSet)};
+     *       and {@link SavedGameModel#checkCanLoad(SOCGameOptionSet, int)};
      *       add a {@code TODO} to later add support to SavedGameModel
      *   </UL>
      *</UL>

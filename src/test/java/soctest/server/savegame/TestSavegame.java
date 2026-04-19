@@ -158,7 +158,7 @@ public class TestSavegame
         File saveFile = testTmpFolder.newFile("basic.game.json");
         GameSaverJSON.saveGame(gaSave, testTmpFolder.getRoot(), saveFile.getName(), srv);
 
-        final SavedGameModel sgm = GameLoaderJSON.loadGame(saveFile, srv);
+        final SavedGameModel sgm = GameLoaderJSON.loadGame(saveFile, srv, 0);
         assertNotNull(sgm);
         assertEquals(SavedGameModel.MODEL_VERSION, sgm.modelVersion);
         assertEquals(Version.versionNumber(), sgm.savedByVersion);
@@ -211,7 +211,7 @@ public class TestSavegame
         File saveFile = testTmpFolder.newFile("trades.game.json");
         GameSaverJSON.saveGame(gaSave, testTmpFolder.getRoot(), saveFile.getName(), srv);
 
-        final SavedGameModel sgm = GameLoaderJSON.loadGame(saveFile, srv);
+        final SavedGameModel sgm = GameLoaderJSON.loadGame(saveFile, srv, 0);
         assertNotNull(sgm);
         final SOCGame ga = sgm.getGame();
 
@@ -433,7 +433,7 @@ public class TestSavegame
         File saveFile = testTmpFolder.newFile("stats.game.json");
         GameSaverJSON.saveGame(gaSave, testTmpFolder.getRoot(), saveFile.getName(), srv);
 
-        final SavedGameModel sgm = GameLoaderJSON.loadGame(saveFile, srv);
+        final SavedGameModel sgm = GameLoaderJSON.loadGame(saveFile, srv, 0);
         assertNotNull(sgm);
         assertEquals(SavedGameModel.MODEL_VERSION, sgm.modelVersion);
         assertEquals(Version.versionNumber(), sgm.savedByVersion);
@@ -525,7 +525,7 @@ public class TestSavegame
         File saveFile = testTmpFolder.newFile("classic-copy.game.json");
         GameSaverJSON.saveGame(sgm1.getGame(), testTmpFolder.getRoot(), saveFile.getName(), srv);
 
-        final SavedGameModel sgm2 = GameLoaderJSON.loadGame(saveFile, srv);
+        final SavedGameModel sgm2 = GameLoaderJSON.loadGame(saveFile, srv, 0);
         TestLoadgame.checkReloaded_ClassicBotturn(sgm2);  // looks for same details again
     }
 
@@ -548,7 +548,7 @@ public class TestSavegame
         File saveFile = testTmpFolder.newFile("bad-fields-copy.game.json");
         GameSaverJSON.saveGame(sgm1.getGame(), testTmpFolder.getRoot(), saveFile.getName(), srv);
 
-        final SavedGameModel sgm2 = GameLoaderJSON.loadGame(saveFile, srv);
+        final SavedGameModel sgm2 = GameLoaderJSON.loadGame(saveFile, srv, 0);
         sgm2.playerSeatLocks[0] = null;  // this unknown field isn't preserved during roundtrip; that's OK
         TestLoadgame.checkReloaded_BadFieldContents(sgm2, false);  // looks for same details again
     }

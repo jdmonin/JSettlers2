@@ -1076,6 +1076,19 @@ For details, search [Readme.developer.md](Readme.developer.md) for `gson.jar`
     - Copy \*.game.json (except bad-\*) from `src/test/resources/resources/savegame/` to your test server's savegame dir
     - Each one should load without error, and resume without error (except "classic-over")
     - "classic-botturn" should have bots playing in the upper-right and lower-right seats, even though those seats are marked/locked
+    - Client version check
+         - Launch a client older than v2.7.00, log in as `debug`
+         - Start a new game and type command: `*LOADGAME* testscen-simple-4isl`
+         - Should see error: `Problem loading testscen-simple-4isl: Requires newer client version 2.7.00`
+         - Quit client, launch a v2.7.00 or newer client, log in as `debug`
+         - Should succeed now: `*LOADGAME* testscen-simple-4isl`
+         - Should `*RESUMEGAME*` without error
+         - Join that game with a second v2.7.00 or newer client (not debug)
+         - Take over a bot, complete a turn, quit client
+         - Launch a client older than v2.7.00, log in (not debug)
+         - Should be able to join game as observer
+         - Try to take over a bot
+         - Should see error: `Cannot sit down because this game has started: Requires newer client version 2.7.00`
 - Server config options/properties
     - Start server with savegame, but not debug user or Admin Users list:  
         `-Djsettlers.savegame.dir=/tmp/jsgame`

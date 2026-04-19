@@ -58,6 +58,7 @@ import soc.server.genericServer.StringConnection;
 import soc.server.savegame.GameLoaderJSON;
 import soc.server.savegame.SavedGameModel;
 import soc.server.savegame.SavedGameModel.PlayerInfo;
+import soc.util.Version;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -75,6 +76,12 @@ public class TestLoadgame
 {
     private static SOCServer srv;
 
+    /**
+     * Known Options, from {@link SOCGameOptionSet#getAllKnownOptions()}.
+     * @since 2.7.00
+     */
+    private static SOCGameOptionSet knownOpts;
+
     /** dummy server setup, to avoid IllegalStateException etc from {@link GameLoaderJSON} */
     @BeforeClass
     public static void setup()
@@ -90,6 +97,7 @@ public class TestLoadgame
         }
 
         srv = new SOCServer("dummy", 0, null, null);
+        knownOpts = SOCGameOptionSet.getAllKnownOptions();
 
         // - create the inactive game option used in bad-gameopt-inactive.game.json
         //   and testLoadInactiveGameopt, and no other unit test methods in this class
@@ -107,7 +115,7 @@ public class TestLoadgame
 
     /**
      * Attempt to load a savegame test artifact by calling
-     * {@link GameLoaderJSON#loadGame(File, SOCServer)}.
+     * {@link GameLoaderJSON#loadGame(File, SOCServer, int)}.
      * Doesn't postprocess or call {@link SavedGameModel#resumePlay(boolean)}.
      * If not found, will fail an {@code assertNotNull}. Doesn't try to catch
      * {@link SavedGameModel.UnsupportedSGMOperationException} or SGM's other declared runtime exceptions,
@@ -138,7 +146,7 @@ public class TestLoadgame
             throw new RuntimeException("unlikely internal error", e);
         }
 
-        return GameLoaderJSON.loadGame(f, server);
+        return GameLoaderJSON.loadGame(f, server, 0);
     }
 
     /**
@@ -1025,8 +1033,8 @@ public class TestLoadgame
      * Test loading a game whose players have {@link SavedGameModel.PlayerInfo#resTradeStats}:
      * {@code tradestats.game.json}.
      *<P>
-     * Also lightly test {@link SOCGame#getClientVersionMinSitDown()} / {@link SavedGameModel#gameSitMinVersion}
-     * added in v2.7.00.
+     * Also lightly test {@link SavedGameModel#checkCanLoad(SOCGameOptionSet, int)}
+     * and {@link SOCGame#getClientVersionMinSitDown()} / {@link SavedGameModel#gameSitMinVersion} added in v2.7.00.
      *
      * @since 2.6.00
      */
@@ -1036,14 +1044,24 @@ public class TestLoadgame
     {
         final SavedGameModel sgm = load("tradestats.game.json", srv);
         final SOCGame ga = sgm.getGame();
+        final int EXPECTED_SIT_MIN_VERSION = 1100;
 
         assertEquals("game name", "ts", sgm.gameName);
         assertEquals(4, sgm.playerSeats.length);
 
         assertEquals(-1, sgm.gameMinVersion);
         assertEquals(-1, ga.getClientVersionMinRequired());
-        assertEquals(1100, sgm.gameSitMinVersion);
-        assertEquals(1100, ga.getClientVersionMinSitDown());
+        assertEquals(EXPECTED_SIT_MIN_VERSION, sgm.gameSitMinVersion);
+        assertEquals(EXPECTED_SIT_MIN_VERSION, ga.getClientVersionMinSitDown());
+        sgm.checkCanLoad(knownOpts, 0);  // doesn't throw anything when cliVersion unspecified
+        sgm.checkCanLoad(knownOpts, Version.versionNumber());   // or current version
+        sgm.checkCanLoad(knownOpts, EXPECTED_SIT_MIN_VERSION);  // or 1100
+        try {
+            sgm.checkCanLoad(knownOpts, EXPECTED_SIT_MIN_VERSION - 1);
+            fail("checkCanLoad should throw for cli v1099");
+        } catch (ArrayIndexOutOfBoundsException e) {
+            assertEquals("1.1.00", e.getMessage());
+        }
 
         final int[] PLAYER_VP = {0, 2, 3, 4};
         final int[][][][] PLAYER_TRADE_STATS =
