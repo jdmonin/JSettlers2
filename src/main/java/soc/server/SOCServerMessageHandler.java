@@ -2708,13 +2708,20 @@ public class SOCServerMessageHandler
         {
             if (gameState >= SOCGame.START1A)
             {
-                final int sitVers = ga.getClientVersionMinSitDown();
-                if (c.getVersion() < sitVers)
+                final int cliVers = c.getVersion(),
+                    sitVers = ga.getClientVersionMinSitDown();
+                if (cliVers < sitVers)
                 {
+                    String txt = c.getLocalized("member.sit.game.started.cli_vers", Version.version(sitVers));
+                        // "Cannot sit down because this game has started: Requires newer client version {0}"
+                    SOCMessage msg
+                        = (cliVers >= SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC)
+                        ? new SOCStatusMessage
+                            (SOCStatusMessage.SV_GAME_STARTED_CANNOT_SIT_CLIENT_VERSION,
+                             gaName + SOCMessage.sep2_char + sitVers + SOCMessage.sep2_char + txt)
+                        : new SOCGameServerText(gaName, txt);
                     srv.messageToPlayer
-                        (c, gaName, SOCServer.PN_OBSERVER,
-                         "Cannot sit down because this game has started: Requires newer client version " + Version.version(sitVers));
-                    // TODO use SOCStatusMsg instead, so they'll get a popup
+                        (c, gaName, SOCServer.PN_OBSERVER, msg);
 
                     return;  // <--- Early return: Client version cannot sit down ---
                 }

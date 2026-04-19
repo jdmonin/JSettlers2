@@ -372,6 +372,29 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final int SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED = 25;
 
+    /**
+     * A game has started, and sitting down to play now requires a newer version than the requesting client's,
+     * although they were new enough to join as an observer. (This can happen with games which use
+     * {@link soc.game.SOCGameOption#FLAG_OPPORTUNISTIC Opportunistic Game Options}).
+     * Sent in response to player's {@link SOCSitDown} request.
+     *<P>
+     * {@link #isWithinGame(int)} is true for this status value.
+     *<P>
+     * Format of this status text is:
+     *<UL>
+     *<LI> game name
+     *<LI> {@link SOCMessage#sep2_char SEP2}
+     *<LI> minimum client version required, in same format as {@link SOCVersion#getVersionNumber()}
+     *<LI> {@link SOCMessage#sep2_char SEP2}
+     *<LI> localized status string saying why they cannot sit down
+     *</UL>
+     * Clients older than {@link soc.game.SOCGameOption#VERSION_FOR_FLAG_OPPORTUNISTIC} are instead sent
+     * a {@link SOCGameServerText} to decline their sitdown request.
+     *
+     * @since 2.7.00
+     */
+    public static final int SV_GAME_STARTED_CANNOT_SIT_CLIENT_VERSION = 26;
+
     // IF YOU ADD A STATUS VALUE:
     // Do not change or remove the numeric values of earlier ones.
     // Be sure to update statusValidAtVersion(), statusFallbackForVersion(), isWithinGame() if applicable, and unit tests.
@@ -556,7 +579,8 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static boolean isWithinGame(final int statusValue)
     {
-        return (statusValue == SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED);
+        return ((statusValue == SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED)
+            || (statusValue == SV_GAME_STARTED_CANNOT_SIT_CLIENT_VERSION));
     }
 
     /**
@@ -612,7 +636,7 @@ public class SOCStatusMessage extends SOCMessage
             else
                 // 2700 or newer; check vs highest constant that we know
                 // (since none has been added yet after 2700)
-                return (statusValue <= SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED);
+                return (statusValue <= SV_GAME_STARTED_CANNOT_SIT_CLIENT_VERSION);
             }
             // TODO perf: check for newest versions (more common) before earlier ones
         }

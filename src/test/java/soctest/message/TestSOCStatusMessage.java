@@ -54,6 +54,7 @@ public class TestSOCStatusMessage
                 {SOCStatusMessage.SV_GAME_CLIENT_FEATURES_NEEDED, 2000, SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, 0},
                 {SOCStatusMessage.SV_OK_SET_NICKNAME,  1200, -1, 0},  // throws IllegalArgumentException
                 {SOCStatusMessage.SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED, 2700, SOCStatusMessage.SV_OK, 1},
+                {SOCStatusMessage.SV_GAME_STARTED_CANNOT_SIT_CLIENT_VERSION, 2700, SOCStatusMessage.SV_NOT_OK_GENERIC, 1},
                 // explicitly test generic fallback to NOT_OK:
                 {SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED,    1110, SOCStatusMessage.SV_NOT_OK_GENERIC, 0},
             };

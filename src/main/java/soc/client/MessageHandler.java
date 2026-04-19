@@ -1163,6 +1163,34 @@ public class MessageHandler
         }
         break;
 
+        case SOCStatusMessage.SV_GAME_STARTED_CANNOT_SIT_CLIENT_VERSION:
+        {
+            @SuppressWarnings("unused")
+            String msg, gameName, sitVersion;
+            StringTokenizer st = new StringTokenizer(statusText, SOCMessage.sep2);
+            try
+            {
+                gameName = st.nextToken();
+                sitVersion = st.nextToken();
+                // get all of the rest of text, by choosing an unlikely delimiter character
+                msg = st.nextToken(Character.toString( (char) 1 ));
+                if (msg.charAt(0) == SOCMessage.sep2_char)
+                    msg = msg.substring(1);
+            }
+            catch (Throwable t)
+            {
+                return;  // ignore if not parsable
+            }
+
+            PlayerClientListener pcl = client.getClientListener(gameName);
+            if (pcl != null)
+            {
+                pcl.messageReceived(null, msg);
+                pcl.showNotifyDialog(msg, null);
+            }
+        }
+        break;
+
         }
     }
 
