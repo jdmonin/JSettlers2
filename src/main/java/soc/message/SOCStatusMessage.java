@@ -179,7 +179,7 @@ public class SOCStatusMessage extends SOCMessage
      *   ...
      * @see soc.server.SOCServerMessageHandler#handleNEWGAMEWITHOPTIONSREQUEST
      * @see #SV_GAME_CLIENT_FEATURES_NEEDED
-     * @see #SV_GAME_STARTING_OPPORTUNISTIC_REMOVED
+     * @see #SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED
      * @since 1.1.07
      */
     public static final int SV_NEWGAME_OPTION_VALUE_TOONEW = 10;
@@ -370,7 +370,7 @@ public class SOCStatusMessage extends SOCMessage
      * @see #SV_GAME_CLIENT_FEATURES_NEEDED
      * @since 2.7.00
      */
-    public static final int SV_GAME_STARTING_OPPORTUNISTIC_REMOVED = 25;
+    public static final int SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED = 25;
 
     // IF YOU ADD A STATUS VALUE:
     // Do not change or remove the numeric values of earlier ones.
@@ -556,7 +556,7 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static boolean isWithinGame(final int statusValue)
     {
-        return (statusValue == SV_GAME_STARTING_OPPORTUNISTIC_REMOVED);
+        return (statusValue == SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED);
     }
 
     /**
@@ -608,11 +608,11 @@ public class SOCStatusMessage extends SOCMessage
             else if (cliVersion < 2400)  // 2100 - 2399
                 return (statusValue < SV_MUST_AUTH_FIRST);
             else if (cliVersion < 2700)  // 2400 - 2699
-                return (statusValue < SV_GAME_STARTING_OPPORTUNISTIC_REMOVED);
+                return (statusValue < SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED);
             else
                 // 2700 or newer; check vs highest constant that we know
                 // (since none has been added yet after 2700)
-                return (statusValue <= SV_GAME_STARTING_OPPORTUNISTIC_REMOVED);
+                return (statusValue <= SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED);
             }
             // TODO perf: check for newest versions (more common) before earlier ones
         }
@@ -631,7 +631,7 @@ public class SOCStatusMessage extends SOCMessage
      * <LI> {@link #SV_GAME_CLIENT_FEATURES_NEEDED} falls back to {@link #SV_NEWGAME_OPTION_VALUE_TOONEW}
      * <LI> {@link #SV_OK_SET_NICKNAME} has no successful fallback, the client must be
      *      sent {@link #SV_NAME_NOT_FOUND} and must reauthenticate; throws {@link IllegalArgumentException}
-     * <LI> {@link #SV_GAME_STARTING_OPPORTUNISTIC_REMOVED} falls back to {@link #SV_OK} since it's informational
+     * <LI> {@link #SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED} falls back to {@link #SV_OK} since it's informational
      * <LI> All others fall back to {@link #SV_NOT_OK_GENERIC}
      * <LI> Clients before v1.1.06 will be sent the status text {@code st} only,
      *      without the {@code sv} parameter which was added in 1.1.06
@@ -670,7 +670,7 @@ public class SOCStatusMessage extends SOCMessage
             case SV_OK_SET_NICKNAME:
                 reject = true;
                 break;
-            case SV_GAME_STARTING_OPPORTUNISTIC_REMOVED:
+            case SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED:
                 sv = SV_OK;
                 break;
             case SV_GAME_CLIENT_FEATURES_NEEDED:

@@ -4208,7 +4208,7 @@ public class SOCGameHandler extends GameHandler
 
                 srv.messageToGameForVersionsKeyedStatus
                     (ga, true, SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, Integer.MAX_VALUE, false,
-                     SOCStatusMessage.SV_GAME_STARTING_OPPORTUNISTIC_REMOVED,
+                     SOCStatusMessage.SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED,
                      gaName + SOCMessage.sep2_char + optsList + SOCMessage.sep2_char,
                      "game.options.compat_removed.status", clisList);
                          // "Removed game option(s) for compatibility with earlier player client version(s): {0}."

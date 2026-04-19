@@ -1019,7 +1019,7 @@ public class MessageHandler
 
         if (! SOCStatusMessage.isWithinGame(sv))
             client.getMainDisplay().showStatus(statusText, (sv == SOCStatusMessage.SV_OK), srvDebugMode);
-            // For handling when isWithinGame, see SV_GAME_STARTING_OPPORTUNISTIC_REMOVED below
+            // For handling when isWithinGame, see SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED below
 
         // Are we waiting for auth response in order to show NGOF?
         if ((! isPractice) && client.isNGOFWaitingForAuthStatus)
@@ -1120,7 +1120,7 @@ public class MessageHandler
         }
         break;
 
-        case SOCStatusMessage.SV_GAME_STARTING_OPPORTUNISTIC_REMOVED:
+        case SOCStatusMessage.SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED:
         {
             String msg, gameName, optNames;
             StringTokenizer st = new StringTokenizer(statusText, SOCMessage.sep2);
