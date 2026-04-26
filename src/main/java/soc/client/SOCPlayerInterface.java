@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, type parameterization, GUI API updates, etc
  *
@@ -4735,6 +4735,18 @@ public class SOCPlayerInterface extends JFrame
                 if (! pi.getClient().onIgnoreList(nickname))
                     pi.chatPrint(nickname + ": " + message);
             }
+        }
+
+        /**
+         * {@inheritDoc}
+         *<P>
+         * Uses {@link NotifyDialog#createAndShow(MainDisplay, Window, String, String, boolean)}
+         * which calls {@link EventQueue#invokeLater(Runnable)} to ensure it displays from the proper thread.
+         */
+        public void showNotifyDialog(String message, String buttonText)
+        {
+            NotifyDialog.createAndShow
+                (pi.getMainDisplay(), pi, message, buttonText, true);
         }
 
         public final void simpleRequest(final int pn, final int reqtype, final int value1, final int value2)

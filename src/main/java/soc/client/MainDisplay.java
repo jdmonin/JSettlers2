@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file copyright (C) 2019-2020,2022,2024 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2019-2020,2022,2024,2026 Jeremy D Monin <jeremy@nand.net>
  * Extracted in 2019 from SOCPlayerClient.java, so:
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -163,6 +163,7 @@ public interface MainDisplay
      * Show an error dialog which has one button.
      * @param errMessage  Error message to show
      * @param buttonText  Button text, or null for "OK"
+     * @see PlayerClientListener#showNotifyDialog(String, String)
      */
     void showErrorDialog(String errMessage, String buttonText);
 

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
@@ -450,7 +451,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * from {@link SOCBoard#initPlayerLegalRoads()}.
      *<P>
      * If {@link SOCGame#hasSeaBoard}, empty until {@link SOCBoard#makeNewBoard(SOCGameOptionSet)}
-     * and {@link SOCGame#startGame()}, because the board layout and legal settlements
+     * and {@link SOCGame#startGame(Map)}, because the board layout and legal settlements
      * vary from game to game.
      */
     private HashSet<Integer> legalRoads;
@@ -704,7 +705,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * <B>Locking:</B> Not thread-safe, because all of a game's message handling
      * is done within a single thread.
      *<P>
-     * Because this queue is server-only, it's null until {@link SOCGame#startGame()}.
+     * Because this queue is server-only, it's null until {@link SOCGame#startGame(Map)}.
      * This field is also not copied by the {@link #SOCPlayer(SOCPlayer, String)} constructor.
      *
      * @since 2.0.00
@@ -4795,7 +4796,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Called at client when joining or starting a game,
      * when game's Potential Settlements message is received.
      * Called at server if {@link SOCGame#hasSeaBoard},
-     * just after makeNewBoard in {@link SOCGame#startGame()};
+     * just after makeNewBoard in {@link SOCGame#startGame(Map)};
      * if not called, server copies the potentials list
      * at start of game from legalSettlements.
      *<P>
@@ -4894,7 +4895,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * from {@link SOCBoard#initPlayerLegalSettlements()}.
      *<P>
      * If {@link SOCGame#hasSeaBoard}: Empty at server until {@link SOCBoardLarge#makeNewBoard(SOCGameOptionSet)}
-     * and {@link SOCGame#startGame()}, because the board layout and legal settlements vary
+     * and {@link SOCGame#startGame(Map)}, because the board layout and legal settlements vary
      * from game to game.  Empty at client until
      * {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])} is called.
      *

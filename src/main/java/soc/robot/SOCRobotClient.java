@@ -903,6 +903,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
     /**
      * handle the "status message" message by printing it to System.err;
+     * ignores message if {@link SOCStatusMessage#isWithinGame(int)}.
      * messages with status value 0 are ignored (no problem is being reported)
      * once the initial welcome message has been printed.
      * Status {@link SOCStatusMessage#SV_SERVER_SHUTDOWN} calls {@link #disconnect()}
@@ -922,7 +923,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             return;
         }
 
-        if ((sv != 0) || ! printedInitialWelcome)
+        if (((sv != 0) || ! printedInitialWelcome)
+            && ! SOCStatusMessage.isWithinGame(sv))
         {
             System.err.println("Robot " + getNickname() + ": Status "
                 + sv + " from server: " + mes.getStatus());

@@ -1017,7 +1017,9 @@ public class MessageHandler
             srvDebugMode = statusText.toLowerCase().contains("debug");
         }
 
-        client.getMainDisplay().showStatus(statusText, (sv == SOCStatusMessage.SV_OK), srvDebugMode);
+        if (! SOCStatusMessage.isWithinGame(sv))
+            client.getMainDisplay().showStatus(statusText, (sv == SOCStatusMessage.SV_OK), srvDebugMode);
+            // For handling when isWithinGame, see SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED below
 
         // Are we waiting for auth response in order to show NGOF?
         if ((! isPractice) && client.isNGOFWaitingForAuthStatus)
@@ -1115,6 +1117,77 @@ public class MessageHandler
             handleBCASTTEXTMSG(statusText);
             client.getNet().ex = new RuntimeException(statusText);
             client.shutdownFromNetwork();
+        }
+        break;
+
+        case SOCStatusMessage.SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED:
+        {
+            String msg, gameName, optNames;
+            StringTokenizer st = new StringTokenizer(statusText, SOCMessage.sep2);
+            try
+            {
+                gameName = st.nextToken();
+                optNames = st.nextToken();
+                // get all of the rest of text, by choosing an unlikely delimiter character
+                msg = st.nextToken(Character.toString( (char) 1 ));
+                if (msg.charAt(0) == SOCMessage.sep2_char)
+                    msg = msg.substring(1);
+            }
+            catch (Throwable t)
+            {
+                return;  // ignore if not parsable
+            }
+
+            PlayerClientListener pcl = client.getClientListener(gameName);
+            if (pcl != null)
+            {
+                pcl.messageReceived(null, ">>> " + msg);
+
+                StringBuilder sb = new StringBuilder(msg);
+                sb.append('\n');
+                final SOCGameOptionSet knowns =
+                    (isPractice) ? client.practiceServGameOpts.knownOpts : client.tcpServGameOpts.knownOpts;
+                for (String oname : optNames.split(" "))
+                {
+                    sb.append('\n');
+                    SOCGameOption oinfo = null;
+                    if (knowns != null)
+                        oinfo = knowns.get(oname);
+                    if (oinfo != null)
+                        oname = oinfo.getDesc();
+                    sb.append(oname);
+                }
+
+                pcl.showNotifyDialog(sb.toString(), null);
+            }
+        }
+        break;
+
+        case SOCStatusMessage.SV_GAME_STARTED_CANNOT_SIT_CLIENT_VERSION:
+        {
+            @SuppressWarnings("unused")
+            String msg, gameName, sitVersion;
+            StringTokenizer st = new StringTokenizer(statusText, SOCMessage.sep2);
+            try
+            {
+                gameName = st.nextToken();
+                sitVersion = st.nextToken();
+                // get all of the rest of text, by choosing an unlikely delimiter character
+                msg = st.nextToken(Character.toString( (char) 1 ));
+                if (msg.charAt(0) == SOCMessage.sep2_char)
+                    msg = msg.substring(1);
+            }
+            catch (Throwable t)
+            {
+                return;  // ignore if not parsable
+            }
+
+            PlayerClientListener pcl = client.getClientListener(gameName);
+            if (pcl != null)
+            {
+                pcl.messageReceived(null, msg);
+                pcl.showNotifyDialog(msg, null);
+            }
         }
         break;
 

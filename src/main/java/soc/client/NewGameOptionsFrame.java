@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2015,2017-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2015,2017-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2031,7 +2031,7 @@ import soc.util.Version;
         if (allOK && checkOptionsMinVers && ! forPractice)
         {
             Map<String, Integer> optsMins = new HashMap<>();
-            int optsVers = SOCVersionedItem.itemsMinimumVersion(opts.getAll(), false, optsMins);
+            int optsVers = SOCVersionedItem.itemsMinimumVersion(opts.getAll(), false, false, optsMins);
             if ((optsVers > -1) && (optsVers > Version.versionNumberMaximumNoWarn()))
             {
                 allOK = false;
@@ -2658,7 +2658,7 @@ import soc.util.Version;
      * followed by a newline character {@code '\n'}.
      *
      * @param optsMins  Map of gameopt keys -> minVers,
-     *     from {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, Map)};
+     *     from {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, boolean, Map)};
      *     can be null or empty
      * @param versIgnoreMax  Ignores {@code optsMins} entries whose version is this or lower,
      *     like {@link Version#versionNumberMaximumNoWarn()}, or -1 to use all entries
@@ -2803,7 +2803,7 @@ import soc.util.Version;
          * @param ngof  Parent options-frame, which contains these options
          * @param minVers  Minimum required version for these options
          * @param optsMins  Map of options which require a minimum version,
-         *     from {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, Map)}, or null or empty if none
+         *     from {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, boolean, Map)}, or null or empty if none
          */
         public VersionConfirmDialog(NewGameOptionsFrame ngof, int minVers, Map<String, Integer> optsMins)
         {

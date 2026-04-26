@@ -814,7 +814,8 @@ public class SOCServerMessageHandler
                     opt = new SOCGameOption(okey, localDesc);  // OTYPE_UNKNOWN
                     localDesc = null;
                 }
-                else if (opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY))
+                else if ((cliVers < SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC)
+                    && opt.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY))
                 {
                     final String cannotCreate = c.getLocalized("gameopt.desc.cannot_create");  // "(Cannot create)"
                     if (localDesc == null)
@@ -1665,6 +1666,14 @@ public class SOCServerMessageHandler
 
             if (gameList.isMember(restOfCmd, gaName))
             {
+                if (null == gameData.getMemberChatAllowList())
+                {
+                    srv.messageToPlayerKeyed
+                        (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
+                         "admin.mute.resp.cannot_before_start");  // "Can't mute or unmute before start of game."
+                    return;
+                }
+
                 if (wantMute == ! gameData.isMemberChatAllowed(restOfCmd))
                     srv.messageToPlayerKeyed
                         (c, gaName, SOCServer.PN_REPLY_TO_UNDETERMINED,
@@ -1874,10 +1883,13 @@ public class SOCServerMessageHandler
         try
         {
             sgm = GameLoaderJSON.loadGame
-                (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION), srv);
+                (new File(srv.savegameDir, argsStr + GameSaverJSON.FILENAME_EXTENSION), srv, c.getVersion());
         } catch (SOCGameOptionVersionException e) {
             errText = c.getLocalized("admin.loadgame.err.too_new.vers", argsStr, e.gameOptsVersion);
                 // "Problem loading {0}: Too new: gameMinVersion is {1}"
+        } catch (ArrayIndexOutOfBoundsException e) {
+            errText = c.getLocalized("admin.loadgame.err.too_new.cli_vers", argsStr, e.getMessage());
+                // "Problem loading {0}: Requires newer client version {1}"
         } catch (NoSuchElementException e) {
             errText = c.getLocalized("admin.loadgame.err.too_new", argsStr, e.getMessage());
                 // "Problem loading {0}: Too new: {1}"
@@ -2694,6 +2706,27 @@ public class SOCServerMessageHandler
 
         try
         {
+            if (gameState >= SOCGame.START1A)
+            {
+                final int cliVers = c.getVersion(),
+                    sitVers = ga.getClientVersionMinSitDown();
+                if (cliVers < sitVers)
+                {
+                    String txt = c.getLocalized("member.sit.game.started.cli_vers", Version.version(sitVers));
+                        // "Cannot sit down because this game has started: Requires newer client version {0}"
+                    SOCMessage msg
+                        = (cliVers >= SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC)
+                        ? new SOCStatusMessage
+                            (SOCStatusMessage.SV_GAME_STARTED_CANNOT_SIT_CLIENT_VERSION,
+                             gaName + SOCMessage.sep2_char + sitVers + SOCMessage.sep2_char + txt)
+                        : new SOCGameServerText(gaName, txt);
+                    srv.messageToPlayer
+                        (c, gaName, SOCServer.PN_OBSERVER, msg);
+
+                    return;  // <--- Early return: Client version cannot sit down ---
+                }
+            }
+
             if (ga.isSeatVacant(pn))
             {
                 gameAlreadyStarted = (gameState >= SOCGame.START2A);

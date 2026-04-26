@@ -30,6 +30,7 @@ import soc.extra.server.RecordingSOCServer;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCGameOptionSet;
+import soc.message.SOCChangeGameOptions;
 import soc.robot.SOCRobotBrain;
 import soc.server.SOCGameHandler;
 import soc.server.genericServer.Connection;
@@ -111,11 +112,13 @@ public class TestClientVersion
         assertEquals(Version.versionNumber(), cliConnAtSrv.getVersion());
 
         /** reporting other version */
-        final int OTHER_VERSION_NUMBER = 1117;
+        final int OTHER_VERSION_NUMBER = 2000;
+        assertTrue(OTHER_VERSION_NUMBER < SOCChangeGameOptions.VERSION_FOR_REMOVE);
         DisplaylessTesterClient tcliOld = new DisplaylessTesterClient
             (RecordingSOCServer.STRINGPORT_NAME, CLIENT_NAME + "O", null, null);
         tcliOld.setVersion(OTHER_VERSION_NUMBER);
         assertEquals(OTHER_VERSION_NUMBER, tcliOld.getVersion());
+        tcliOld.allOptsReceived = false;
         tcliOld.init();
         try { Thread.sleep(120); }
         catch(InterruptedException e) {}
@@ -125,24 +128,33 @@ public class TestClientVersion
         cliConnAtSrv = srv.getConnection(CLIENT_NAME + "O");
         assertNotNull(cliConnAtSrv);
         assertEquals(OTHER_VERSION_NUMBER, cliConnAtSrv.getVersion());
+        assertTrue("gameopt sync has completed", tcliOld.allOptsReceived);
         final SOCGameOption optAtOld = tcliOld.knownOpts.getKnownOption("UB", true);
         assertNotNull(optAtOld);
-        assertTrue(optAtOld.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
+        assertTrue("same flags as defined at server",
+            optAtOld.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED | SOCGameOption.FLAG_OPPORTUNISTIC));
+        assertTrue("flag set by server only when sending to too-old client",
+            optAtOld.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY));
+        assertFalse("flag cleared by server when sending to too-old client",
+            optAtOld.hasFlag(SOCGameOption.FLAG_SET_AT_CLIENT_ONCE));
+        assertTrue(-1 != optAtOld.getDesc().indexOf(" (Cannot create)"));
 
         // Have tcli make and join a game with an option with FLAG_OPPORTUNISTIC
-        final int VERS_OPT_UB = 2700;
         SOCGameOption optUB =  SOCGameOptionSet.getAllKnownOptions().get("UB");
         assertNotNull(optUB);
-        assertEquals(VERS_OPT_UB, optUB.minVersion);
+        assertEquals(SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, optUB.minVersion);
         assertTrue(optUB.hasFlag(SOCGameOption.FLAG_OPPORTUNISTIC));
-        assertTrue("tcli new enough for gameopt UB", tcli.getVersion() >= VERS_OPT_UB);
-        assertTrue("tcliOld older than gameopt UB", tcliOld.getVersion() < VERS_OPT_UB);
+        assertTrue("tcli new enough for gameopt UB", tcli.getVersion() >= SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC);
+        assertTrue("tcliOld older than gameopt UB", tcliOld.getVersion() < SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC);
         final StartedTestGameObjects objs =
             TestRecorder.createJoinNewGame
                 (srv, tcli, SOCGameOption.parseOptionsToSet("PL=2,UB=t,N7=t7", srv.knownOpts));
         final SOCGame gaAtSrv = objs.gameAtServer;
         final String gaName = gaAtSrv.getName();
         final SOCGame gaAtCli = tcli.getGame(gaName);
+
+        assertEquals(-1, gaAtSrv.getClientVersionMinRequired());
+        assertEquals(-1, gaAtSrv.getClientVersionMinSitDown());
 
         // What game opts and details does first cli see?
         assertNotNull("announced to creating client", gaAtCli);
@@ -168,6 +180,7 @@ public class TestClientVersion
         // TODO now have another modern cli join srv, chk game opts ,see if UB=t
 
         // what happens at sitdown/startgame?  At tcliOld, does gameopt UB gain flag CLI JOIN ONLY?
+
         // verify seat # is empty, sit down
         final int PN_SIT_CLI_OLD = 1;
         assertTrue(gaAtSrv.isSeatVacant(PN_SIT_CLI_OLD));
@@ -197,6 +210,13 @@ public class TestClientVersion
         assertEquals(SOCGame.START1A, gaAtSrv.getGameState());
         assertEquals(SOCGame.START1A, gaAtCli.getGameState());
         assertEquals(SOCGame.START1A, gaAtCliOld.getGameState());
+
+        assertEquals(-1, gaAtSrv.getClientVersionMinRequired());
+        assertEquals(-1, gaAtSrv.getClientVersionMinSitDown());
+        opts = tcli.getServerGameOptions(gaName);
+        assertNotNull(opts);
+        assertFalse("gameopt UB removed at server for compat with old client", opts.containsKey("UB"));
+
         // at all cli, see if UB changed now
         opts = tcli.getServerGameOptions(gaName);
         assertNotNull(opts);

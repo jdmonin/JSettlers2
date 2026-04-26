@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2013-2025 Jeremy D Monin <jeremy@nand.net>.
+ * This file Copyright (C) 2013-2026 Jeremy D Monin <jeremy@nand.net>.
  * Contents were formerly part of SOCServer.java;
  * portions of this file Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
@@ -3983,33 +3983,15 @@ public class SOCGameHandler extends GameHandler
         srv.numberOfGamesStarted++;  // TODO once multiple handler threads, encapsulate this
 
         /**
-         * start the game, place any initial pieces.
-         * If anything is added to this game object setup code,
-         * update soctest.TestBoardLayouts.testSingleLayout(..).
+         * gather client version info for currently seated players
+         * for ga.startGame to check against any opportunistic gameopts
          */
-
-        ga.setGameEventListener(this);  // for playerEvent, gameEvent callbacks (since 2.0.00)
-        ga.startGame();
-
-        final int[][] legalSeaEdges;  // used on sea board; if null, all are legal
-        if (ga.hasSeaBoard)
-            legalSeaEdges = SOCBoardAtServer.startGame_scenarioSetup(ga);
-        else
-            legalSeaEdges = null;
-
-        SOCGameOptionSet.RemoveOpportunisticResults removedOpts = null;
-
-        srv.gameList.takeMonitorForGame(gaName);
-
-        try
+        final Map<String, Integer> playersCliVers;
         {
-            /**
-             * check for any opportunistic gameopts vs currently seated players
-             */
             final SOCGameOptionSet opts = ga.getGameOptions();
             if (opts != null)
             {
-                Map<String, Integer> playersCliVers = new HashMap<>();
+                playersCliVers = new HashMap<>();
                 final SOCPlayer[] players = ga.getPlayers();
                 for (int pn = 0; pn < ga.maxPlayers; ++pn)
                 {
@@ -4021,16 +4003,39 @@ public class SOCGameHandler extends GameHandler
                     Connection cliConn = srv.getConnection(cliName);
                     if (cliConn == null)
                         continue;  // unlikely
+
                     int cliVers = cliConn.getVersion();
                     if (cliVers < 0)
                         cliVers = 0;
                     playersCliVers.put(cliName, Integer.valueOf(cliVers));
                 }
-
-                removedOpts = opts.removeOpportunisticIfOlderClients(playersCliVers);
-                    // will send any messages about them near end of this method
+            } else {
+                playersCliVers = null;
             }
+        }
 
+        /**
+         * start the game, place any initial pieces.
+         * If anything is added to this game object setup code,
+         * update soctest.TestBoardLayouts.testSingleLayout(..).
+         */
+
+        ga.setGameEventListener(this);  // for playerEvent, gameEvent callbacks (since 2.0.00)
+
+        final SOCGameOptionSet.RemoveOpportunisticResults removedOpts
+            = ga.startGame(playersCliVers);
+                // will send any messages about removedOpts near end of this method
+
+        final int[][] legalSeaEdges;  // used on sea board; if null, all are legal
+        if (ga.hasSeaBoard)
+            legalSeaEdges = SOCBoardAtServer.startGame_scenarioSetup(ga);
+        else
+            legalSeaEdges = null;
+
+        srv.gameList.takeMonitorForGame(gaName);
+
+        try
+        {
             /**
              * send the board layout
              */
@@ -4155,39 +4160,63 @@ public class SOCGameHandler extends GameHandler
 
             if (removedOpts != null)
             {
-                // text to explain to older clients:
-                // TODO more user-friendly option names for it
-                // TODO i18n/localize
-                StringBuilder sb = new StringBuilder(">>> Removed game option(s) ");
-                boolean comma = false;
-                for (String optName : removedOpts.optsRemoved.keySet())
-                {
-                    if (comma)
-                        sb.append(", ");
-                    else
-                        comma = true;
-                    sb.append(optName);
-                }
-                sb.append(" for compatibility with earlier player client version(s): ");
-                comma = false;
-                for (Map.Entry<String, Integer> cliPl: removedOpts.olderCliNamesVersions.entrySet())
-                {
-                    if (comma)
-                        sb.append(", ");
-                    else
-                        comma = true;
-                    sb.append(cliPl.getKey() + " (" + Version.version(cliPl.getValue()) + ")");
-                }
-                sb.append('.');
+                // Announce game option removal to clients
 
-                srv.messageToGameWithMon(gaName, true, new SOCGameServerText(gaName, sb.toString()));
-
-                // Tell new-enough clients to actually remove them from game options:
+                // First, tell new-enough clients to actually remove them from game options:
                 SOCChangeGameOptions optsRemovedMsg = new SOCChangeGameOptions
                     (gaName, SOCChangeGameOptions.OP_REMOVE, removedOpts.optsRemoved, removedOpts.olderCliNamesVersions);
                 srv.broadcastToVers
                     (optsRemovedMsg, SOCChangeGameOptions.VERSION_FOR_REMOVE, Integer.MAX_VALUE);
                 srv.recordGameEvent(gaName, optsRemovedMsg);
+
+                // Now announce as status text:
+
+                StringBuilder sb = new StringBuilder(),
+                    sbCommas = (ga.clientVersionLowest < SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC)
+                        ? new StringBuilder()
+                        : null;
+
+                boolean prev = false;
+                for (String optName : removedOpts.optsRemoved.keySet())
+                {
+                    if (prev)
+                    {
+                        sb.append(' ');
+                        if (sbCommas != null)
+                            sbCommas.append(", ");
+                    }
+                    else
+                        prev = true;
+                    sb.append(optName);
+                    if (sbCommas != null)
+                        sbCommas.append(optName);
+                }
+                final String optsList = sb.toString(),
+                    optsListCommas = (sbCommas != null) ? sbCommas.toString() : null;
+
+                sb.delete(0, sb.length());
+                prev = false;
+                for (Map.Entry<String, Integer> cliPl: removedOpts.olderCliNamesVersions.entrySet())
+                {
+                    if (prev)
+                        sb.append(", ");
+                    else
+                        prev = true;
+                    sb.append(cliPl.getKey() + " (" + Version.version(cliPl.getValue()) + ")");
+                }
+                final String clisList = sb.toString();
+
+                srv.messageToGameForVersionsKeyedStatus
+                    (ga, true, SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC, Integer.MAX_VALUE, false,
+                     SOCStatusMessage.SV_GAME_STARTING_OPPORTUNISTIC_OPTS_REMOVED,
+                     gaName + SOCMessage.sep2_char + optsList + SOCMessage.sep2_char,
+                     "game.options.compat_removed.status", clisList);
+                         // "Removed game option(s) for compatibility with earlier player client version(s): {0}."
+                if (optsListCommas != null)
+                    srv.messageToGameForVersionsKeyed
+                        (ga, 0, SOCGameOption.VERSION_FOR_FLAG_OPPORTUNISTIC - 1, false, false,
+                         "game.options.compat_removed.text", optsListCommas, clisList);
+                            // ">>> Removed game option(s) {0} for compatibility with earlier player client version(s): {1}."
             }
 
             /**

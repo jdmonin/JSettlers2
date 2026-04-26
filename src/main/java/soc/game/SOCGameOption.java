@@ -321,13 +321,19 @@ public class SOCGameOption
      * So, this option must also have {@link #FLAG_DROP_IF_UNUSED} or {@link #FLAG_DROP_IF_PARENT_UNUSED}.
      * (And if {@code FLAG_DROP_IF_PARENT_UNUSED}, its parent might also be Opportunistic for consistency.)
      *<P>
-     * Server should call {@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map)} at start of game to do so.
+     * Server should call {@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map)} at start of game to do so,
+     * ideally by calling {@link SOCGame#startGame(Map)}.
+     *<P>
+     * Once game has started, server will check client against game's {@link SOCGame#getClientVersionMinSitDown()}
+     * before letting them sit down to take over a bot.
      *<P>
      * Client option negotiation: When a client joins a server and asks for info about available game options,
      * if client is older than the option's {@link #minVersion} they will be sent a copy of the option having the
      * {@link #FLAG_OPPORTUNISTIC_CLIENT_JOIN_ONLY} flag set, and the lowest possible {@code minVersion}:
      * See {@link #forClientVersion(int)}. The client can then join games having the option, but if they attempt to
      * create such a game the server will decline it.
+     *<P>
+     * Added in v2.7.00 ({@link #VERSION_FOR_FLAG_OPPORTUNISTIC}).
      *
      * @since 2.7.00
      */
@@ -337,6 +343,8 @@ public class SOCGameOption
      * Hint to client that it's below the minimum version to create games having a {@link #FLAG_OPPORTUNISTIC} option.
      * For compatibility, the server reported a lower {@code minVersion} to this client, and set this flag for the option.
      * Option should be hidden in New Game dialog.
+     *<P>
+     * Added in v2.7.00 ({@link #VERSION_FOR_FLAG_OPPORTUNISTIC}).
      *
      * @since 2.7.00
      */
@@ -414,6 +422,12 @@ public class SOCGameOption
      * @since 2.7.00
      */
     public static final int VERSION_FOR_UNKNOWN_WITH_DESCRIPTION = 2700;
+
+    /**
+     * Version 2.7.00 introduced {@link #FLAG_OPPORTUNISTIC} game options. See that flag for details.
+     * @since 2.7.00
+     */
+    public static final int VERSION_FOR_FLAG_OPPORTUNISTIC = 2700;
 
     /**
      * Maximum possible length of any text-type SOCGameOption's value, to conserve network bandwidth.

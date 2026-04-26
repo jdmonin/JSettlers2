@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2022-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2022-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -673,6 +673,9 @@ public class GameAction
          * Player with largest army has changed.
          * Params: old LA playerNumber, new LA playerNumber.
          * Old can be -1 for none.
+         *<P>
+         * TODO: This effect is not yet used, because no undoable action results in changing Largest Army
+         * (Soldier cards can be canceled while playing them, but not undone later).
          */
         CHANGE_LARGEST_ARMY_PLAYER(40),
 
@@ -701,7 +704,11 @@ public class GameAction
          */
         CLOSE_SHIP_ROUTE(80),
 
-        /** Building or moving revealed a fog hex. */
+        /**
+         * Building or moving revealed a fog hex.
+         *<P>
+         * TODO: This effect is not yet used, because builds/moves which reveal a fog hex can't be undone ("no peeking").
+         */
         REVEAL_FOG_HEX(90),
 
         /**

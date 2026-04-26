@@ -216,8 +216,9 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
 - Take Longest Route by building a coastal settlement to connect roads to ships, then undo that
     - Copy src/test/resources/resources/savegame/reletest-longest-joinships.game.json to your server's configured savegame directory
     - Run `*LOADGAME* reletest-longest-joinships` debug command in any other game window
-    - Optional: Use client 2.4.00 or older as players or observers
+    - Optional: Use client 2.4.00 or older as observers
         - Those versions don't recalculate longest route in this situation, but server 2.5.00 and newer should tell them it's changed
+        - Players must be 2.7.00 or newer because we're testing Undo Build
     - Build a coastal settlement
     - Should take Longest Route from other player
     - Right-click that settlement, Undo build
@@ -1075,6 +1076,19 @@ For details, search [Readme.developer.md](Readme.developer.md) for `gson.jar`
     - Copy \*.game.json (except bad-\*) from `src/test/resources/resources/savegame/` to your test server's savegame dir
     - Each one should load without error, and resume without error (except "classic-over")
     - "classic-botturn" should have bots playing in the upper-right and lower-right seats, even though those seats are marked/locked
+    - Client version check
+         - Launch a client older than v2.7.00, log in as `debug`
+         - Start a new game and type command: `*LOADGAME* testscen-simple-4isl`
+         - Should see error: `Problem loading testscen-simple-4isl: Requires newer client version 2.7.00`
+         - Quit client, launch a v2.7.00 or newer client, log in as `debug`
+         - Should succeed now: `*LOADGAME* testscen-simple-4isl`
+         - Should `*RESUMEGAME*` without error
+         - Join that game with a second v2.7.00 or newer client (not debug)
+         - Take over a bot, complete a turn, quit client
+         - Launch a client older than v2.7.00, log in (not debug)
+         - Should be able to join game as observer
+         - Try to take over a bot
+         - Should see error: `Cannot sit down because this game has started: Requires newer client version 2.7.00`
 - Server config options/properties
     - Start server with savegame, but not debug user or Admin Users list:  
         `-Djsettlers.savegame.dir=/tmp/jsgame`
@@ -1360,6 +1374,11 @@ Start with a recently-created database with latest schema/setup scripts.
         - A: Chat any text; B should see it
         - B: Chat any text; shouldn't send, should see "Observers can't chat during the game"
         - B: Sit to take over a bot, chat; A should see it
+        - B: Close game window to exit the game again
+        - B: Rejoin game as observer (don't sit)
+        - B: Chat any text; shouldn't send, should see "Can't chat at this time", client A should see nothing new
+        - A: `*unmute* B`; should see "Unmuted game member B"
+        - B: Chat any text; A should see it
     - Test sitting after initial placement started
         - A: Create a game, sit down, start game (initial placement begins)
         - When it's A's turn to place 1st settlement:

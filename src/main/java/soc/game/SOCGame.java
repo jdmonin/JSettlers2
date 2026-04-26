@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017 Ruud Poutsma <rtimon@gmail.com>
@@ -78,7 +78,7 @@ import java.util.Vector;
  * Players then choose their seats, optionally locking empty seats against joining robots,
  * and any player can click the Start Game button.
  *<P>
- * Game play begins with the server calling {@link #startGame()}, then sending messages to clients
+ * Game play begins with the server calling {@link #startGame(Map)}, then sending messages to clients
  * with the starting game state and player data and a board layout.
  * After initial placement, normal play begins with the first player's turn, in state {@link #ROLL_OR_CARD};
  * {@link #updateAtGameFirstTurn()} is called for any work needed.
@@ -723,7 +723,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Is this the server's complete copy of the game, not the client's (with some details unknown)?
-     * Is set during {@link #startGame()}. Treat as read-only.
+     * Is set during {@link #startGame(Map)}. Treat as read-only.
      * @see #serverVersion
      * @see #hasDoneGameOverTasks
      * @since 1.1.17
@@ -773,7 +773,7 @@ public class SOCGame implements Serializable, Cloneable
      * the server's SOCGameHandler/SOCGameMessageHandler for those actions checks this list afterwards,
      * to send before GAMESTATE via {@code SOCGameHandler.sendGamePendingMessages(..)}.
      *<P>
-     * Because this queue is server-only, it's null until {@link #startGame()}.
+     * Because this queue is server-only, it's null until {@link #startGame(Map)}.
      * To send and clear contents, the server should call
      * {@code SOCGameHandler.sendGamePendingMessages(SOCGame, boolean)}.
      *<P>
@@ -932,13 +932,27 @@ public class SOCGame implements Serializable, Cloneable
      * this game (based on game options/features added in a given version),
      * or -1 if unknown.
      *<P>
-     * Calculated by {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
+     * Calculated in constructor by {@link SOCVersionedItem#itemsMinimumVersion(Map)}.
      * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
-     * Value may sometimes be too low at client, see {@link #getClientVersionMinRequired()} for details.
+     * Value may sometimes be too low when calculated at an older client.
+     *<P>
+     * See {@link #getClientVersionMinRequired()} for details.
+     * @see #clientVersionMinSitDown
      * @see #clientFeaturesRequired
      * @since 1.1.06
      */
     private int clientVersionMinRequired;
+
+    /**
+     * For use at server; lowest version of client which can sit down to play in
+     * this game once it's started (replacing a robot when ({@link #getGameState()} &gt; {@link #START1A}),
+     * which may be higher than the {@link #clientVersionMinRequired} to join,
+     * or 0 if {@link #clientVersionMinRequired} should be used or game hasn't started yet.
+     *<P>
+     * See {@link #getClientVersionMinSitDown()} for details.
+     * @since 2.7.00
+     */
+    private int clientVersionMinSitDown;
 
     /**
      * For use at server; optional client features needed to connect to this game,
@@ -1659,7 +1673,7 @@ public class SOCGame implements Serializable, Cloneable
      *      related to {@link #doesCancelRoadBuildingReturnCard()})
      *</UL>
      * For some other fields to save, see
-     * {@link #setFieldsForLoad(List, int, List, boolean, boolean, boolean, boolean, boolean)}.
+     * {@link #setFieldsForLoad(List, int, int, List, boolean, boolean, boolean, boolean, boolean)}.
      *
      * @return an array with the current values of those fields, in the order listed here
      * @since 2.3.00
@@ -1681,6 +1695,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param cards  Deck, same format as {@link #getDevCardDeck()} but as {@link List} instead of {@code int[]}.
      *     Contents will be copied. Can be empty, but not null.
+     * @param minSitDownVersion  New value for {@link #getClientVersionMinSitDown()}; 0 if omitted in snapshot
      * @param oldGameState  State from {@link #getOldGameState()}
      * @param shipsPlacedThisTurn  Ships from {@link #getShipsPlacedThisTurn()}. May be null or empty.
      * @param placingRobberForKnightCard
@@ -1691,7 +1706,8 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.3.00
      */
     public void setFieldsForLoad
-        (final List<Integer> cards, final int oldGameState, final List<Integer> shipsPlacedThisTurn,
+        (final List<Integer> cards, final int minSitDownVersion, final int oldGameState,
+         final List<Integer> shipsPlacedThisTurn,
          final boolean placingRobberForKnightCard, final boolean robberyWithPirateNotRobber,
          final boolean askedSpecialBuildPhase, final boolean movedShipThisTurn,
          final boolean playingRoadBuildingCardForLastRoad)
@@ -1707,6 +1723,7 @@ public class SOCGame implements Serializable, Cloneable
         for (int i = 0; i < L; ++i)
             devCardDeck[i] = cards.get(i);
 
+        clientVersionMinSitDown = minSitDownVersion;
         this.oldGameState = oldGameState;
 
         if (shipsPlacedThisTurn == null)
@@ -1990,6 +2007,9 @@ public class SOCGame implements Serializable, Cloneable
      * a robot has just left the game to vacate the seat. So this restriction must be
      * enforced earlier, when the player requests sitting down at a vacant seat or at
      * a robot's position.
+     *<P>
+     * At server, once game has started, check client version against {@link #getClientVersionMinSitDown()}
+     * before calling this method; this method doesn't have client info and can't check.
      *
      * @param plName  the player's name; must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param pn    the player's requested player number; the seat number at which they would sit
@@ -2280,7 +2300,7 @@ public class SOCGame implements Serializable, Cloneable
      * List is internally synchronized.
      * @param memberName  Player or observer name; does nothing if null
      * @param allow  true to add, false to remove
-     * @throws IllegalStateException if {@link #initAtServer()} hasn't been called yet
+     * @throws IllegalStateException if {@link #initAtServer()} hasn't been called yet and {@code allow} true
      * @see #isMemberChatAllowed(String)
      * @see #getMemberChatAllowList()
      * @since 2.7.00
@@ -2289,7 +2309,12 @@ public class SOCGame implements Serializable, Cloneable
         throws IllegalStateException
     {
         if (chatAllowList == null)
-            throw new IllegalStateException("chatAllowList");
+        {
+            if (allow)
+                throw new IllegalStateException("chatAllowList");
+            else
+                return;  // prevent occasional IllegalStateException during leaveConnection cleanup
+        }
         if (memberName == null)
             return;
 
@@ -2485,12 +2510,39 @@ public class SOCGame implements Serializable, Cloneable
      * to options.
      *
      * @return game version, in same format as {@link soc.util.Version#versionNumber()}.
+     * @see #getClientVersionMinSitDown()
      * @see #getClientFeaturesRequired()
      * @since 1.1.06
      */
     public int getClientVersionMinRequired()
     {
         return clientVersionMinRequired;
+    }
+
+    /**
+     * For use at server; lowest version of client which can sit down to play in
+     * this game once it's started (replacing a robot when ({@link #getGameState()} &gt; {@link #START1A}),
+     * which may be higher than the {@link #getClientVersionMinRequired()} to join.
+     *<P>
+     * Before the game starts, the version to join may be lower because
+     * {@link SOCGameOption#FLAG_OPPORTUNISTIC Opportunistic Game Options} can still be removed at game start
+     * to accommodate older clients.
+     *<P>
+     * {@link #startGame(Map)} calculates this, including any remaining opportunistic options, by calling
+     * {@link SOCVersionedItem#itemsMinimumVersion(Map, boolean, boolean, Map) SOCVersionedItem.itemsMinimumVersion(Map, false, true, null)}.
+     *<P>
+     * If game hasn't yet started, returns {@link #getClientVersionMinRequired()}.
+     *
+     * @return game version, in same format as {@link soc.util.Version#versionNumber()},
+     *     or -1 if no requirement or game has no options
+     * @see #addPlayer(String, int)
+     * @since 2.7.00
+     */
+    public int getClientVersionMinSitDown()
+    {
+        return (clientVersionMinSitDown != 0)
+            ? clientVersionMinSitDown
+            : clientVersionMinRequired;
     }
 
     /**
@@ -3275,7 +3327,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * To be used with {@link #hasSeaBoard} (v3 board encoding) after creating (at server)
      * or receiving (at client) a new board layout.  So, call from
-     * {@link #startGame()} or after {@link SOCBoardLarge#setLandHexLayout(int[])}.
+     * {@link #startGame(Map)} or after {@link SOCBoardLarge#setLandHexLayout(int[])}.
      *<P>
      * For the v1 and v2 board encodings, the land hex coordinates never change, so
      * {@link SOCPlayerNumbers} knows them already.
@@ -5359,7 +5411,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Initialize server-only game fields.
-     * Called from {@link #startGame()} and at beginning of saved-game loader.
+     * Called from {@link #startGame(Map)} and at beginning of saved-game loader.
      * Sets {@link #isAtServer} and {@link #allOriginalPlayers()} flags.
      * Updates {@link #lastActionTime}.
      * Adds all seated players to the Chat Allow List.
@@ -5390,6 +5442,17 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Simple call to {@link #startGame(Map)} for when game has no
+     * {@link SOCGameOption#FLAG_OPPORTUNISTIC Opportunistic Game Options}
+     * to be checked against player client versions, such as unit testing.
+     * See that method for more details.
+     */
+    public void startGame()
+    {
+        startGame(null);
+    }
+
+    /**
      * Do the things involved in starting a game at server:
      * Call {@link #initAtServer()},
      * shuffle the tiles and cards,
@@ -5405,17 +5468,30 @@ public class SOCGame implements Serializable, Cloneable
      * Called only at server, not client.  For a method called during game start
      * at server and clients, see {@link #updateAtBoardLayout()}.
      *<P>
-     * After calling this method, server calls
-     * {@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map) game.getGameOptions().removeOpportunisticIfOlderClients(..)}.
+     * If {@code playerCliNamesVersions != null}, calls
+     * {@link #getGameOptions()}.{@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map) removeOpportunisticIfOlderClients(playerCliNamesVersions)}
+     * to check any {@link SOCGameOption#FLAG_OPPORTUNISTIC Opportunistic Game Options}
+     * against player client versions and drop options if needed.
+     * Calculates {@link #getClientVersionMinSitDown()} including any remaining opportunistic options.
      *<P>
      * Some scenarios require other methods to finish setting up the game;
      * call them in this order before any other board or game methods:
      *<UL>
-     * <LI> This method {@code startGame()}
+     * <LI> This method {@code startGame(Map)}
      * <LI> If appropriate, {@link soc.server.SOCBoardAtServer#startGame_scenarioSetup(SOCGame)}
      *</UL>
+     * Before v2.7.00, this method was {@link #startGame()}.
+     *
+     * @param playerCliNamesVersions  Currently seated player nicknames and client versions to check against
+     *     {@link SOCGameOption#FLAG_OPPORTUNISTIC Opportunistic Game Options}
+     *     by calling {@link SOCGameOptionSet#removeOpportunisticIfOlderClients(Map)};
+     *     may be null or empty
+     * @return Details on the removed opportunistic game options and the clients responsible,
+     *     or null if nothing was removed or if {@code playerCliNamesVersions} was null or empty
+     * @since 2.7.00
      */
-    public void startGame()
+    public SOCGameOptionSet.RemoveOpportunisticResults startGame
+        (final Map<String, Integer> playerCliNamesVersions)
     {
         initAtServer();
 
@@ -5449,10 +5525,25 @@ public class SOCGame implements Serializable, Cloneable
         } while (isSeatVacant(currentPlayerNumber));
 
         setFirstPlayer(currentPlayerNumber);
+
+        /**
+         * check and remove any Opportunistic Game Options that player clients are too old for,
+         * then calculate required version to sit down now that game has started
+         */
+        SOCGameOptionSet.RemoveOpportunisticResults removedOpts
+            = ((opts != null) && (playerCliNamesVersions != null))
+            ? opts.removeOpportunisticIfOlderClients(playerCliNamesVersions)
+            : null;
+        clientVersionMinSitDown
+            = (opts != null)
+            ? SOCVersionedItem.itemsMinimumVersion(opts.getAll(), false, true, null)
+            : -1;
+
+        return removedOpts;
     }
 
     /**
-     * For {@link #startGame()}, fill and shuffle the development card deck.
+     * For {@link #startGame(Map)}, fill and shuffle the development card deck.
      * {@link #devCardDeck} contents are based on game options and number of players.
      * Calls {@link #shuffleDevCardDeck(int)}.
      * @since 2.0.00

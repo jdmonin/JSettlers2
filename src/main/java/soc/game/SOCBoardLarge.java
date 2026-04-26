@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1274,7 +1274,7 @@ public class SOCBoardLarge extends SOCBoard
      *         <P>
      *         A board's {@code "VS"} is determined at its creation using only the scenario/options and player count,
      *         and doesn't vary based on the specific layout details randomly generated later
-     *         at {@link SOCGame#startGame()}. See {@link soc.server.SOCBoardAtServer#getBoardShift(SOCGameOptionSet)}.
+     *         at {@link SOCGame#startGame(Map)}. See {@link soc.server.SOCBoardAtServer#getBoardShift(SOCGameOptionSet)}.
      *</UL>
      * The "CE" and "VE" layout parts are lists of Special Edges on the board.  During game play, these
      * edges may change.  The server announces each change with a

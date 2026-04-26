@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -120,7 +120,7 @@ public class SavedGameModel
      *      constant values which aren't in that version's copy of those enums,
      *      {@link GameLoaderJSON} ignores them
      *</UL>
-     * {@link #createLoadedGame(SOCServer)} will reject a loaded game if its {@link #modelVersion}
+     * {@link #createLoadedGame(SOCServer, int)} will reject a loaded game if its {@link #modelVersion}
      * is newer than {@code MODEL_VERSION}, or if the game has features/options that it can't save.
      * If you need to make a saved-game file for use by multiple JSettlers versions, save it from the oldest version.
      *<P>
@@ -134,8 +134,8 @@ public class SavedGameModel
      *<H4>2.7.00</H4>
      *<UL>
      * <LI> Model version is still 2400
-     * <LI> Adds game field {@link #lastAction}
-     * <LI> Earlier server versions will ignore this added field while loading a savegame
+     * <LI> Adds game fields {@link #lastAction} and {@link #gameSitMinVersion}
+     * <LI> Earlier server versions will ignore these added fields while loading a savegame
      * <LI> Adds {@link SOCPlayerElement.PEType#NUM_UNDOS_REMAINING} to {@link PlayerInfo#elements}
      *      if {@link SOCPlayer#getUndosRemaining()} &gt; 0
      * <LI> {@link BoardInfo} adds {@code fogHiddenHexes} for {@link SOCScenario#K_SC_FOG SC_FOG} scenario
@@ -254,8 +254,18 @@ public class SavedGameModel
     /**
      * Game minimum version, from {@link SOCGame#getClientVersionMinRequired()}.
      * Server won't load a game if its {@code gameMinVersion} is newer than server version.
+     * @see #gameSitMinVersion
      */
     public int gameMinVersion;
+
+    /**
+     * Minimum client version to sit and play, from {@link SOCGame#getClientVersionMinSitDown()}.
+     * Server won't load a game if its {@code sitMinVersion} is newer than requesting client's version.
+     * Usually same value as {@link #gameMinVersion}, but can be higher depending on game options;
+     * see {@link SOCGame#getClientVersionMinSitDown()} for details.
+     * @since 2.7.00
+     */
+    public int gameSitMinVersion;
 
     public String gameName;
 
@@ -381,7 +391,7 @@ public class SavedGameModel
      *     ideally with an i18n key from {@code "admin.savegame.cannot_save.*"} but possibly as free-form text
      *     like "a unique resource type": Put a try-catch around your attempt to localize that key.
      *     Optional localization params are {@link UnsupportedSGMOperationException#param1} and {@code param2}.
-     * @see #checkCanLoad(SOCGameOptionSet)
+     * @see #checkCanLoad(SOCGameOptionSet, int)
      */
     public static void checkCanSave(final SOCGame ga)
         throws UnsupportedSGMOperationException
@@ -438,7 +448,7 @@ public class SavedGameModel
 
     /**
      * Create an empty SavedGameModel to load a game file into.
-     * Once data is loaded and {@link #createLoadedGame(SOCServer)} is called,
+     * Once data is loaded and {@link #createLoadedGame(SOCServer, int)} is called,
      * state will temporarily be {@link SOCGame#LOADING}
      * and {@link SOCGame#savedGameModel} will be this SGM.
      * Call {@link #resumePlay(boolean)} to continue play.
@@ -485,6 +495,7 @@ public class SavedGameModel
         oldGameState = ga.getOldGameState();
         currentDice = ga.getCurrentDice();
         gameMinVersion = ga.getClientVersionMinRequired();
+        gameSitMinVersion = ga.getClientVersionMinSitDown();
         devCardDeck = new ArrayList<>();
         for (final int card : ga.getDevCardDeck())
             devCardDeck.add(Integer.valueOf(card));
@@ -600,7 +611,8 @@ public class SavedGameModel
 
     /**
      * Can the game data loaded into this {@link SavedGameModel} become a {@link SOCGame}
-     * in {@link #createLoadedGame(SOCServer)}, or does it have options or features which haven't yet been implemented here?
+     * in {@link #createLoadedGame(SOCServer, int)}, or does it have options or features which haven't yet been implemented
+     * at this server's version?
      *<P>
      * See {@link #checkCanSave(SOCGame)} for list of unsupported features checked here.
      *<P>
@@ -609,6 +621,8 @@ public class SavedGameModel
      * The older version isn't able to load that saved game.
      *
      * @param knownOpts All Known Options, to parse game's {@link SOCGameOptionSet}; not null
+     * @param requestingCliVers  Version of the client which requested the load and which will be told to join the game,
+     *     or 0 to not check client version
      * @throws NoSuchElementException if loaded data's model schema version ({@link #modelVersion} field)
      *     is newer than the current {@link SavedGameModel#MODEL_VERSION}
      *     and important fields might not be in our version of the model.
@@ -618,15 +632,20 @@ public class SavedGameModel
      *     is newer than the server's {@link Version#versionNumber()}.
      *     Exception's {@link Throwable#getMessage()} will be generic,
      *     but its {@link SOCGameOptionVersionException#gameOptsVersion} will be {@code gameMinVersion}
+     * @throws ArrayIndexOutOfBoundsException if loaded data's {@link #gameSitMinVersion} field
+     *     is newer than a nonzero {@code requestingCliVers}.
+     *     Exception's {@link Throwable#getMessage()} will be
+     *     {@link Version#version(int) Version.version}{@code (gameSitMinVersion)}
      * @throws UnsupportedSGMOperationException if game has an option or feature not yet supported
-     *     by {@link #createLoadedGame(SOCServer)}. {@link Throwable#getMessage()} will name the unsupported option/feature
+     *     by {@link #createLoadedGame(SOCServer, int)}. {@link Throwable#getMessage()} will name the unsupported option/feature
      *     or the problematic game opt from {@link SOCGameOption#parseOptionsToMap(String, SOCGameOptionSet)}.
      *     In that case, {@link Throwable#getMessage()} will contain that method's IllegalArgumentException message
      *     and {@link Throwable#getCause()} will not be null.
      *     Optional localization params are {@link UnsupportedSGMOperationException#param1} and {@code param2}.
      */
-    public void checkCanLoad(final SOCGameOptionSet knownOpts)
-        throws NoSuchElementException, SOCGameOptionVersionException, UnsupportedSGMOperationException
+    public void checkCanLoad(final SOCGameOptionSet knownOpts, final int requestingCliVers)
+        throws NoSuchElementException, SOCGameOptionVersionException, ArrayIndexOutOfBoundsException,
+            UnsupportedSGMOperationException
     {
         if (modelVersion > MODEL_VERSION)
             throw new NoSuchElementException
@@ -634,6 +653,8 @@ public class SavedGameModel
         final int serverVersion = Version.versionNumber();
         if (gameMinVersion > serverVersion)
             throw new SOCGameOptionVersionException(gameMinVersion, serverVersion, null);
+        if ((requestingCliVers > 0) && (gameSitMinVersion > requestingCliVers))
+            throw new ArrayIndexOutOfBoundsException(Version.version(gameSitMinVersion));
 
         if ((gameOptions == null) || gameOptions.isEmpty())
             return;
@@ -669,7 +690,7 @@ public class SavedGameModel
 
     /**
      * Try to create the {@link SOCGame} and its objects based on data loaded into this SGM.
-     * Calls {@link #checkCanLoad(SOCGameOptionSet)}.
+     * Calls {@link #checkCanLoad(SOCGameOptionSet, int)}.
      * If successful (no exception thrown), game state will be {@link SOCGame#LOADING}.
      *<P>
      * Doesn't add to game list {@link #glas} or check whether game name is already taken, because
@@ -683,30 +704,36 @@ public class SavedGameModel
      *     Calls {@link SOCServer#getGameList() srv.getGameList()} and sets {@link #glas}.
      *     Any bot players in the loaded game data with same names as those logged into the server
      *     will be renamed to avoid problems during random bot assignment while joining the game.
+     * @param requestingCliVers  Version of the client which requested the load and which will be told to join the game,
+     *     or 0 to not check client version
      * @throws IllegalStateException if this method's already been called
      * @throws NoSuchElementException if loaded data's model schema version ({@link #modelVersion} field)
      *     is newer than the current {@link SavedGameModel#MODEL_VERSION};
-     *     see {@link #checkCanLoad(SOCGameOptionSet)} for details
+     *     see {@link #checkCanLoad(SOCGameOptionSet, int)} for details
      * @throws SOCGameOptionVersionException if loaded data's {@link #gameMinVersion} field
      *     is newer than the server's {@link Version#versionNumber()};
-     *     see {@link #checkCanLoad(SOCGameOptionSet)} for details
+     *     see {@link #checkCanLoad(SOCGameOptionSet, int)} for details
+     * @throws ArrayIndexOutOfBoundsException if loaded data's {@link #gameSitMinVersion} field
+     *     is newer than a nonzero {@code requestingCliVers};
+     *     see {@link #checkCanLoad(SOCGameOptionSet, int)} for details
      * @throws UnsupportedSGMOperationException if loaded game model has an option or feature not yet supported
-     *     by {@code createLoadedGame()}; see {@link #checkCanLoad(SOCGameOptionSet)} for details
+     *     by {@code createLoadedGame()}; see {@link #checkCanLoad(SOCGameOptionSet, int)} for details
      * @throws IllegalArgumentException if there's a problem while creating the loaded game.
      *     {@link Throwable#getCause()} will have the exception thrown by the SOCGame/SOCPlayer method responsible.
      *     Catch subclass {@code SOCGameOptionVersionException} before this one.
      *     Also thrown if {@link #playerSeats}.length != created game's {@link SOCGame#maxPlayers}.
      */
-    /*package*/ void createLoadedGame(final SOCServer srv)
+    /*package*/ void createLoadedGame(final SOCServer srv, final int requestingCliVers)
         throws IllegalStateException, NoSuchElementException,
-            SOCGameOptionVersionException, UnsupportedSGMOperationException, IllegalArgumentException
+            SOCGameOptionVersionException, ArrayIndexOutOfBoundsException,
+            UnsupportedSGMOperationException, IllegalArgumentException
     {
         if (game != null)
             throw new IllegalStateException("already called createLoadedGame");
 
         glas = srv.getGameList();
 
-        checkCanLoad(srv.knownOpts);
+        checkCanLoad(srv.knownOpts, requestingCliVers);
 
         try
         {
@@ -739,7 +766,7 @@ public class SavedGameModel
                 }
             }
             ga.setFieldsForLoad
-                (devCardDeck, oldGameState, shipsPlacedThisTurn,
+                (devCardDeck, gameSitMinVersion, oldGameState, shipsPlacedThisTurn,
                  placingRobberForKnightCard, robberyWithPirateNotRobber, askedSpecialBuildPhase, movedShipThisTurn,
                  playingRoadBuildingCardForLastRoad);
             if (elements != null)
@@ -1906,7 +1933,7 @@ public class SavedGameModel
 
     /**
      * Details of why {@link SavedGameModel#checkCanSave(SOCGame)}
-     * or {@link SavedGameModel#checkCanLoad(SOCGameOptionSet)}
+     * or {@link SavedGameModel#checkCanLoad(SOCGameOptionSet, int)}
      * or constructor can't save a game or load a model.
      * {@link Throwable#getMessage()} will name the unsupported option/feature,
      * ideally with an i18n key from {@code "admin.savegame.cannot_save.*"} but possibly as free-form text

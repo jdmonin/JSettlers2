@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file Copyright (C) 2013 Luis A. Ramirez <lartkma@gmail.com>
- * Some parts of this file Copyright (C) 2013,2017-2023 Jeremy D Monin <jeremy@nand.net>
+ * Some parts of this file Copyright (C) 2013,2017-2023,2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -96,7 +96,7 @@ public class SOCStringManager extends StringManager
         = new Hashtable<String, SOCStringManager>();
 
     /**
-     * Fallback for {@link #serverManagerForClientLocale} using server's default locale.
+     * Fallback for {@link #serverManagerForClientLocale} using {@link Locale#US} ({@code en_US}).
      * Set if needed by {@link #getFallbackServerManagerForClient()}.
      */
     private static SOCStringManager serverManagerForClientLocale_fallback;
