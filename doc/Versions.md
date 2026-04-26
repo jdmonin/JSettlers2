@@ -23,6 +23,7 @@ JARs for recent JSettlers versions can be downloaded from
 	- New optional house rule: Allow undo building and moving pieces (new game option `UB`; requires client v2.7.00 or newer)
 	    - For convenience, in Practice games this rule is on by default
 	    - Also is on by default when client and server both support the option (using Opportunistic Game Options and FLAG_SET_AT_CLIENT_ONCE)
+	    - Builds/moves which reveal fog hexes can't be undone, so players can't peek to choose the best hex
 	- Opportunistic Game Options
 	    - A way to automatically use new options like `UB` when possible, with graceful fallback when not
 	    - New clients can have these options on by default, but older clients can still join the game while it's forming
