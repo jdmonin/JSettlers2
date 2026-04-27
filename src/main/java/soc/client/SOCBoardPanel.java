@@ -7273,6 +7273,10 @@ import javax.swing.JComponent;
             popupMenu.showCancelBuild(SOCPlayingPiece.SHIP, x, y, hilight);
             break;
 
+        case SC_FTRI_PLACE_PORT:
+            popupMenu.showCancelBuild(SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL, x, y, hilight);
+            break;
+
         case PLACE_INIT_ROAD:
         case PLACE_FREE_ROAD_OR_SHIP:
             // might be road or ship
@@ -9171,6 +9175,8 @@ import javax.swing.JComponent;
        *  giving the build/cancel options for that type of piece.
        *
        * @param buildType piece type (SOCPlayingPiece.ROAD, CITY, SETTLEMENT)
+       *     to cancel; can also be {@link SOCCancelBuildRequest#INV_ITEM_PLACE_CANCEL}
+       *     during {@link SOCGame#PLACING_INV_ITEM}
        * @param x   Mouse x-position
        * @param y   Mouse y-position
        * @param hilightAt Current hover/hilight coordinates of piece being cancelled/placed
@@ -9208,6 +9214,7 @@ import javax.swing.JComponent;
                   buildShipItem.setLabel(strings.get("board.build.ship"));  // "Build Ship"
               }
           }
+          boolean removeTradeSubmenu = false;  // do cleanup from last showBuild?
           boolean enableCancel = menuPlayerIsCurrent && game.canCancelBuildPiece(buildType);
           if (enableCancel && ! game.isPractice)
           {
@@ -9252,8 +9259,25 @@ import javax.swing.JComponent;
               hoverShipID = hilightAt;
               break;
 
+          case SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL:
+              cancelBuildItem.setLabel(strings.get("board.cancel.item.place"));  // "Cancel item placement"
+              {
+                  SOCInventoryItem placing = game.getPlacingItem();
+                  cancelBuildItem.setEnabled
+                      ((placing != null) && placing.canCancelPlay);
+              }
+              removeTradeSubmenu = true;
+              break;
+
           default:
               throw new IllegalArgumentException ("bad buildtype: " + buildType);
+          }
+
+          if (removeTradeSubmenu && (portTradeSubmenu != null))
+          {
+              remove(portTradeSubmenu);
+              portTradeSubmenu.destroy();
+              portTradeSubmenu = null;
           }
 
           super.show(bp, x, y);
@@ -9794,7 +9818,8 @@ import javax.swing.JComponent;
       /**
        * Cancel placing a building piece, or cancel moving a ship.
        * Calls {@link SOCBuildingPanel#clickBuildingButton(SOCGame, String, boolean)},
-       * except for {@link SOCCancelBuildRequest#CARD} for which it calls {@link GameMessageSender#cancelBuildRequest(SOCGame, int)}.
+       * except for {@link SOCCancelBuildRequest#CARD} and {@link SOCCancelBuildRequest#INV_ITEM_PLACE_CANCEL}
+       * for which it calls {@link GameMessageSender#cancelBuildRequest(SOCGame, int)}.
        */
       void tryCancel()
       {
@@ -9822,7 +9847,8 @@ import javax.swing.JComponent;
               btarget = SOCBuildingPanel.SHIP;
               break;
           case SOCCancelBuildRequest.CARD:
-              playerInterface.getClient().getGameMessageSender().cancelBuildRequest(game, SOCCancelBuildRequest.CARD);
+          case SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL:
+              playerInterface.getClient().getGameMessageSender().cancelBuildRequest(game, cancelBuildType);
               return;  // <--- Early return: has now sent cancel request ---
           }
           // Use buttons to cancel the build request

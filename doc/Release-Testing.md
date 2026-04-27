@@ -401,6 +401,8 @@ As a non-admin non-debug user, start playing a game. These should all work:
       - Trading port should still be in inventory
       - Build another coastal settlement
       - Should now be able to play that trading port out of inventory
+          - While placing that port: Cancel button in hand panel, and board panel right-click menu, should cancel placement and return it to inventory
+          - After cancel, play from inventory and place it
       - Should be able to trade that port's resources at expected ratio (not 4:1)
   - Trading ports during Special Building phase
       - Start a 6-player game
@@ -409,6 +411,7 @@ As a non-admin non-debug user, start playing a game. These should all work:
       - Start a second client, sit at seat 3 (bottom right) to help observe and confirm turn order
       - In first client, end your turn; ask for Special Building during bot player 2's turn
       - During Special Building, build ships to one of the Tribe's ports; pick up the port and place it
+          - Since you must place now: Cancel button in hand panel and board panel right-click menu should not allow you to cancel placement
       - End Special Building; next player should be number 3, not number 1
       - During all that, second client should observe same sequence of current players
   - Claiming gift Dev Cards and Ports with ship moves
