@@ -5359,7 +5359,7 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * Sends the contents of this game's {@link SOCGame#pendingMessagesOut} and its players'
+     * Sends the contents of this game's {@link SOCGame#pendingMessagesOut} and then its players'
      * {@link SOCPlayer#pendingMessagesOut}, then empties those lists.
      * To avoid unnecessary work here, check if the game's pending list is empty before calling this method.
      *<P>

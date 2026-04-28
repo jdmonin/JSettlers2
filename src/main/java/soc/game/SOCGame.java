@@ -756,6 +756,7 @@ public class SOCGame implements Serializable, Cloneable
      * {@link SOCPlayer#setPlayerEvents(int)} or other related fields, before the GAMESTATE message.
      *<P>
      * For pending messages to send only to one player's client, see {@link SOCPlayer#pendingMessagesOut}.
+     * Game's {@code pendingMessagesOut} (this queue) are sent before each player's {@code pendingMessagesOut}.
      *<P>
      * <B>Contents:</B> When sending out to game members, the server handles queue elements by class:
      *<UL>

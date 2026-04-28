@@ -697,7 +697,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * For pending messages to send to entire game, see {@link SOCGame#pendingMessagesOut}.
      *<P>
-     * To send and clear this queue's contents, call {@code SOCGameHandler.sendGamePendingMessages(SOCGame, boolean)}.
+     * To send and clear this queue's contents, call {@code SOCGameHandler.sendGamePendingMessages(SOCGame, boolean)}
+     * which sends {@link SOCGame#pendingMessagesOut} and then each player's {@code pendingMessagesOut} (this queue).
      *<P>
      * <B>Note:</B> Only a few of the server message-handling methods check this queue:
      * See {@link SOCGame#pendingMessagesOut}.
