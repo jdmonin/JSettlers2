@@ -37,6 +37,7 @@ JARs for recent JSettlers versions can be downloaded from
 	        - Also when ship is converted to warship in Pirate Islands scenario
 	    - Bank/port trade: Bugfix: After making a trade, if player wants to undo that trade but accidentally clicks "Bank/Port" instead of "Undo", couldn't then click Undo because hand panel forgot previous trade
 	    - Road Building: Confirm with dialog when player skips (cancels) placing second free road or ship
+	    - Forgotten Tribe scenario: When placing a gift port from your inventory, can use board's right-click menu to cancel placement (previous versions used Hand Panel's Cancel button)
 	    - Discard, Year of Plenty dialogs: Each resource pick square won't go past prompted amount  
 	      (was no limit in previous versions)
 	    - `*STATS*`: De-clutter player resource trade stats output
