@@ -1,6 +1,6 @@
 /*
  * nand.net i18n utilities for Java: Property file editor for translators (side-by-side source and destination languages).
- * This file Copyright (C) 2013-2014,2016,2019-2021 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2013-2014,2016,2019-2021,2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2011 Jim Morris: RequestFocusListener (CC BY-SA 3.0)
  *
  * This program is free software; you can redistribute it and/or
@@ -129,9 +129,9 @@ public class PropertiesTranslatorEditor
      * The files are {@link ParsedPropsFilePair#srcFile pair.srcFile}
      * and {@link ParsedPropsFilePair#destFile pair.destFile}.
      *<P>
-     * {@code null} if we start with no parameters, and wait for a file-open dialog from {@link PTEMain}.
+     * Never {@code null}.
      */
-    private ParsedPropsFilePair pair;
+    private final ParsedPropsFilePair pair;
 
     /** If true, {@link #setDestIsNew(List)} has been called */
     private boolean isDestNew;
@@ -245,7 +245,7 @@ public class PropertiesTranslatorEditor
     }
 
     /**
-     * Continue GUI startup, once constructor has set {@link #pair} or left it null.
+     * Continue GUI startup, once constructor has set {@link #pair}.
      * Will start the GUI and then parse {@code pair}'s files from its srcFile and destFile fields.
      * If the destination is new (not yet existing), call {@link #setDestIsNew(List)} before this method.
      */
@@ -255,7 +255,10 @@ public class PropertiesTranslatorEditor
         if (strings == null)
             initStringManager();
 
-        jfra = new JFrame(strings.get("editor.window_title"));  // "Properties Translator's Editor"
+        String titleName = strings.get("editor.window_title");  // "Properties Translator's Editor"
+        if (pair.destFile.getName() != null)
+            titleName += ": " + pair.destFile.getName();
+        jfra = new JFrame(titleName);
         jfra.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         jfra.addWindowListener  // confirm unsaved changes when window closing
             (new WindowAdapter()
@@ -269,54 +272,50 @@ public class PropertiesTranslatorEditor
 
         boolean hasDupeKeys = false;  // Any duplicate keys in src or dest?
 
-        // TODO add menu or buttons: open, save, check consistencies, help
-        if (pair != null)
+        try
         {
-            try
+            pair.parseSrc();
+            if (isDestNew)
             {
-                pair.parseSrc();
-                if (isDestNew)
-                {
-                    pair.setDestIsNew(newDestComments);
-                    newDestComments = null;
-                } else {
-                    pair.parseDest();
-                }
-
-                /*
-                // tmp debug prints:
-
-                System.out.println("Parsed result:");
-                System.out.println();
-
-                Iterator<ParsedPropsFilePair.FileEntry> ife = pair.getContents();
-                while (ife.hasNext())
-                    System.err.println(ife.next());
-                 */
-
-                // more temporary debug print:
-                if (0 != pair.getDestOnlySize())
-                {
-                    System.err.println();
-                    System.err.println("In destination only:");
-                    System.err.println();
-                    Iterator<PropsFileParser.KeyPairLine> ikpe = pair.getDestOnly();
-                    while (ikpe.hasNext())
-                        System.err.println(ikpe.next());
-                }
-
-                // if dupes found, will show as warning dialog at end of init()
-                Map<String, String> dk = pair.getSrcDupeKeys();
-                if (dk != null)
-                    hasDupeKeys = true;
-                dk = pair.getDestDupeKeys();
-                if (dk != null)
-                    hasDupeKeys = true;
-
-            } catch (IOException ioe) {
-                // TODO popup somewhere in GUI
-                System.err.println(ioe);
+                pair.setDestIsNew(newDestComments);
+                newDestComments = null;
+            } else {
+                pair.parseDest();
             }
+
+            /*
+            // tmp debug prints:
+
+            System.out.println("Parsed result:");
+            System.out.println();
+
+            Iterator<ParsedPropsFilePair.FileEntry> ife = pair.getContents();
+            while (ife.hasNext())
+                System.err.println(ife.next());
+             */
+
+            // more temporary debug print:
+            if (0 != pair.getDestOnlySize())
+            {
+                System.err.println();
+                System.err.println("In destination only:");
+                System.err.println();
+                Iterator<PropsFileParser.KeyPairLine> ikpe = pair.getDestOnly();
+                while (ikpe.hasNext())
+                    System.err.println(ikpe.next());
+            }
+
+            // if dupes found, will show as warning dialog at end of init()
+            Map<String, String> dk = pair.getSrcDupeKeys();
+            if (dk != null)
+                hasDupeKeys = true;
+            dk = pair.getDestDupeKeys();
+            if (dk != null)
+                hasDupeKeys = true;
+
+        } catch (IOException ioe) {
+            // TODO popup somewhere in GUI
+            System.err.println(ioe);
         }
 
         JPanel opan = new JPanel();
