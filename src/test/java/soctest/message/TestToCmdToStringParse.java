@@ -380,7 +380,7 @@ public class TestToCmdToStringParse
      * @throws IllegalArgumentException if {@code keys} and {@code vals} don't have equal length
      * @since 2.7.00
      */
-    private static final SortedMap<String, Integer> sortedMapOf
+    /* package */ static final SortedMap<String, Integer> sortedMapOf
         (final String[] keys, final int[] vals)
         throws NullPointerException, IllegalArgumentException
     {
@@ -425,7 +425,7 @@ public class TestToCmdToStringParse
      * Test data: a {@link SortedMap} of {@link SOCGameOption}s {@code "UB"} and {@code "UBL"}.
      * @since 2.7.00
      */
-    private static final TreeMap<String, SOCGameOption> MAP_SGO_UB_UBL;
+    /* package */ static final TreeMap<String, SOCGameOption> MAP_SGO_UB_UBL;
     static
     {
         MAP_SGO_UB_UBL = new TreeMap<>();
