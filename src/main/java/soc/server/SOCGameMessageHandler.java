@@ -3046,6 +3046,7 @@ public class SOCGameMessageHandler
             }
 
             boolean sendDenyReply = true;  // if false, will send undo sequence ending with SOCGameState
+            List<SOCMessage> msgsAfter = null;  // any side effects of undo sequence
 
             if ((act.actType == GameAction.ActionType.MOVE_PIECE) && (pp instanceof SOCShip))
             {
@@ -3053,13 +3054,10 @@ public class SOCGameMessageHandler
                 {
                     final GameAction undoShipMove = ga.undoMoveShip((SOCShip) pp);
                     sendDenyReply = false;
-                    List<SOCMessage> msgsAfter = sendUndoSideEffects(ga, undoShipMove, SOCPlayingPiece.SHIP);
+                    msgsAfter = sendUndoSideEffects(ga, undoShipMove, SOCPlayingPiece.SHIP);
                     srv.messageToGame
                         (gaName, true,
                          new SOCUndoPutPiece(gaName, pn, pieceType, coord, undoShipMove.param3));
-                    if (msgsAfter != null)
-                        for (SOCMessage m : msgsAfter)
-                            srv.messageToGame(gaName, true, m);
                 }
             }
             else if (pp != null)
@@ -3068,13 +3066,10 @@ public class SOCGameMessageHandler
                 {
                     final GameAction undoBuild = ga.undoPutPiece(pp);
                     sendDenyReply = false;
-                    List<SOCMessage> msgsAfter = sendUndoSideEffects(ga, undoBuild, pieceType);
+                    msgsAfter = sendUndoSideEffects(ga, undoBuild, pieceType);
                     srv.messageToGame
                         (gaName, true,
                          new SOCUndoPutPiece(gaName, pn, pieceType, coord));
-                    if (msgsAfter != null)
-                        for (SOCMessage m : msgsAfter)
-                            srv.messageToGame(gaName, true, m);
                 }
             }
 
@@ -3087,8 +3082,19 @@ public class SOCGameMessageHandler
                 srv.messageToPlayer
                     (c, gaName, pn, new SOCUndoPutPiece(gaName, -1, pieceType, coord));
             } else {
-                srv.messageToGame
-                    (gaName, true, new SOCGameState(gaName, ga.getGameState()));
+                SOCGameState gsMsg = null;
+                if (msgsAfter != null)
+                    for (SOCMessage m : msgsAfter)
+                    {
+                        srv.messageToGame(gaName, true, m);
+                        if (m instanceof SOCGameState)
+                            gsMsg = (SOCGameState) m;
+                    }
+
+                final int gameState = ga.getGameState();
+                if ((gsMsg == null) || (gameState != gsMsg.getState()))  // gameState won't differ unless there's a bug
+                    srv.messageToGame
+                        (gaName, true, new SOCGameState(gaName, gameState));
             }
         } finally {
             ga.releaseMonitor();

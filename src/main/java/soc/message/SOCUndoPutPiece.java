@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2022-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2022-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,6 +45,7 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  * <LI> Client UI should update at this point and announce the undo.
  * <LI> Any following messages (Un-close ship routes, return pieces, etc; usually {@link SOCPlayerElement}).
  *      Such messages update client UI on their own if needed.
+ * <LI> As last message in this sequence, server always announces the {@link SOCGameState} even if unchanged
  *</UL>
  *
  * See also {@link SOCCancelBuildRequest} and {@link SOCRemovePiece}.
