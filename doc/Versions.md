@@ -29,6 +29,8 @@ JARs for recent JSettlers versions can be downloaded from
 	    - New clients can have these options on by default, but older clients can still join the game while it's forming
 	    - Once players are seated and the game is starting, if it uses Opportunistic Game Options and any player's client version is too old for those options, the options are removed from that game for backwards compatibility
 	    - If a game still has Opportunistic options after it starts, older clients can't sit as players because it could be unfair to change options during game play
+	- Road Building card: After placing first free road or ship, server sends text prompting you to place second one
+- I18N:
 	- Added German translation (thank you Eudoxia and Quasigroup)
 	- Updated Polish translation (thank you KotCzarny)
 - Client:

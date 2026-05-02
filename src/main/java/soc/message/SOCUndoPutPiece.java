@@ -45,7 +45,8 @@ import soc.game.SOCPlayingPiece;  // for javadocs only
  * <LI> Client UI should update at this point and announce the undo.
  * <LI> Any following messages (Un-close ship routes, return pieces, etc; usually {@link SOCPlayerElement}).
  *      Such messages update client UI on their own if needed.
- * <LI> As last message in this sequence, server always announces the {@link SOCGameState} even if unchanged
+ * <LI> As last data message in this sequence, server always announces the {@link SOCGameState} even if unchanged
+ * <LI> That may be followed by {@link SOCGameServerText} (prompt to the current player, etc)
  *</UL>
  *
  * See also {@link SOCCancelBuildRequest} and {@link SOCRemovePiece}.
