@@ -2816,8 +2816,13 @@ public class SOCGameHandler extends GameHandler
                         (gaState == SOCGame.PLACING_FREE_ROAD1)
                         ? ((ga.hasSeaBoard) ? "action.card.road.place.2s" : "action.card.road.place.2r")
                             // "You may place 2 roads/ships." or "You may place 2 roads.")
-                        : ((ga.hasSeaBoard) ? "action.card.road.place.1s" : "action.card.road.place.1r");
-                            // "You may place your 1 remaining road or ship." or "... place your 1 remaining road."
+                        : // PLACING_FREE_ROAD2 either because they have just 1 road left, or because it's their 2nd to be placed
+                          (((player != null)
+                            && (player.getNumPieces(SOCPlayingPiece.ROAD) + player.getNumPieces(SOCPlayingPiece.SHIP) <= 1))
+                            ? ((ga.hasSeaBoard) ? "action.card.road.place.1s" : "action.card.road.place.1r")
+                                // "You may place your 1 remaining road or ship." or "... place your 1 remaining road."
+                            : ((ga.hasSeaBoard) ? "action.card.road.place.rs" : "action.card.road.place.rr"));
+                                // "You may place your remaining free road or ship." or "... place your remaining free road."
                     srv.messageToPlayerKeyed
                         (con, gname, cpn, msgKey);
                 }

@@ -2692,6 +2692,7 @@ public class TestActionsMessages
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a road."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=0|coord=70a"},
                 {"all:SOCGameState:", "|state=41"},
+                {"p3:SOCGameServerText:", "|text=You may place your remaining free road or ship."},
                 {"all:SOCGameServerText:", "|text=" + CLIENT_NAME + " built a road."},
                 {"all:SOCPutPiece:", "|playerNumber=3|pieceType=0|coord=809"},
                 {"all:SOCGameElements:", "|e6=3"},  // LONGEST_ROAD_PLAYER

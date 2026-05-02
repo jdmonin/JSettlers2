@@ -167,6 +167,7 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
       `dev: 2 debug`
     - Test these situations, 1 per turn:
     - Build 2 free roads
+        - After placing first one, should see "You may place your remaining free road."
     - Build 1 free road, right-click board, choose Cancel, continue to end of turn
         - Should see a dialog to confirm (Place or Skip); click Place
         - Click the Cancel button in the Building panel at bottom of window
