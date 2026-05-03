@@ -9088,8 +9088,18 @@ import javax.swing.JComponent;
        * Enabled/disabled by methods like {@link #showBuild(int, int, int, int, int, int)}.
        * @see #wantsCancel
        * @see #wantsUndo
+       * @see #undoItem
        */
       final MenuItem cancelBuildItem;
+
+      /**
+       * Menu item to undo the previous placement in situations where the player can also cancel the
+       * next placement, so can't use {@link #cancelBuildItem} as "undo" like usual: {@link SOCGame#PLACING_FREE_ROAD2}.
+       * Positioned at "cancel" item's usual position to help muscle memory where player expects "undo" to be.
+       * Usually {@code null}.
+       * @since 2.7.00
+       */
+      MenuItem undoItem;
 
       /** determined at menu-show time, only over a useable port. Added then, and removed at next menu-show */
       SOCHandPanel.ResourceTradePopupMenu portTradeSubmenu;
@@ -9173,6 +9183,9 @@ import javax.swing.JComponent;
 
       /** Custom 'cancel' show method for when placing a road/settlement/city,
        *  giving the build/cancel options for that type of piece.
+       *<P>
+       *  Not used during {@link SOCGame#PLACING_FREE_ROAD1} or {@link SOCGame#PLACING_FREE_ROAD2 2}:
+       *  Call {@link #showBuild(int, int, int, int, int, int)} instead.
        *
        * @param buildType piece type (SOCPlayingPiece.ROAD, CITY, SETTLEMENT)
        *     to cancel; can also be {@link SOCCancelBuildRequest#INV_ITEM_PLACE_CANCEL}
@@ -9224,6 +9237,11 @@ import javax.swing.JComponent;
                   enableCancel = false;
           }
           cancelBuildItem.setEnabled(enableCancel);
+          if (undoItem != null)
+          {
+              remove(undoItem);
+              undoItem = null;
+          }
 
           // Check for initial placement (for different cancel message)
           isInitialPlacement = game.isInitialPlacement();
@@ -9317,6 +9335,7 @@ import javax.swing.JComponent;
               // Restore label after previous popup's "Attack Fortress" label for _SC_PIRI
               buildSettleItem.setLabel(strings.get("board.build.stlmt"));  // "Build Settlement"
           }
+          String undoItemTextKey = null;  // set non-null to add undoItem, keep null to remove if currently present
 
           boolean didEnableDisable = true;  // don't go through both sets of menu item enable/disable statements
 
@@ -9399,6 +9418,25 @@ import javax.swing.JComponent;
                   upgradeCityItem.setEnabled(false);
                   if (buildShipItem != null)
                       buildShipItem.setEnabled(hSh != 0);
+
+                  // check if can undo 1st free road/ship
+                  if (gs == SOCGame.PLACING_FREE_ROAD2)
+                  {
+                      final SOCPlayingPiece latest = bp.latestPiecePlacement;
+                      final GameAction act = game.getLastAction();
+                      if ((latest instanceof SOCRoutePiece) && (act != null)
+                          && (act.actType == GameAction.ActionType.BUILD_PIECE)
+                          && game.canUndoPutPiece(playerNumber, latest))
+                      {
+                          int[] xyb = rotateScaleXYFromActual(x, y);
+                          int coord = findEdge(xyb[0], xyb[1], false);
+                          if (board.isEdgeSameOrAdjacent(coord, latest.getCoordinates()))
+                              undoItemTextKey =
+                                  (latest instanceof SOCShip)
+                                  ? "board.undo.build.ship"   // "Undo build Ship"
+                                  : "board.undo.build.road";  // "Undo build Road"
+                      }
+                  }
                   break;
 
               default:
@@ -9583,6 +9621,24 @@ import javax.swing.JComponent;
               }
           }
 
+          if (undoItemTextKey == null)
+          {
+              if (undoItem != null)
+              {
+                  remove(undoItem);
+                  undoItem = null;
+              }
+          } else {
+              String txt = strings.get(undoItemTextKey);
+              if (undoItem != null)
+              {
+                  undoItem.setLabel(txt);
+              } else {
+                  undoItem = new MenuItem(txt);
+                  insert(undoItem, 2);
+              }
+          }
+
           super.show(bp, x, y);
       }
 
@@ -9624,6 +9680,11 @@ import javax.swing.JComponent;
           upgradeCityItem.setEnabled(false);
           buildShipItem.setEnabled(false);
           cancelBuildItem.setEnabled(false);
+          if (undoItem != null)
+          {
+              remove(undoItem);
+              undoItem = null;
+          }
           isInitialPlacement = false;
 
           super.show(bp, x, y);
@@ -9671,6 +9732,10 @@ import javax.swing.JComponent;
                   tryUndo();
               else
                   tryCancel();
+          }
+          else if (target == undoItem)
+          {
+              tryUndo();
           }
       }
 
