@@ -4268,7 +4268,7 @@ public class SOCGame implements Serializable, Cloneable
             effects.add(new GameAction.Effect(EffectType.CHANGE_GAMESTATE, oldNewGS));
         }
 
-        if (longestRoadPN != playerWithLongestRoad)
+        if (longestRoadPN != playerWithLongestRoad)  // happens only at server
         {
             if (effects == null)
                 effects = new ArrayList<>();
@@ -9833,7 +9833,7 @@ public class SOCGame implements Serializable, Cloneable
      * All players' {@link SOCPlayer#getLongestRoadLength()} is called here.
      *<P>
      * For consistency, recalculates {@link #getPlayerWithLongestRoad()} only if {@link #isAtServer};
-     * client only calls each player's {@code calcLongestRoad2}.
+     * client only calls {@code pn}'s {@link SOCPlayer#calcLongestRoad2()}.
      * Before version 2.4.00 ({@link #VERSION_FOR_LONGEST_LARGEST_FROM_SERVER}),
      * Longest Road was fully calculated at both client and server.
      *<P>

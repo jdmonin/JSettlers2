@@ -2518,8 +2518,9 @@ public class TestActionsMessages
         throws IOException
     {
         // unique client nickname, in case tests run in parallel
-        final String CLIENT_NAME
-            = "testPlayDevCrd_" + observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h");
+        final String nameSuffix = observabilityMode + (clientAsRobot ? "_r" : "_h") + (othersAsRobot ? "_r" : "_h"),
+            CLIENT_NAME = "testPlayDevCrd_" + nameSuffix,
+            OBSERVER_NAME = "testPlayDevCOb_" + nameSuffix;
 
         final int CLIENT_PN = 3;
         final StartedTestGameObjects objs =
@@ -2527,39 +2528,54 @@ public class TestActionsMessages
                 (srv, CLIENT_NAME, null, 0, null, true, observabilityMode, clientAsRobot, othersAsRobot);
         final DisplaylessTesterClient tcli = objs.tcli;
         // final SavedGameModel sgm = objs.sgm;
-        final SOCGame ga = objs.gameAtServer;
+        final SOCGame gaAtSrv = objs.gameAtServer, gaAtCli = tcli.getGame(gaAtSrv.getName());
         final SOCBoardLarge board = (SOCBoardLarge) objs.board;
-        final SOCPlayer cliPl = objs.clientPlayer;
-        assertEquals(CLIENT_PN, cliPl.getPlayerNumber());
+        final DisplaylessTesterClient obsCli = TestRecorder.connectObserver(srv, gaAtSrv, OBSERVER_NAME, observabilityMode);
+        final SOCGame gaAtObs = obsCli.getGame(gaAtSrv.getName());
+        final SOCGame[] gaEverywhere = {gaAtSrv, gaAtCli, gaAtObs};
+        final SOCPlayer cliPlAtSrv = objs.clientPlayer;
+        assertEquals(CLIENT_PN, cliPlAtSrv.getPlayerNumber());
+        final SOCPlayer cliPlAtCli = gaAtCli.getPlayer(CLIENT_PN), cliPlAtObs = gaAtObs.getPlayer(CLIENT_PN);
+        final SOCPlayer[] cliPlEverywhere = {cliPlAtSrv, cliPlAtCli, cliPlAtObs};
+
         final Vector<EventEntry> records = objs.records;
 
         List<Integer> expectedCardsPlayed = new ArrayList<>(Arrays.asList(SOCDevCardConstants.KNIGHT));
-        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
-        assertEquals(1, cliPl.getNumKnights());
-        assertEquals(0, cliPl.numDISCCards);
-        assertEquals(0, cliPl.numMONOCards);
-        assertEquals(0, cliPl.numRBCards);
-        assertFalse(ga.isPlacingRobberForKnightCard());
-        assertEquals(SOCGame.PLAY1, ga.getGameState());
+        for (SOCPlayer cliPl : cliPlEverywhere)
+        {
+            if (cliPl == cliPlAtSrv)
+                assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
+            assertEquals(1, cliPl.getNumKnights());
+            assertEquals(0, cliPl.numDISCCards);
+            assertEquals(0, cliPl.numMONOCards);
+            assertEquals(0, cliPl.numRBCards);
+        }
+        for (SOCGame ga : gaEverywhere)
+        {
+            assertFalse(ga.isPlacingRobberForKnightCard());
+            assertEquals(SOCGame.PLAY1, ga.getGameState());
+        }
+
+        // TODO check gaAtCli, gaAtObs for all card types here
 
         /* monopoly: Sheep (victims pn=1 and pn=2 both have some sheep) */
 
         records.clear();
-        assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPl.getResources().getAmounts(false));
-        tcli.playDevCard(ga, SOCDevCardConstants.MONO);
+        assertArrayEquals(new int[]{3, 3, 3, 4, 4}, cliPlAtSrv.getResources().getAmounts(false));
+        tcli.playDevCard(gaAtSrv, SOCDevCardConstants.MONO);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
-        assertEquals(SOCGame.WAITING_FOR_MONOPOLY, ga.getGameState());
-        assertEquals(1, cliPl.numMONOCards);
+        assertEquals(SOCGame.WAITING_FOR_MONOPOLY, gaAtSrv.getGameState());
+        assertEquals(1, cliPlAtSrv.numMONOCards);
         expectedCardsPlayed.add(SOCDevCardConstants.MONO);
-        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
-        tcli.pickResourceType(ga, SOCResourceConstants.SHEEP);
+        assertEquals(expectedCardsPlayed, cliPlAtSrv.getDevCardsPlayed());
+        tcli.pickResourceType(gaAtSrv, SOCResourceConstants.SHEEP);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
-        assertEquals(SOCGame.PLAY1, ga.getGameState());
-        assertArrayEquals(new int[]{3, 3, 6, 4, 4}, cliPl.getResources().getAmounts(false));
+        assertEquals(SOCGame.PLAY1, gaAtSrv.getGameState());
+        assertArrayEquals(new int[]{3, 3, 6, 4, 4}, cliPlAtSrv.getResources().getAmounts(false));
 
         StringBuilder comparesMono = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -2585,21 +2601,21 @@ public class TestActionsMessages
         if (observabilityMode == 0)
         {
             records.clear();
-            cliPl.setPlayedDevCard(false);  // bend rules to skip waiting for our next turn
-            tcli.playDevCard(ga, SOCDevCardConstants.DISC);
+            cliPlAtSrv.setPlayedDevCard(false);  // bend rules to skip waiting for our next turn
+            tcli.playDevCard(gaAtSrv, SOCDevCardConstants.DISC);
 
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
-            assertEquals(SOCGame.WAITING_FOR_DISCOVERY, ga.getGameState());
-            assertEquals(1, cliPl.numDISCCards);
+            assertEquals(SOCGame.WAITING_FOR_DISCOVERY, gaAtSrv.getGameState());
+            assertEquals(1, cliPlAtSrv.numDISCCards);
             expectedCardsPlayed.add(SOCDevCardConstants.DISC);
-            assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
-            tcli.pickResources(ga, new SOCResourceSet(0, 1, 0, 1, 0, 0));
+            assertEquals(expectedCardsPlayed, cliPlAtSrv.getDevCardsPlayed());
+            tcli.pickResources(gaAtSrv, new SOCResourceSet(0, 1, 0, 1, 0, 0));
 
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
-            assertEquals(SOCGame.PLAY1, ga.getGameState());
-            assertArrayEquals(new int[]{3, 4, 6, 5, 4}, cliPl.getResources().getAmounts(false));
+            assertEquals(SOCGame.PLAY1, gaAtSrv.getGameState());
+            assertArrayEquals(new int[]{3, 4, 6, 5, 4}, cliPlAtSrv.getResources().getAmounts(false));
 
             comparesDisc = TestRecorder.compareRecordsToExpected
                 (records, new String[][]
@@ -2617,68 +2633,87 @@ public class TestActionsMessages
 
         // because this increases VP, is tested in every observabilityMode even though it's public
         records.clear();
-        assertEquals(null, ga.getPlayerWithLongestRoad());
-        assertEquals(2, cliPl.getPublicVP());
-        assertTrue(board.roadOrShipAtEdge(0x609) instanceof SOCRoad);
         final int ROAD_EDGE_1 = 0x70a, ROAD_EDGE_2 = 0x809;
-        assertNull(board.roadOrShipAtEdge(ROAD_EDGE_1));
-        assertNull(board.roadOrShipAtEdge(ROAD_EDGE_2));
-        cliPl.setPlayedDevCard(false);
-        tcli.playDevCard(ga, SOCDevCardConstants.ROADS);
-
-        try { Thread.sleep(60); }
-        catch(InterruptedException e) {}
-        assertEquals(SOCGame.PLACING_FREE_ROAD1, ga.getGameState());
-        assertEquals(1, cliPl.numRBCards);
-        expectedCardsPlayed.add(SOCDevCardConstants.ROADS);
-        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
-        tcli.putPiece(ga, new SOCRoad(cliPl, ROAD_EDGE_1, board));
-
-        try { Thread.sleep(60); }
-        catch(InterruptedException e) {}
-        assertEquals(SOCGame.PLACING_FREE_ROAD2, ga.getGameState());
-        assertTrue(board.roadOrShipAtEdge(ROAD_EDGE_1) instanceof SOCRoad);
-        GameAction act = ga.getLastAction();
-        assertNotNull(act);
-        assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
-        assertEquals(SOCPlayingPiece.ROAD, act.param1);
-        assertEquals(ROAD_EDGE_1, act.param2);
-        assertEquals(CLIENT_PN, act.param3);
+        for (SOCPlayer cliPl : cliPlEverywhere)
+            assertEquals(2, cliPl.getPublicVP());
+        for (SOCGame ga : gaEverywhere)
         {
-            List<GameAction.Effect> effects = act.effects;
-            assertNotNull(effects);
-            assertEquals(1, effects.size());
-
-            GameAction.Effect e = effects.get(0);
-            assertEquals(GameAction.EffectType.CHANGE_GAMESTATE, e.eType);
-            assertArrayEquals(new int[]{SOCGame.PLACING_FREE_ROAD1, SOCGame.PLACING_FREE_ROAD2}, e.params);
+            assertEquals(null, ga.getPlayerWithLongestRoad());
+            SOCBoard b = ga.getBoard();
+            assertTrue(b.roadOrShipAtEdge(0x609) instanceof SOCRoad);
+            assertNull(b.roadOrShipAtEdge(ROAD_EDGE_1));
+            assertNull(b.roadOrShipAtEdge(ROAD_EDGE_2));
         }
-        tcli.putPiece(ga, new SOCRoad(cliPl, ROAD_EDGE_2, board));
+        cliPlAtSrv.setPlayedDevCard(false);
+        tcli.playDevCard(gaAtSrv, SOCDevCardConstants.ROADS);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
-        assertEquals(SOCGame.PLAY1, ga.getGameState());
-        assertTrue(board.roadOrShipAtEdge(ROAD_EDGE_2) instanceof SOCRoad);
-        assertEquals(cliPl, ga.getPlayerWithLongestRoad());
-        assertEquals(4, cliPl.getPublicVP());
-        act = ga.getLastAction();
-        assertNotNull(act);
-        assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
-        assertEquals(SOCPlayingPiece.ROAD, act.param1);
-        assertEquals(ROAD_EDGE_2, act.param2);
-        assertEquals(CLIENT_PN, act.param3);
+        for (SOCGame ga : gaEverywhere)
+            assertEquals(SOCGame.PLACING_FREE_ROAD1, ga.getGameState());
+        for (SOCPlayer cliPl : cliPlEverywhere)
+            assertEquals(1, cliPl.numRBCards);
+        expectedCardsPlayed.add(SOCDevCardConstants.ROADS);
+        assertEquals(expectedCardsPlayed, cliPlAtSrv.getDevCardsPlayed());
+        tcli.putPiece(gaAtSrv, new SOCRoad(cliPlAtSrv, ROAD_EDGE_1, board));
+
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        for (SOCGame ga : gaEverywhere)
         {
-            List<GameAction.Effect> effects = act.effects;
-            assertNotNull(effects);
-            assertEquals(2, effects.size());
+            assertEquals(SOCGame.PLACING_FREE_ROAD2, ga.getGameState());
+            assertTrue(ga.getBoard().roadOrShipAtEdge(ROAD_EDGE_1) instanceof SOCRoad);
+            GameAction act = ga.getLastAction();
+            assertNotNull(act);
+            assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+            assertEquals(SOCPlayingPiece.ROAD, act.param1);
+            assertEquals(ROAD_EDGE_1, act.param2);
+            assertEquals(CLIENT_PN, act.param3);
+            {
+                List<GameAction.Effect> effects = act.effects;
+                assertNotNull(effects);
+                assertEquals(1, effects.size());
 
-            GameAction.Effect e = effects.get(0);
-            assertEquals(GameAction.EffectType.CHANGE_GAMESTATE, e.eType);
-            assertArrayEquals(new int[]{SOCGame.PLACING_FREE_ROAD2, SOCGame.PLAY1}, e.params);
+                GameAction.Effect e = effects.get(0);
+                assertEquals(GameAction.EffectType.CHANGE_GAMESTATE, e.eType);
+                assertArrayEquals(new int[]{SOCGame.PLACING_FREE_ROAD1, SOCGame.PLACING_FREE_ROAD2}, e.params);
+            }
+        }
+        tcli.putPiece(gaAtSrv, new SOCRoad(cliPlAtSrv, ROAD_EDGE_2, board));
 
-            e = effects.get(1);
-            assertEquals(GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
-            assertArrayEquals(new int[]{-1, CLIENT_PN}, e.params);
+        try { Thread.sleep(60); }
+        catch(InterruptedException e) {}
+        for (SOCPlayer cliPl : cliPlEverywhere)
+            assertEquals(4, cliPl.getPublicVP());
+        for (SOCGame ga : gaEverywhere)
+        {
+            assertEquals(SOCGame.PLAY1, ga.getGameState());
+            assertTrue(ga.getBoard().roadOrShipAtEdge(ROAD_EDGE_2) instanceof SOCRoad);
+            SOCPlayer lrPl =  ga.getPlayerWithLongestRoad();
+            assertNotNull(lrPl);
+            assertEquals(CLIENT_PN, lrPl.getPlayerNumber());
+            GameAction act = ga.getLastAction();
+            assertNotNull(act);
+            assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
+            assertEquals(SOCPlayingPiece.ROAD, act.param1);
+            assertEquals(ROAD_EDGE_2, act.param2);
+            assertEquals(CLIENT_PN, act.param3);
+            {
+                List<GameAction.Effect> effects = act.effects;
+                assertNotNull(effects);
+                assertEquals((ga == gaAtSrv) ? 2 : 1, effects.size());
+
+                GameAction.Effect e = effects.get(0);
+                assertEquals(GameAction.EffectType.CHANGE_GAMESTATE, e.eType);
+                assertArrayEquals(new int[]{SOCGame.PLACING_FREE_ROAD2, SOCGame.PLAY1}, e.params);
+
+                if (ga == gaAtSrv)
+                {
+                    e = effects.get(1);
+                    assertEquals(GameAction.EffectType.CHANGE_LONGEST_ROAD_PLAYER, e.eType);
+                    assertArrayEquals(new int[]{-1, CLIENT_PN}, e.params);
+                }
+            }
         }
 
         StringBuilder comparesRoadBuild = TestRecorder.compareRecordsToExpected
@@ -2706,7 +2741,7 @@ public class TestActionsMessages
         final int PIRATE_HEX = 0xd0a;
         // victim's ship should be sole adjacent piece
         {
-            List<SOCPlayer> players = ga.getPlayersShipsOnHex(PIRATE_HEX);
+            List<SOCPlayer> players = gaAtSrv.getPlayersShipsOnHex(PIRATE_HEX);
             assertNotNull(players);
             assertEquals(1, players.size());
             assertEquals(1, players.get(0).getPlayerNumber());
@@ -2722,35 +2757,35 @@ public class TestActionsMessages
         }
 
         assertNotEquals("pirate not moved there yet", PIRATE_HEX, board.getPirateHex());
-        assertFalse(ga.isPlacingRobberForKnightCard());  // not yet placing robber/pirate
-        cliPl.setPlayedDevCard(false);
-        tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
+        assertFalse(gaAtSrv.isPlacingRobberForKnightCard());  // not yet placing robber/pirate
+        cliPlAtSrv.setPlayedDevCard(false);
+        tcli.playDevCard(gaAtSrv, SOCDevCardConstants.KNIGHT);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
-        assertTrue(cliPl.hasPlayedDevCard());
-        assertEquals(2, cliPl.getNumKnights());
+        assertTrue(cliPlAtSrv.hasPlayedDevCard());
+        assertEquals(2, cliPlAtSrv.getNumKnights());
         expectedCardsPlayed.add(SOCDevCardConstants.KNIGHT);
-        assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
-        assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
-        assertTrue(ga.isPlacingRobberForKnightCard());  // waiting for choice because of knight card
-        tcli.choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_PIRATE);
+        assertEquals(expectedCardsPlayed, cliPlAtSrv.getDevCardsPlayed());
+        assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, gaAtSrv.getGameState());
+        assertTrue(gaAtSrv.isPlacingRobberForKnightCard());  // waiting for choice because of knight card
+        tcli.choosePlayer(gaAtSrv, SOCChoosePlayer.CHOICE_MOVE_PIRATE);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
-        assertEquals(SOCGame.PLACING_PIRATE, ga.getGameState());
-        assertTrue(ga.isPlacingRobberForKnightCard());  // currently placing it
-        tcli.moveRobber(ga, cliPl, -PIRATE_HEX);
+        assertEquals(SOCGame.PLACING_PIRATE, gaAtSrv.getGameState());
+        assertTrue(gaAtSrv.isPlacingRobberForKnightCard());  // currently placing it
+        tcli.moveRobber(gaAtSrv, cliPlAtSrv, -PIRATE_HEX);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertEquals("new pirateHex", PIRATE_HEX, board.getPirateHex());
-        assertEquals(SOCGame.PLAY1, ga.getGameState());
-        SOCMoveRobberResult robRes = ga.getRobberyResult();
+        assertEquals(SOCGame.PLAY1, gaAtSrv.getGameState());
+        SOCMoveRobberResult robRes = gaAtSrv.getRobberyResult();
         assertNotNull(robRes);
         int resType = robRes.getLoot();
         assertTrue(resType > 0);
-        assertFalse(ga.isPlacingRobberForKnightCard());  // placement is complete
+        assertFalse(gaAtSrv.isPlacingRobberForKnightCard());  // placement is complete
 
         StringBuilder comparesMovePirate = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -2780,20 +2815,20 @@ public class TestActionsMessages
         /* soldier (move robber), gain largest army */
 
         records.clear();
-        cliPl.setPlayedDevCard(false);
-        assertEquals(null, ga.getPlayerWithLargestArmy());
-        assertEquals(4, cliPl.getPublicVP());
-        assertEquals(2, cliPl.getNumKnights());
+        cliPlAtSrv.setPlayedDevCard(false);
+        assertEquals(null, gaAtSrv.getPlayerWithLargestArmy());
+        assertEquals(4, cliPlAtSrv.getPublicVP());
+        assertEquals(2, cliPlAtSrv.getNumKnights());
 
         final int ROBBER_HEX = 0x703;
         assertNotEquals("robber not moved there yet", ROBBER_HEX, board.getRobberHex());
-        assertFalse(ga.isPlacingRobberForKnightCard());  // not yet placing robber/pirate
+        assertFalse(gaAtSrv.isPlacingRobberForKnightCard());  // not yet placing robber/pirate
         // victim's settlement should be sole adjacent piece
         {
             final int EXPECTED_VICTIM_SETTLEMENT_NODE = 0x604;
 
             Set<SOCPlayingPiece> pp = new HashSet<>();
-            List<SOCPlayer> players = ga.getPlayersOnHex(ROBBER_HEX, pp);
+            List<SOCPlayer> players = gaAtSrv.getPlayersOnHex(ROBBER_HEX, pp);
 
             assertNotNull(players);
             assertEquals(1, players.size());
@@ -2812,59 +2847,59 @@ public class TestActionsMessages
                 assertNull(board.settlementAtNode(node));
         }
 
-        cliPl.setPlayedDevCard(false);
+        cliPlAtSrv.setPlayedDevCard(false);
 
         // play soldier card, cancel during placement, play again to actually place:
         for (int testedCancel = 0; testedCancel <= 1; ++testedCancel)
         {
-            tcli.playDevCard(ga, SOCDevCardConstants.KNIGHT);
+            tcli.playDevCard(gaAtSrv, SOCDevCardConstants.KNIGHT);
 
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
-            assertTrue(cliPl.hasPlayedDevCard());
-            assertEquals(3, cliPl.getNumKnights());
+            assertTrue(cliPlAtSrv.hasPlayedDevCard());
+            assertEquals(3, cliPlAtSrv.getNumKnights());
             expectedCardsPlayed.add(SOCDevCardConstants.KNIGHT);
-            assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
-            assertEquals(6, cliPl.getPublicVP());
-            assertEquals(cliPl, ga.getPlayerWithLargestArmy());
-            assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, ga.getGameState());
-            assertTrue(ga.isPlacingRobberForKnightCard());  // waiting for choice because of knight card
-            tcli.choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
+            assertEquals(expectedCardsPlayed, cliPlAtSrv.getDevCardsPlayed());
+            assertEquals(6, cliPlAtSrv.getPublicVP());
+            assertEquals(cliPlAtSrv, gaAtSrv.getPlayerWithLargestArmy());
+            assertEquals(SOCGame.WAITING_FOR_ROBBER_OR_PIRATE, gaAtSrv.getGameState());
+            assertTrue(gaAtSrv.isPlacingRobberForKnightCard());  // waiting for choice because of knight card
+            tcli.choosePlayer(gaAtSrv, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
 
             try { Thread.sleep(60); }
             catch(InterruptedException e) {}
-            assertEquals(SOCGame.PLACING_ROBBER, ga.getGameState());
-            assertTrue(ga.isPlacingRobberForKnightCard());  // currently placing it
+            assertEquals(SOCGame.PLACING_ROBBER, gaAtSrv.getGameState());
+            assertTrue(gaAtSrv.isPlacingRobberForKnightCard());  // currently placing it
 
             if (testedCancel == 0)
             {
                 // cancel; related stats should revert
-                tcli.cancelBuildRequest(ga, SOCCancelBuildRequest.CARD);
+                tcli.cancelBuildRequest(gaAtSrv, SOCCancelBuildRequest.CARD);
 
                 try { Thread.sleep(60); }
                 catch(InterruptedException e) {}
-                assertFalse(cliPl.hasPlayedDevCard());
-                assertEquals(2, cliPl.getNumKnights());
+                assertFalse(cliPlAtSrv.hasPlayedDevCard());
+                assertEquals(2, cliPlAtSrv.getNumKnights());
                 assertEquals(SOCDevCardConstants.KNIGHT, expectedCardsPlayed.remove(expectedCardsPlayed.size() - 1).intValue());
-                assertEquals(expectedCardsPlayed, cliPl.getDevCardsPlayed());
-                assertEquals(4, cliPl.getPublicVP());
-                assertEquals(null, ga.getPlayerWithLargestArmy());
-                assertEquals(SOCGame.PLAY1, ga.getGameState());
+                assertEquals(expectedCardsPlayed, cliPlAtSrv.getDevCardsPlayed());
+                assertEquals(4, cliPlAtSrv.getPublicVP());
+                assertEquals(null, gaAtSrv.getPlayerWithLargestArmy());
+                assertEquals(SOCGame.PLAY1, gaAtSrv.getGameState());
             }
         }
 
         // now actually place instead of cancel:
-        tcli.moveRobber(ga, cliPl, ROBBER_HEX);
+        tcli.moveRobber(gaAtSrv, cliPlAtSrv, ROBBER_HEX);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
-        assertEquals(SOCGame.PLAY1, ga.getGameState());
+        assertEquals(SOCGame.PLAY1, gaAtSrv.getGameState());
         assertEquals("new robberHex", ROBBER_HEX, board.getRobberHex());
-        robRes = ga.getRobberyResult();
+        robRes = gaAtSrv.getRobberyResult();
         assertNotNull(robRes);
         resType = robRes.getLoot();
         assertTrue(resType > 0);
-        assertFalse(ga.isPlacingRobberForKnightCard());  // placement is complete
+        assertFalse(gaAtSrv.isPlacingRobberForKnightCard());  // placement is complete
 
         StringBuilder comparesMoveRobber = TestRecorder.compareRecordsToExpected
             (records, new String[][]
@@ -2912,7 +2947,7 @@ public class TestActionsMessages
 
         /* leave game, consolidate results */
 
-        srv.destroyGameAndBroadcast(ga.getName(), null);
+        srv.destroyGameAndBroadcast(gaAtSrv.getName(), null);
         tcli.destroy();
 
         StringBuilder compares = new StringBuilder();

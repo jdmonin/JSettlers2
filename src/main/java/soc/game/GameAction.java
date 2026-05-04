@@ -666,6 +666,9 @@ public class GameAction
          * Player with longest road has changed.
          * Params: old LR playerNumber, new LR playerNumber.
          * Either can be -1 for none.
+         *<P>
+         * This effect is seen only at server: For consistency the client doesn't calculate Longest Road player,
+         * instead that's announced by the server after the PutPiece or MovePiece message.
          */
         CHANGE_LONGEST_ROAD_PLAYER(30),
 
