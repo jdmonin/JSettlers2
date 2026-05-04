@@ -1513,12 +1513,16 @@ public class TestRecorder
         records.clear();
         assertEquals(23, ga.getNumDevCards());
         assertEquals(5, cliPl.getInventory().getTotal());
+        assertEquals(2, cliPl.getTotalVP());
+        assertEquals(2, cliPl.getPublicVP());
         tcli.buyDevCard(ga);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertEquals(22, ga.getNumDevCards());
         assertEquals(6, cliPl.getInventory().getTotal());
+        assertEquals("bought VP card", 3, cliPl.getTotalVP());
+        assertEquals(2, cliPl.getPublicVP());
 
         StringBuilder comparesBuyCard = compareRecordsToExpected
             (records, new String[][]
