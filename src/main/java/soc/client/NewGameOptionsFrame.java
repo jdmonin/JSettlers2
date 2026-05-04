@@ -2588,30 +2588,14 @@ import soc.util.Version;
     }
 
     /**
-     * Show a popup window with this scenario's description, special rules, and number of victory points to win.
-     * Calls {@link EventQueue#invokeLater(Runnable)}.
-     * @param sc  A {@link SOCScenario}, or {@code null} to do nothing
-     * @param gameOpts  All game options if current game, or null to extract from {@code sc}'s {@link SOCScenario#scOpts}
-     * @param knownOpts Server's Known Options, from {@link ServerGametypeInfo#knownOpts}
-     * @param vpWinner  Number of victory points to win, or {@link SOCGame#VP_WINNER_STANDARD}.
-     * @param md     Player client's main display, required for {@link AskDialog} constructor
-     * @param parent  Current game's player interface, or another Frame or Dialog for our parent window,
-     *                or null to look for {@code cli}'s Frame/Dialog as parent
-     * @since 2.0.00
+     * Append the scenario's long description to the output, if available. Adds
+     * spacing before and after for readability in the dialog.
+     *
+     * @param sb StringBuilder accumulating the output text
+     * @param sc Scenario containing the long description
      */
-    public static void showScenarioInfoDialog
-        (final SOCScenario sc, SOCGameOptionSet gameOpts, SOCGameOptionSet knownOpts, final int vpWinner,
-         final MainDisplay md, final Window parent)
+    private static void appendScenarioLongDescription(final StringBuilder sb, final SOCScenario sc)
     {
-        if (sc == null)
-            return;
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(strings.get("game.options.scenario.label"));  // "Game Scenario:"
-        sb.append(' ');
-        sb.append(sc.getDesc());
-        sb.append('\n');
-
         final String scLongDesc = sc.getLongDesc();
         if (scLongDesc != null)
         {
@@ -2619,44 +2603,121 @@ import soc.util.Version;
             sb.append(scLongDesc);
             sb.append('\n');
         }
+    }
 
-        // Check game for any other _SC_ game opts in effect:
-
-        final String scenOptName = "_" + sc.key;  // "_SC_CLVI"
-        final String optDescScenPrefix = strings.get("game.options.scenario.optprefix");  // "Scenarios:"
-        //      I18N note: showScenarioInfoDialog() assumes scenario game options
-        //      all start with the text "Scenarios:". When localizing, be sure to
-        //      keep a consistent prefix that showScenarioInfoDialog() knows to look for.
+    /**
+     * Append scenario-specific game options to the output as bullet points. Filters
+     * only options related to the scenario (keys starting with "_SC_"), excludes
+     * the scenario's own option entry, and removes the localized prefix used for
+     * display formatting.
+     *
+     * @param sb        StringBuilder accumulating the output text
+     * @param sc        Scenario providing the option key prefix
+     * @param gameOpts  Game options to inspect (may be null)
+     * @param knownOpts Server-known options used if parsing is required
+     */
+    private static void appendScenarioOptions(final StringBuilder sb, final SOCScenario sc,
+            SOCGameOptionSet gameOpts, final SOCGameOptionSet knownOpts)
+    {
+        final String scenOptName = "_" + sc.key;
+        final String optDescScenPrefix = strings.get("game.options.scenario.optprefix");
 
         if ((gameOpts == null) && (sc.scOpts != null))
             gameOpts = SOCGameOption.parseOptionsToSet(sc.scOpts, knownOpts);
 
-        if (gameOpts != null)
+        if (gameOpts == null)
+            return;
+
+        for (SOCGameOption sgo : gameOpts)
         {
-            for (SOCGameOption sgo : gameOpts)
-            {
-                if (sgo.key.equals(scenOptName))
-                    continue;  // scenario's dedicated game option; we already showed its name from scDesc
-                if (! sgo.key.startsWith("_SC_"))
-                    continue;
+            if (sgo.key.equals(scenOptName))
+                continue;
 
-                String optDesc = sgo.getDesc();
-                if (optDesc.startsWith(optDescScenPrefix))
-                    optDesc = optDesc.substring(optDescScenPrefix.length()).trim();
-                sb.append("\n\u2022 ");  // bullet point before option text
-                sb.append(optDesc);
-            }
+            if (!sgo.key.startsWith("_SC_"))
+                continue;
+
+            String optDesc = sgo.getDesc();
+            if (optDesc.startsWith(optDescScenPrefix))
+                optDesc = optDesc.substring(optDescScenPrefix.length()).trim();
+
+            sb.append("\n\u2022 ");
+            sb.append(optDesc);
         }
+    }
 
+    /**
+     * Append victory point information if it differs from the standard value.
+     * Displays the value as a bullet point in the output.
+     *
+     * @param sb       StringBuilder accumulating the output text
+     * @param vpWinner Victory points required to win
+     */
+    private static void appendScenarioVictoryPoints(final StringBuilder sb, final int vpWinner)
+    {
         if (vpWinner != SOCGame.VP_WINNER_STANDARD)
         {
             sb.append("\n\u2022 ");
-            sb.append(strings.get("game.options.scenario.vp"));  // "Victory Points to win:"
+            sb.append(strings.get("game.options.scenario.vp"));
             sb.append(' ');
             sb.append(vpWinner);
         }
+    }
 
-        final String scenStr = sb.toString();
+    /**
+     * Construct the full scenario information text to be displayed in the dialog.
+     * Combines scenario description, optional long description, scenario-specific
+     * game options, and victory point information into a formatted string.
+     *
+     * @param sc        The scenario to describe (non-null)
+     * @param gameOpts  Game options to inspect, or null to derive from scenario
+     * @param knownOpts Server-known options used when parsing scenario options
+     * @param vpWinner  Victory points required to win
+     * @return A formatted string containing all scenario information
+     */
+    private static String buildScenarioInfoText(final SOCScenario sc, SOCGameOptionSet gameOpts,
+            final SOCGameOptionSet knownOpts, final int vpWinner)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(strings.get("game.options.scenario.label"));
+        sb.append(' ');
+        sb.append(sc.getDesc());
+        sb.append('\n');
+
+        appendScenarioLongDescription(sb, sc);
+        appendScenarioOptions(sb, sc, gameOpts, knownOpts);
+        appendScenarioVictoryPoints(sb, vpWinner);
+
+        return sb.toString();
+    }
+
+    /**
+     * Show a popup window with this scenario's description, special rules, and
+     * number of victory points to win. Calls
+     * {@link EventQueue#invokeLater(Runnable)}.
+     * 
+     * @param sc        A {@link SOCScenario}, or {@code null} to do nothing
+     * @param gameOpts  All game options if current game, or null to extract from
+     *                  {@code sc}'s {@link SOCScenario#scOpts}
+     * @param knownOpts Server's Known Options, from
+     *                  {@link ServerGametypeInfo#knownOpts}
+     * @param vpWinner  Number of victory points to win, or
+     *                  {@link SOCGame#VP_WINNER_STANDARD}.
+     * @param md        Player client's main display, required for {@link AskDialog}
+     *                  constructor
+     * @param parent    Current game's player interface, or another Frame or Dialog
+     *                  for our parent window, or null to look for {@code cli}'s
+     *                  Frame/Dialog as parent
+     * @since 2.0.00
+     */
+    public static void showScenarioInfoDialog(final SOCScenario sc, SOCGameOptionSet gameOpts,
+            SOCGameOptionSet knownOpts, final int vpWinner,
+            final MainDisplay md, final Window parent)
+    {
+        if (sc == null)
+            return;
+
+        final String scenStr = buildScenarioInfoText(sc, gameOpts, knownOpts, vpWinner);
         NotifyDialog.createAndShow(md, parent, scenStr, null, true);
     }
 
