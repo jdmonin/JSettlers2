@@ -21,6 +21,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Dev card is returned to their hand
 	    - That player's client must be v2.7.00 or newer; other players can use older clients
 	- New optional house rule: Allow undo building and moving pieces (new game option `UB`; requires client v2.7.00 or newer)
+	    - Includes placements from Road Building card
 	    - For convenience, in Practice games this rule is on by default
 	    - Also is on by default when client and server both support the option (using Opportunistic Game Options and FLAG_SET_AT_CLIENT_ONCE)
 	    - Builds/moves which reveal fog hexes can't be undone, so players can't peek to choose the best hex

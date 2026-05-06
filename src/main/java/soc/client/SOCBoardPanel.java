@@ -9635,6 +9635,7 @@ import javax.swing.JComponent;
                   undoItem.setLabel(txt);
               } else {
                   undoItem = new MenuItem(txt);
+                  undoItem.addActionListener(this);
                   insert(undoItem, 2);
               }
           }

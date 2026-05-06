@@ -295,6 +295,7 @@ public class TestActionsMessages
         assertEquals(SOCPlayingPiece.SETTLEMENT, act.param1);
         assertEquals(SETTLEMENT_NODE, act.param2);
         assertEquals(CLIENT_PN, act.param3);
+        assertFalse(act.isBuildingFreeRoad1());
         // effects are tracked only at server
         {
             List<GameAction.Effect> effects = act.effects;
@@ -433,6 +434,7 @@ public class TestActionsMessages
         assertEquals(SOCPlayingPiece.SHIP, act.param1);
         assertEquals(SHIP_EDGE, act.param2);
         assertEquals(CLIENT_PN, act.param3);
+        assertFalse(act.isBuildingFreeRoad1());
         {
             List<GameAction.Effect> effects = act.effects;
             assertNotNull(effects);
@@ -1088,6 +1090,9 @@ public class TestActionsMessages
         GameAction act = ga.getLastAction(), actAtCli = gaAtCli.getLastAction();
         assertNotNull(testDesc, act);
         assertNotNull(testDesc, actAtCli);
+        assertFalse(act.isBuildingFreeRoad1());
+        assertFalse(actAtCli.isBuildingFreeRoad1());
+
         if (movedFromCoord == 0)
         {
             assertEquals(testDesc, GameAction.ActionType.BUILD_PIECE, act.actType);
@@ -2662,13 +2667,17 @@ public class TestActionsMessages
         for (SOCGame ga : gaEverywhere)
         {
             assertEquals(SOCGame.PLACING_FREE_ROAD2, ga.getGameState());
-            assertTrue(ga.getBoard().roadOrShipAtEdge(ROAD_EDGE_1) instanceof SOCRoad);
+            SOCRoutePiece rp = ga.getBoard().roadOrShipAtEdge(ROAD_EDGE_1);
+            assertTrue(rp instanceof SOCRoad);  // also asserts not null
+            assertTrue(ga.canUndoPutPiece(CLIENT_PN, rp));
+
             GameAction act = ga.getLastAction();
             assertNotNull(act);
             assertEquals(GameAction.ActionType.BUILD_PIECE, act.actType);
             assertEquals(SOCPlayingPiece.ROAD, act.param1);
             assertEquals(ROAD_EDGE_1, act.param2);
             assertEquals(CLIENT_PN, act.param3);
+            assertTrue(act.isBuildingFreeRoad1());
             {
                 List<GameAction.Effect> effects = act.effects;
                 assertNotNull(effects);
@@ -2688,7 +2697,10 @@ public class TestActionsMessages
         for (SOCGame ga : gaEverywhere)
         {
             assertEquals(SOCGame.PLAY1, ga.getGameState());
-            assertTrue(ga.getBoard().roadOrShipAtEdge(ROAD_EDGE_2) instanceof SOCRoad);
+            SOCRoutePiece rp = ga.getBoard().roadOrShipAtEdge(ROAD_EDGE_2);
+            assertTrue(rp instanceof SOCRoad);  // also asserts not null
+            assertTrue(ga.canUndoPutPiece(CLIENT_PN, rp));
+
             SOCPlayer lrPl =  ga.getPlayerWithLongestRoad();
             assertNotNull(lrPl);
             assertEquals(CLIENT_PN, lrPl.getPlayerNumber());
@@ -2698,6 +2710,7 @@ public class TestActionsMessages
             assertEquals(SOCPlayingPiece.ROAD, act.param1);
             assertEquals(ROAD_EDGE_2, act.param2);
             assertEquals(CLIENT_PN, act.param3);
+            assertFalse(act.isBuildingFreeRoad1());
             {
                 List<GameAction.Effect> effects = act.effects;
                 assertNotNull(effects);

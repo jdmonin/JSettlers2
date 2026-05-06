@@ -4977,7 +4977,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Can this player currently undo placing (building) this piece?
      * {@link #getLastAction()} must be the placement of this piece ({@link ActionType#BUILD_PIECE}).
-     * Must be current player. Game state must be {@link #PLAY1} or {@link #SPECIAL_BUILDING}.
+     * Must be current player. Game state must be {@link #PLAY1} or {@link #SPECIAL_BUILDING},
+     * or {@link #PLACING_FREE_ROAD2} if {@link GameAction#isBuildingFreeRoad1() lastAction.isBuildingFreeRoad1()}.
      * {@link GameAction#cannotUndoReason} must be {@code null}.
      * {@link SOCGameOption} {@code "UB"} must be set.
      * If using game option {@code "UBL"}, player's {@link SOCPlayer#getUndosRemaining()} must be &gt; 0.
@@ -4992,7 +4993,9 @@ public class SOCGame implements Serializable, Cloneable
     {
         final GameAction buildAct = lastAction;
         final int ptype = pp.getType();
-        boolean ok = (pn == currentPlayerNumber) && ((gameState == PLAY1) || (gameState == SPECIAL_BUILDING))
+        boolean ok = (pn == currentPlayerNumber)
+            && ((gameState == PLAY1) || (gameState == SPECIAL_BUILDING)
+                || ((gameState == PLACING_FREE_ROAD2) && buildAct.isBuildingFreeRoad1()))
             && (ptype >= SOCPlayingPiece.ROAD) && (ptype <= SOCPlayingPiece.SHIP)
             && (buildAct != null) && (buildAct.actType == ActionType.BUILD_PIECE)
             && (buildAct.cannotUndoReason == null)
