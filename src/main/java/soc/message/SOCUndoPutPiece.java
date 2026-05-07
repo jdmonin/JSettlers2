@@ -83,7 +83,7 @@ public class SOCUndoPutPiece extends SOCMessage
     private final int playerNumber;
 
     /**
-     * The coordinates of the piece; must be &gt; 0. If undoing a move, the coordinates after the move.
+     * The coordinates of the piece; must be &gt;= 0. If undoing a move, the coordinates after the move.
      */
     private final int coordinates;
 
@@ -99,8 +99,8 @@ public class SOCUndoPutPiece extends SOCMessage
      * @param pt  type of playing piece, such as {@link SOCPlayingPiece#CITY}; must be >= 0
      * @param pn  player number, or -1 for server decline replies.
      *     Sent from server, ignored if sent from client.
-     * @param co  coordinates; must be &gt; 0
-     * @throws IllegalArgumentException if {@code pt} &lt; 0 or {@code co} &lt;= 0
+     * @param co  coordinates; must be &gt;= 0
+     * @throws IllegalArgumentException if {@code pt} &lt; 0 or {@code co} &lt; 0
      * @see #SOCUndoPutPiece(String, int, int, int, int)
      */
     public SOCUndoPutPiece(String gn, int pn, int pt, int co)
@@ -126,10 +126,12 @@ public class SOCUndoPutPiece extends SOCMessage
     {
         if (pt < 0)
             throw new IllegalArgumentException("pt: " + pt);
-        if (co <= 0)
-            throw new IllegalArgumentException("coord <= 0: " + co);
+        if (co < 0)
+            throw new IllegalArgumentException("coord < 0: " + co);
         if (fromCo < 0)
             throw new IllegalArgumentException("fromCo < 0: " + fromCo);
+        else if ((fromCo > 0) && (co <= 0))
+            throw new IllegalArgumentException("move coord <= 0: " + co);
 
         messageType = UNDOPUTPIECE;
         game = gn;
@@ -165,7 +167,7 @@ public class SOCUndoPutPiece extends SOCMessage
 
     /**
      * Get the coordinates of the piece whose placement or move is being undone.
-     * @return the coordinates; is &gt; 0. If undoing a move (not a build), the coordinates after the move.
+     * @return the coordinates; is &gt;= 0. If undoing a move (not a build), the coordinates after the move.
      * @see #getMovedFromCoordinates()
      */
     public int getCoordinates()
@@ -175,6 +177,7 @@ public class SOCUndoPutPiece extends SOCMessage
 
     /**
      * If undoing a move, get the piece's former coordinates before the move.
+     * Roads can't be moved, so a move can't be from 0 which is a valid edge only on the non-sea 6-player board.
      * @return the coordinates (&gt; 0), or 0 if undoing a build instead of a move
      * @see #getCoordinates()
      */
