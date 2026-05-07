@@ -643,7 +643,7 @@ import javax.swing.JComponent;
     private final static int NONE = 0;
 
     /**
-     * Place a road, or place a free road when not {@link #isLargeBoard}.
+     * Place a road.
      * @see #PLACE_FREE_ROAD_OR_SHIP
      */
     private final static int PLACE_ROAD = 1;
@@ -710,8 +710,10 @@ import javax.swing.JComponent;
     private final static int PLACE_SHIP = 15;
 
     /**
-     * Place a free road or ship on the large sea board.
-     * If not {@link #isLargeBoard}, use {@link #PLACE_ROAD} instead.
+     * Place a free road or ship.
+     *<P>
+     * Before v2.7.00 this was used only on the large sea board;
+     * classic and 6-player boards used {@link #PLACE_ROAD} instead.
      * @since 2.0.00
      */
     private final static int PLACE_FREE_ROAD_OR_SHIP = 16;
@@ -5998,10 +6000,7 @@ import javax.swing.JComponent;
 
                 case SOCGame.PLACING_FREE_ROAD1:
                 case SOCGame.PLACING_FREE_ROAD2:
-                    if (isLargeBoard)
-                        mode = PLACE_FREE_ROAD_OR_SHIP;
-                    else
-                        mode = PLACE_ROAD;
+                    mode = PLACE_FREE_ROAD_OR_SHIP;
                     break;
 
                 case SOCGame.PLACING_SETTLEMENT:
