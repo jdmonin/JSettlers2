@@ -9406,7 +9406,9 @@ import javax.swing.JComponent;
                       cancelBuildItem.setLabel(strings.get
                           ((gs == SOCGame.PLACING_FREE_ROAD1)
                            ? "board.cancel.card.roadbuilding"  // "Cancel Road Building card"
-                           : "board.build.skip.road.ship"));   // "Skip free road or ship"
+                           : (isLargeBoard
+                              ? "board.build.skip.road.ship"   // "Skip free road or ship"
+                              : "board.build.skip.road")));    // "Skip free road"
                   }
                   buildRoadItem.setEnabled(hR != 0);
                   buildSettleItem.setEnabled(false);
