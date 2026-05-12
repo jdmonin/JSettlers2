@@ -9228,13 +9228,6 @@ import javax.swing.JComponent;
           }
           boolean removeTradeSubmenu = false;  // do cleanup from last showBuild?
           boolean enableCancel = menuPlayerIsCurrent && game.canCancelBuildPiece(buildType);
-          if (enableCancel && ! game.isPractice)
-          {
-              final int gameState = game.getGameState(), sVersion = playerInterface.client.sVersion;
-              if (((gameState == SOCGame.PLACING_FREE_ROAD1) && (sVersion < SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))
-                  || ((gameState == SOCGame.PLACING_FREE_ROAD2) && (sVersion < SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2)))
-                  enableCancel = false;
-          }
           cancelBuildItem.setEnabled(enableCancel);
           if (undoItem != null)
           {
