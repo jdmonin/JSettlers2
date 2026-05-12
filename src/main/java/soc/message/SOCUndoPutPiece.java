@@ -95,35 +95,37 @@ public class SOCUndoPutPiece extends SOCMessage
     /**
      * Create a {@link SOCUndoPutPiece} message to undo a piece build (not a move).
      *
-     * @param gn  name of the game
+     * @param gaName  name of the game; not null or empty
      * @param pt  type of playing piece, such as {@link SOCPlayingPiece#CITY}; must be >= 0
      * @param pn  player number, or -1 for server decline replies.
      *     Sent from server, ignored if sent from client.
      * @param co  coordinates; must be &gt;= 0
-     * @throws IllegalArgumentException if {@code pt} &lt; 0 or {@code co} &lt; 0
+     * @throws IllegalArgumentException if {@code gaName} null or empty, {@code pt} &lt; 0 or {@code co} &lt; 0
      * @see #SOCUndoPutPiece(String, int, int, int, int)
      */
-    public SOCUndoPutPiece(String gn, int pn, int pt, int co)
+    public SOCUndoPutPiece(String gaName, int pn, int pt, int co)
         throws IllegalArgumentException
     {
-        this(gn, pn, pt, co, 0);
+        this(gaName, pn, pt, co, 0);
     }
 
     /**
      * Create a {@link SOCUndoPutPiece} message to undo a piece move (not a build).
      *
-     * @param gn  name of the game
+     * @param gaName  name of the game; not null or empty
      * @param pt  type of playing piece, such as {@link SOCPlayingPiece#CITY}; must be >= 0
      * @param pn  player number, or -1 for server decline replies.
      *     Sent from server, ignored if sent from client.
      * @param co  current coordinates; must be &gt; 0
      * @param fromCo  former coordinates before the move; must be &gt; 0 (otherwise it's undoing a build)
-     * @throws IllegalArgumentException if {@code pt} &lt; 0, {@code co} &lt;= 0, or {@code fromCo} &lt; 0
+     * @throws IllegalArgumentException if {@code gaName} null or empty, {@code pt} &lt; 0, {@code co} &lt;= 0, or {@code fromCo} &lt; 0
      * @see #SOCUndoPutPiece(String, int, int, int)
      */
-    public SOCUndoPutPiece(String gn, int pn, int pt, int co, int fromCo)
+    public SOCUndoPutPiece(String gaName, int pn, int pt, int co, int fromCo)
         throws IllegalArgumentException
     {
+        if ((gaName == null) || gaName.isEmpty())
+            throw new IllegalArgumentException("gaName");
         if (pt < 0)
             throw new IllegalArgumentException("pt: " + pt);
         if (co < 0)
@@ -134,7 +136,7 @@ public class SOCUndoPutPiece extends SOCMessage
             throw new IllegalArgumentException("move coord <= 0: " + co);
 
         messageType = UNDOPUTPIECE;
-        game = gn;
+        game = gaName;
         pieceType = pt;
         playerNumber = pn;
         coordinates = co;

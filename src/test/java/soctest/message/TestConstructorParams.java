@@ -45,6 +45,33 @@ public class TestConstructorParams
         msg = new SOCUndoPutPiece("ga", 3, 1, 0x11, 0x22);
         assertNotNull("all-ok undo-move constructor", msg);
 
+        // gaName:
+
+        try {
+            msg = new SOCUndoPutPiece(null, 3, 1, 0x11);
+            fail("should disallow null gaName");
+        } catch (IllegalArgumentException e) {
+            assertEquals("gaName", e.getMessage());
+        }
+        try {
+            msg = new SOCUndoPutPiece(null, 3, 1, 0x11, 0x22);
+            fail("should disallow null gaName");
+        } catch (IllegalArgumentException e) {
+            assertEquals("gaName", e.getMessage());
+        }
+        try {
+            msg = new SOCUndoPutPiece("", 3, 1, 0x11);
+            fail("should disallow empty gaName");
+        } catch (IllegalArgumentException e) {
+            assertEquals("gaName", e.getMessage());
+        }
+        try {
+            msg = new SOCUndoPutPiece("", 3, 1, 0x11, 0x22);
+            fail("should disallow empty gaName");
+        } catch (IllegalArgumentException e) {
+            assertEquals("gaName", e.getMessage());
+        }
+
         // pieceType:
 
         msg = new SOCUndoPutPiece("ga", 3, 0, 0x11);
