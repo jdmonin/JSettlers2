@@ -1073,6 +1073,7 @@ public class TestRecorder
      *     <LI> {@link StartedTestGameObjects#board} is a {@link SOCBoardLarge}
      *     <LI> will be client player's turn
      *     <LI> game state will be {@link SOCGame#PLAY1 PLAY1}
+     *     <LI> {@link SOCGameOption} {@code "UB"} is set
      *   </UL>
      *</UL>
      * When {@code clientAsRobot}, the client's locale and i18n manager are cleared to null as a bot's would be.
@@ -1171,6 +1172,10 @@ public class TestRecorder
         {
             assertEquals("message-seqs", sgm.gameName);
             assertEquals(4, sgm.playerSeats.length);
+            SOCGame sgmGame = sgm.getGame();
+            SOCGameOptionSet opts = sgmGame.getGameOptions();
+            assertNotNull("SGM.getGame has gameopts: " + sgmGame.getName(), opts);
+            assertTrue("SGM(message-seqs) has gameopt UB: " + sgmGame.getName(), opts.isOptionSet("UB"));
         }
         final int clientPN = sgm.playerSeats.length - 1;
         assertEquals("debug", sgm.playerSeats[clientPN].name);
@@ -1493,11 +1498,11 @@ public class TestRecorder
         final Vector<EventEntry> records = objs.records;
 
         /* check SOCGameStats(TYPE_TIMING) sent from server to client */
-        int dur = ga.getDurationSeconds(), secondsFromExpected = Math.abs(dur - 1096);
-        assertTrue("server: ga.getDurationSeconds() is ~ 1096 (actual " + dur + ')', secondsFromExpected < 3);
+        int dur = ga.getDurationSeconds(), secondsFromExpected = Math.abs(dur - 1103);
+        assertTrue("server: ga.getDurationSeconds() is ~ 1103 (actual " + dur + ')', secondsFromExpected < 3);
         dur = tcli.getGame(ga.getName()).getDurationSeconds();
-        secondsFromExpected = Math.abs(dur - 1096);
-        assertTrue("client: ga.getDurationSeconds() is ~ 1096 (actual " + dur + ')', secondsFromExpected < 3);
+        secondsFromExpected = Math.abs(dur - 1103);
+        assertTrue("client: ga.getDurationSeconds() is ~ 1103 (actual " + dur + ')', secondsFromExpected < 3);
 
         /* sequence recording: build road */
 
@@ -1513,12 +1518,16 @@ public class TestRecorder
         records.clear();
         assertEquals(23, ga.getNumDevCards());
         assertEquals(5, cliPl.getInventory().getTotal());
+        assertEquals(2, cliPl.getTotalVP());
+        assertEquals(2, cliPl.getPublicVP());
         tcli.buyDevCard(ga);
 
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         assertEquals(22, ga.getNumDevCards());
         assertEquals(6, cliPl.getInventory().getTotal());
+        assertEquals("bought VP card", 3, cliPl.getTotalVP());
+        assertEquals(2, cliPl.getPublicVP());
 
         StringBuilder comparesBuyCard = compareRecordsToExpected
             (records, new String[][]

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2020-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2020-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -378,8 +378,9 @@ public class TestToCmdToStringParse
      * @return  a SortedMap with those keys and values
      * @throws NullPointerException if {@code keys} or {@code vals} is null
      * @throws IllegalArgumentException if {@code keys} and {@code vals} don't have equal length
+     * @since 2.7.00
      */
-    private static final SortedMap<String, Integer> sortedMapOf
+    /* package */ static final SortedMap<String, Integer> sortedMapOf
         (final String[] keys, final int[] vals)
         throws NullPointerException, IllegalArgumentException
     {
@@ -424,7 +425,7 @@ public class TestToCmdToStringParse
      * Test data: a {@link SortedMap} of {@link SOCGameOption}s {@code "UB"} and {@code "UBL"}.
      * @since 2.7.00
      */
-    private static final TreeMap<String, SOCGameOption> MAP_SGO_UB_UBL;
+    /* package */ static final TreeMap<String, SOCGameOption> MAP_SGO_UB_UBL;
     static
     {
         MAP_SGO_UB_UBL = new TreeMap<>();

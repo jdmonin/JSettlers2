@@ -77,6 +77,12 @@ public class SOCStringManager extends StringManager
     public static final int VERSION_FOR_I18N = 2000;
 
     /**
+     * Path and prefix of {@link #getClientManager(Locale)} localized properties files.
+     * @since 2.7.00
+     */
+    public static final String PROPS_PATH_AT_CLIENT = "resources/strings/client/data";
+
+    /**
      * Path and prefix of {@link #getServerManagerForClient(Locale)} properties files.
      */
     public static final String PROPS_PATH_SERVER_FOR_CLIENT = "resources/strings/server/toClient";
@@ -394,7 +400,7 @@ public class SOCStringManager extends StringManager
     public static SOCStringManager getClientManager()
     {
         if(clientManager == null)
-            clientManager = new SOCStringManager("resources/strings/client/data");
+            clientManager = new SOCStringManager(PROPS_PATH_AT_CLIENT);
 
         return clientManager;
     }
@@ -410,7 +416,7 @@ public class SOCStringManager extends StringManager
     public static SOCStringManager getClientManager(Locale loc)
     {
         if (clientManager == null)
-            clientManager = new SOCStringManager("resources/strings/client/data", loc);
+            clientManager = new SOCStringManager(PROPS_PATH_AT_CLIENT, loc);
 
         return clientManager;
     }

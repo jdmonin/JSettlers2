@@ -3,7 +3,7 @@
  * This file Copyright (C) 2016 Alessandro D'Ottavio
  * Some contents were formerly part of SOCServer.java and SOCGameHandler.java;
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  * Portions of this file Copyright (C) 2017-2018 Strategic Conversation (STAC Project) https://www.irit.fr/STAC/
  *
@@ -3046,6 +3046,7 @@ public class SOCGameMessageHandler
             }
 
             boolean sendDenyReply = true;  // if false, will send undo sequence ending with SOCGameState
+            List<SOCMessage> msgsAfter = null;  // any side effects of undo sequence
 
             if ((act.actType == GameAction.ActionType.MOVE_PIECE) && (pp instanceof SOCShip))
             {
@@ -3053,13 +3054,10 @@ public class SOCGameMessageHandler
                 {
                     final GameAction undoShipMove = ga.undoMoveShip((SOCShip) pp);
                     sendDenyReply = false;
-                    List<SOCMessage> msgsAfter = sendUndoSideEffects(ga, undoShipMove, SOCPlayingPiece.SHIP);
+                    msgsAfter = sendUndoSideEffects(ga, undoShipMove, SOCPlayingPiece.SHIP);
                     srv.messageToGame
                         (gaName, true,
                          new SOCUndoPutPiece(gaName, pn, pieceType, coord, undoShipMove.param3));
-                    if (msgsAfter != null)
-                        for (SOCMessage m : msgsAfter)
-                            srv.messageToGame(gaName, true, m);
                 }
             }
             else if (pp != null)
@@ -3068,13 +3066,10 @@ public class SOCGameMessageHandler
                 {
                     final GameAction undoBuild = ga.undoPutPiece(pp);
                     sendDenyReply = false;
-                    List<SOCMessage> msgsAfter = sendUndoSideEffects(ga, undoBuild, pieceType);
+                    msgsAfter = sendUndoSideEffects(ga, undoBuild, pieceType);
                     srv.messageToGame
                         (gaName, true,
                          new SOCUndoPutPiece(gaName, pn, pieceType, coord));
-                    if (msgsAfter != null)
-                        for (SOCMessage m : msgsAfter)
-                            srv.messageToGame(gaName, true, m);
                 }
             }
 
@@ -3087,8 +3082,21 @@ public class SOCGameMessageHandler
                 srv.messageToPlayer
                     (c, gaName, pn, new SOCUndoPutPiece(gaName, -1, pieceType, coord));
             } else {
-                srv.messageToGame
-                    (gaName, true, new SOCGameState(gaName, ga.getGameState()));
+                SOCGameState gsMsg = null;
+                if (msgsAfter != null)
+                    for (SOCMessage m : msgsAfter)
+                    {
+                        srv.messageToGame(gaName, true, m);
+                        if (m instanceof SOCGameState)
+                            gsMsg = (SOCGameState) m;
+                    }
+
+                final int gameState = ga.getGameState();
+                if ((gsMsg == null) || (gameState != gsMsg.getState()))  // gameState won't differ unless there's a bug
+                    srv.messageToGame
+                        (gaName, true, new SOCGameState(gaName, gameState));
+                // send any related prompts/text:
+                handler.sendGameState(ga, true, true, true);
             }
         } finally {
             ga.releaseMonitor();
@@ -3412,14 +3420,7 @@ public class SOCGameMessageHandler
                         srv.gameList.releaseMonitorForGame(gaName);
 
                         handler.sendGameState(ga);
-                        if (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1)
-                            srv.messageToPlayerKeyed
-                                (c, gaName, pn, (ga.hasSeaBoard) ? "action.card.road.place.2s" : "action.card.road.place.2r");
-                            // "You may place 2 roads/ships." or "You may place 2 roads."
-                        else
-                            srv.messageToPlayerKeyed
-                                (c, gaName, pn, (ga.hasSeaBoard) ? "action.card.road.place.1s" : "action.card.road.place.1r");
-                            // "You may place your 1 remaining road or ship." or "... place your 1 remaining road."
+                            // also sends prompt text "You may place 2 roads/ships." or "... place your 1 remaining road."
                     } else {
                         denyPlayCardNow = true;  // "You can't play a Road Building card now."
                     }

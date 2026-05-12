@@ -756,6 +756,7 @@ public class SOCGame implements Serializable, Cloneable
      * {@link SOCPlayer#setPlayerEvents(int)} or other related fields, before the GAMESTATE message.
      *<P>
      * For pending messages to send only to one player's client, see {@link SOCPlayer#pendingMessagesOut}.
+     * Game's {@code pendingMessagesOut} (this queue) are sent before each player's {@code pendingMessagesOut}.
      *<P>
      * <B>Contents:</B> When sending out to game members, the server handles queue elements by class:
      *<UL>
@@ -4267,7 +4268,7 @@ public class SOCGame implements Serializable, Cloneable
             effects.add(new GameAction.Effect(EffectType.CHANGE_GAMESTATE, oldNewGS));
         }
 
-        if (longestRoadPN != playerWithLongestRoad)
+        if (longestRoadPN != playerWithLongestRoad)  // happens only at server
         {
             if (effects == null)
                 effects = new ArrayList<>();
@@ -4976,7 +4977,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Can this player currently undo placing (building) this piece?
      * {@link #getLastAction()} must be the placement of this piece ({@link ActionType#BUILD_PIECE}).
-     * Must be current player. Game state must be {@link #PLAY1} or {@link #SPECIAL_BUILDING}.
+     * Must be current player. Game state must be {@link #PLAY1} or {@link #SPECIAL_BUILDING},
+     * or {@link #PLACING_FREE_ROAD2} if {@link GameAction#isBuildingFreeRoad1() lastAction.isBuildingFreeRoad1()}.
      * {@link GameAction#cannotUndoReason} must be {@code null}.
      * {@link SOCGameOption} {@code "UB"} must be set.
      * If using game option {@code "UBL"}, player's {@link SOCPlayer#getUndosRemaining()} must be &gt; 0.
@@ -4991,7 +4993,9 @@ public class SOCGame implements Serializable, Cloneable
     {
         final GameAction buildAct = lastAction;
         final int ptype = pp.getType();
-        boolean ok = (pn == currentPlayerNumber) && ((gameState == PLAY1) || (gameState == SPECIAL_BUILDING))
+        boolean ok = (pn == currentPlayerNumber)
+            && ((gameState == PLAY1) || (gameState == SPECIAL_BUILDING)
+                || ((gameState == PLACING_FREE_ROAD2) && buildAct.isBuildingFreeRoad1()))
             && (ptype >= SOCPlayingPiece.ROAD) && (ptype <= SOCPlayingPiece.SHIP)
             && (buildAct != null) && (buildAct.actType == ActionType.BUILD_PIECE)
             && (buildAct.cannotUndoReason == null)
@@ -9832,7 +9836,7 @@ public class SOCGame implements Serializable, Cloneable
      * All players' {@link SOCPlayer#getLongestRoadLength()} is called here.
      *<P>
      * For consistency, recalculates {@link #getPlayerWithLongestRoad()} only if {@link #isAtServer};
-     * client only calls each player's {@code calcLongestRoad2}.
+     * client only calls {@code pn}'s {@link SOCPlayer#calcLongestRoad2()}.
      * Before version 2.4.00 ({@link #VERSION_FOR_LONGEST_LARGEST_FROM_SERVER}),
      * Longest Road was fully calculated at both client and server.
      *<P>

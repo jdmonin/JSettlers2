@@ -59,7 +59,8 @@ public class GameAction
     /**
      * Side-effects of the action, if any, or {@code null}.
      * Not used when extracting actions from a {@link GameEventLog}.
-     * Used only at server, not sent to clients; may contain hidden info about players.
+     * Used fully only at server, not sent to clients; may contain hidden info about players.
+     * Client has partial info; some effects are added there by game methods.
      * @since 2.7.00
      */
     public final List<Effect> effects;
@@ -218,6 +219,27 @@ public class GameAction
     }
 
     /**
+     * Is this action the placement of the first free road or ship from a {@link SOCDevCardConstants#ROADS} card?
+     * @return  True if {@link #actType} == {@link GameAction.ActionType#BUILD_PIECE BUILD_PIECE}
+     *    and {@link #effects} include a {@link GameAction.EffectType#CHANGE_GAMESTATE CHANGE_GAMESTATE}
+     *    from {@link SOCGame#PLACING_FREE_ROAD1} to {@link SOCGame#PLACING_FREE_ROAD2}
+     * @since 2.7.00
+     */
+    public boolean isBuildingFreeRoad1()
+    {
+        if ((actType != ActionType.BUILD_PIECE) || (effects == null))
+            return false;
+
+        for (Effect e : effects)
+            if ((e.eType == EffectType.CHANGE_GAMESTATE)
+                && e.params[0] == SOCGame.PLACING_FREE_ROAD1
+                && e.params[1] == SOCGame.PLACING_FREE_ROAD2)
+                return true;
+
+        return false;
+    }
+
+    /**
      * Contents for debugging, formatted like:
      *<pre>
      * GameAction(ROLL_DICE, p1=12)
@@ -361,6 +383,7 @@ public class GameAction
          * unless the piece was free (road building card, etc).
          *
          * @see #UNDO_BUILD_PIECE
+         * @see GameAction#isBuildingFreeRoad1()
          */
         BUILD_PIECE(40),
 
@@ -666,6 +689,9 @@ public class GameAction
          * Player with longest road has changed.
          * Params: old LR playerNumber, new LR playerNumber.
          * Either can be -1 for none.
+         *<P>
+         * This effect is seen only at server: For consistency the client doesn't calculate Longest Road player,
+         * instead that's announced by the server after the PutPiece or MovePiece message.
          */
         CHANGE_LONGEST_ROAD_PLAYER(30),
 

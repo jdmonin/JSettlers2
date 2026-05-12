@@ -643,7 +643,7 @@ import javax.swing.JComponent;
     private final static int NONE = 0;
 
     /**
-     * Place a road, or place a free road when not {@link #isLargeBoard}.
+     * Place a road.
      * @see #PLACE_FREE_ROAD_OR_SHIP
      */
     private final static int PLACE_ROAD = 1;
@@ -710,8 +710,10 @@ import javax.swing.JComponent;
     private final static int PLACE_SHIP = 15;
 
     /**
-     * Place a free road or ship on the large sea board.
-     * If not {@link #isLargeBoard}, use {@link #PLACE_ROAD} instead.
+     * Place a free road or ship.
+     *<P>
+     * Before v2.7.00 this was used only on the large sea board;
+     * classic and 6-player boards used {@link #PLACE_ROAD} instead.
      * @since 2.0.00
      */
     private final static int PLACE_FREE_ROAD_OR_SHIP = 16;
@@ -5998,10 +6000,7 @@ import javax.swing.JComponent;
 
                 case SOCGame.PLACING_FREE_ROAD1:
                 case SOCGame.PLACING_FREE_ROAD2:
-                    if (isLargeBoard)
-                        mode = PLACE_FREE_ROAD_OR_SHIP;
-                    else
-                        mode = PLACE_ROAD;
+                    mode = PLACE_FREE_ROAD_OR_SHIP;
                     break;
 
                 case SOCGame.PLACING_SETTLEMENT:
@@ -7271,6 +7270,10 @@ import javax.swing.JComponent;
         case PLACE_SHIP:
         case MOVE_SHIP:
             popupMenu.showCancelBuild(SOCPlayingPiece.SHIP, x, y, hilight);
+            break;
+
+        case SC_FTRI_PLACE_PORT:
+            popupMenu.showCancelBuild(SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL, x, y, hilight);
             break;
 
         case PLACE_INIT_ROAD:
@@ -9084,8 +9087,18 @@ import javax.swing.JComponent;
        * Enabled/disabled by methods like {@link #showBuild(int, int, int, int, int, int)}.
        * @see #wantsCancel
        * @see #wantsUndo
+       * @see #undoItem
        */
       final MenuItem cancelBuildItem;
+
+      /**
+       * Menu item to undo the previous placement in situations where the player can also cancel the
+       * next placement, so can't use {@link #cancelBuildItem} as "undo" like usual: {@link SOCGame#PLACING_FREE_ROAD2}.
+       * Positioned at "cancel" item's usual position to help muscle memory where player expects "undo" to be.
+       * Usually {@code null}.
+       * @since 2.7.00
+       */
+      MenuItem undoItem;
 
       /** determined at menu-show time, only over a useable port. Added then, and removed at next menu-show */
       SOCHandPanel.ResourceTradePopupMenu portTradeSubmenu;
@@ -9169,8 +9182,13 @@ import javax.swing.JComponent;
 
       /** Custom 'cancel' show method for when placing a road/settlement/city,
        *  giving the build/cancel options for that type of piece.
+       *<P>
+       *  Not used during {@link SOCGame#PLACING_FREE_ROAD1} or {@link SOCGame#PLACING_FREE_ROAD2 2}:
+       *  Call {@link #showBuild(int, int, int, int, int, int)} instead.
        *
        * @param buildType piece type (SOCPlayingPiece.ROAD, CITY, SETTLEMENT)
+       *     to cancel; can also be {@link SOCCancelBuildRequest#INV_ITEM_PLACE_CANCEL}
+       *     during {@link SOCGame#PLACING_INV_ITEM}
        * @param x   Mouse x-position
        * @param y   Mouse y-position
        * @param hilightAt Current hover/hilight coordinates of piece being cancelled/placed
@@ -9208,15 +9226,14 @@ import javax.swing.JComponent;
                   buildShipItem.setLabel(strings.get("board.build.ship"));  // "Build Ship"
               }
           }
+          boolean removeTradeSubmenu = false;  // do cleanup from last showBuild?
           boolean enableCancel = menuPlayerIsCurrent && game.canCancelBuildPiece(buildType);
-          if (enableCancel && ! game.isPractice)
-          {
-              final int gameState = game.getGameState(), sVersion = playerInterface.client.sVersion;
-              if (((gameState == SOCGame.PLACING_FREE_ROAD1) && (sVersion < SOCGame.VERSION_FOR_CANCEL_FREE_ROAD1))
-                  || ((gameState == SOCGame.PLACING_FREE_ROAD2) && (sVersion < SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2)))
-                  enableCancel = false;
-          }
           cancelBuildItem.setEnabled(enableCancel);
+          if (undoItem != null)
+          {
+              remove(undoItem);
+              undoItem = null;
+          }
 
           // Check for initial placement (for different cancel message)
           isInitialPlacement = game.isInitialPlacement();
@@ -9252,8 +9269,25 @@ import javax.swing.JComponent;
               hoverShipID = hilightAt;
               break;
 
+          case SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL:
+              cancelBuildItem.setLabel(strings.get("board.cancel.item.place"));  // "Cancel item placement"
+              {
+                  SOCInventoryItem placing = game.getPlacingItem();
+                  cancelBuildItem.setEnabled
+                      ((placing != null) && placing.canCancelPlay);
+              }
+              removeTradeSubmenu = true;
+              break;
+
           default:
               throw new IllegalArgumentException ("bad buildtype: " + buildType);
+          }
+
+          if (removeTradeSubmenu && (portTradeSubmenu != null))
+          {
+              remove(portTradeSubmenu);
+              portTradeSubmenu.destroy();
+              portTradeSubmenu = null;
           }
 
           super.show(bp, x, y);
@@ -9293,6 +9327,7 @@ import javax.swing.JComponent;
               // Restore label after previous popup's "Attack Fortress" label for _SC_PIRI
               buildSettleItem.setLabel(strings.get("board.build.stlmt"));  // "Build Settlement"
           }
+          String undoItemTextKey = null;  // set non-null to add undoItem, keep null to remove if currently present
 
           boolean didEnableDisable = true;  // don't go through both sets of menu item enable/disable statements
 
@@ -9368,13 +9403,37 @@ import javax.swing.JComponent;
                           && (playerInterface.client.sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2)))
                   {
                       cancelBuildItem.setEnabled(true);
-                      cancelBuildItem.setLabel(strings.get("board.build.skip.road.ship"));  // "Skip road or ship"
+                      cancelBuildItem.setLabel(strings.get
+                          ((gs == SOCGame.PLACING_FREE_ROAD1)
+                           ? "board.cancel.card.roadbuilding"  // "Cancel Road Building card"
+                           : (isLargeBoard
+                              ? "board.build.skip.road.ship"   // "Skip free road or ship"
+                              : "board.build.skip.road")));    // "Skip free road"
                   }
                   buildRoadItem.setEnabled(hR != 0);
                   buildSettleItem.setEnabled(false);
                   upgradeCityItem.setEnabled(false);
                   if (buildShipItem != null)
                       buildShipItem.setEnabled(hSh != 0);
+
+                  // check if can undo 1st free road/ship
+                  if (gs == SOCGame.PLACING_FREE_ROAD2)
+                  {
+                      final SOCPlayingPiece latest = bp.latestPiecePlacement;
+                      final GameAction act = game.getLastAction();
+                      if ((latest instanceof SOCRoutePiece) && (act != null)
+                          && (act.actType == GameAction.ActionType.BUILD_PIECE)
+                          && game.canUndoPutPiece(playerNumber, latest))
+                      {
+                          int[] xyb = rotateScaleXYFromActual(x, y);
+                          int coord = findEdge(xyb[0], xyb[1], false);
+                          if (board.isEdgeSameOrAdjacent(coord, latest.getCoordinates()))
+                              undoItemTextKey =
+                                  (latest instanceof SOCShip)
+                                  ? "board.undo.build.ship"   // "Undo build Ship"
+                                  : "board.undo.build.road";  // "Undo build Road"
+                      }
+                  }
                   break;
 
               default:
@@ -9559,6 +9618,25 @@ import javax.swing.JComponent;
               }
           }
 
+          if (undoItemTextKey == null)
+          {
+              if (undoItem != null)
+              {
+                  remove(undoItem);
+                  undoItem = null;
+              }
+          } else {
+              String txt = strings.get(undoItemTextKey);
+              if (undoItem != null)
+              {
+                  undoItem.setLabel(txt);
+              } else {
+                  undoItem = new MenuItem(txt);
+                  undoItem.addActionListener(this);
+                  insert(undoItem, 2);
+              }
+          }
+
           super.show(bp, x, y);
       }
 
@@ -9600,6 +9678,11 @@ import javax.swing.JComponent;
           upgradeCityItem.setEnabled(false);
           buildShipItem.setEnabled(false);
           cancelBuildItem.setEnabled(false);
+          if (undoItem != null)
+          {
+              remove(undoItem);
+              undoItem = null;
+          }
           isInitialPlacement = false;
 
           super.show(bp, x, y);
@@ -9647,6 +9730,10 @@ import javax.swing.JComponent;
                   tryUndo();
               else
                   tryCancel();
+          }
+          else if (target == undoItem)
+          {
+              tryUndo();
           }
       }
 
@@ -9794,7 +9881,8 @@ import javax.swing.JComponent;
       /**
        * Cancel placing a building piece, or cancel moving a ship.
        * Calls {@link SOCBuildingPanel#clickBuildingButton(SOCGame, String, boolean)},
-       * except for {@link SOCCancelBuildRequest#CARD} for which it calls {@link GameMessageSender#cancelBuildRequest(SOCGame, int)}.
+       * except for {@link SOCCancelBuildRequest#CARD} and {@link SOCCancelBuildRequest#INV_ITEM_PLACE_CANCEL}
+       * for which it calls {@link GameMessageSender#cancelBuildRequest(SOCGame, int)}.
        */
       void tryCancel()
       {
@@ -9822,7 +9910,8 @@ import javax.swing.JComponent;
               btarget = SOCBuildingPanel.SHIP;
               break;
           case SOCCancelBuildRequest.CARD:
-              playerInterface.getClient().getGameMessageSender().cancelBuildRequest(game, SOCCancelBuildRequest.CARD);
+          case SOCCancelBuildRequest.INV_ITEM_PLACE_CANCEL:
+              playerInterface.getClient().getGameMessageSender().cancelBuildRequest(game, cancelBuildType);
               return;  // <--- Early return: has now sent cancel request ---
           }
           // Use buttons to cancel the build request

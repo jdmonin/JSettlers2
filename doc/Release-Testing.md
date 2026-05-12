@@ -167,6 +167,11 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
       `dev: 2 debug`
     - Test these situations, 1 per turn:
     - Build 2 free roads
+        - After placing first one, should see "You may place your remaining free road."
+        - Right-click to undo placing first road
+        - Place it again at different location
+        - Right-click to undo placing second road
+        - Place it again at different location
     - Build 1 free road, right-click board, choose Cancel, continue to end of turn
         - Should see a dialog to confirm (Place or Skip); click Place
         - Click the Cancel button in the Building panel at bottom of window
@@ -189,7 +194,7 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
     - Debug player: Play card, end turn instead of building; card should be returned to debug's inventory, other player's Special Build should start as usual
     - Debug player: Play card, but skip 2nd free placement
         - During free placement:
-            - Board right-click menu should show Cancel while placing at a road location and ship location
+            - Board right-click menu should show Cancel and Undo while placing at a road location and ship location
             - Building panel should see Cancel buttons for both road and ship
         - Both Cancel buttons should show same confirm dialog (Place or Skip)
             - Click one Cancel, in dialog click Place, then cancel again using the other Cancel button
@@ -255,6 +260,7 @@ Re-test new features of the most recent two releases listed in [Versions.md](Ver
         - Player should show 2 VP and no Longest Route
         - Player's resource counts should be same as before building that latest road
         - Player's Undos remaining should be 6
+    - Undo while playing Road Building is covered by that card's testing
 - Build Settlement and Undo
     - Add resources: `rsrcs: 0 0 2 1 1 debug`
     - Build a ship to reach a small island
@@ -401,6 +407,8 @@ As a non-admin non-debug user, start playing a game. These should all work:
       - Trading port should still be in inventory
       - Build another coastal settlement
       - Should now be able to play that trading port out of inventory
+          - While placing that port: Cancel button in hand panel, and board panel right-click menu, should cancel placement and return it to inventory
+          - After cancel, play from inventory and place it
       - Should be able to trade that port's resources at expected ratio (not 4:1)
   - Trading ports during Special Building phase
       - Start a 6-player game
@@ -409,6 +417,7 @@ As a non-admin non-debug user, start playing a game. These should all work:
       - Start a second client, sit at seat 3 (bottom right) to help observe and confirm turn order
       - In first client, end your turn; ask for Special Building during bot player 2's turn
       - During Special Building, build ships to one of the Tribe's ports; pick up the port and place it
+          - Since you must place now: Cancel button in hand panel and board panel right-click menu should not allow you to cancel placement
       - End Special Building; next player should be number 3, not number 1
       - During all that, second client should observe same sequence of current players
   - Claiming gift Dev Cards and Ports with ship moves

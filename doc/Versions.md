@@ -21,6 +21,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Dev card is returned to their hand
 	    - That player's client must be v2.7.00 or newer; other players can use older clients
 	- New optional house rule: Allow undo building and moving pieces (new game option `UB`; requires client v2.7.00 or newer)
+	    - Includes placements from Road Building card
 	    - For convenience, in Practice games this rule is on by default
 	    - Also is on by default when client and server both support the option (using Opportunistic Game Options and FLAG_SET_AT_CLIENT_ONCE)
 	    - Builds/moves which reveal fog hexes can't be undone, so players can't peek to choose the best hex
@@ -29,6 +30,8 @@ JARs for recent JSettlers versions can be downloaded from
 	    - New clients can have these options on by default, but older clients can still join the game while it's forming
 	    - Once players are seated and the game is starting, if it uses Opportunistic Game Options and any player's client version is too old for those options, the options are removed from that game for backwards compatibility
 	    - If a game still has Opportunistic options after it starts, older clients can't sit as players because it could be unfair to change options during game play
+	- Road Building card: After placing first free road or ship, server sends text prompting you to place second one
+- I18N:
 	- Added German translation (thank you Eudoxia and Quasigroup)
 	- Updated Polish translation (thank you KotCzarny)
 - Client:
@@ -36,7 +39,10 @@ JARs for recent JSettlers versions can be downloaded from
 	    - For visibility when a player builds, highlight most recently placed piece until end of their turn
 	        - Also when ship is converted to warship in Pirate Islands scenario
 	    - Bank/port trade: Bugfix: After making a trade, if player wants to undo that trade but accidentally clicks "Bank/Port" instead of "Undo", couldn't then click Undo because hand panel forgot previous trade
-	    - Road Building: Confirm with dialog when player skips (cancels) placing second free road or ship
+	    - Road Building:
+	        - Improve menu item text to cancel card before placing first free road or ship
+	        - Confirm with dialog when player skips (cancels) placing second free road or ship
+	    - Forgotten Tribe scenario: When placing a gift port from your inventory, can use board's right-click menu to cancel placement (previous versions used Hand Panel's Cancel button)
 	    - Discard, Year of Plenty dialogs: Each resource pick square won't go past prompted amount  
 	      (was no limit in previous versions)
 	    - `*STATS*`: De-clutter player resource trade stats output

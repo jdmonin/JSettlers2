@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2025 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2025-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -74,7 +74,7 @@ public class SOCChangeGameOptions extends SOCMessageTemplateMs
      *</UL>
      */
     public List<String> optsChanges;
- 
+
     /**
      * Optionally, the client names and versions which caused the change or removal, or {@code null} (never empty):
      * Pairs of elements clientName, clientVersionNumber in same format as {@link soc.util.Version#versionNumber()}.
@@ -83,11 +83,13 @@ public class SOCChangeGameOptions extends SOCMessageTemplateMs
 
     /**
      * Constructor for server to send message to client(s).
-     * @param gaName  Game name
+     * @param gaName  Game name; not null or empty
      * @param operation  Operation, such as {@link #OP_REMOVE}, listed in {@link #operation}
-     * @param optsChanged  Info on changed options, in format of {@link #optsChanges}
+     * @param optsChanged  Info on changed options, in format of {@link #optsChanges};
+     *     not null or empty
      * @param changeCauseClientNamesVersions  Optional client info,
-     *     in same format as {@link soc.game.SOCGameOptionSet.RemoveOpportunisticResults#olderCliNamesVersions}
+     *     in same format as {@link soc.game.SOCGameOptionSet.RemoveOpportunisticResults#olderCliNamesVersions};
+     *     can be null but not empty
      * @throws IllegalArgumentException if a parameter doesn't match its requirements documented here
      */
     public SOCChangeGameOptions
@@ -130,7 +132,7 @@ public class SOCChangeGameOptions extends SOCMessageTemplateMs
      * Constructor for client to parse server's message.
      * @param pal  The option's parameters; see {@link #parseDataStr(List)} for format.
      * @throws IllegalArgumentException if pal's length &lt; 4, gameName empty, field parsing fails,
-     *     or doesn't have a valid {@link #operation}
+     *     or doesn't have a valid {@link #operation} or {@link #optsChanges}
      * @throws NumberFormatException    if a field marker's length can't be parsed as a nonnegative integer
      */
     protected SOCChangeGameOptions(List<String> pal)
@@ -144,6 +146,8 @@ public class SOCChangeGameOptions extends SOCMessageTemplateMs
         parseData_FindEmptyStrs(pal);  // EMPTYSTR -> ""
 
         gaName = pal.get(0);
+        if (gaName.isEmpty())
+            throw new IllegalArgumentException("gaName");
         String optStr = pal.get(1);
         if ((optStr.length() != 1) || (optStr.charAt(0) != OP_REMOVE))
             throw new IllegalArgumentException("operation");

@@ -2624,6 +2624,9 @@ public class SOCGameHandler extends GameHandler
      * <B>Note:</B> This method sends only the prompt text, not the {@link SOCDiscardRequest}s
      * sent by {@link #sendGameState_sendDiscardRequests(SOCGame, String)}.
      *<P>
+     * State {@link SOCGame#PLACING_FREE_ROAD1}, {@link SOCGame#PLACING_FREE_ROAD2}:
+     * After sending gamestate, prompts current player to place their 2 or 1 free roads/ships.
+     *<P>
      * State {@link SOCGame#WAITING_FOR_ROB_CHOOSE_PLAYER}:
      * If current player must choose which player to rob,
      * will also prompt their client to choose (in a CHOOSEPLAYERREQUEST).
@@ -2801,6 +2804,29 @@ public class SOCGameHandler extends GameHandler
         case SOCGame.PLACING_PIRATE:
             srv.messageToGameKeyed(ga, true, true, "robber.willmove.pirate", player.getName());
                 // "{0} will move the pirate ship."
+            break;
+
+        case SOCGame.PLACING_FREE_ROAD1:
+        case SOCGame.PLACING_FREE_ROAD2:
+            {
+                Connection con = srv.getConnection(ga.getPlayer(cpn).getName());
+                if (con != null)
+                {
+                    final String msgKey =
+                        (gaState == SOCGame.PLACING_FREE_ROAD1)
+                        ? ((ga.hasSeaBoard) ? "action.card.road.place.2s" : "action.card.road.place.2r")
+                            // "You may place 2 roads/ships." or "You may place 2 roads.")
+                        : // PLACING_FREE_ROAD2 either because they have just 1 road left, or because it's their 2nd to be placed
+                          (((player != null)
+                            && (player.getNumPieces(SOCPlayingPiece.ROAD) + player.getNumPieces(SOCPlayingPiece.SHIP) <= 1))
+                            ? ((ga.hasSeaBoard) ? "action.card.road.place.1s" : "action.card.road.place.1r")
+                                // "You may place your 1 remaining road or ship." or "... place your 1 remaining road."
+                            : ((ga.hasSeaBoard) ? "action.card.road.place.rs" : "action.card.road.place.rr"));
+                                // "You may place your remaining free road or ship." or "... place your remaining free road."
+                    srv.messageToPlayerKeyed
+                        (con, gname, cpn, msgKey);
+                }
+            }
             break;
 
         case SOCGame.WAITING_FOR_ROB_CHOOSE_PLAYER:
@@ -5359,7 +5385,7 @@ public class SOCGameHandler extends GameHandler
     }
 
     /**
-     * Sends the contents of this game's {@link SOCGame#pendingMessagesOut} and its players'
+     * Sends the contents of this game's {@link SOCGame#pendingMessagesOut} and then its players'
      * {@link SOCPlayer#pendingMessagesOut}, then empties those lists.
      * To avoid unnecessary work here, check if the game's pending list is empty before calling this method.
      *<P>
