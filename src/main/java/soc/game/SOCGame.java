@@ -1220,6 +1220,8 @@ public class SOCGame implements Serializable, Cloneable
      * Checked by {@link #doesCancelRoadBuildingReturnCard()}.
      * If {@link #cancelBuildRoad(int)}, {@link #cancelBuildShip(int)}, {@link #endTurn()} or
      * {@link #forceEndTurn()} is called, the road building card should be returned to the player's inventory.
+     *<P>
+     * Is set only at server.
      *
      * @see #placingRobberForKnightCard
      * @since 2.5.00
@@ -8884,7 +8886,10 @@ public class SOCGame implements Serializable, Cloneable
     public boolean doesCancelRoadBuildingReturnCard()
     {
         return ((gameState == PLACING_FREE_ROAD1)
-            || ((gameState == PLACING_FREE_ROAD2) && playingRoadBuildingCardForLastRoad));
+            || ((gameState == PLACING_FREE_ROAD2)
+                && (isAtServer
+                    ? playingRoadBuildingCardForLastRoad
+                    : ((lastAction == null) || ! lastAction.isBuildingFreeRoad1()))));
     }
 
     /**
@@ -8892,6 +8897,8 @@ public class SOCGame implements Serializable, Cloneable
      * (or SPECIAL_BUILDING)
      *<P>
      * Assumes {@link #canCancelBuildPiece(int)} has been called already.
+     *<P>
+     * Called only at server; client is instead sent messages with effects of canceling the road.
      *<P>
      * In version 1.1.17 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD2}),
      * can also use to skip placing the second free road in {@link #PLACING_FREE_ROAD2};
@@ -8978,6 +8985,8 @@ public class SOCGame implements Serializable, Cloneable
      * or cancel playing the Road Building card in {@link #PLACING_FREE_ROAD1};
      * sets gameState to ROLL_OR_CARD or PLAY1 as if the free ship was placed.
      * Can similarly call {@link #cancelBuildRoad(int)} in those states.
+     *<P>
+     * Called only at server; client is instead sent messages with effects of canceling the ship.
      *<P>
      * In v2.5.00 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD1}),
      * in {@link #PLACING_FREE_ROAD1} the Road Building card is returned to player's inventory

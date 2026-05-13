@@ -2655,7 +2655,10 @@ public class TestActionsMessages
         try { Thread.sleep(60); }
         catch(InterruptedException e) {}
         for (SOCGame ga : gaEverywhere)
+        {
             assertEquals(SOCGame.PLACING_FREE_ROAD1, ga.getGameState());
+            assertTrue(ga.doesCancelRoadBuildingReturnCard());
+        }
         for (SOCPlayer cliPl : cliPlEverywhere)
             assertEquals(1, cliPl.numRBCards);
         expectedCardsPlayed.add(SOCDevCardConstants.ROADS);
@@ -2670,6 +2673,7 @@ public class TestActionsMessages
             SOCRoutePiece rp = ga.getBoard().roadOrShipAtEdge(ROAD_EDGE_1);
             assertTrue(rp instanceof SOCRoad);  // also asserts not null
             assertTrue(ga.canUndoPutPiece(CLIENT_PN, rp));
+            assertFalse(ga.doesCancelRoadBuildingReturnCard());
 
             GameAction act = ga.getLastAction();
             assertNotNull(act);
@@ -2700,6 +2704,7 @@ public class TestActionsMessages
             SOCRoutePiece rp = ga.getBoard().roadOrShipAtEdge(ROAD_EDGE_2);
             assertTrue(rp instanceof SOCRoad);  // also asserts not null
             assertTrue(ga.canUndoPutPiece(CLIENT_PN, rp));
+            assertFalse(ga.doesCancelRoadBuildingReturnCard());
 
             SOCPlayer lrPl =  ga.getPlayerWithLongestRoad();
             assertNotNull(lrPl);
