@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2014,2016-2025 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2014,2016-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -896,22 +896,27 @@ import javax.swing.SwingConstants;
 
         if (target == ROAD)
         {
-            if (pieceButtonsState == 0)
+            switch (pieceButtonsState)
             {
+            case 0:
                 if (stateBuyOK)
                     sendBuildRequest = SOCPlayingPiece.ROAD;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
-            }
-            else if (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2)
-            {
-                java.awt.EventQueue.invokeLater
-                    (new ConfirmCancelFreeRoadDialog(pi, true, false));
-            }
-            else if ((pieceButtonsState == SOCGame.PLACING_ROAD)
-                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD1))
-            {
+                break;
+
+            case SOCGame.PLACING_FREE_ROAD2:
+                if (! game.doesCancelRoadBuildingReturnCard())
+                {
+                    java.awt.EventQueue.invokeLater
+                        (new ConfirmCancelFreeRoadDialog(pi, true, false));
+                    return;  // <--- Early return ---
+                }
+                //$FALL-THROUGH$
+            case SOCGame.PLACING_ROAD:
+            case SOCGame.PLACING_FREE_ROAD1:
                 messageSender.cancelBuildRequest(game, SOCPlayingPiece.ROAD);
+                break;
             }
         }
         else if (target == STLMT)
@@ -960,22 +965,27 @@ import javax.swing.SwingConstants;
         }
         else if (target == SHIP)
         {
-            if (pieceButtonsState == 0)
+            switch (pieceButtonsState)
             {
+            case 0:
                 if (stateBuyOK)
                     sendBuildRequest = SOCPlayingPiece.SHIP;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
-            }
-            else if (pieceButtonsState == SOCGame.PLACING_FREE_ROAD2)
-            {
-                java.awt.EventQueue.invokeLater
-                    (new ConfirmCancelFreeRoadDialog(pi, false, false));
-            }
-            else if ((pieceButtonsState == SOCGame.PLACING_SHIP)
-                     || (pieceButtonsState == SOCGame.PLACING_FREE_ROAD1))
-            {
+                break;
+
+            case SOCGame.PLACING_FREE_ROAD2:
+                if (! game.doesCancelRoadBuildingReturnCard())
+                {
+                    java.awt.EventQueue.invokeLater
+                        (new ConfirmCancelFreeRoadDialog(pi, false, false));
+                    return;  // <--- Early return ---
+                }
+                //$FALL-THROUGH$
+            case SOCGame.PLACING_SHIP:
+            case SOCGame.PLACING_FREE_ROAD1:
                 messageSender.cancelBuildRequest(game, SOCPlayingPiece.SHIP);
+                break;
             }
         }
         else if (target == SBP)
