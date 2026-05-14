@@ -2589,6 +2589,7 @@ public class MessageHandler
 
         case SOCDevCardAction.PLAY:
             player.getInventory().removeDevCard(SOCInventory.OLD, ctype);
+            ga.setLastAction(null);
             player.updateDevCardsPlayed(ctype, false);
             if ((ctype == SOCDevCardConstants.KNIGHT) && ! ga.isGameOptionSet(SOCGameOptionSet.K_SC_PIRI))
                 ga.setPlacingRobberForKnightCard(true);

@@ -9426,6 +9426,8 @@ public class SOCGame implements Serializable, Cloneable
      * Call {@link SOCPlayer#getNumWarships()} afterwards to get the current player's new count.
      * Ships are converted in the chronological order they're placed, out to sea from the
      * player's coastal settlement; see {@link #isShipWarship(SOCShip)}.
+     *<P>
+     * Called only at server; client is instead sent messages with effects of playing the card.
      *
      * @see SOCPlayer#getDevCardsPlayed()
      */
@@ -9618,6 +9620,8 @@ public class SOCGame implements Serializable, Cloneable
      *      (save was called in {@link #playKnight()}) unless in Pirate Islands scenario
      * <LI> In Pirate Islands, decrements {@link SOCPlayer#getNumWarships()} and clears {@link SOCGame#getLastAction()}
      *</UL>
+     * Called only at server; client is instead sent messages with effects of canceling the card.
+     *<P>
      * Added in v2.7.00 ({@link #VERSION_FOR_CANCEL_PLAY_CURRENT_DEV_CARD}).
      *
      * @return the development card type canceled and returned to player's hand:

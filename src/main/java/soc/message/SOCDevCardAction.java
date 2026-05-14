@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012-2014,2017-2021,2023-2025 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2014,2017-2021,2023-2026 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -110,6 +110,10 @@ public class SOCDevCardAction extends SOCMessage
 
     /**
      * dev card action PLAY: remove as old from player's hand.
+     *<P>
+     * A new action will soon be completed, previous can no longer be undone,
+     * so client should call {@link soc.game.SOCGame#setLastAction(soc.game.GameAction) game.setLastAction(null)}.
+     *<P>
      * Sent when actually playing a card, also when clearing player's hand/inventory
      * ("play" {@link SOCDevCardConstants#UNKNOWN})
      * when client is sitting down to take over a bot player.
