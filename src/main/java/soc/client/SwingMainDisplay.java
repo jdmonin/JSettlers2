@@ -2224,6 +2224,8 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                 (client.strings.get("pcli.main.version.tip", versionString, buildString,
                      Version.version(), Version.buildnum()));
                      // "Server version is {0} build {1}; client is {2} bld {3}"
+
+            versionOrlocalTCPPortLabel.addMouseListener(new AboutDialog.ClickMouseListener(this, this));
         }
 
         initMainPanelLayout(false, feats);  // complete the layout as appropriate for server

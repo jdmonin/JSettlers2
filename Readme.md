@@ -5,10 +5,10 @@ A desktop client-server version of Settlers of Catan
 
 ## Introduction
 
-JSettlers is a Java version of the board game Settlers of Catan
-written in Java. This client-server system supports multiple
-simultaneous games between people and computer-controlled
-opponents. Initially created as an AI research project.
+JSettlers is a Java version of the board game Settlers of Catan.
+This client-server system supports games between people and optional "robot"
+opponents. Initially created by Robert S Thomas as a dissertation project
+about intelligent agents and real-time decision making.
 
 The client can host a server, connect to dedicated JSettlers servers
 over the net, or play practice games offline against bots.
@@ -24,8 +24,8 @@ of this Readme.
 
 JSettlers is an open-source project licensed under the GPL. The
 project is hosted at https://github.com/jdmonin/JSettlers2/ and
-https://nand.net/jsettlers/devel/ .  Questions, bugs, patches,
-and pull requests can be posted at the github page.
+https://nand.net/jsettlers/devel/ . Questions, bugs, and pull requests
+can be posted at its github page.
 
 \- The JSettlers Development Team
 
