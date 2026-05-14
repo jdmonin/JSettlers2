@@ -874,6 +874,7 @@ import javax.swing.SwingConstants;
      * @param doNotClearPopup Do not call {@link SOCBoardPanel#popupClearBuildRequest()}
      * @since 1.1.00
      */
+    @SuppressWarnings("fallthrough")
     public void clickBuildingButton(SOCGame game, String target, boolean doNotClearPopup)
     {
         SOCPlayerClient client = pi.getClient();
@@ -912,7 +913,8 @@ import javax.swing.SwingConstants;
                         (new ConfirmCancelFreeRoadDialog(pi, true, false));
                     return;  // <--- Early return ---
                 }
-                //$FALL-THROUGH$
+                // fall through
+
             case SOCGame.PLACING_ROAD:
             case SOCGame.PLACING_FREE_ROAD1:
                 messageSender.cancelBuildRequest(game, SOCPlayingPiece.ROAD);
@@ -921,30 +923,34 @@ import javax.swing.SwingConstants;
         }
         else if (target == STLMT)
         {
-            if (pieceButtonsState == 0)
+            switch (pieceButtonsState)
             {
+            case 0:
                 if (stateBuyOK)
                     sendBuildRequest = SOCPlayingPiece.SETTLEMENT;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
-            }
-            else if (pieceButtonsState == SOCGame.PLACING_SETTLEMENT)
-            {
+                break;
+
+            case SOCGame.PLACING_SETTLEMENT:
                 messageSender.cancelBuildRequest(game, SOCPlayingPiece.SETTLEMENT);
+                break;
             }
         }
         else if (target == CITY)
         {
-            if (pieceButtonsState == 0)
+            switch (pieceButtonsState)
             {
+            case 0:
                 if (stateBuyOK)
                     sendBuildRequest = SOCPlayingPiece.CITY;
                 else if (canAskSBP)
                     sendBuildRequest = -1;
-            }
-            else if (pieceButtonsState == SOCGame.PLACING_CITY)
-            {
+                break;
+
+            case SOCGame.PLACING_CITY:
                 messageSender.cancelBuildRequest(game, SOCPlayingPiece.CITY);
+                break;
             }
         }
         else if (target == CARD)
@@ -981,7 +987,8 @@ import javax.swing.SwingConstants;
                         (new ConfirmCancelFreeRoadDialog(pi, false, false));
                     return;  // <--- Early return ---
                 }
-                //$FALL-THROUGH$
+                // fall through
+
             case SOCGame.PLACING_SHIP:
             case SOCGame.PLACING_FREE_ROAD1:
                 messageSender.cancelBuildRequest(game, SOCPlayingPiece.SHIP);
