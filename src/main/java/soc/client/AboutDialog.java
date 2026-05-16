@@ -43,28 +43,27 @@ import soc.util.Version;
      *<P>
      * Assumes currently running on AWT event thread.
      *
-     * @param cli  Player client; not null
-     * @param md  Player client's main display; not null
-     * @throws IllegalArgumentException If md is null
+     * @param cli  Player client; not null, {@link SOCPlayerClient#getMainDisplay() cli.getMainDisplay()} not null
+     * @throws NullPointerException  if cli is null
+     * @throws IllegalArgumentException  if {@link SOCPlayerClient#getMainDisplay()} is null
      */
-    public static void createAndShow(SOCPlayerClient cli, MainDisplay md)
-        throws IllegalArgumentException
+    public static void createAndShow(SOCPlayerClient cli)
+        throws NullPointerException, IllegalArgumentException
     {
-        if ((cli == null) || (md == null))
-            throw new IllegalArgumentException("no nulls");
-
-        new AboutDialog(cli, md).setVisible(true);
+        new AboutDialog(cli).setVisible(true);  // constructor checks for null cli etc
     }
 
     /**
      * Creates a new AboutDialog.
      *
-     * @param cli  Player client, to retrieve info; not null
-     * @param md  Player client's main display; not null
+     * @param cli  Player client; not null, {@link SOCPlayerClient#getMainDisplay() cli.getMainDisplay()} not null
+     * @throws NullPointerException  if cli is null
+     * @throws IllegalArgumentException  if {@link SOCPlayerClient#getMainDisplay()} is null
      */
-    private AboutDialog(SOCPlayerClient cli, MainDisplay md)
+    private AboutDialog(SOCPlayerClient cli)
+        throws NullPointerException, IllegalArgumentException
     {
-        super(md, null, buildText(cli), null, true);
+        super(cli.getMainDisplay(), null, buildText(cli), null, true);  // super checks for null mainDisplay
         setModal(false);
         setTitle(strings.get("dialog.about.title"));  // "About JSettlers"
     }
@@ -117,29 +116,26 @@ import soc.util.Version;
     public static class ClickMouseListener extends MouseAdapter
     {
         final SOCPlayerClient cli;
-        final SwingMainDisplay mainDisplay;
         final JComponent cursorAt;
 
         /**
          * Constructor; does not call {@link JComponent#addMouseListener(MouseListener)}.
          *
-         * @param cli  Player client, to retrieve info; not null
-         * @param mainDisplay  Main display required by dialog ancestor; not {@code null}
+         * @param cli  Player client, to retrieve info; not null, {@link SOCPlayerClient#getMainDisplay() cli.getMainDisplay()} not null
          * @param cursorAt  Optional Swing component at which to set mouse pointer to {@link Cursor#HAND_CURSOR}
          *     while hovering and listener receives {@link MouseListener#mouseEntered(MouseEvent)}, or {@code null}
-         * @throws IllegalArgumentException if {@code mainDisplay null}
+         * @throws IllegalArgumentException if {@code cli} or {@code cli.getMainDisplay()} is {@code null}
          */
         public ClickMouseListener
-            (final SOCPlayerClient cli, final SwingMainDisplay mainDisplay, final JComponent cursorAt)
+            (final SOCPlayerClient cli, final JComponent cursorAt)
             throws IllegalArgumentException
         {
             if (cli == null)
                 throw new IllegalArgumentException("cli");
-            if (mainDisplay == null)
+            if (cli.getMainDisplay() == null)
                 throw new IllegalArgumentException("mainDisplay");
 
             this.cli = cli;
-            this.mainDisplay = mainDisplay;
             this.cursorAt = cursorAt;
         }
 
@@ -150,7 +146,7 @@ import soc.util.Version;
         @Override
         public void mouseClicked(MouseEvent e)
         {
-            AboutDialog.createAndShow(cli, mainDisplay);
+            AboutDialog.createAndShow(cli);
         }
 
         /**

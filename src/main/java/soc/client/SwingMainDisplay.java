@@ -2226,7 +2226,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                      Version.version(), Version.buildnum()));
                      // "Server version is {0} build {1}; client is {2} bld {3}"
 
-            versionOrlocalTCPPortLabel.addMouseListener(new AboutDialog.ClickMouseListener(client, this, this));
+            versionOrlocalTCPPortLabel.addMouseListener(new AboutDialog.ClickMouseListener(client, this));
 
             // try underline label to hint it's clickable
             Font font = versionOrlocalTCPPortLabel.getFont();

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2009,2013-2014,2016,2019-2020 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009,2013-2014,2016,2019-2020,2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ public class NotifyDialog extends AskDialog
      * @param btnText  Button text, or null for "OK"
      * @param hasDefault  Button is default (responds to Enter)
      * @return the created NotifyDialog
-     * @throws IllegalArgumentException If cli, promptText, or btnText is null
+     * @throws IllegalArgumentException If md, promptText, or btnText is null
      */
     public static NotifyDialog createAndShow
         (MainDisplay md, Window gamePI, String promptText, String btnText, boolean hasDefault)
@@ -75,7 +75,7 @@ public class NotifyDialog extends AskDialog
      *                 If multiple lines, first line is title; if begins with \n, title is "JSettlers".
      * @param btnText  Button text, or null for "OK"
      * @param hasDefault  Button is default (responds to Enter)
-     * @throws IllegalArgumentException If cli or btnText is null
+     * @throws IllegalArgumentException If md or btnText is null
      */
     protected NotifyDialog
         (MainDisplay md, Window gamePI, String promptText, String btnText, boolean hasDefault)

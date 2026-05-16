@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2008-2009,2012-2013,2017,2019-2022,2024-2025 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2009,2012-2013,2017,2019-2022,2024-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -61,7 +61,9 @@ import soc.util.Version;
 /*package*/ class SOCConnectOrPracticePanel extends JPanel
     implements ActionListener, KeyListener
 {
+    /** MainDisplay to call client methods; not null */
     private final MainDisplay md;
+
     private final ClientNetwork clientNetwork;
 
     /** Welcome message, or error after disconnect */
@@ -103,12 +105,16 @@ import soc.util.Version;
     /**
      * Creates a new SOCConnectOrPracticePanel.
      *
-     * @param md      Player client main display
+     * @param md      Player client main display; not null
+     * @throws IllegalArgumentException  if {@code md} is null
      */
     public SOCConnectOrPracticePanel(final MainDisplay md)
+        throws IllegalArgumentException
     {
         super(new BorderLayout());
 
+        if (md == null)
+            throw new IllegalArgumentException("md");
         this.md = md;
         SOCPlayerClient cli = md.getClient();
         clientNetwork = cli.getNet();
@@ -288,6 +294,7 @@ import soc.util.Version;
         if (miscLabelFGColor != null)
             verl.setForeground(miscLabelFGColor);
         add(verl, BorderLayout.SOUTH);
+        verl.addMouseListener(new AboutDialog.ClickMouseListener(md.getClient(), verl));
     }
 
     /** panel_conn setup */
