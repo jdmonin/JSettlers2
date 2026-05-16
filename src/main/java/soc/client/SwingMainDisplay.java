@@ -111,8 +111,8 @@ import soc.util.Version;
  *<P>
  * Should be added directly to a {@link JFrame} or other {@link Frame}, not a subcontainer.
  *<P>
- * Also holds some GUI utility methods like {@link #checkDisplayScaleFactor(Component)}
- * and {@link #isOSColorHighContrast()}.
+ * Also holds some GUI utility methods like {@link #checkDisplayScaleFactor(Component)},
+ * {@link #underlineComponentFont(Component)}, and {@link #isOSColorHighContrast()}.
  *<P>
  * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
  * Also converted from AWT to Swing in v2.0.00.
@@ -700,6 +700,37 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             getForegroundBackgroundColors(false, true);
 
         return isOSColorHighContrast;
+    }
+
+    /**
+     * Try to set a Swing or AWT component's font to be underlined
+     * by giving it the {@link TextAttribute#UNDERLINE} attribute.
+     * If {@code comp}'s font is null or has no attribute map, does nothing.
+     *
+     * @param comp  Component to set underlined; not null
+     * @throws IllegalArgumentException  if {@code comp} is null
+     * @since 2.7.00
+     */
+    public static void underlineComponentFont(final Component comp)
+        throws IllegalArgumentException
+    {
+        if (comp == null)
+            throw new IllegalArgumentException("comp");
+
+        final Font font = comp.getFont();
+        if (font == null)
+            return;
+
+        try
+        {
+            @SuppressWarnings("unchecked")
+            Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>) font.getAttributes();
+            if (attributes == null)
+                return;
+
+            attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+            comp.setFont(font.deriveFont(attributes));
+        } catch (ClassCastException e) {}
     }
 
     /**
@@ -2227,20 +2258,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                      // "Server version is {0} build {1}; client is {2} bld {3}"
 
             versionOrlocalTCPPortLabel.addMouseListener(new AboutDialog.ClickMouseListener(client, this));
-
-            // try underline label to hint it's clickable
-            Font font = versionOrlocalTCPPortLabel.getFont();
-            if (font != null)
-                try
-                {
-                    @SuppressWarnings("unchecked")
-                    Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>) font.getAttributes();
-                    if (attributes != null)
-                    {
-                        attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
-                        versionOrlocalTCPPortLabel.setFont(font.deriveFont(attributes));
-                    }
-                } catch (ClassCastException e) {}
+            underlineComponentFont(versionOrlocalTCPPortLabel);  // underline label to hint it's clickable
         }
 
         initMainPanelLayout(false, feats);  // complete the layout as appropriate for server
