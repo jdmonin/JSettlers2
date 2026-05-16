@@ -849,11 +849,13 @@ public class MessageHandler
         if (! isPractice)
         {
             client.sVersion = vers;
+            client.sVersionBuildnum = mes.getBuild();
             client.sFeatures = (vers >= SOCFeatureSet.VERSION_FOR_SERVERFEATURES)
                     ? new SOCFeatureSet(mes.feats)
                     : new SOCFeatureSet(true, true);
 
-            client.getMainDisplay().showVersion(vers, mes.getVersionString(), mes.getBuild(), client.sFeatures);
+            client.getMainDisplay().showVersion
+                (vers, mes.getVersionString(), client.sVersionBuildnum, client.sFeatures);
         }
 
         // If we ever require a minimum server version, would check that here.

@@ -28,7 +28,7 @@ import soc.util.Version;
 
 
 /**
- * Dialog to show information about Java Settlers.
+ * Modeless dialog to show information about Java Settlers.
  *<P>
  * To add a listener to a Label which shows this dialog when clicked, use {@link ClickMouseListener}.
  *
@@ -43,34 +43,38 @@ import soc.util.Version;
      *<P>
      * Assumes currently running on AWT event thread.
      *
+     * @param cli  Player client; not null
      * @param md  Player client's main display; not null
      * @throws IllegalArgumentException If md is null
      */
-    public static void createAndShow(MainDisplay md)
+    public static void createAndShow(SOCPlayerClient cli, MainDisplay md)
         throws IllegalArgumentException
     {
-        if (md == null)
+        if ((cli == null) || (md == null))
             throw new IllegalArgumentException("no nulls");
 
-        new AboutDialog(md).setVisible(true);
+        new AboutDialog(cli, md).setVisible(true);
     }
 
     /**
      * Creates a new AboutDialog.
      *
+     * @param cli  Player client, to retrieve info; not null
      * @param md  Player client's main display; not null
      */
-    private AboutDialog(MainDisplay md)
+    private AboutDialog(SOCPlayerClient cli, MainDisplay md)
     {
-        super(md, null, buildText(), null, true);
+        super(md, null, buildText(cli), null, true);
+        setModal(false);
         setTitle(strings.get("dialog.about.title"));  // "About JSettlers"
     }
 
     /**
      * Build the body text; called by constructor.
+     * @param cli  Player client, to retrieve info; not null
      * @return text to show
      */
-    private static String buildText()
+    private static String buildText(final SOCPlayerClient cli)
     {
         StringBuilder sb = new StringBuilder(strings.get("dialog.about.text"));
         sb.append("\n");
@@ -91,7 +95,17 @@ import soc.util.Version;
         }
 
         sb.append("\n");
-        sb.append(strings.get("pcli.cpp.jsettlers.versionbuild", Version.version(), Version.buildnum()));  // "JSettlers 2.7.00 build JM20260515"
+        if (cli.sVersionBuildnum == null)
+        {
+            sb.append(strings.get
+                ("pcli.cpp.jsettlers.versionbuild", Version.version(), Version.buildnum()));  // "JSettlers 2.7.00 build JM20260515"
+        } else {
+            sb.append(strings.get
+                ("dialog.about.version.client", Version.version(), Version.buildnum()));  // "This client: Version {0} build {1}"
+            sb.append("\n");
+            sb.append(strings.get
+                ("dialog.about.version.server", Version.version(cli.sVersion), cli.sVersionBuildnum));  // "Server: Version {0} build {1}"
+        }
 
         return sb.toString();
     }
@@ -102,24 +116,29 @@ import soc.util.Version;
      */
     public static class ClickMouseListener extends MouseAdapter
     {
+        final SOCPlayerClient cli;
         final SwingMainDisplay mainDisplay;
         final JComponent cursorAt;
 
         /**
          * Constructor; does not call {@link JComponent#addMouseListener(MouseListener)}.
          *
+         * @param cli  Player client, to retrieve info; not null
          * @param mainDisplay  Main display required by dialog ancestor; not {@code null}
          * @param cursorAt  Optional Swing component at which to set mouse pointer to {@link Cursor#HAND_CURSOR}
          *     while hovering and listener receives {@link MouseListener#mouseEntered(MouseEvent)}, or {@code null}
          * @throws IllegalArgumentException if {@code mainDisplay null}
          */
         public ClickMouseListener
-            (final SwingMainDisplay mainDisplay, final JComponent cursorAt)
+            (final SOCPlayerClient cli, final SwingMainDisplay mainDisplay, final JComponent cursorAt)
             throws IllegalArgumentException
         {
+            if (cli == null)
+                throw new IllegalArgumentException("cli");
             if (mainDisplay == null)
                 throw new IllegalArgumentException("mainDisplay");
 
+            this.cli = cli;
             this.mainDisplay = mainDisplay;
             this.cursorAt = cursorAt;
         }
@@ -131,7 +150,7 @@ import soc.util.Version;
         @Override
         public void mouseClicked(MouseEvent e)
         {
-            AboutDialog.createAndShow(mainDisplay);
+            AboutDialog.createAndShow(cli, mainDisplay);
         }
 
         /**

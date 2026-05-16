@@ -43,6 +43,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.font.TextAttribute;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -2225,7 +2226,21 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                      Version.version(), Version.buildnum()));
                      // "Server version is {0} build {1}; client is {2} bld {3}"
 
-            versionOrlocalTCPPortLabel.addMouseListener(new AboutDialog.ClickMouseListener(this, this));
+            versionOrlocalTCPPortLabel.addMouseListener(new AboutDialog.ClickMouseListener(client, this, this));
+
+            // try underline label to hint it's clickable
+            Font font = versionOrlocalTCPPortLabel.getFont();
+            if (font != null)
+                try
+                {
+                    @SuppressWarnings("unchecked")
+                    Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>) font.getAttributes();
+                    if (attributes != null)
+                    {
+                        attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+                        versionOrlocalTCPPortLabel.setFont(font.deriveFont(attributes));
+                    }
+                } catch (ClassCastException e) {}
         }
 
         initMainPanelLayout(false, feats);  // complete the layout as appropriate for server

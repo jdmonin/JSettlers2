@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2025 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
@@ -329,9 +329,19 @@ public class SOCPlayerClient
      *  Use {@link #getServerVersion(SOCGame)} instead to check the effective version of a specific game.
      *  A local practice server's version is always {@link Version#versionNumber()}, not {@code sVersion},
      *  so always check {@link SOCGame#isPractice} before checking this field.
+     * @see #sVersionBuildnum
      * @since 1.1.00
      */
     protected int sVersion;
+
+    /**
+     * Server build number of remote server, sent soon after connect, from its {@link Version#buildnum()},
+     * or {@code null} if no remote server.
+     * This is only for informational display; the build number is unstructured and should not be used
+     * like {@link #sVersion} to determine behavior.
+     * @since 2.7.00
+     */
+    protected String sVersionBuildnum;
 
     /**
      * Server's active optional features, sent soon after connect, or null if unknown.
