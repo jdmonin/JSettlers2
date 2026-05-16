@@ -337,6 +337,7 @@ public class SOCPlayerClient
     /**
      * Server build number of remote server, sent soon after connect, from its {@link Version#buildnum()},
      * or {@code null} if no remote server.
+     * Is {@code null} when {@link ClientNetwork#isRunningLocalServer()}.
      * This is only for informational display; the build number is unstructured and should not be used
      * like {@link #sVersion} to determine behavior.
      * @since 2.7.00

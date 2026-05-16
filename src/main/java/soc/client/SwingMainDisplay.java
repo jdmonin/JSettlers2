@@ -2258,7 +2258,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                      // "Server version is {0} build {1}; client is {2} bld {3}"
 
             versionOrlocalTCPPortLabel.addMouseListener(new AboutDialog.ClickMouseListener(client, this));
-            underlineComponentFont(versionOrlocalTCPPortLabel);  // underline label to hint it's clickable
+            underlineComponentFont(versionOrlocalTCPPortLabel);  // to hint it's clickable
         }
 
         initMainPanelLayout(false, feats);  // complete the layout as appropriate for server
@@ -2817,14 +2817,17 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             /**
              * When the local-server info label is clicked,
              * show a popup with more info.
+             * Also give that popup an About JSettlers button, since when running a server
+             * there's nothing clickable to show that info.
              * @since 1.1.12
              */
             @Override
             public void mouseClicked(MouseEvent e)
             {
-                NotifyDialog.createAndShow
+                final AskDialog infoDia = new AskDialog
                     (SwingMainDisplay.this,
-                     null,
+                     NotifyDialog.getParentWindow(SwingMainDisplay.this.getGUIContainer()),
+                     strings.get("pcli.main.title.localserver", "", tportStr),  // "JSettlers server {0} - port {1}"
                      strings.get("pcli.localserver.dialog", tportStr),
                      /*      "Other players connecting to your server\n" +
                              "need only your IP address and port number.\n" +
@@ -2832,8 +2835,20 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
                              "Make sure your firewall allows inbound traffic on " +
                              "port {0}."
                      */
+                     strings.get("dialog.about.title"),  // "About JSettlers"
                      strings.get("base.ok"),
-                     true);
+                     false, true)
+                {
+                    public void windowCloseChosen() {}  // do nothing
+
+                    public void button2Chosen() {}  // "OK": do nothing
+
+                    public void button1Chosen()
+                    {
+                        AboutDialog.createAndShow(client);
+                    }
+                };
+                EventQueue.invokeLater(infoDia);  // calls setVisible(true)
             }
 
             /**
@@ -2866,6 +2881,7 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
             (strings.get("pcli.localserver.running.tip", tportStr, Version.version(), Version.buildnum()));
                 // "You are running a server on TCP port {0}. Version {1} bld {2}"
         versionOrlocalTCPPortLabel.addMouseListener(mouseListener);
+        underlineComponentFont(versionOrlocalTCPPortLabel);  // to hint it's clickable
 
         // Set titlebar, if present
         {

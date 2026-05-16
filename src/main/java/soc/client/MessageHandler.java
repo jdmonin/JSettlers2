@@ -849,7 +849,8 @@ public class MessageHandler
         if (! isPractice)
         {
             client.sVersion = vers;
-            client.sVersionBuildnum = mes.getBuild();
+            if (! client.getNet().isRunningLocalServer())
+                client.sVersionBuildnum = mes.getBuild();
             client.sFeatures = (vers >= SOCFeatureSet.VERSION_FOR_SERVERFEATURES)
                     ? new SOCFeatureSet(mes.feats)
                     : new SOCFeatureSet(true, true);

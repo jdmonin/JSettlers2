@@ -295,7 +295,7 @@ import soc.util.Version;
             verl.setForeground(miscLabelFGColor);
         add(verl, BorderLayout.SOUTH);
         verl.addMouseListener(new AboutDialog.ClickMouseListener(md.getClient(), verl));
-        SwingMainDisplay.underlineComponentFont(verl);  // underline label to hint it's clickable
+        SwingMainDisplay.underlineComponentFont(verl);  // to hint it's clickable
     }
 
     /** panel_conn setup */
