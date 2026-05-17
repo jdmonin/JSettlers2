@@ -76,24 +76,11 @@ import soc.util.Version;
     private static String buildText(final SOCPlayerClient cli)
     {
         StringBuilder sb = new StringBuilder(strings.get("dialog.about.text"));
+        sb.append("\n\n");
+        sb.append(strings.get("dialog.about.website.main", Version.websiteURLMain()));  // "Website: {0}"
         sb.append("\n");
-
-        final String websiteMain = "http://nand.net/jsettlers/",
-            websiteSrc = "https://github.com/jdmonin/JSettlers2/";  // TODO add to Versions props
-
-        if (websiteMain != null)
-        {
-            sb.append("\n");
-            sb.append(strings.get("dialog.about.website.main", websiteMain));  // "Website: {0}"
-            sb.append("\n");
-        }
-        if (websiteSrc != null)
-        {
-            sb.append(strings.get("dialog.about.website.src", websiteSrc));  // "Source Code: {0}"
-            sb.append("\n");
-        }
-
-        sb.append("\n");
+        sb.append(strings.get("dialog.about.website.src", Version.websiteURLSrc()));  // "Source Code: {0}"
+        sb.append("\n\n");
         if (cli.sVersionBuildnum == null)
         {
             sb.append(strings.get

@@ -1,7 +1,7 @@
 package soc.util;
 
 // Version.java - mchenryc@acm.org Chadwick A. McHenry
-// Portions copyright (C) 2008,2010,2011,2013-2015,2017,2020,2022 Jeremy D Monin <jeremy@nand.net>
+// Portions copyright (C) 2008,2010,2011,2013-2015,2017,2020,2022,2026 Jeremy D Monin <jeremy@nand.net>
 
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -29,6 +29,21 @@ public class Version {
    * @since 1.1.13
    */
   public static final String VERSNUM_NOWARN_MAXIMUM = "project.versionnumMaxNoWarn";
+
+  /**
+   * Property key for {@link #websiteURLMain()}.
+   * @see #WEBSITE_URL_SRC
+   * @since 2.7.00
+   */
+  public static final String WEBSITE_URL_MAIN = "project.website.main";
+
+  /**
+   * Property key for {@link #websiteURLSrc()}.
+   * @see #websiteURLSrc()
+   * @see #WEBSITE_URL_MAIN
+   * @since 2.7.00
+   */
+  public static final String WEBSITE_URL_SRC = "project.website.src";
 
   public static String COPYRIGHT = "project.copyright";
 
@@ -151,6 +166,24 @@ public class Version {
         vnum = -1;
     }
     return vnum;
+  }
+
+  /**
+   * URL for project main website; used in About dialog.
+   * @return project website URL "https://nand.net/jsettlers/"; not null
+   * @since 2.7.00
+   */
+  public static String websiteURLMain() {
+      return versionInfo.getProperty(WEBSITE_URL_MAIN);  // unit test ensures not null
+  }
+
+  /**
+   * URL for project source repository website; used in About dialog.
+   * @return project website URL "https://github.com/jdmonin/JSettlers2/"; not null
+   * @since 2.7.00
+   */
+  public static String websiteURLSrc() {
+      return versionInfo.getProperty(WEBSITE_URL_SRC);  // unit test ensures not null
   }
 
   /** Return the copyright string. */
