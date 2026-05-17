@@ -77,9 +77,15 @@ import soc.util.Version;
     {
         StringBuilder sb = new StringBuilder(strings.get("dialog.about.text"));
         sb.append("\n\n");
-        sb.append(strings.get("dialog.about.website.main", Version.websiteURLMain()));  // "Website: {0}"
+        String url = Version.websiteURLMain();
+        if (url == null)
+            url = "?";
+        sb.append(strings.get("dialog.about.website.main", url));  // "Website: {0}"
         sb.append("\n");
-        sb.append(strings.get("dialog.about.website.src", Version.websiteURLSrc()));  // "Source Code: {0}"
+        url = Version.websiteURLSrc();
+        if (url == null)
+            url = "?";
+        sb.append(strings.get("dialog.about.website.src", url));  // "Source Code: {0}"
         sb.append("\n\n");
         if (cli.sVersionBuildnum == null)
         {

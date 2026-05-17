@@ -170,20 +170,20 @@ public class Version {
 
   /**
    * URL for project main website; used in About dialog.
-   * @return project website URL "https://nand.net/jsettlers/"; not null
+   * @return project website URL "https://nand.net/jsettlers/", or null if missing in properties file
    * @since 2.7.00
    */
   public static String websiteURLMain() {
-      return versionInfo.getProperty(WEBSITE_URL_MAIN);  // unit test ensures not null
+      return versionInfo.getProperty(WEBSITE_URL_MAIN);
   }
 
   /**
    * URL for project source repository website; used in About dialog.
-   * @return project website URL "https://github.com/jdmonin/JSettlers2/"; not null
+   * @return project website URL "https://github.com/jdmonin/JSettlers2/", or null if missing in properties file
    * @since 2.7.00
    */
   public static String websiteURLSrc() {
-      return versionInfo.getProperty(WEBSITE_URL_SRC);  // unit test ensures not null
+      return versionInfo.getProperty(WEBSITE_URL_SRC);
   }
 
   /** Return the copyright string. */
