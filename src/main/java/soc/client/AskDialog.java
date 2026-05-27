@@ -27,6 +27,8 @@ import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.GraphicsConfiguration;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -537,11 +539,11 @@ public abstract class AskDialog extends JDialog
                 choice3But.addKeyListener(this);
         }
 
-        if (! isMsgMultiLine)
-        {
+        //if (! isMsgMultiLine)
+        //{
             validate();
             pack();
-        }
+        //}
     }
 
     /**
@@ -558,8 +560,44 @@ public abstract class AskDialog extends JDialog
             if (isMsgMultiLine && ! isSizeCheckedAlready)
             {
                 wantH = 12 + msg.getPreferredSize().height + pBtns.getPreferredSize().height;
+                System.err.println("L562 askdia wantH: " + wantH);
+
+                boolean wantReposition = false;
+                boolean wasVisible = false;
+                try
+                {
+                    final int screenHeight = getGraphicsConfiguration().getDevice().getDisplayMode().getHeight();
+                    if (wantH >= screenHeight)
+                    {
+                        wantH = screenHeight - padH;
+                        wantReposition = true;
+                        System.err.println("L565 height -> " + wantH);
+                        wasVisible = isVisible();
+                    }
+                } catch (NullPointerException e) {}
+
+                if (wantReposition)
+                {
+                    final Point loc = getLocation();
+                    if (loc.y <= 0)
+                        wantReposition = false;
+                    else
+                    {
+                        final int x = loc.x;
+                        if (wasVisible)
+                            setVisible(false);
+                        setLocation(x, 0);
+                    }
+
+                }
+                invalidate();
                 setSize(wantW + padW + 20, wantH + padH);
+                setMaximumSize(new Dimension(wantW + padW + 20, wantH + padH));
                 validate();
+                pack();
+                if (wantReposition && wasVisible)
+                    setVisible(true);
+
                 isSizeCheckedAlready = true;
             }
         }
