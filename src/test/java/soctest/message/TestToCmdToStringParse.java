@@ -71,6 +71,33 @@ public class TestToCmdToStringParse
     private static SOCGameOptionSet knownOpts = SOCGameOptionSet.getAllKnownOptions();
 
     /**
+     * A few tests for {@link SOCMessage#toMsg(String)}.
+     * @since 2.7.00
+     */
+    @Test
+    public void testToMsg()
+    {
+        StringBuilder sb = new StringBuilder();
+        compareMsgObjFields
+            (SOCPutPiece.class, new SOCPutPiece("ga", 3, 0, 1123), SOCMessage.toMsg("1009|ga,3,0,1123"), sb, null);
+        assertEquals(0, sb.length());
+
+        assertNull("unknown message type gets null", SOCMessage.toMsg("82|ga"));
+
+        assertNull(SOCMessage.toMsg(null));
+        assertNull(SOCMessage.toMsg(""));
+        assertNull(SOCMessage.toMsg("|"));
+        assertNull(SOCMessage.toMsg("1009"));
+        assertNull(SOCMessage.toMsg("1009|"));
+        assertNull(SOCMessage.toMsg("1009|ga"));
+        assertNull(SOCMessage.toMsg("1009|ga,3"));
+        assertNull(SOCMessage.toMsg("|1009"));
+        assertNull(SOCMessage.toMsg("notANumber"));
+        assertNull(SOCMessage.toMsg("notANumber|"));
+        assertNull(SOCMessage.toMsg("|notANumber"));
+    }
+
+    /**
      * Round-trip parsing tests on messages listed in {@link #TOCMD_TOSTRING_COMPARES}.
      * Message forms which need more detailed tests are in {@link #testMiscMessageForms()} instead.
      * @see #testCoverageMessageRenameMap()

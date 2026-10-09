@@ -76,6 +76,7 @@ JARs for recent JSettlers versions can be downloaded from
 	    - Interval can be changed or disabled (default 2.5 minutes) with server property `jsettlers.client.idle.ping.seconds`
 	- New `*MUTE*` and `*UNMUTE*` commands for a game's creator or admin to manage that game's chat with players and observers
 	- `*STATS*`: Sort the client version list
+	- Prevent stack trace log spam from port scanners
 - Network/Message traffic:
 	- When client is this version or newer:
 	    - Client is sent every game's list of options; previous versions omitted options of any unjoinable game

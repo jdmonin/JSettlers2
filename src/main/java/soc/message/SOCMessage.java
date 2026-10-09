@@ -716,6 +716,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static SOCMessage toMsg(String s)
     {
+        if (s == null)
+            return null;
+
         try
         {
             StringTokenizer st = new StringTokenizer(s, sep);
@@ -723,7 +726,13 @@ public abstract class SOCMessage implements Serializable, Cloneable
             /**
              * get the id that identifies the type of message
              */
-            int msgId = Integer.parseInt(st.nextToken());
+            final int msgId;
+            try
+            {
+                msgId = Integer.parseInt(st.nextToken());
+            } catch (NumberFormatException|NoSuchElementException e) {
+                return null;  // prevent stack trace log spam from port scanners
+            }
 
             /**
              * get the rest of the data
