@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2012-2013,2016-2023 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012-2013,2016-2023,2026 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -80,6 +80,8 @@ public interface SOCDevCardConstants
      *<P>
      * Before sending this from server, check if game option {@link SOCGameOptionSet#K_PLAY_FO PLAY_FO}
      * or {@link SOCGameOptionSet#K_PLAY_VPO PLAY_VPO} is set.
+     *<P>
+     * Before v2.0.00 this constant had a different value: See {@link #UNKNOWN_FOR_VERS_1_X}.
      */
     public static final int UNKNOWN = 0;
 
