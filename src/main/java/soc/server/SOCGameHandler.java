@@ -1557,8 +1557,9 @@ public class SOCGameHandler extends GameHandler
                        (isFullyObservable || gameData.isGameOptionSet(SOCGameOptionSet.K_PLAY_VPO))))
                 {
                     int numDevCards = pl.getInventory().getTotal();
-                    if (gameState >= SOCGame.OVER)
-                        numDevCards -= pl.getInventory().getNumVPItems();  // they'll be revealed by sendGameStateOVER, no reason to hide them first here
+                    if ((gameState >= SOCGame.OVER) && cliVersionRecent)
+                        numDevCards -= pl.getInventory().getNumVPItems();  // they'll be revealed by sendGameStateOVER,
+                            // unless client is v1.x, so no reason to hide them first here
                     final int unknownType = (cliVersionRecent)
                         ? SOCDevCardConstants.UNKNOWN
                         : SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
