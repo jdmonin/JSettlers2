@@ -19,6 +19,16 @@
  **/
 package soc.client;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.awt.Window;  // for jdocs
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -38,13 +48,22 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.WindowConstants;
+
 /**
  * Show what's new in JSettlers: brief release notes for current and recent releases,
  * based on github releases and doc/Versions.md.
+ * To instantiate and use this class, call {@link #createAndShow(SOCPlayerClient)} on the AWT event thread.
+ *
  * @since 2.7.00
  */
 @SuppressWarnings("serial")
-public class WhatsNewInfoDialog extends NotifyDialog
+public class WhatsNewInfoDialog extends JFrame
+    implements ActionListener
 {
     // TODO allow text selecton
     // TODO can we make URLs clickable?
@@ -55,7 +74,18 @@ public class WhatsNewInfoDialog extends NotifyDialog
     public final static String RELNOTES_RSRC_DIR_PATH = "/resources/releaseNotes";
 
     /**
-     * Creates and shows a new WhatsNewInfoDialog.
+     * i18n text strings; will use same locale as SOCPlayerClient's string manager.
+     */
+    protected static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+
+    protected final JPanel infoText;
+
+    protected final JButton okBut;
+
+    /**
+     * Creates and shows a new {@link WhatsNewInfoDialog}.
+     * Calls {@link Window#pack()}, then checks size and position versus screen and reduces if needed to fit,
+     * before it calls {@link Window#setVisible(boolean) setVisible(true)}.
      *<P>
      * Assumes currently running on AWT event thread.
      *
@@ -66,7 +96,19 @@ public class WhatsNewInfoDialog extends NotifyDialog
     public static void createAndShow(SOCPlayerClient cli)
         throws NullPointerException, IllegalArgumentException
     {
-        new WhatsNewInfoDialog(cli).setVisible(true);  // constructor checks for null cli, mainDisplay
+        WhatsNewInfoDialog dia = new WhatsNewInfoDialog(cli);  // constructor checks for null cli, mainDisplay
+        dia.pack();
+
+        Dimension preferred = dia.getSize();
+        GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        Rectangle bounds = env.getMaximumWindowBounds();
+        bounds.width = (int) (bounds.width * 0.8f);
+        bounds.height = (int) (bounds.height * 0.9f);
+        preferred.width = preferred.width > bounds.width ? bounds.width : preferred.width;
+        preferred.height = preferred.height > bounds.height ? bounds.height : preferred.height;
+        dia.setSize(preferred);
+        dia.setLocationRelativeTo(null);  // now that we have the size we want, recalc to center bounds on screen before setVisible
+        dia.setVisible(true);
     }
 
     /**
@@ -79,9 +121,61 @@ public class WhatsNewInfoDialog extends NotifyDialog
     private WhatsNewInfoDialog(SOCPlayerClient cli)
         throws NullPointerException, IllegalArgumentException
     {
-        super(cli.getMainDisplay(), null, buildHTML(cli), null, true);  // super checks for null mainDisplay
-        setModal(false);
-        setTitle(strings.get("dialog.whatsnew.title"));  // "What's New: Recent Versions of JSettlers"
+        super(strings.get("dialog.whatsnew.title"));  // "What's New: Recent Versions of JSettlers"
+
+        final int displayScale = cli.getMainDisplay().getDisplayScaleFactor();
+        setFont(new Font("Dialog", Font.PLAIN, 12 * displayScale));
+        setResizable(true);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
+        // TODO colors: see FCF & askdia after isOSHighContrast
+        // and maybe from pcli:
+        /*
+        SwingMainDisplay.scaleUIManagerFonts(displayScale);
+
+        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false, false);
+        if (colors != null)
+        {
+            frame.setBackground(colors[2]);  // SwingMainDisplay.JSETTLERS_BG_GREEN
+            frame.setForeground(colors[0]);  // Color.BLACK
+         */
+
+        infoText = new AskDialog.ScrollableHTMLJLabelPanel(buildHTML(cli));
+        Font ourfont = getFont();
+        // override fixed-width font in JFrame on win32
+        if (ourfont != null)
+            infoText.setFont(ourfont);
+        else
+            infoText.setFont(new Font("Dialog", Font.PLAIN, 12));
+        if (! isOSHighContrast)
+        {
+            infoText.setBackground(getBackground());  // avoid white background
+            infoText.setForeground(null);
+        }
+        JScrollPane pScroll = new JScrollPane(infoText);
+        pScroll.setOpaque(false);
+        add(pScroll, BorderLayout.CENTER);
+
+        // TODO FCF has addKeyListener(this) for window and buttons
+        okBut = new JButton(strings.get("base.ok"));
+        if (SOCPlayerClient.IS_PLATFORM_WINDOWS && ! isOSHighContrast)
+            // avoid gray corners on win32 JButtons
+            okBut.setBackground(null);
+        JPanel pBtns = new JPanel();
+        pBtns.setLayout(new FlowLayout(FlowLayout.CENTER));
+        pBtns.setBackground(null);
+        pBtns.add(okBut);
+        okBut.addActionListener(this);
+        add(pBtns, BorderLayout.SOUTH);
+        getRootPane().setDefaultButton(okBut);
+    }
+
+    /**
+     * OK button has been chosen by the user. Dispose of this dialog.
+     */
+    public void actionPerformed(ActionEvent e)
+    {
+        dispose();
     }
 
     /**
