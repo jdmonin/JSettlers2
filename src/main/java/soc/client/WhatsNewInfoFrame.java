@@ -64,7 +64,7 @@ import javax.swing.WindowConstants;
  * @since 2.7.00
  */
 @SuppressWarnings("serial")
-public class WhatsNewInfoDialog extends JFrame
+public class WhatsNewInfoFrame extends JFrame
     implements ActionListener, KeyListener
 {
     // TODO allow text selecton
@@ -85,7 +85,7 @@ public class WhatsNewInfoDialog extends JFrame
     protected final JButton okBut;
 
     /**
-     * Creates and shows a new {@link WhatsNewInfoDialog}.
+     * Creates and shows a new {@link WhatsNewInfoFrame}.
      * Calls {@link Window#pack()}, then checks size and position versus screen and reduces if needed to fit,
      * before it calls {@link Window#setVisible(boolean) setVisible(true)}.
      *<P>
@@ -95,10 +95,10 @@ public class WhatsNewInfoDialog extends JFrame
      * @throws NullPointerException  if cli is null
      * @throws IllegalArgumentException  if {@link SOCPlayerClient#getMainDisplay()} is null
      */
-    public static void createAndShow(SOCPlayerClient cli)
+    public static void createAndShow(final SOCPlayerClient cli)
         throws NullPointerException, IllegalArgumentException
     {
-        WhatsNewInfoDialog dia = new WhatsNewInfoDialog(cli);  // constructor checks for null cli, mainDisplay
+        WhatsNewInfoFrame dia = new WhatsNewInfoFrame(cli);  // constructor checks for null cli, mainDisplay
         dia.pack();
 
         Dimension preferred = dia.getSize();
@@ -114,13 +114,13 @@ public class WhatsNewInfoDialog extends JFrame
     }
 
     /**
-     * Creates a new WhatsNewInfoDialog.
+     * Creates a new {@link WhatsNewInfoFrame}.
      *
      * @param cli  Player client; not null, {@link SOCPlayerClient#getMainDisplay() cli.getMainDisplay()} not null
      * @throws NullPointerException  if cli is null
      * @throws IllegalArgumentException  if {@link SOCPlayerClient#getMainDisplay()} is null
      */
-    private WhatsNewInfoDialog(SOCPlayerClient cli)
+    private WhatsNewInfoFrame(final SOCPlayerClient cli)
         throws NullPointerException, IllegalArgumentException
     {
         super(strings.get("dialog.whatsnew.title"));  // "What's New: Recent Versions of JSettlers"
@@ -185,7 +185,7 @@ public class WhatsNewInfoDialog extends JFrame
     /**
      * Handle Enter or Esc key: Dispose of this dialog.
      */
-    public void keyPressed(KeyEvent e)
+    public void keyPressed(final KeyEvent e)
     {
         if (e.isConsumed())
             return;

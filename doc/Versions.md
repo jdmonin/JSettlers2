@@ -105,7 +105,7 @@ JARs for recent JSettlers versions can be downloaded from
 	        - BoardInfo: add optional field fogHiddenHexes
 	        - MODEL_VERSION still 2400; earlier server versions will ignore new fields while loading a savegame
 	- Robots: If SOCGame.restoreLargestArmyState called before saveLargestArmyState, do nothing
-	- AskDialog, NotifyDialog can now render basic html docs (used by WhatsNewInfoDialog)
+	- AskDialog, NotifyDialog can now render basic html docs using JLabel
 	- To help unit tests, SOCGame.initAtServer now calls startGame_setupDevCards
 	- To help unit tests which create games:
 	    - TestRecorder:

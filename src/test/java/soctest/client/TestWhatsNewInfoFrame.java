@@ -28,30 +28,30 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import soc.client.WhatsNewInfoDialog;
-import soc.client.WhatsNewInfoDialog.ReleaseNotesFromDirectory;
+import soc.client.WhatsNewInfoFrame;
+import soc.client.WhatsNewInfoFrame.ReleaseNotesFromDirectory;
 import soc.util.Version;
 
 /**
- * A few tests for the release notes read and shown by {@link WhatsNewInfoDialog}.
+ * A few tests for the release notes read and shown by {@link WhatsNewInfoFrame}.
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.7.00
  */
-public class TestWhatsNewInfoDialog
+public class TestWhatsNewInfoFrame
 {
     /**
-     * Test {@link WhatsNewInfoDialog.ReleaseNotesFromDirectory}
+     * Test {@link WhatsNewInfoFrame.ReleaseNotesFromDirectory}
      * and basic structure of files it reads.
      */
     @Test
     public void testReleaseNotesFromDirectory()
         throws IOException
     {
-        assertNotNull(WhatsNewInfoDialog.RELNOTES_RSRC_DIR_PATH);
-        assertTrue(WhatsNewInfoDialog.RELNOTES_RSRC_DIR_PATH.startsWith("/resources"));
+        assertNotNull(WhatsNewInfoFrame.RELNOTES_RSRC_DIR_PATH);
+        assertTrue(WhatsNewInfoFrame.RELNOTES_RSRC_DIR_PATH.startsWith("/resources"));
 
         final ReleaseNotesFromDirectory relnotes
-            = new WhatsNewInfoDialog.ReleaseNotesFromDirectory(WhatsNewInfoDialog.RELNOTES_RSRC_DIR_PATH);
+            = new WhatsNewInfoFrame.ReleaseNotesFromDirectory(WhatsNewInfoFrame.RELNOTES_RSRC_DIR_PATH);
         final TreeMap<String, String> notesHTML = relnotes.notesHTML;
         assertNotNull(notesHTML);
         assertFalse(notesHTML.isEmpty());
@@ -64,7 +64,7 @@ public class TestWhatsNewInfoDialog
         // but if nothing is longer than that buffer, the test isn't needed.
         // So, please comment it out until it's needed again by a later version's notes
         assertTrue("v2500 contents are longer than read buffer, to ensure read loop handles that",
-            WhatsNewInfoDialog.ReleaseNotesFromDirectory.BUFFER_SIZE < notesHTML.get("v2500.html").length());
+            WhatsNewInfoFrame.ReleaseNotesFromDirectory.BUFFER_SIZE < notesHTML.get("v2500.html").length());
 
         final String versFnamePatternRegex = "^v(\\d{4})\\.html$";
         final Pattern versFnamePattern = Pattern.compile(versFnamePatternRegex);
@@ -93,7 +93,7 @@ public class TestWhatsNewInfoDialog
                 assertEquals(fname + ": should start with " + expectHtmlStart,
                     expectHtmlStart, html.substring(0, L));
             } else {
-                fail("Stray file, name doesn't match pattern, under " + WhatsNewInfoDialog.RELNOTES_RSRC_DIR_PATH
+                fail("Stray file, name doesn't match pattern, under " + WhatsNewInfoFrame.RELNOTES_RSRC_DIR_PATH
                     + ": " + fname);
             }
         }

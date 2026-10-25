@@ -1200,7 +1200,7 @@ Then: `git tag -a release-2.4.00 -m 'Version 2.4.00 is build JM20200704'`
 
 After bumping version to start developing the next release,
 commit a new file for its brief release notes into
-`src/main/resources/resources/releaseNotes` for `WhatsNewInfoDialog`.
+`src/main/resources/resources/releaseNotes` for `WhatsNewInfoFrame`.
 Keep that updated during development.
 
 ### Historical info

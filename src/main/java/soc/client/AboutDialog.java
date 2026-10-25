@@ -109,11 +109,11 @@ import soc.util.Version;
     }
 
     /**
-     * React to the "What's New" button.
+     * React to the "What's New" button: Show {@link WhatsNewInfoFrame}.
      */
     public void button1Chosen()
     {
-        WhatsNewInfoDialog.createAndShow(cli);
+        WhatsNewInfoFrame.createAndShow(cli);
     }
 
     /**
