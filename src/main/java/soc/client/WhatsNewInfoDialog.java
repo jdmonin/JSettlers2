@@ -29,6 +29,8 @@ import java.awt.Rectangle;
 import java.awt.Window;  // for jdocs
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -63,7 +65,7 @@ import javax.swing.WindowConstants;
  */
 @SuppressWarnings("serial")
 public class WhatsNewInfoDialog extends JFrame
-    implements ActionListener
+    implements ActionListener, KeyListener
 {
     // TODO allow text selecton
     // TODO can we make URLs clickable?
@@ -123,22 +125,22 @@ public class WhatsNewInfoDialog extends JFrame
     {
         super(strings.get("dialog.whatsnew.title"));  // "What's New: Recent Versions of JSettlers"
 
+        // Same color and font setup as AskDialog:
+
         final int displayScale = cli.getMainDisplay().getDisplayScaleFactor();
         setFont(new Font("Dialog", Font.PLAIN, 12 * displayScale));
         setResizable(true);
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         final boolean isOSHighContrast = SwingMainDisplay.isOSColorHighContrast();
-        // TODO colors: see FCF & askdia after isOSHighContrast
-        // and maybe from pcli:
-        /*
-        SwingMainDisplay.scaleUIManagerFonts(displayScale);
-
-        final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(false, false);
-        if (colors != null)
+        if (! isOSHighContrast)
         {
-            frame.setBackground(colors[2]);  // SwingMainDisplay.JSETTLERS_BG_GREEN
-            frame.setForeground(colors[0]);  // Color.BLACK
-         */
+            final Color[] colors = SwingMainDisplay.getForegroundBackgroundColors(true, false);
+            setBackground(colors[2]);  // SwingMainDisplay.DIALOG_BG_GOLDENROD
+            setForeground(colors[0]);  // Color.BLACK
+
+            getRootPane().setBackground(null);  // inherit
+            getContentPane().setBackground(null);
+        }
 
         infoText = new AskDialog.ScrollableHTMLJLabelPanel(buildHTML(cli));
         Font ourfont = getFont();
@@ -146,7 +148,7 @@ public class WhatsNewInfoDialog extends JFrame
         if (ourfont != null)
             infoText.setFont(ourfont);
         else
-            infoText.setFont(new Font("Dialog", Font.PLAIN, 12));
+            infoText.setFont(new Font("Dialog", Font.PLAIN, 12 * displayScale));
         if (! isOSHighContrast)
         {
             infoText.setBackground(getBackground());  // avoid white background
@@ -156,7 +158,6 @@ public class WhatsNewInfoDialog extends JFrame
         pScroll.setOpaque(false);
         add(pScroll, BorderLayout.CENTER);
 
-        // TODO FCF has addKeyListener(this) for window and buttons
         okBut = new JButton(strings.get("base.ok"));
         if (SOCPlayerClient.IS_PLATFORM_WINDOWS && ! isOSHighContrast)
             // avoid gray corners on win32 JButtons
@@ -168,6 +169,9 @@ public class WhatsNewInfoDialog extends JFrame
         okBut.addActionListener(this);
         add(pBtns, BorderLayout.SOUTH);
         getRootPane().setDefaultButton(okBut);
+
+        addKeyListener(this);     // To handle Enter, Esc keys.
+        okBut.addKeyListener(this);  // (win32: Keyboard focus will be on these buttons)
     }
 
     /**
@@ -177,6 +181,31 @@ public class WhatsNewInfoDialog extends JFrame
     {
         dispose();
     }
+
+    /**
+     * Handle Enter or Esc key: Dispose of this dialog.
+     */
+    public void keyPressed(KeyEvent e)
+    {
+        if (e.isConsumed())
+            return;
+
+        switch (e.getKeyCode())
+        {
+        case KeyEvent.VK_ENTER:
+        case KeyEvent.VK_CANCEL:
+        case KeyEvent.VK_ESCAPE:
+            dispose();
+            e.consume();
+            break;
+        }
+    }
+
+    /** Stub required by KeyListener */
+    public void keyReleased(KeyEvent arg0) { }
+
+    /** Stub required by KeyListener */
+    public void keyTyped(KeyEvent arg0) { }
 
     /**
      * Build the body text HTML; called by constructor.
