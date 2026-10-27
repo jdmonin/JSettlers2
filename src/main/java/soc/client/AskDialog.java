@@ -875,6 +875,7 @@ public abstract class AskDialog extends JDialog
         {
             setLayout(new BorderLayout());
             label = new JLabel(html);
+            label.setBorder(BorderFactory.createEmptyBorder(MSG_BORDER, MSG_BORDER, MSG_BORDER, MSG_BORDER));
             add(label, BorderLayout.CENTER);
         }
 
