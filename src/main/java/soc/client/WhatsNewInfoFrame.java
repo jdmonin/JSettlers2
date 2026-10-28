@@ -142,7 +142,7 @@ public class WhatsNewInfoFrame extends JFrame
             getContentPane().setBackground(null);
         }
 
-        infoText = new AskDialog.ScrollableHTMLJLabelPanel(buildHTML(cli));
+        infoText = new AskDialog.ScrollableHTMLPanel(buildHTML(cli));
         Font ourfont = getFont();
         // override fixed-width font in JFrame on win32
         if (ourfont != null)

@@ -48,8 +48,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.text.Document;
+import javax.swing.text.html.HTMLDocument;
 
 /**
  * This is the generic modal dialog to ask players a two- or three-choice question;
@@ -425,7 +429,7 @@ public abstract class AskDialog extends JDialog
                 final JComponent pmsg;
                 if (prompt.startsWith("<html>"))
                 {
-                    pmsg = new ScrollableHTMLJLabelPanel(prompt);
+                    pmsg = new ScrollableHTMLPanel(prompt);
                 } else {
                     pmsg =  new JTextArea(prompt);
                     ((JTextArea) pmsg).setEditable(false);
@@ -853,30 +857,60 @@ public abstract class AskDialog extends JDialog
     }
 
     /**
-     * Panel which holds an html-containing {@link JLabel},
+     * Panel which holds a read-only html-containing {@link JTextPane},
      * intended to be placed within a {@link JScrollPane} and match its width
      * within a BorderLayout's {@link BorderLayout#CENTER},
      * which causes the rendered html to word-wrap properly.
      *<P>
      * This panel's {@link Scrollable#getScrollableTracksViewportWidth()} returns {@code true},
-     * which prevents the JLabel from fighting the scrollpane for how wide to be,
-     * so it won't end up wider than the dialog window holding the BorderLayout and JLabel
+     * which prevents the JTextPane from fighting the scrollpane for how wide to be,
+     * so it won't end up wider than the dialog window holding the BorderLayout and JTextPane
      * instead of word-wrapping.
+     *<P>
+     * The {@link JLabel} class is almost a perfect fit for this, but doesn't let the user select text,
+     * and we want to allow copy to clipboard, so we use {@link JTextPane} even though it needs more setup here.
      *
      * @since 2.7.00
      */
-    public static class ScrollableHTMLJLabelPanel
+    public static class ScrollableHTMLPanel
         extends JPanel implements Scrollable
     {
-        public final JLabel label;
+        public final JTextPane txtPane;
 
-        public ScrollableHTMLJLabelPanel
+        /**
+         * Create a new panel containing certain html text.
+         * @param html The HTML text to display; should start with {@code "<html>"} (case-sensitive).
+         */
+        public ScrollableHTMLPanel
             (final String html)
         {
             setLayout(new BorderLayout());
-            label = new JLabel(html);
-            label.setBorder(BorderFactory.createEmptyBorder(MSG_BORDER, MSG_BORDER, MSG_BORDER, MSG_BORDER));
-            add(label, BorderLayout.CENTER);
+
+            final JTextPane tp = new JTextPane();
+            tp.setContentType("text/html");
+            tp.setText(html);
+            tp.setEditable(false);
+            tp.setOpaque(false);
+            tp.setFocusable(true);  // so can highlight text to copy to clipboard
+            tp.setCaretPosition(0);  // show start of html, not end of it
+            tp.setBorder(BorderFactory.createEmptyBorder(MSG_BORDER, MSG_BORDER, MSG_BORDER, MSG_BORDER));
+
+            // try to use the default label font instead of JTextPane's default serif font
+            {
+                final Document doc = tp.getDocument();
+                if (doc instanceof HTMLDocument)  // should be html; check just in case
+                {
+                    Font font = UIManager.getFont("Label.font");
+                    String bodyRule = "body { font-family: " + font.getFamily() + "; " +
+                        "font-size: " + font.getSize() + "pt; }";
+                    ((HTMLDocument) doc).getStyleSheet().addRule(bodyRule);
+                }
+            }
+
+            add(tp, BorderLayout.CENTER);
+            txtPane = tp;
+
+            // TODO copy menu, like chatTextArea
         }
 
         public boolean getScrollableTracksViewportWidth()
