@@ -35,8 +35,12 @@ import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
 import java.awt.SystemColor;
 import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -62,6 +66,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
@@ -113,7 +118,8 @@ import soc.util.Version;
  * Should be added directly to a {@link JFrame} or other {@link Frame}, not a subcontainer.
  *<P>
  * Also holds some GUI utility methods like {@link #checkDisplayScaleFactor(Component)},
- * {@link #underlineComponentFont(Component)}, and {@link #isOSColorHighContrast()}.
+ * {@link #underlineComponentFont(Component)}, {@link #isOSColorHighContrast()},
+ * and {@link #textComponentAddClipboardContextMenu(JTextComponent, SOCStringManager)}.
  *<P>
  * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
  * Also converted from AWT to Swing in v2.0.00.
@@ -2921,6 +2927,69 @@ public class SwingMainDisplay extends JPanel implements MainDisplay
 
         // Reset the cursor
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+    }
+
+    /**
+     * Utility - Add context menu to a TextField/TextArea for Select All and Copy to Clipboard.
+     * Assumes {@code tfield} is read-only, not editable, so doesn't include Cut or Paste.
+     *<P>
+     * Tested with {@link javax.swing.JTextPane} so far, not yet {@link JTextArea}.
+     *
+     * @param tfield Textfield to add to
+     * @param strings String manager to get localized "Copy" and "Select All"
+     * @since 2.7.00
+     */
+    /* package */ static void textComponentAddClipboardContextMenu
+        (final JTextComponent tfield, final SOCStringManager strings)
+    {
+        // The same code but for a TextComponent is in SOCPlayerInterface.
+        // If you change this method in one place, please update in the other too.
+
+        final PopupMenu menu = new PopupMenu();
+
+        MenuItem mi = new MenuItem(strings.get("menu.copy"));  // "Copy"
+        mi.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                try
+                {
+                    final StringSelection data = new StringSelection(tfield.getSelectedText());
+                    final Clipboard cb = tfield.getToolkit().getSystemClipboard();
+                    if (cb != null)
+                        cb.setContents(data, data);
+                } catch (Exception e) {}  // security, or clipboard unavailable
+            }
+        });
+        menu.add(mi);
+
+        mi = new MenuItem(strings.get("menu.select_all"));  // "Select All"
+        mi.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent ae)
+            {
+                tfield.selectAll();
+                tfield.repaint();
+            }
+        });
+        menu.add(mi);
+
+        tfield.add(menu);
+        tfield.addMouseListener(new MouseAdapter()
+        {
+            // different platforms have different popupTriggers for their context menus,
+            // so check several types of mouse event:
+            public void mouseReleased(MouseEvent e) { mouseClicked(e); }
+            public void mousePressed(MouseEvent e)  { mouseClicked(e); }
+            public void mouseClicked(MouseEvent e)
+            {
+                if (! e.isPopupTrigger())
+                    return;
+
+                e.consume();
+                menu.show(tfield, e.getX(), e.getY());
+            }
+        });
     }
 
 

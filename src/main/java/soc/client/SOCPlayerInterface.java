@@ -1365,6 +1365,9 @@ public class SOCPlayerInterface extends JFrame
      */
     private static void textComponentAddClipboardContextMenu(final TextComponent tfield)
     {
+        // The same code but for a JTextComponent is in SwingMainDisplay.
+        // If you change this method in one place, please update in the other too.
+
         final PopupMenu menu = new PopupMenu();
 
         MenuItem mi = new MenuItem(strings.get("menu.copy"));  // "Copy"

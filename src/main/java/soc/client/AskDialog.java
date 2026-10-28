@@ -910,7 +910,7 @@ public abstract class AskDialog extends JDialog
             add(tp, BorderLayout.CENTER);
             txtPane = tp;
 
-            // TODO copy menu, like chatTextArea
+            SwingMainDisplay.textComponentAddClipboardContextMenu(tp, strings);
         }
 
         public boolean getScrollableTracksViewportWidth()
